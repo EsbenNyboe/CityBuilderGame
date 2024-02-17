@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using CodeMonkey.Utils;
@@ -11,6 +12,13 @@ public class Grid<TGridObject>
     private Vector3 _originPosition;
     private TGridObject[,] _gridArray;
     private TextMesh[,] _debugTextArray;
+
+    public event EventHandler<OnGridValueChangedEventArgs> OnGridValueChanged;
+    public class OnGridValueChangedEventArgs : EventArgs
+    {
+        public int x;
+        public int y;
+    }
 
     public Grid(int width, int height, float cellSize, Vector3 originPosition)
     {
@@ -42,6 +50,20 @@ public class Grid<TGridObject>
         }
     }
 
+    public int GetWidth()
+    {
+        return _width;
+    }
+
+    public int GetHeight()
+    {
+        return _height;
+    }
+    public float GetCellSize()
+    {
+        return _cellSize;
+    }
+
     public void SetValueAtPosition(Vector3 worldPosition, TGridObject value)
     {
         int x, y;
@@ -58,6 +80,10 @@ public class Grid<TGridObject>
 
         _gridArray[x, y] = value;
         _debugTextArray[x, y].text = _gridArray[x, y].ToString();
+        if (OnGridValueChanged != null)
+        {
+            OnGridValueChanged(this, new OnGridValueChangedEventArgs { x = x, y = y });
+        }
     }
 
     public TGridObject GetValueAtPosition(Vector3 worldPosition)
@@ -77,7 +103,7 @@ public class Grid<TGridObject>
         return _gridArray[x, y];
     }
 
-    private Vector3 GetPositionAtCoordinate(int x, int y)
+    public Vector3 GetPositionAtCoordinate(int x, int y)
     {
         return new Vector3(x, y) * _cellSize + _originPosition;
     }
