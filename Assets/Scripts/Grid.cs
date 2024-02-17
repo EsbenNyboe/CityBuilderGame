@@ -12,6 +12,7 @@ public class Grid<TGridObject>
     private Vector3 _originPosition;
     private TGridObject[,] _gridArray;
     private TextMesh[,] _debugTextArray;
+    private bool _showDebug = true;
 
     public event EventHandler<OnGridValueChangedEventArgs> OnGridValueChanged;
     public class OnGridValueChangedEventArgs : EventArgs
@@ -26,9 +27,14 @@ public class Grid<TGridObject>
         _height = height;
         _cellSize = cellSize;
         _originPosition = originPosition;
+        _gridArray = new TGridObject[_width, _height];
 
-        _gridArray = new TGridObject[width, height];
-        _debugTextArray = new TextMesh[width, height];
+        if (!_showDebug)
+        {
+            return;
+        }
+
+        _debugTextArray = new TextMesh[_width, _height];
 
         for (int x = 0; x < _gridArray.GetLength(0); x++)
         {
@@ -37,7 +43,7 @@ public class Grid<TGridObject>
                 _debugTextArray[x, y] = UtilsClass.CreateWorldText(
                     _gridArray[x, y].ToString(),
                     null,
-                    GetPositionAtCoordinate(x, y) + new Vector3(cellSize, cellSize) * 0.5f,
+                    GetPositionAtCoordinate(x, y) + new Vector3(_cellSize, _cellSize) * 0.5f,
                     20,
                     Color.white,
                     TextAnchor.MiddleCenter);
@@ -45,8 +51,8 @@ public class Grid<TGridObject>
                 Debug.DrawLine(GetPositionAtCoordinate(x, y), GetPositionAtCoordinate(x + 1, y), Color.white, 100f);
             }
 
-            Debug.DrawLine(GetPositionAtCoordinate(0, height), GetPositionAtCoordinate(width, height), Color.white, 100f);
-            Debug.DrawLine(GetPositionAtCoordinate(width, 0), GetPositionAtCoordinate(width, height), Color.white, 100f);
+            Debug.DrawLine(GetPositionAtCoordinate(0, _height), GetPositionAtCoordinate(_width, _height), Color.white, 100f);
+            Debug.DrawLine(GetPositionAtCoordinate(_width, 0), GetPositionAtCoordinate(_width, _height), Color.white, 100f);
         }
     }
 
@@ -79,7 +85,10 @@ public class Grid<TGridObject>
         }
 
         _gridArray[x, y] = value;
-        _debugTextArray[x, y].text = _gridArray[x, y].ToString();
+        if (_showDebug)
+        {
+            _debugTextArray[x, y].text = _gridArray[x, y].ToString();
+        }
         if (OnGridValueChanged != null)
         {
             OnGridValueChanged(this, new OnGridValueChangedEventArgs { x = x, y = y });

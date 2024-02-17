@@ -64,9 +64,24 @@ public class HeatMapVisualCustom : MonoBehaviour
         _grid.GetCoordinateAtPosition(position, out int originX, out int originY);
         for (int x = 0; x < range; x++)
         {
-            for (int y = 0; y < range; y++)
+            for (int y = 0; y < range - x; y++)
             {
                 AddValueAtCoordinate(originX + x, originY + y, value);
+
+                if (x != 0)
+                {
+                    AddValueAtCoordinate(originX - x, originY + y, value);
+                }
+
+                if (y != 0)
+                {
+                    AddValueAtCoordinate(originX + x, originY - y, value);
+
+                    if (x != 0)
+                    {
+                        AddValueAtCoordinate(originX - x, originY - y, value);
+                    }
+                }
             }
         }
     }
