@@ -22,20 +22,13 @@ public class GridTestingScript : MonoBehaviour
 
     private void Update()
     {
-        //if (Input.GetMouseButton(0))
-        //{
-        //    _grid.SetValueAtPosition(UtilsClass.GetMouseWorldPosition(), 1);
-        //}
-
-
-
         if (Input.GetMouseButtonDown(0))
         {
             var mousePosition = UtilsClass.GetMouseWorldPosition();
             var currentValue = _grid.GetValueAtPosition(mousePosition);
             //_grid.SetValueAtPosition(mousePosition, currentValue + 5);
 
-            _heatMapVisual.AddValueAtPosition(mousePosition, 5, 5);
+            _heatMapVisual.AddValueAtPosition(mousePosition, 100, 5, 40);
         }
 
         if (Input.GetMouseButtonDown(1))

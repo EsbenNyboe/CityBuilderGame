@@ -9,6 +9,7 @@ public class HeatMapVisualCustom : MonoBehaviour
 
     private Grid<int> _grid;
     private Mesh _mesh;
+    private bool _updateMesh;
 
     private void Awake()
     {
@@ -26,7 +27,16 @@ public class HeatMapVisualCustom : MonoBehaviour
 
     private void Grid_OnGridValueChanged(object sender, Grid<int>.OnGridValueChangedEventArgs e)
     {
-        UpdateHeatVisuals();
+        _updateMesh = true;
+    }
+
+    private void LateUpdate()
+    {
+        if (_updateMesh)
+        {
+            _updateMesh = false;
+            UpdateHeatVisuals();
+        }
     }
 
     private void UpdateHeatVisuals()
@@ -59,27 +69,36 @@ public class HeatMapVisualCustom : MonoBehaviour
         _grid.SetValueAtCoordinate(x, y, newValue);
     }
 
-    public void AddValueAtPosition(Vector3 position, int value, int range)
+    public void AddValueAtPosition(Vector3 position, int value, int fullValueRange, int totalRange)
     {
+        int lowerValueAmount = Mathf.RoundToInt((float)value / (totalRange - fullValueRange));
+
         _grid.GetCoordinateAtPosition(position, out int originX, out int originY);
-        for (int x = 0; x < range; x++)
+        for (int x = 0; x < totalRange; x++)
         {
-            for (int y = 0; y < range - x; y++)
+            for (int y = 0; y < totalRange - x; y++)
             {
-                AddValueAtCoordinate(originX + x, originY + y, value);
+                int radius = x + y;
+                int addValueAmount = value;
+                if (radius > fullValueRange)
+                {
+                    addValueAmount -= lowerValueAmount * (radius - fullValueRange);
+                }
+
+                AddValueAtCoordinate(originX + x, originY + y, addValueAmount);
 
                 if (x != 0)
                 {
-                    AddValueAtCoordinate(originX - x, originY + y, value);
+                    AddValueAtCoordinate(originX - x, originY + y, addValueAmount);
                 }
 
                 if (y != 0)
                 {
-                    AddValueAtCoordinate(originX + x, originY - y, value);
+                    AddValueAtCoordinate(originX + x, originY - y, addValueAmount);
 
                     if (x != 0)
                     {
-                        AddValueAtCoordinate(originX - x, originY - y, value);
+                        AddValueAtCoordinate(originX - x, originY - y, addValueAmount);
                     }
                 }
             }

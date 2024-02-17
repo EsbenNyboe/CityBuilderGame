@@ -12,7 +12,7 @@ public class Grid<TGridObject>
     private Vector3 _originPosition;
     private TGridObject[,] _gridArray;
     private TextMesh[,] _debugTextArray;
-    private bool _showDebug = true;
+    private bool _showDebug = false;
 
     public event EventHandler<OnGridValueChangedEventArgs> OnGridValueChanged;
     public class OnGridValueChangedEventArgs : EventArgs
