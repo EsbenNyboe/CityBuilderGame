@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using CodeMonkey.Utils;
 using UnityEngine;
 
-public class Grid
+public class Grid<TGridObject>
 {
     private int _width;
     private int _height;
     private float _cellSize;
     private Vector3 _originPosition;
-    private int[,] _gridArray;
+    private TGridObject[,] _gridArray;
     private TextMesh[,] _debugTextArray;
 
     public Grid(int width, int height, float cellSize, Vector3 originPosition)
@@ -19,7 +19,7 @@ public class Grid
         _cellSize = cellSize;
         _originPosition = originPosition;
 
-        _gridArray = new int[width, height];
+        _gridArray = new TGridObject[width, height];
         _debugTextArray = new TextMesh[width, height];
 
         for (int x = 0; x < _gridArray.GetLength(0); x++)
@@ -42,14 +42,14 @@ public class Grid
         }
     }
 
-    public void SetValueAtPosition(Vector3 worldPosition, int value)
+    public void SetValueAtPosition(Vector3 worldPosition, TGridObject value)
     {
         int x, y;
         GetCoordinateAtPosition(worldPosition, out x, out y);
         SetValueAtCoordinate(x, y, value);
     }
 
-    public void SetValueAtCoordinate(int x, int y, int value)
+    public void SetValueAtCoordinate(int x, int y, TGridObject value)
     {
         if (x < 0 || y < 0 || x >= _width || y >= _height)
         {
@@ -60,18 +60,18 @@ public class Grid
         _debugTextArray[x, y].text = _gridArray[x, y].ToString();
     }
 
-    public int GetValueAtPosition(Vector3 worldPosition)
+    public TGridObject GetValueAtPosition(Vector3 worldPosition)
     {
         int x, y;
         GetCoordinateAtPosition(worldPosition, out x, out y);
         return GetValueAtCoordinate(x, y);
     }
 
-    public int GetValueAtCoordinate(int x, int y)
+    public TGridObject GetValueAtCoordinate(int x, int y)
     {
         if (x < 0 || y < 0 || x >= _width || y >= _height)
         {
-            return -1;
+            return default(TGridObject);
         }
 
         return _gridArray[x, y];
