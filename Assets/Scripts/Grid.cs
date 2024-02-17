@@ -29,31 +29,27 @@ public class Grid
                 _debugTextArray[x, y] = UtilsClass.CreateWorldText(
                     _gridArray[x, y].ToString(),
                     null,
-                    GetWorldPosition(x, y) + new Vector3(cellSize, cellSize) * 0.5f,
+                    GetPositionAtCoordinate(x, y) + new Vector3(cellSize, cellSize) * 0.5f,
                     20,
                     Color.white,
                     TextAnchor.MiddleCenter);
-                Debug.DrawLine(GetWorldPosition(x, y), GetWorldPosition(x, y + 1), Color.white, 100f);
-                Debug.DrawLine(GetWorldPosition(x, y), GetWorldPosition(x + 1, y), Color.white, 100f);
+                Debug.DrawLine(GetPositionAtCoordinate(x, y), GetPositionAtCoordinate(x, y + 1), Color.white, 100f);
+                Debug.DrawLine(GetPositionAtCoordinate(x, y), GetPositionAtCoordinate(x + 1, y), Color.white, 100f);
             }
 
-            Debug.DrawLine(GetWorldPosition(0, height), GetWorldPosition(width, height), Color.white, 100f);
-            Debug.DrawLine(GetWorldPosition(width, 0), GetWorldPosition(width, height), Color.white, 100f);
+            Debug.DrawLine(GetPositionAtCoordinate(0, height), GetPositionAtCoordinate(width, height), Color.white, 100f);
+            Debug.DrawLine(GetPositionAtCoordinate(width, 0), GetPositionAtCoordinate(width, height), Color.white, 100f);
         }
     }
 
-    private Vector3 GetWorldPosition(int x, int y)
+    public void SetValueAtPosition(Vector3 worldPosition, int value)
     {
-        return new Vector3(x, y) * _cellSize + _originPosition;
+        int x, y;
+        GetCoordinateAtPosition(worldPosition, out x, out y);
+        SetValueAtCoordinate(x, y, value);
     }
 
-    private void GetXY(Vector3 worldPosition, out int x, out int y)
-    {
-        x = Mathf.FloorToInt((worldPosition.x - _originPosition.x) / _cellSize);
-        y = Mathf.FloorToInt((worldPosition.y - _originPosition.y) / _cellSize);
-    }
-
-    public void SetValue(int x, int y, int value)
+    public void SetValueAtCoordinate(int x, int y, int value)
     {
         if (x < 0 || y < 0 || x >= _width || y >= _height)
         {
@@ -64,14 +60,14 @@ public class Grid
         _debugTextArray[x, y].text = _gridArray[x, y].ToString();
     }
 
-    public void SetValue(Vector3 worldPosition, int value)
+    public int GetValueAtPosition(Vector3 worldPosition)
     {
         int x, y;
-        GetXY(worldPosition, out x, out y);
-        SetValue(x, y, value);
+        GetCoordinateAtPosition(worldPosition, out x, out y);
+        return GetValueAtCoordinate(x, y);
     }
 
-    public int GetValue(int x, int y)
+    public int GetValueAtCoordinate(int x, int y)
     {
         if (x < 0 || y < 0 || x >= _width || y >= _height)
         {
@@ -81,10 +77,14 @@ public class Grid
         return _gridArray[x, y];
     }
 
-    public int GetValue(Vector3 worldPosition)
+    private Vector3 GetPositionAtCoordinate(int x, int y)
     {
-        int x, y;
-        GetXY(worldPosition, out x, out y);
-        return GetValue(x, y);
+        return new Vector3(x, y) * _cellSize + _originPosition;
     }
+
+    private void GetCoordinateAtPosition(Vector3 worldPosition, out int x, out int y)
+    {
+        x = Mathf.FloorToInt((worldPosition.x - _originPosition.x) / _cellSize);
+        y = Mathf.FloorToInt((worldPosition.y - _originPosition.y) / _cellSize);
+    }    
 }

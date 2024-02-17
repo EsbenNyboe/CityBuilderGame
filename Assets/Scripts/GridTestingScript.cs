@@ -15,12 +15,12 @@ public class GridTestingScript : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            _grid.SetValue(UtilsClass.GetMouseWorldPosition(), 56);
+            _grid.SetValueAtPosition(UtilsClass.GetMouseWorldPosition(), 56);
         }
 
         if (Input.GetMouseButtonDown(1))
         {
-            Debug.Log(_grid.GetValue(UtilsClass.GetMouseWorldPosition()));
+            Debug.Log(_grid.GetValueAtPosition(UtilsClass.GetMouseWorldPosition()));
         }
     }
 }
