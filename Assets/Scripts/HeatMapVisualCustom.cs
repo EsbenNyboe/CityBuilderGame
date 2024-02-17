@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class HeatMapVisualCustom : MonoBehaviour
 {
+    private const float HeatMapMaxValue = 100f;
+
     private Grid<int> _grid;
     private Mesh _mesh;
 
@@ -24,7 +26,6 @@ public class HeatMapVisualCustom : MonoBehaviour
 
     private void Grid_OnGridValueChanged(object sender, Grid<int>.OnGridValueChangedEventArgs e)
     {
-        Debug.Log("Grid updated");
         UpdateHeatVisuals();
     }
 
@@ -39,7 +40,11 @@ public class HeatMapVisualCustom : MonoBehaviour
                 int index = x * _grid.GetHeight() + y;
                 Vector3 quadSize = new Vector3(1, 1) * _grid.GetCellSize();
 
-                MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, _grid.GetPositionAtCoordinate(x, y) + quadSize * 0.5f, 0f, quadSize, Vector2.zero, Vector2.zero);
+                int gridValue = _grid.GetValueAtCoordinate(x, y);
+                float gridValueNormalized = gridValue / HeatMapMaxValue;
+                Vector2 gridValueUV = new Vector2(gridValueNormalized, 0f);
+
+                MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, _grid.GetPositionAtCoordinate(x, y) + quadSize * 0.5f, 0f, quadSize, gridValueUV, gridValueUV);
             }
         }
 

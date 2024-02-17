@@ -31,7 +31,7 @@ public class GridTestingScript : MonoBehaviour
         {
             var mousePosition = UtilsClass.GetMouseWorldPosition();
             var currentValue = _grid.GetValueAtPosition(mousePosition);
-            _grid.SetValueAtPosition(mousePosition, currentValue + 1);
+            _grid.SetValueAtPosition(mousePosition, currentValue + 5);
         }
 
         if (Input.GetMouseButtonDown(1))
