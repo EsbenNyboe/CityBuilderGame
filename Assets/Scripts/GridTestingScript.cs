@@ -9,11 +9,13 @@ public class GridTestingScript : MonoBehaviour
     [SerializeField] private HeatMapVisualCustom _heatMapVisual;
     private Grid<int> _grid;
 
+    [SerializeField] private int _width;
+    [SerializeField] private int _height;
     [SerializeField] private float _cellDiameter;
 
     private void Start()
     {
-        _grid = new Grid<int>(4, 4, _cellDiameter, new Vector3(-20, -10));
+        _grid = new Grid<int>(_width, _height, _cellDiameter, new Vector3(-20, -10));
 
         _heatMapVisual.SetGrid(_grid);
     }
@@ -31,7 +33,9 @@ public class GridTestingScript : MonoBehaviour
         {
             var mousePosition = UtilsClass.GetMouseWorldPosition();
             var currentValue = _grid.GetValueAtPosition(mousePosition);
-            _grid.SetValueAtPosition(mousePosition, currentValue + 5);
+            //_grid.SetValueAtPosition(mousePosition, currentValue + 5);
+
+            _heatMapVisual.AddValueAtPosition(mousePosition, 5, 5);
         }
 
         if (Input.GetMouseButtonDown(1))

@@ -108,7 +108,7 @@ public class Grid<TGridObject>
         return new Vector3(x, y) * _cellSize + _originPosition;
     }
 
-    private void GetCoordinateAtPosition(Vector3 worldPosition, out int x, out int y)
+    public void GetCoordinateAtPosition(Vector3 worldPosition, out int x, out int y)
     {
         x = Mathf.FloorToInt((worldPosition.x - _originPosition.x) / _cellSize);
         y = Mathf.FloorToInt((worldPosition.y - _originPosition.y) / _cellSize);

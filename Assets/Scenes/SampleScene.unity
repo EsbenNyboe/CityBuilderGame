@@ -153,6 +153,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _heatMapVisual: {fileID: 1107968191}
+  _width: 10
+  _height: 10
   _cellDiameter: 2.5
 --- !u!4 &7639713
 Transform:

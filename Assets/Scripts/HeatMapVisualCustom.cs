@@ -53,4 +53,21 @@ public class HeatMapVisualCustom : MonoBehaviour
         _mesh.triangles = triangles;
     }
 
+    private void AddValueAtCoordinate(int x, int y, int value)
+    {
+        var newValue = _grid.GetValueAtCoordinate(x, y) + value;
+        _grid.SetValueAtCoordinate(x, y, newValue);
+    }
+
+    public void AddValueAtPosition(Vector3 position, int value, int range)
+    {
+        _grid.GetCoordinateAtPosition(position, out int originX, out int originY);
+        for (int x = 0; x < range; x++)
+        {
+            for (int y = 0; y < range; y++)
+            {
+                AddValueAtCoordinate(originX + x, originY + y, value);
+            }
+        }
+    }
 }
