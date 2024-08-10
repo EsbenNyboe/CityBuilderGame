@@ -50,6 +50,8 @@ public partial class PlayerShootingSystem : SystemBase
             });
 
             OnShoot?.Invoke(entity, EventArgs.Empty);
+
+            PlayerShootManager.Instance.PlayerShoot(localTransform.ValueRO.Position);
         }
 
         entityCommandBuffer.Playback(EntityManager);
