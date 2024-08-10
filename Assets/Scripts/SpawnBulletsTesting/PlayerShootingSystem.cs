@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -51,7 +52,7 @@ public partial class PlayerShootingSystem : SystemBase
 
             OnShoot?.Invoke(entity, EventArgs.Empty);
 
-            PlayerShootManager.Instance.PlayerShoot(localTransform.ValueRO.Position);
+            PlayerShootingManager.Instance.PlayerShoot(localTransform.ValueRO.Position);
         }
 
         entityCommandBuffer.Playback(EntityManager);

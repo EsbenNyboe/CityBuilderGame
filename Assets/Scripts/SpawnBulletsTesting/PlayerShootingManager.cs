@@ -1,9 +1,9 @@
 using UnityEngine;
 
-public class PlayerShootManager : MonoBehaviour
+public class PlayerShootingManager : MonoBehaviour
 {
     [SerializeField] private GameObject _shootPopupPrefab;
-    public static PlayerShootManager Instance { get; private set; }
+    public static PlayerShootingManager Instance { get; private set; }
 
     private void Awake()
     {
