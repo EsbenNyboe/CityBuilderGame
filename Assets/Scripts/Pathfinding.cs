@@ -10,45 +10,61 @@
     --------------------------------------------------
  */
 
-using CodeMonkey.Utils;
-using Unity.Burst;
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class Pathfinding : MonoBehaviour
+public partial class Pathfinding : SystemBase
 {
     private const int MOVE_STRAIGHT_COST = 10;
     private const int MOVE_DIAGONAL_COST = 14;
 
-    private void Start()
+    protected override void OnUpdate()
     {
-        FunctionPeriodic.Create(() =>
+        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+        foreach (var (pathfindingParams, entity) in SystemAPI.Query<RefRO<PathfindingParams>>().WithEntityAccess())
         {
-            var startTime = Time.realtimeSinceStartup;
-
-            var findPathJobCount = 5;
-            var jobHandleArray = new NativeArray<JobHandle>(findPathJobCount, Allocator.TempJob);
-
-            for (var i = 0; i < findPathJobCount; i++)
+            Debug.Log("Find path");
+            var findPathJob = new FindPathJob
             {
-                var findPathJob = new FindPathJob
-                {
-                    startPosition = new int2(0, 0),
-                    endPosition = new int2(19, 19)
-                };
-                jobHandleArray[i] = findPathJob.Schedule();
-            }
+                startPosition = pathfindingParams.ValueRO.StartPosition,
+                endPosition = pathfindingParams.ValueRO.EndPosition
+            };
+            findPathJob.Run();
 
-            JobHandle.CompleteAll(jobHandleArray);
-            jobHandleArray.Dispose();
-
-            Debug.Log("Time: " + (Time.realtimeSinceStartup - startTime) * 1000f);
-        }, 1f);
+            entityCommandBuffer.RemoveComponent<PathfindingParams>(entity);
+        }
     }
 
-    [BurstCompile]
+    // private void Start()
+    // {
+    //     FunctionPeriodic.Create(() =>
+    //     {
+    //         var startTime = Time.realtimeSinceStartup;
+    //
+    //         var findPathJobCount = 5;
+    //         var jobHandleArray = new NativeArray<JobHandle>(findPathJobCount, Allocator.TempJob);
+    //
+    //         for (var i = 0; i < findPathJobCount; i++)
+    //         {
+    //             var findPathJob = new FindPathJob
+    //             {
+    //                 startPosition = new int2(0, 0),
+    //                 endPosition = new int2(19, 19)
+    //             };
+    //             jobHandleArray[i] = findPathJob.Schedule();
+    //         }
+    //
+    //         JobHandle.CompleteAll(jobHandleArray);
+    //         jobHandleArray.Dispose();
+    //
+    //         Debug.Log("Time: " + (Time.realtimeSinceStartup - startTime) * 1000f);
+    //     }, 1f);
+    // }
+
+    // [BurstCompile]
     private struct FindPathJob : IJob
     {
         public int2 startPosition;
@@ -208,7 +224,7 @@ public class Pathfinding : MonoBehaviour
             closedList.Dispose();
         }
 
-        [BurstDiscard]
+        // [BurstDiscard]
         private void DebugInfo(string message)
         {
             Debug.Log(message);
