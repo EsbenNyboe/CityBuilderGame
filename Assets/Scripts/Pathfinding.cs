@@ -32,12 +32,16 @@ public partial class Pathfinding : SystemBase
             {
                 StartPosition = pathfindingParams.ValueRO.StartPosition,
                 EndPosition = pathfindingParams.ValueRO.EndPosition,
+                Entity = entity,
+                PathFollowLookup = GetComponentLookup<PathFollow>(),
                 PathPositionBuffer = pathPositionBuffer
             };
             findPathJob.Run();
 
             entityCommandBuffer.RemoveComponent<PathfindingParams>(entity);
         }
+
+        entityCommandBuffer.Playback(EntityManager);
     }
 
     // [BurstCompile]
@@ -46,6 +50,8 @@ public partial class Pathfinding : SystemBase
         public int2 StartPosition;
         public int2 EndPosition;
 
+        public Entity Entity;
+        public ComponentLookup<PathFollow> PathFollowLookup;
         public DynamicBuffer<PathPosition> PathPositionBuffer;
 
         public void Execute()
@@ -184,11 +190,19 @@ public partial class Pathfinding : SystemBase
             {
                 // Didn't find a path!
                 // DebugInfo("Didn't find a path!");
+                PathFollowLookup[Entity] = new PathFollow
+                {
+                    PathIndex = -1
+                };
             }
             else
             {
                 // Found a path
                 CalculatePath(pathNodeArray, endNode, PathPositionBuffer);
+                PathFollowLookup[Entity] = new PathFollow
+                {
+                    PathIndex = PathPositionBuffer.Length - 1
+                };
             }
 
             pathNodeArray.Dispose();
