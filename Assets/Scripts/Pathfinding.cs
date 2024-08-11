@@ -24,13 +24,15 @@ public partial class Pathfinding : SystemBase
     protected override void OnUpdate()
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
-        foreach (var (pathfindingParams, entity) in SystemAPI.Query<RefRO<PathfindingParams>>().WithEntityAccess())
+        foreach (var (pathfindingParams, pathPositionBuffer, entity) in SystemAPI.Query<RefRO<PathfindingParams>, DynamicBuffer<PathPosition>>()
+                     .WithEntityAccess())
         {
             Debug.Log("Find path");
             var findPathJob = new FindPathJob
             {
-                startPosition = pathfindingParams.ValueRO.StartPosition,
-                endPosition = pathfindingParams.ValueRO.EndPosition
+                StartPosition = pathfindingParams.ValueRO.StartPosition,
+                EndPosition = pathfindingParams.ValueRO.EndPosition,
+                PathPositionBuffer = pathPositionBuffer
             };
             findPathJob.Run();
 
@@ -38,37 +40,13 @@ public partial class Pathfinding : SystemBase
         }
     }
 
-    // private void Start()
-    // {
-    //     FunctionPeriodic.Create(() =>
-    //     {
-    //         var startTime = Time.realtimeSinceStartup;
-    //
-    //         var findPathJobCount = 5;
-    //         var jobHandleArray = new NativeArray<JobHandle>(findPathJobCount, Allocator.TempJob);
-    //
-    //         for (var i = 0; i < findPathJobCount; i++)
-    //         {
-    //             var findPathJob = new FindPathJob
-    //             {
-    //                 startPosition = new int2(0, 0),
-    //                 endPosition = new int2(19, 19)
-    //             };
-    //             jobHandleArray[i] = findPathJob.Schedule();
-    //         }
-    //
-    //         JobHandle.CompleteAll(jobHandleArray);
-    //         jobHandleArray.Dispose();
-    //
-    //         Debug.Log("Time: " + (Time.realtimeSinceStartup - startTime) * 1000f);
-    //     }, 1f);
-    // }
-
     // [BurstCompile]
     private struct FindPathJob : IJob
     {
-        public int2 startPosition;
-        public int2 endPosition;
+        public int2 StartPosition;
+        public int2 EndPosition;
+
+        public DynamicBuffer<PathPosition> PathPositionBuffer;
 
         public void Execute()
         {
@@ -86,7 +64,7 @@ public partial class Pathfinding : SystemBase
                     pathNode.index = CalculateIndex(x, y, gridSize.x);
 
                     pathNode.gCost = int.MaxValue;
-                    pathNode.hCost = CalculateDistanceCost(new int2(x, y), endPosition);
+                    pathNode.hCost = CalculateDistanceCost(new int2(x, y), EndPosition);
                     pathNode.CalculateFCost();
 
                     pathNode.isWalkable = true;
@@ -121,9 +99,9 @@ public partial class Pathfinding : SystemBase
             neighbourOffsetArray[6] = new int2(+1, -1); // Right Down
             neighbourOffsetArray[7] = new int2(+1, +1); // Right Up
 
-            var endNodeIndex = CalculateIndex(endPosition.x, endPosition.y, gridSize.x);
+            var endNodeIndex = CalculateIndex(EndPosition.x, EndPosition.y, gridSize.x);
 
-            var startNode = pathNodeArray[CalculateIndex(startPosition.x, startPosition.y, gridSize.x)];
+            var startNode = pathNodeArray[CalculateIndex(StartPosition.x, StartPosition.y, gridSize.x)];
             startNode.gCost = 0;
             startNode.CalculateFCost();
             pathNodeArray[startNode.index] = startNode;
@@ -200,22 +178,17 @@ public partial class Pathfinding : SystemBase
                 }
             }
 
+            PathPositionBuffer.Clear();
             var endNode = pathNodeArray[endNodeIndex];
             if (endNode.cameFromNodeIndex == -1)
             {
                 // Didn't find a path!
-                DebugInfo("Didn't find a path!");
+                // DebugInfo("Didn't find a path!");
             }
             else
             {
                 // Found a path
-                var path = CalculatePath(pathNodeArray, endNode);
-                foreach (var pathPosition in path)
-                {
-                    DebugInfo(pathPosition.ToString());
-                }
-
-                path.Dispose();
+                CalculatePath(pathNodeArray, endNode, PathPositionBuffer);
             }
 
             pathNodeArray.Dispose();
@@ -228,6 +201,28 @@ public partial class Pathfinding : SystemBase
         private void DebugInfo(string message)
         {
             Debug.Log(message);
+        }
+
+        private void CalculatePath(NativeArray<PathNode> pathNodeArray, PathNode endNode, DynamicBuffer<PathPosition> pathPositionBuffer)
+        {
+            if (endNode.cameFromNodeIndex == -1)
+            {
+                // Couldn't find a path!
+            }
+
+            // Found a path
+            pathPositionBuffer.Add(new PathPosition
+            {
+                Position = new int2(endNode.x, endNode.y)
+            });
+
+            var currentNode = endNode;
+            while (currentNode.cameFromNodeIndex != -1)
+            {
+                var cameFromNode = pathNodeArray[currentNode.cameFromNodeIndex];
+                pathPositionBuffer.Add(new PathPosition { Position = new int2(cameFromNode.x, cameFromNode.y) });
+                currentNode = cameFromNode;
+            }
         }
 
         private NativeList<int2> CalculatePath(NativeArray<PathNode> pathNodeArray, PathNode endNode)
