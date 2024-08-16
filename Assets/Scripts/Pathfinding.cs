@@ -68,7 +68,7 @@ public partial class Pathfinding : SystemBase
 
                 pathNode.gCost = int.MaxValue;
 
-                pathNode.isWalkable = true;
+                pathNode.isWalkable = grid.GetGridObject(x, y).IsWalkable();
                 pathNode.cameFromNodeIndex = -1;
 
                 pathNodeArray[pathNode.index] = pathNode;
