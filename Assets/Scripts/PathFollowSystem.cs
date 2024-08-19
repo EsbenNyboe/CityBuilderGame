@@ -6,8 +6,8 @@ public partial class PathFollowSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        foreach (var (localTransform, pathPositionBuffer, pathFollow) in SystemAPI
-                     .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>>())
+        foreach (var (localTransform, pathPositionBuffer, pathFollow, entity) in SystemAPI
+                     .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>>().WithEntityAccess())
         {
             if (pathFollow.ValueRO.PathIndex < 0)
             {
@@ -17,7 +17,7 @@ public partial class PathFollowSystem : SystemBase
             var pathPosition = pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position;
             var targetPosition = new float3(pathPosition.x, pathPosition.y, 0);
             var moveDirection = math.normalizesafe(targetPosition - localTransform.ValueRO.Position);
-            var moveSpeed = 3f;
+            var moveSpeed = 5f;
 
             localTransform.ValueRW.Position += moveDirection * moveSpeed * SystemAPI.Time.DeltaTime;
 
