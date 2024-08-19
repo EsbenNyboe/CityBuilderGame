@@ -1,6 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 public partial class UnitPatrolSystem : SystemBase
@@ -72,6 +73,8 @@ public partial class UnitPatrolSystem : SystemBase
 
             GetRandomPosition(out endX, out endY);
         }
+
+        Debug.Log("Could not find walkable path");
     }
 
     private void ValidateGridPosition(ref int x, ref int y)

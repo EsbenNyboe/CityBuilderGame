@@ -37,7 +37,7 @@ public partial class Pathfinding : SystemBase
         foreach (var (pathfindingParams, pathPositionBuffer, entity) in SystemAPI.Query<RefRO<PathfindingParams>, DynamicBuffer<PathPosition>>()
                      .WithEntityAccess())
         {
-            Debug.Log("Find path");
+            // Debug.Log("Find path");
             var findPathJob = new FindPathJob
             {
                 GridSize = gridSize,
