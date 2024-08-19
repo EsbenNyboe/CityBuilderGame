@@ -40,7 +40,15 @@ public partial class UnitPatrolSystem : SystemBase
 
                     GetRandomPosition(out var endX, out var endY);
 
-                    ValidateWalkableTargetPosition(ref endX, ref endY);
+                    if (ValidateTargetPositionNotEqualToStartPosition(startX, startY, ref endX, ref endY) == false)
+                    {
+                        Debug.Log("Could not find new position on entity: " + entity);
+                    }
+
+                    if (ValidateWalkableTargetPosition(ref endX, ref endY) == false)
+                    {
+                        Debug.Log("Could not find walkable path on entity: " + entity);
+                    }
 
                     entityCommandBuffer.AddComponent(entity, new PathfindingParams
                     {
@@ -58,7 +66,26 @@ public partial class UnitPatrolSystem : SystemBase
         entityCommandBuffer.Playback(EntityManager);
     }
 
-    private void ValidateWalkableTargetPosition(ref int endX, ref int endY)
+    private bool ValidateTargetPositionNotEqualToStartPosition(int startX, int startY, ref int endX, ref int endY)
+    {
+        var maxAttempts = 10;
+        var currentAttempt = 0;
+
+        while (currentAttempt < maxAttempts)
+        {
+            currentAttempt++;
+            if (startX != endX && startY != endY)
+            {
+                return true;
+            }
+
+            GetRandomPosition(out endX, out endY);
+        }
+
+        return false;
+    }
+
+    private bool ValidateWalkableTargetPosition(ref int endX, ref int endY)
     {
         var maxAttempts = 10;
         var currentAttempt = 0;
@@ -68,13 +95,13 @@ public partial class UnitPatrolSystem : SystemBase
 
             if (PathfindingGridSetup.Instance.pathfindingGrid.GetGridObject(endX, endY).IsWalkable())
             {
-                return;
+                return true;
             }
 
             GetRandomPosition(out endX, out endY);
         }
 
-        Debug.Log("Could not find walkable path");
+        return false;
     }
 
     private void ValidateGridPosition(ref int x, ref int y)
