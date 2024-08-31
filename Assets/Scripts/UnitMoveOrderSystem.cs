@@ -8,6 +8,7 @@ public partial class UnitMoveOrderSystem : SystemBase
 {
     protected override void OnUpdate()
     {
+        return;
         if (!Input.GetMouseButtonDown(0))
         {
             return;
