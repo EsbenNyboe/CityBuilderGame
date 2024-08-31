@@ -471,6 +471,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SelectionArea: {fileID: 957593148}
+  UnitSelectedMaterial: {fileID: 2100000, guid: e441d8c27963f0e4489396531b4c064f, type: 2}
+  UnitSelectedMesh: {fileID: 0}
 --- !u!4 &487013237
 Transform:
   m_ObjectHideFlags: 0
