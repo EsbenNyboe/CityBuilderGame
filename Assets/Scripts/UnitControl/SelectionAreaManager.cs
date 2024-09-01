@@ -8,11 +8,13 @@ public class SelectionAreaManager : MonoBehaviour
     public Material UnitSelectedMaterial;
 
     [HideInInspector] public Mesh UnitSelectedMesh;
+    [SerializeField] private float _meshWidth;
+    [SerializeField] private float _meshHeight;
 
     private void Awake()
     {
         Instance = this;
 
-        UnitSelectedMesh = ECS_Animation.CreateMesh(5f, 10f);
+        UnitSelectedMesh = ECS_Animation.CreateMesh(_meshWidth, _meshHeight);
     }
 }
