@@ -40,6 +40,11 @@ public partial class UnitControlSystem : SystemBase
 
             var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
+            foreach (var (_,  entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
+            {
+                entityCommandBuffer.RemoveComponent(entity, typeof(UnitSelection));
+            }
+
             foreach (var (localTransform,  entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
             {
                 var entityPosition = localTransform.ValueRO.Position;
