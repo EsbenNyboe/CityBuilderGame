@@ -37,6 +37,14 @@ public partial class UnitControlSystem : SystemBase
 
             var lowerLeftPosition = new float3(math.min(startPosition.x, endPosition.x), math.min(startPosition.y, endPosition.y), 0);
             var upperRightPosition = new float3(math.max(startPosition.x, endPosition.x), math.max(startPosition.y, endPosition.y), 0);
+            var selectionAreaSize = math.distance(lowerLeftPosition, upperRightPosition);
+            var selectionAreaMinSize = 10f;
+            if (selectionAreaSize < selectionAreaMinSize)
+            {
+                lowerLeftPosition += new float3(-1, -1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.5f;
+                upperRightPosition += new float3(1, 1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.5f;
+            }
+
 
             var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
