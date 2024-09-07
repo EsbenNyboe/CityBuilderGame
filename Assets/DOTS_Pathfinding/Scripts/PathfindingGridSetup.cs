@@ -38,7 +38,7 @@ public class PathfindingGridSetup : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) && Input.GetKey(KeyCode.LeftControl))
         {
             var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathfindingGrid.GetCellSize() * .5f;
             var gridNode = pathfindingGrid.GetGridObject(mousePosition);
@@ -50,7 +50,7 @@ public class PathfindingGridSetup : MonoBehaviour
             }
         }
 
-        if (Input.GetMouseButton(1))
+        if (Input.GetMouseButton(1) && Input.GetKey(KeyCode.LeftControl))
         {
             var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathfindingGrid.GetCellSize() * .5f;
             var gridNode = pathfindingGrid.GetGridObject(mousePosition);

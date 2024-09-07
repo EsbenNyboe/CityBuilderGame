@@ -52,13 +52,13 @@ public partial class UnitControlSystem : SystemBase
 
             var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
-            foreach (var (_,  entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
+            foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
             {
                 entityCommandBuffer.RemoveComponent(entity, typeof(UnitSelection));
             }
 
             int selectedEntityCount = 0;
-            foreach (var (localTransform,  entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
+            foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
             {
                 if (selectOnlyOneEntity && selectedEntityCount > 0)
                 {
@@ -79,7 +79,7 @@ public partial class UnitControlSystem : SystemBase
             entityCommandBuffer.Playback(EntityManager);
         }
 
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) && !Input.GetKey(KeyCode.LeftControl))
         {
             // Right mouse button down
             float3 targetPosition = UtilsClass.GetMouseWorldPosition();
