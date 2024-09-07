@@ -41,8 +41,8 @@ public partial class UnitControlSystem : SystemBase
             var selectionAreaMinSize = 10f;
             if (selectionAreaSize < selectionAreaMinSize)
             {
-                lowerLeftPosition += new float3(-1, -1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.5f;
-                upperRightPosition += new float3(1, 1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.5f;
+                lowerLeftPosition += new float3(-1, -1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.05f;
+                upperRightPosition += new float3(1, 1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.05f;
             }
 
 
