@@ -16,6 +16,7 @@ public partial class SpawnAtRandomPositionSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        return;
         if (!Input.GetKeyDown(KeyCode.Space))
         {
             return;
