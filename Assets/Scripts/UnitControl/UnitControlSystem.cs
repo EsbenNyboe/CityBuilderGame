@@ -37,12 +37,15 @@ public partial class UnitControlSystem : SystemBase
 
             var lowerLeftPosition = new float3(math.min(startPosition.x, endPosition.x), math.min(startPosition.y, endPosition.y), 0);
             var upperRightPosition = new float3(math.max(startPosition.x, endPosition.x), math.max(startPosition.y, endPosition.y), 0);
+
+            bool selectOnlyOneEntity = false;
             var selectionAreaSize = math.distance(lowerLeftPosition, upperRightPosition);
-            var selectionAreaMinSize = 10f;
+            var selectionAreaMinSize = 2f;
             if (selectionAreaSize < selectionAreaMinSize)
             {
-                lowerLeftPosition += new float3(-1, -1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.05f;
-                upperRightPosition += new float3(1, 1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.05f;
+                lowerLeftPosition += new float3(-1, -1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.15f;
+                upperRightPosition += new float3(1, 1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.15f;
+                selectOnlyOneEntity = true;
             }
 
 
@@ -53,8 +56,14 @@ public partial class UnitControlSystem : SystemBase
                 entityCommandBuffer.RemoveComponent(entity, typeof(UnitSelection));
             }
 
+            int selectedEntityCount = 0;
             foreach (var (localTransform,  entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
             {
+                if (selectOnlyOneEntity && selectedEntityCount > 0)
+                {
+                    continue;
+                }
+
                 var entityPosition = localTransform.ValueRO.Position;
                 if (entityPosition.x >= lowerLeftPosition.x &&
                     entityPosition.y >= lowerLeftPosition.y &&
@@ -62,6 +71,7 @@ public partial class UnitControlSystem : SystemBase
                     entityPosition.y <= upperRightPosition.y)
                 {
                     entityCommandBuffer.AddComponent(entity, new UnitSelection());
+                    selectedEntityCount++;
                 }
             }
 
