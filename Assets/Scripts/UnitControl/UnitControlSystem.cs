@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CodeMonkey.Utils;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -80,11 +81,36 @@ public partial class UnitControlSystem : SystemBase
 
         if (Input.GetMouseButtonDown(1))
         {
+            // Right mouse button down
+            float3 targetPosition = UtilsClass.GetMouseWorldPosition();
+            List<float3> movePositionList = GetPositionListAround(targetPosition, 1f, 5);
+            int positionIndex = 0;
             foreach (var (unitSelection, moveTo, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRW<MoveTo>>().WithEntityAccess())
             {
-                moveTo.ValueRW.Position = UtilsClass.GetMouseWorldPosition();
+                moveTo.ValueRW.Position = movePositionList[positionIndex];
+                positionIndex = (positionIndex + 1) % movePositionList.Count; 
                 moveTo.ValueRW.Move = true;
             }
         }
+    }
+
+    private List<float3> GetPositionListAround(float3 startPosition, float distance, int positionCount)
+    {
+        List<float3> positionList = new List<float3>();
+        positionList.Add(startPosition);
+        for (int i = 0; i < positionCount; i++)
+        {
+            int angle = i * (360 / positionCount);
+            float3 dir = ApplyRotationToVector(new float3(0, 1, 0), angle);
+            float3 position = startPosition + dir * distance;
+            positionList.Add(position);
+        }
+
+        return positionList;
+    }
+
+    private float3 ApplyRotationToVector(float3 vec, float angle)
+    {
+        return Quaternion.Euler(0, 0, angle) * vec;
     }
 }

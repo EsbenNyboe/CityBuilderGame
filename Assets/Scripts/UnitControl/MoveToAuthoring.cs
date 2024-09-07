@@ -17,7 +17,7 @@ public class MoveToAuthoring : MonoBehaviour
                 Move = false,
                 Position = default,
                 LastMoveDir = default,
-                MoveSpeed = 40f,
+                MoveSpeed = authoring._moveSpeed
             });
         }
     }
