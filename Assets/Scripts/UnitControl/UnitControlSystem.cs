@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CodeMonkey.Utils;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -82,49 +83,97 @@ public partial class UnitControlSystem : SystemBase
         if (Input.GetMouseButtonDown(1) && !Input.GetKey(KeyCode.LeftControl))
         {
             // Right mouse button down
-            float3 targetPosition = UtilsClass.GetMouseWorldPosition();
-            List<float3> movePositionList = GetPositionListAround(targetPosition,new float[]{1f, 2f, 3f}, new int[]{5, 10, 20});
-            int positionIndex = 0;
-            foreach (var (unitSelection, moveTo, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRW<MoveTo>>().WithEntityAccess())
+            OrderPathFindingForSelectedUnits();
+        }
+    }
+
+    private void OrderPathFindingForSelectedUnits()
+    {
+        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+
+        var mousePosition = UtilsClass.GetMouseWorldPosition();
+        var cellSize = PathfindingGridSetup.Instance.pathfindingGrid.GetCellSize();
+
+        var gridCenterModifier = new Vector3(1, 1) * cellSize * 0.5f;
+        var targetGridPosition = mousePosition + gridCenterModifier;
+
+        PathfindingGridSetup.Instance.pathfindingGrid.GetXY(targetGridPosition, out var targetX, out var targetY);
+        ValidateGridPosition(ref targetX, ref targetY);
+        var targetGridCell = new int2(targetX, targetY);
+
+        List<int2> movePositionList = GetCellListAroundTargetCell(targetGridCell, 10);
+        int positionIndex = 0;
+
+        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
+        {
+            var endPosition = movePositionList[positionIndex];
+            positionIndex = (positionIndex + 1) % movePositionList.Count;
+
+            PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            ValidateGridPosition(ref startX, ref startY);
+
+            entityCommandBuffer.AddComponent(entity, new PathfindingParams
             {
-                moveTo.ValueRW.Position = movePositionList[positionIndex];
-                positionIndex = (positionIndex + 1) % movePositionList.Count; 
-                moveTo.ValueRW.Move = true;
+                StartPosition = new int2(startX, startY),
+                EndPosition = endPosition
+            });
+        }
+
+        entityCommandBuffer.Playback(EntityManager);
+    }
+
+    private List<int2> GetCellListAroundTargetCell(int2 firstPosition, int ringCount)
+    {
+        var positionList = new List<int2>();
+
+        positionList.Add(firstPosition);
+
+        for (int i = 1; i < ringCount; i++)
+        {
+            var threeLess = i - 3;
+            var twoLess = i - 2;
+            var oneLess = i - 1;
+
+            if (threeLess > 0)
+            {
+                AddFourPositionsAroundTarget(positionList, firstPosition, oneLess, threeLess);
+                AddFourPositionsAroundTarget(positionList, firstPosition, threeLess, oneLess);
+                AddFourPositionsAroundTarget(positionList, firstPosition, twoLess, threeLess);
+                AddFourPositionsAroundTarget(positionList, firstPosition, threeLess, twoLess);
+
             }
-        }
-    }
 
-    private List<float3> GetPositionListAround(float3 startPosition, float[] ringDistance, int[] ringPositionCount)
-    {
-        List<float3> positionList = new List<float3>();
-        positionList.Add(startPosition);
-        for (int ring = 0; ring < ringPositionCount.Length; ring++)
-        {
-            List<float3> ringPositionList =
-                GetPositionListAround(startPosition, ringDistance[ring], ringPositionCount[ring]);
-            positionList.AddRange(ringPositionList);
-        }
+            if (twoLess > 0)
+            {
+                AddFourPositionsAroundTarget(positionList, firstPosition, oneLess, twoLess);
+                AddFourPositionsAroundTarget(positionList, firstPosition, twoLess, oneLess);
+            }
 
-        return positionList;
-    }
+            if (oneLess > 0)
+            {
+                AddFourPositionsAroundTarget(positionList, firstPosition, oneLess, oneLess);
+            }
 
-    private List<float3> GetPositionListAround(float3 startPosition, float distance, int positionCount)
-    {
-        List<float3> positionList = new List<float3>();
-        positionList.Add(startPosition);
-        for (int i = 0; i < positionCount; i++)
-        {
-            int angle = i * (360 / positionCount);
-            float3 dir = ApplyRotationToVector(new float3(0, 1, 0), angle);
-            float3 position = startPosition + dir * distance;
-            positionList.Add(position);
+            positionList.Add(firstPosition + new int2(i, 0));
+            positionList.Add(firstPosition + new int2(-i, 0));
+            positionList.Add(firstPosition + new int2(0, i));
+            positionList.Add(firstPosition + new int2(0, -i));
         }
 
         return positionList;
     }
 
-    private float3 ApplyRotationToVector(float3 vec, float angle)
+    private static void AddFourPositionsAroundTarget(List<int2> positionList, int2 firstPosition, int a, int b)
     {
-        return Quaternion.Euler(0, 0, angle) * vec;
+        positionList.Add(firstPosition + new int2(a, b));
+        positionList.Add(firstPosition + new int2(-a, -b));
+        positionList.Add(firstPosition + new int2(-a, b));
+        positionList.Add(firstPosition + new int2(a, -b));
+    }
+
+    private void ValidateGridPosition(ref int x, ref int y)
+    {
+        x = math.clamp(x, 0, PathfindingGridSetup.Instance.pathfindingGrid.GetWidth() - 1);
+        y = math.clamp(y, 0, PathfindingGridSetup.Instance.pathfindingGrid.GetHeight() - 1);
     }
 }
