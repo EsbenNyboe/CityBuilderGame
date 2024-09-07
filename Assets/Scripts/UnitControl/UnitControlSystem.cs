@@ -120,6 +120,35 @@ public partial class UnitControlSystem : SystemBase
         {
             var endPosition = movePositionList[positionIndex];
             positionIndex = (positionIndex + 1) % movePositionList.Count;
+            bool positionIsValid = false;
+
+            int maxAttempts = 100;
+            int attempts = 0;
+            while (!positionIsValid)
+            {
+                if (IsPositionInsideGrid(endPosition) && IsPositionWalkable(endPosition))
+                {
+                    positionIsValid = true;
+                }
+                else
+                {
+                    endPosition = movePositionList[positionIndex];
+                    positionIndex = (positionIndex + 1) % movePositionList.Count;
+                }
+
+                attempts++;
+                if (attempts > maxAttempts)
+                {
+                    // Hack:
+                    positionIsValid = true;
+                }
+            }
+
+            if (attempts > maxAttempts)
+            {
+                Debug.Log("Could not find valid position target... canceling move order");
+                continue;
+            }
 
             PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
             ValidateGridPosition(ref startX, ref startY);
@@ -215,5 +244,19 @@ public partial class UnitControlSystem : SystemBase
     {
         x = math.clamp(x, 0, PathfindingGridSetup.Instance.pathfindingGrid.GetWidth() - 1);
         y = math.clamp(y, 0, PathfindingGridSetup.Instance.pathfindingGrid.GetHeight() - 1);
+    }
+
+    private static bool IsPositionInsideGrid(int2 gridPosition)
+    {
+        return
+            gridPosition.x >= 0 &&
+            gridPosition.y >= 0 &&
+            gridPosition.x < PathfindingGridSetup.Instance.pathfindingGrid.GetWidth() &&
+            gridPosition.y < PathfindingGridSetup.Instance.pathfindingGrid.GetHeight();
+    }
+
+    private static bool IsPositionWalkable(int2 gridPosition)
+    {
+        return PathfindingGridSetup.Instance.pathfindingGrid.GetGridObject(gridPosition.x, gridPosition.y).IsWalkable();
     }
 }
