@@ -102,6 +102,18 @@ public partial class UnitControlSystem : SystemBase
         var targetGridCell = new int2(targetX, targetY);
 
         List<int2> movePositionList = GetCellListAroundTargetCell(targetGridCell, 10);
+
+        for (int i = 0; i < movePositionList.Count; i++)
+        {
+            for (int j = i + 1; j < movePositionList.Count; j++)
+            {
+                if (movePositionList[i].x == movePositionList[j].x && movePositionList[i].y == movePositionList[j].y)
+                {
+                    //Debug.Log("Position list contains duplicate: " + movePositionList[i]);
+                }
+            }
+        }
+
         int positionIndex = 0;
 
         foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
@@ -130,17 +142,21 @@ public partial class UnitControlSystem : SystemBase
 
         for (int i = 1; i < ringCount; i++)
         {
+            var fourLess = i - 4;
             var threeLess = i - 3;
             var twoLess = i - 2;
             var oneLess = i - 1;
+
+            if (fourLess > 0)
+            {
+                AddFourPositionsAroundTarget(positionList, firstPosition, oneLess, fourLess);
+                AddFourPositionsAroundTarget(positionList, firstPosition, fourLess, oneLess);
+            }
 
             if (threeLess > 0)
             {
                 AddFourPositionsAroundTarget(positionList, firstPosition, oneLess, threeLess);
                 AddFourPositionsAroundTarget(positionList, firstPosition, threeLess, oneLess);
-                AddFourPositionsAroundTarget(positionList, firstPosition, twoLess, threeLess);
-                AddFourPositionsAroundTarget(positionList, firstPosition, threeLess, twoLess);
-
             }
 
             if (twoLess > 0)
@@ -165,6 +181,30 @@ public partial class UnitControlSystem : SystemBase
 
     private static void AddFourPositionsAroundTarget(List<int2> positionList, int2 firstPosition, int a, int b)
     {
+        if (positionList.Contains(firstPosition + new int2(a, b)))
+        {
+            for (int i = 0; i < positionList.Count; i++)
+            {
+                if (positionList[i].Equals(firstPosition + new int2(a, b)))
+                {
+                    Debug.Log("DUPLICATE IS THIS: " + i);
+                }
+            }
+            Debug.Log("Duplicate found on index: " + positionList.Count);
+        }
+        if (positionList.Contains(firstPosition + new int2(-a, -b)))
+        {
+            Debug.Log("Duplicate found on index: " + positionList.Count);
+        }
+        if (positionList.Contains(firstPosition + new int2(-a, b)))
+        {
+            Debug.Log("Duplicate found on index: " + positionList.Count);
+        }
+        if (positionList.Contains(firstPosition + new int2(a, -b)))
+        {
+            Debug.Log("Duplicate found on index: " + positionList.Count);
+        }
+
         positionList.Add(firstPosition + new int2(a, b));
         positionList.Add(firstPosition + new int2(-a, -b));
         positionList.Add(firstPosition + new int2(-a, b));
