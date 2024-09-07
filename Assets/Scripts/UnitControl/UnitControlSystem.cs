@@ -67,5 +67,14 @@ public partial class UnitControlSystem : SystemBase
 
             entityCommandBuffer.Playback(EntityManager);
         }
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            foreach (var (unitSelection, moveTo, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRW<MoveTo>>().WithEntityAccess())
+            {
+                moveTo.ValueRW.Position = UtilsClass.GetMouseWorldPosition();
+                moveTo.ValueRW.Move = true;
+            }
+        }
     }
 }
