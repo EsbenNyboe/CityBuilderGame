@@ -83,7 +83,7 @@ public partial class UnitControlSystem : SystemBase
         {
             // Right mouse button down
             float3 targetPosition = UtilsClass.GetMouseWorldPosition();
-            List<float3> movePositionList = GetPositionListAround(targetPosition, 1f, 5);
+            List<float3> movePositionList = GetPositionListAround(targetPosition,new float[]{1f, 2f, 3f}, new int[]{5, 10, 20});
             int positionIndex = 0;
             foreach (var (unitSelection, moveTo, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRW<MoveTo>>().WithEntityAccess())
             {
@@ -92,6 +92,20 @@ public partial class UnitControlSystem : SystemBase
                 moveTo.ValueRW.Move = true;
             }
         }
+    }
+
+    private List<float3> GetPositionListAround(float3 startPosition, float[] ringDistance, int[] ringPositionCount)
+    {
+        List<float3> positionList = new List<float3>();
+        positionList.Add(startPosition);
+        for (int ring = 0; ring < ringPositionCount.Length; ring++)
+        {
+            List<float3> ringPositionList =
+                GetPositionListAround(startPosition, ringDistance[ring], ringPositionCount[ring]);
+            positionList.AddRange(ringPositionList);
+        }
+
+        return positionList;
     }
 
     private List<float3> GetPositionListAround(float3 startPosition, float distance, int positionCount)
