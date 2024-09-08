@@ -38,7 +38,7 @@ public partial class UnitDegradationSystem : SystemBase
                          RefRW<MaterialMeshInfo>>()
                      .WithEntityAccess())
         {
-            unitDegradation.ValueRW.IsDegrading = degradeEverything;
+            //unitDegradation.ValueRW.IsDegrading = degradeEverything;
             if (!unitDegradation.ValueRO.IsDegrading)
             {
                 continue;
