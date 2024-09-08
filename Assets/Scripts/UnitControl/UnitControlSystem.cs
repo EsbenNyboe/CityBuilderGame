@@ -109,14 +109,69 @@ public partial class UnitControlSystem : SystemBase
             {
                 if (movePositionList[i].x == movePositionList[j].x && movePositionList[i].y == movePositionList[j].y)
                 {
-                    //Debug.Log("Position list contains duplicate: " + movePositionList[i]);
+                    Debug.Log("Position list contains duplicate: " + movePositionList[i]);
                 }
             }
         }
 
-        int positionIndex = 0;
+        if (IsPositionInsideGrid(targetGridCell))
+        {
+            if (IsPositionWalkable(targetGridCell))
+            {
+                MoveUnitsToWalkableArea(movePositionList, entityCommandBuffer);
+            }
+            else
+            {
+                MoveUnitsToHarvestableCell(targetGridCell, entityCommandBuffer);
+            }
+        }
 
-        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
+        entityCommandBuffer.Playback(EntityManager);
+    }
+
+    private void MoveUnitsToHarvestableCell(int2 targetGridCell, EntityCommandBuffer entityCommandBuffer)
+    {
+        foreach (var (unitSelection, localTransform, entity) in SystemAPI
+                     .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>().WithEntityAccess())
+        {
+            PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            ValidateGridPosition(ref startX, ref startY);
+
+            var endPosition = targetGridCell;
+
+            // TODO: Insert better pathfinding to nearby walkable cell, between end and start, and use that cell as endPosition
+            if (endPosition.x > startX)
+            {
+                endPosition.x--;
+            }
+            else if (endPosition.x < startX)
+            {
+                endPosition.x++;
+            }
+
+            if (endPosition.y > startY)
+            {
+                endPosition.y--;
+            }
+            else if (endPosition.y < startY)
+            {
+                endPosition.y++;
+            }
+
+            entityCommandBuffer.AddComponent(entity, new PathfindingParams
+            {
+                StartPosition = new int2(startX, startY),
+                EndPosition = endPosition
+            });
+
+            EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
+        }
+    }
+
+    private void MoveUnitsToWalkableArea(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
+    {
+        int positionIndex = 0;
+        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>().WithEntityAccess())
         {
             var endPosition = movePositionList[positionIndex];
             positionIndex = (positionIndex + 1) % movePositionList.Count;
@@ -158,9 +213,9 @@ public partial class UnitControlSystem : SystemBase
                 StartPosition = new int2(startX, startY),
                 EndPosition = endPosition
             });
-        }
 
-        entityCommandBuffer.Playback(EntityManager);
+            EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
+        }
     }
 
     private List<int2> GetCellListAroundTargetCell(int2 firstPosition, int ringCount)
