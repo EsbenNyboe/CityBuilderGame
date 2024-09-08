@@ -518,7 +518,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SelectionArea: {fileID: 957593148}
-  UnitSelectedMaterial: {fileID: 2100000, guid: e441d8c27963f0e4489396531b4c064f, type: 2}
+  UnitSelectedMaterial: {fileID: 2100000, guid: a6a6e22b38a7b654eaf8ff30ce472fa6, type: 2}
   UnitSelectedMesh: {fileID: 0}
   _meshWidth: 1.2
   _meshHeight: 0.3
