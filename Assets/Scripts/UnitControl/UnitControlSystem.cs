@@ -101,7 +101,7 @@ public partial class UnitControlSystem : SystemBase
         ValidateGridPosition(ref targetX, ref targetY);
         var targetGridCell = new int2(targetX, targetY);
 
-        List<int2> movePositionList = GetCellListAroundTargetCell(targetGridCell, 10);
+        List<int2> movePositionList = GetCellListAroundTargetCell(targetGridCell, 20);
 
         for (int i = 0; i < movePositionList.Count; i++)
         {
@@ -165,38 +165,19 @@ public partial class UnitControlSystem : SystemBase
 
     private List<int2> GetCellListAroundTargetCell(int2 firstPosition, int ringCount)
     {
-        var positionList = new List<int2>();
-
-        positionList.Add(firstPosition);
+        var positionList = new List<int2> { firstPosition };
 
         for (int i = 1; i < ringCount; i++)
         {
-            var fourLess = i - 4;
-            var threeLess = i - 3;
-            var twoLess = i - 2;
-            var oneLess = i - 1;
-
-            if (fourLess > 0)
+            for (int j = 1; j < i; j++)
             {
-                AddFourPositionsAroundTarget(positionList, firstPosition, oneLess, fourLess);
-                AddFourPositionsAroundTarget(positionList, firstPosition, fourLess, oneLess);
+                AddFourPositionsAroundTarget(positionList, firstPosition, i, j);
+                AddFourPositionsAroundTarget(positionList, firstPosition, j, i);
             }
 
-            if (threeLess > 0)
+            if (i - 1 > 0)
             {
-                AddFourPositionsAroundTarget(positionList, firstPosition, oneLess, threeLess);
-                AddFourPositionsAroundTarget(positionList, firstPosition, threeLess, oneLess);
-            }
-
-            if (twoLess > 0)
-            {
-                AddFourPositionsAroundTarget(positionList, firstPosition, oneLess, twoLess);
-                AddFourPositionsAroundTarget(positionList, firstPosition, twoLess, oneLess);
-            }
-
-            if (oneLess > 0)
-            {
-                AddFourPositionsAroundTarget(positionList, firstPosition, oneLess, oneLess);
+                AddFourPositionsAroundTarget(positionList, firstPosition, i - 1, i - 1);
             }
 
             positionList.Add(firstPosition + new int2(i, 0));
