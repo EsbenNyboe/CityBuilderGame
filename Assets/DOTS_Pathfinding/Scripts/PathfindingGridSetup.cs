@@ -31,33 +31,33 @@ public class PathfindingGridSetup : MonoBehaviour
     {
         pathfindingGrid = new Grid<GridNode>(30, 15, 1f, Vector3.zero, ( grid,  x,  y) => new GridNode(grid, x, y));
 
-        pathfindingGrid.GetGridObject(2, 0).SetIsWalkable(false);
+        //pathfindingGrid.GetGridObject(2, 0).SetIsWalkable(false);
 
         pathfindingVisual.SetGrid(pathfindingGrid);
     }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(1) && Input.GetKey(KeyCode.LeftControl))
-        {
-            var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathfindingGrid.GetCellSize() * .5f;
-            var gridNode = pathfindingGrid.GetGridObject(mousePosition);
-            if (gridNode != null)
-            {
-                _shouldSetToWalkableOnMouseDown = !gridNode.IsWalkable();
+        //if (Input.GetMouseButtonDown(1) && Input.GetKey(KeyCode.LeftControl))
+        //{
+        //    var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathfindingGrid.GetCellSize() * .5f;
+        //    var gridNode = pathfindingGrid.GetGridObject(mousePosition);
+        //    if (gridNode != null)
+        //    {
+        //        _shouldSetToWalkableOnMouseDown = !gridNode.IsWalkable();
 
-                gridNode.SetIsWalkable(!gridNode.IsWalkable());
-            }
-        }
+        //        gridNode.SetIsWalkable(!gridNode.IsWalkable());
+        //    }
+        //}
 
-        if (Input.GetMouseButton(1) && Input.GetKey(KeyCode.LeftControl))
-        {
-            var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathfindingGrid.GetCellSize() * .5f;
-            var gridNode = pathfindingGrid.GetGridObject(mousePosition);
-            if (gridNode != null)
-            {
-                gridNode.SetIsWalkable(_shouldSetToWalkableOnMouseDown);
-            }
-        }
+        //if (Input.GetMouseButton(1) && Input.GetKey(KeyCode.LeftControl))
+        //{
+        //    var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathfindingGrid.GetCellSize() * .5f;
+        //    var gridNode = pathfindingGrid.GetGridObject(mousePosition);
+        //    if (gridNode != null)
+        //    {
+        //        gridNode.SetIsWalkable(_shouldSetToWalkableOnMouseDown);
+        //    }
+        //}
     }
 }
