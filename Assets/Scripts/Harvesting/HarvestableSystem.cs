@@ -30,8 +30,9 @@ public partial class HarvestableSystem : SystemBase
         var degradeEverything = Input.GetKey(KeyCode.A);
         var degradationThisFrame = DegradationPerSec * SystemAPI.Time.DeltaTime;
 
-        foreach (var (unitDegradation, transform, materialMeshInfo, entity) in SystemAPI
-                     .Query<RefRW<UnitDegradation>, RefRW<PostTransformMatrix>, RefRW<MaterialMeshInfo>>()
+        foreach (var (unitDegradation, localTransform, postTransformMatrix, materialMeshInfo, entity) in SystemAPI
+                     .Query<RefRW<UnitDegradation>, RefRW<LocalTransform>, RefRW<PostTransformMatrix>,
+                         RefRW<MaterialMeshInfo>>()
                      .WithEntityAccess())
         {
             unitDegradation.ValueRW.IsDegrading = degradeEverything;
@@ -43,9 +44,21 @@ public partial class HarvestableSystem : SystemBase
             unitDegradation.ValueRW.Health -= degradationThisFrame;
 
             var normalizedHealth = unitDegradation.ValueRO.Health / unitDegradation.ValueRO.MaxHealth;
+
             if (normalizedHealth > 0)
             {
-                transform.ValueRW.Value = float4x4.Scale(1, normalizedHealth, 1);
+                var currentPosition = localTransform.ValueRO.Position;
+                PathfindingGridSetup.Instance.pathfindingGrid.GetXY(currentPosition, out var x, out var y);
+                var cellSize = PathfindingGridSetup.Instance.pathfindingGrid.GetCellSize();
+                var cellPosition = PathfindingGridSetup.Instance.pathfindingGrid.GetWorldPosition(x, y);
+                localTransform.ValueRW.Position = new float3
+                {
+                    x = currentPosition.x,
+                    y = cellPosition.y + cellSize * 0.5f * (1 - normalizedHealth),
+                    z = currentPosition.z,
+                };
+
+                postTransformMatrix.ValueRW.Value = float4x4.Scale(1, normalizedHealth, 1);
 
                 if (normalizedHealth > 0.8f)
                 {
@@ -56,22 +69,19 @@ public partial class HarvestableSystem : SystemBase
                 if (normalizedHealth > 0.35f)
                 {
                     // apply yellow color
-                    materialMeshInfo.ValueRW.MaterialID = m_MaterialMapping[DegradationVisualsManager.Instance.GetMaterials()[1]];
+                    materialMeshInfo.ValueRW.MaterialID =
+                        m_MaterialMapping[DegradationVisualsManager.Instance.GetMaterials()[1]];
                     continue;
                 }
 
                 // apply red color
-                materialMeshInfo.ValueRW.MaterialID = m_MaterialMapping[DegradationVisualsManager.Instance.GetMaterials()[2]];
+                materialMeshInfo.ValueRW.MaterialID =
+                    m_MaterialMapping[DegradationVisualsManager.Instance.GetMaterials()[2]];
             }
             else
             {
                 Debug.Log("Is dead");
             }
-        }
-
-        foreach (var materialMeshInfo in SystemAPI.Query<RefRW<MaterialMeshInfo>>())
-        {
-            
         }
     }
 
