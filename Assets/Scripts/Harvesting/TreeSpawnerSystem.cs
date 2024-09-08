@@ -6,6 +6,8 @@ using UnityEngine;
 
 public partial class TreeSpawnerSystem : SystemBase
 {
+    private static bool _shouldSpawnTreesOnMouseDown;
+
     protected override void OnCreate()
     {
         RequireForUpdate<TreeSpawner>();
@@ -14,7 +16,6 @@ public partial class TreeSpawnerSystem : SystemBase
     protected override void OnUpdate()
     {
         var treeSpawner = SystemAPI.GetSingleton<TreeSpawner>();
-        var shouldSpawnTreesOnMouseDown = false;
         var pathfindingGrid = PathfindingGridSetup.Instance.pathfindingGrid;
         var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathfindingGrid.GetCellSize() * .5f;
 
@@ -26,9 +27,12 @@ public partial class TreeSpawnerSystem : SystemBase
                 return;
             }
 
-            UpdateGridCell(gridNode, mousePosition, treeSpawner);
+            _shouldSpawnTreesOnMouseDown = gridNode.IsWalkable();
+        }
 
-            shouldSpawnTreesOnMouseDown = gridNode.IsWalkable();
+        if (!_shouldSpawnTreesOnMouseDown)
+        {
+            return;
         }
 
         if (Input.GetMouseButton(1) && Input.GetKey(KeyCode.LeftControl))
@@ -39,18 +43,18 @@ public partial class TreeSpawnerSystem : SystemBase
                 return;
             }
 
-            if (gridNode.IsWalkable() == shouldSpawnTreesOnMouseDown)
+            if (!gridNode.IsWalkable())
             {
                 return;
             }
 
-            UpdateGridCell(gridNode, mousePosition, treeSpawner);
+            SpawnTree(gridNode, mousePosition, treeSpawner);
         }
     }
 
-    private void UpdateGridCell(GridNode gridNode, Vector3 mousePosition, TreeSpawner treeSpawner)
+    private void SpawnTree(GridNode gridNode, Vector3 mousePosition, TreeSpawner treeSpawner)
     {
-        gridNode.SetIsWalkable(!gridNode.IsWalkable());
+        gridNode.SetIsWalkable(false);
 
         PathfindingGridSetup.Instance.pathfindingGrid.GetXY(mousePosition, out var x, out var y);
 

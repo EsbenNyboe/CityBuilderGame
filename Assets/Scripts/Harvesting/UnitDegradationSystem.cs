@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -7,7 +8,7 @@ using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public partial class HarvestableSystem : SystemBase
+public partial class UnitDegradationSystem : SystemBase
 {
     private const float DegradationPerSec = 20;
     private Dictionary<Material, BatchMaterialID> m_MaterialMapping;
@@ -29,6 +30,8 @@ public partial class HarvestableSystem : SystemBase
     {
         var degradeEverything = Input.GetKey(KeyCode.A);
         var degradationThisFrame = DegradationPerSec * SystemAPI.Time.DeltaTime;
+
+        var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
 
         foreach (var (unitDegradation, localTransform, postTransformMatrix, materialMeshInfo, entity) in SystemAPI
                      .Query<RefRW<UnitDegradation>, RefRW<LocalTransform>, RefRW<PostTransformMatrix>,
@@ -80,11 +83,12 @@ public partial class HarvestableSystem : SystemBase
             }
             else
             {
-                Debug.Log("Is dead");
+                DestroyDegradable(localTransform, ecb, entity);
             }
         }
-    }
 
+        ecb.Playback(EntityManager);
+    }
 
     private void RegisterMaterial(EntitiesGraphicsSystem hybridRendererSystem, Material material)
     {
@@ -102,5 +106,10 @@ public partial class HarvestableSystem : SystemBase
 
         foreach (var kv in m_MaterialMapping)
             hybridRenderer.UnregisterMaterial(kv.Value);
+    }
+    private static void DestroyDegradable(RefRW<LocalTransform> localTransform, EntityCommandBuffer ecb, Entity entity)
+    {
+        PathfindingGridSetup.Instance.pathfindingGrid.GetGridObject(localTransform.ValueRO.Position).SetIsWalkable(true);
+        ecb.DestroyEntity(entity);
     }
 }
