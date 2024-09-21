@@ -25,17 +25,28 @@ public partial class HarvestingUnitSystem : SystemBase
                 EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
                 harvestingUnit.ValueRW.IsHarvesting = false;
                 harvestingUnit.ValueRW.Target = new int2(-1, -1);
-            }
-
-            if (harvestingUnit.ValueRO.IsHarvesting)
-            {
                 continue;
             }
 
+            // TODO: Is this bool even necessary?
             harvestingUnit.ValueRW.IsHarvesting = true;
 
+            var gridDamageableObject = GridSetup.Instance.DamageableGrid.GetGridObject(targetX, targetY);
+            gridDamageableObject.AddToHealth(DamagePerSec * SystemAPI.Time.DeltaTime);
+            if (!gridDamageableObject.IsDamageable())
+            {
+                // destroy tree?
+            }
+            
+            // if (harvestingUnit.ValueRO.IsHarvesting)
+            // {
+            //     continue;
+            // }
+            //
+            // harvestingUnit.ValueRW.IsHarvesting = true;
+            //
             // TODO: Replace this with trees as grid
-            SetDegradationState(targetX, targetY, true);
+            // SetDegradationState(targetX, targetY, true);
         }
     }
 
@@ -49,7 +60,6 @@ public partial class HarvestingUnitSystem : SystemBase
                 continue;
             }
 
-            GridSetup.Instance.DamageableGrid.GetGridObject(x, y).AddToHealth(DamagePerSec * SystemAPI.Time.DeltaTime);
             unitDegradation.ValueRW.IsDegrading = state;
         }
     }

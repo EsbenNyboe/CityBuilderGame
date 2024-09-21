@@ -258,6 +258,8 @@ public partial class UnitControlSystem : SystemBase
 
     private void SetDegradationState(int targetX, int targetY, bool state)
     {
+        Debug.LogWarning("Refactor this?");
+        return;
         foreach (var (localTransform, unitDegradation) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<UnitDegradation>>())
         {
             GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var x, out var y);
