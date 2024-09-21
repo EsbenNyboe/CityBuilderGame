@@ -49,9 +49,9 @@ public partial class UnitDegradationSystem : SystemBase
             if (normalizedHealth > 0)
             {
                 var currentPosition = localTransform.ValueRO.Position;
-                GridSetup.Instance.PathfindingGrid.GetXY(currentPosition, out var x, out var y);
-                var cellSize = GridSetup.Instance.PathfindingGrid.GetCellSize();
-                var cellPosition = GridSetup.Instance.PathfindingGrid.GetWorldPosition(x, y);
+                GridSetup.Instance.PathGrid.GetXY(currentPosition, out var x, out var y);
+                var cellSize = GridSetup.Instance.PathGrid.GetCellSize();
+                var cellPosition = GridSetup.Instance.PathGrid.GetWorldPosition(x, y);
                 localTransform.ValueRW.Position = new float3
                 {
                     x = currentPosition.x,
@@ -114,7 +114,7 @@ public partial class UnitDegradationSystem : SystemBase
 
     private static void DestroyDegradable(RefRW<LocalTransform> localTransform, EntityCommandBuffer ecb, Entity entity)
     {
-        GridSetup.Instance.PathfindingGrid.GetGridObject(localTransform.ValueRO.Position).SetIsWalkable(true);
+        GridSetup.Instance.PathGrid.GetGridObject(localTransform.ValueRO.Position).SetIsWalkable(true);
         ecb.DestroyEntity(entity);
     }
 }

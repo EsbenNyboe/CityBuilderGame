@@ -74,8 +74,8 @@ public partial class SpawnCubesSystem : SystemBase
 
     private bool GetNextGridPosition(int gridIndex, out int x, out int y)
     {
-        var width = GridSetup.Instance.PathfindingGrid.GetWidth();
-        var maxY = GridSetup.Instance.PathfindingGrid.GetHeight() - 1;
+        var width = GridSetup.Instance.PathGrid.GetWidth();
+        var maxY = GridSetup.Instance.PathGrid.GetHeight() - 1;
 
         x = gridIndex % width;
         y = gridIndex / width;
@@ -85,6 +85,6 @@ public partial class SpawnCubesSystem : SystemBase
 
     private bool ValidateWalkableGridPosition(int x, int y)
     {
-        return GridSetup.Instance.PathfindingGrid.GetGridObject(x, y).IsWalkable();
+        return GridSetup.Instance.PathGrid.GetGridObject(x, y).IsWalkable();
     }
 }

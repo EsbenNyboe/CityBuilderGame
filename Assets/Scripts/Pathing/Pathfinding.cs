@@ -14,8 +14,8 @@ public partial class Pathfinding : SystemBase
 
     protected override void OnUpdate()
     {
-        var gridWidth = GridSetup.Instance.PathfindingGrid.GetWidth();
-        var gridHeight = GridSetup.Instance.PathfindingGrid.GetHeight();
+        var gridWidth = GridSetup.Instance.PathGrid.GetWidth();
+        var gridHeight = GridSetup.Instance.PathGrid.GetHeight();
         var gridSize = new int2(gridWidth, gridHeight);
 
 
@@ -62,7 +62,7 @@ public partial class Pathfinding : SystemBase
 
     private NativeArray<PathNode> GetPathNodeArray()
     {
-        var grid = GridSetup.Instance.PathfindingGrid;
+        var grid = GridSetup.Instance.PathGrid;
         var gridSize = new int2(grid.GetWidth(), grid.GetHeight());
 
         var pathNodeArray = new NativeArray<PathNode>(gridSize.x * gridSize.y, Allocator.TempJob);

@@ -17,7 +17,7 @@ public partial class HarvestingUnitSystem : SystemBase
             var targetX = harvestingUnit.ValueRO.Target.x;
             var targetY = harvestingUnit.ValueRO.Target.y;
 
-            if (GridSetup.Instance.PathfindingGrid.GetGridObject(targetX, targetY).IsWalkable())
+            if (GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).IsWalkable())
             {
                 // Tree probably was destroyed, during pathfinding
                 EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
@@ -41,7 +41,7 @@ public partial class HarvestingUnitSystem : SystemBase
     {
         foreach (var (localTransform, unitDegradation) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<UnitDegradation>>())
         {
-            GridSetup.Instance.PathfindingGrid.GetXY(localTransform.ValueRO.Position, out var x, out var y);
+            GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var x, out var y);
             if (targetX != x || targetY != y)
             {
                 continue;
@@ -100,6 +100,6 @@ public partial class HarvestingUnitSystem : SystemBase
     {
         treePosX = unitPosX + xAddition;
         treePosY = unitPosY + yAddition;
-        return GridSetup.Instance.PathfindingGrid.GetGridObject(treePosX, treePosY).IsWalkable();
+        return GridSetup.Instance.PathGrid.GetGridObject(treePosX, treePosY).IsWalkable();
     }
 }

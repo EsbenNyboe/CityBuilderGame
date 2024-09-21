@@ -91,12 +91,12 @@ public partial class UnitControlSystem : SystemBase
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
         var mousePosition = UtilsClass.GetMouseWorldPosition();
-        var cellSize = GridSetup.Instance.PathfindingGrid.GetCellSize();
+        var cellSize = GridSetup.Instance.PathGrid.GetCellSize();
 
         var gridCenterModifier = new Vector3(1, 1) * cellSize * 0.5f;
         var targetGridPosition = mousePosition + gridCenterModifier;
 
-        GridSetup.Instance.PathfindingGrid.GetXY(targetGridPosition, out var targetX, out var targetY);
+        GridSetup.Instance.PathGrid.GetXY(targetGridPosition, out var targetX, out var targetY);
         ValidateGridPosition(ref targetX, ref targetY);
         var targetGridCell = new int2(targetX, targetY);
 
@@ -133,7 +133,7 @@ public partial class UnitControlSystem : SystemBase
         foreach (var (unitSelection, localTransform, entity) in SystemAPI
                      .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>().WithEntityAccess())
         {
-            GridSetup.Instance.PathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
             ValidateGridPosition(ref startX, ref startY);
 
             var endPosition = targetGridCell;
@@ -224,7 +224,7 @@ public partial class UnitControlSystem : SystemBase
                 continue;
             }
 
-            GridSetup.Instance.PathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
             ValidateGridPosition(ref startX, ref startY);
 
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
@@ -260,7 +260,7 @@ public partial class UnitControlSystem : SystemBase
     {
         foreach (var (localTransform, unitDegradation) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<UnitDegradation>>())
         {
-            GridSetup.Instance.PathfindingGrid.GetXY(localTransform.ValueRO.Position, out var x, out var y);
+            GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var x, out var y);
             if (targetX != x || targetY != y)
             {
                 continue;
@@ -334,8 +334,8 @@ public partial class UnitControlSystem : SystemBase
 
     private void ValidateGridPosition(ref int x, ref int y)
     {
-        x = math.clamp(x, 0, GridSetup.Instance.PathfindingGrid.GetWidth() - 1);
-        y = math.clamp(y, 0, GridSetup.Instance.PathfindingGrid.GetHeight() - 1);
+        x = math.clamp(x, 0, GridSetup.Instance.PathGrid.GetWidth() - 1);
+        y = math.clamp(y, 0, GridSetup.Instance.PathGrid.GetHeight() - 1);
     }
 
     private static bool IsPositionInsideGrid(int2 gridPosition)
@@ -343,12 +343,12 @@ public partial class UnitControlSystem : SystemBase
         return
             gridPosition.x >= 0 &&
             gridPosition.y >= 0 &&
-            gridPosition.x < GridSetup.Instance.PathfindingGrid.GetWidth() &&
-            gridPosition.y < GridSetup.Instance.PathfindingGrid.GetHeight();
+            gridPosition.x < GridSetup.Instance.PathGrid.GetWidth() &&
+            gridPosition.y < GridSetup.Instance.PathGrid.GetHeight();
     }
 
     private static bool IsPositionWalkable(int2 gridPosition)
     {
-        return GridSetup.Instance.PathfindingGrid.GetGridObject(gridPosition.x, gridPosition.y).IsWalkable();
+        return GridSetup.Instance.PathGrid.GetGridObject(gridPosition.x, gridPosition.y).IsWalkable();
     }
 }

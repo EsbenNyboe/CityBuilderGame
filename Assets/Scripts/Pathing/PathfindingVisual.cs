@@ -2,7 +2,7 @@
 
 public class PathfindingVisual : MonoBehaviour
 {
-    private Grid<GridNode> _grid;
+    private Grid<GridPath> _grid;
     private Mesh _mesh;
     private bool _updateMesh;
 
@@ -21,7 +21,7 @@ public class PathfindingVisual : MonoBehaviour
         }
     }
 
-    public void SetGrid(Grid<GridNode> grid)
+    public void SetGrid(Grid<GridPath> grid)
     {
         _grid = grid;
         UpdateVisual();
@@ -29,7 +29,7 @@ public class PathfindingVisual : MonoBehaviour
         grid.OnGridObjectChanged += Grid_OnGridValueChanged;
     }
 
-    private void Grid_OnGridValueChanged(object sender, Grid<GridNode>.OnGridObjectChangedEventArgs e)
+    private void Grid_OnGridValueChanged(object sender, Grid<GridPath>.OnGridObjectChangedEventArgs e)
     {
         _updateMesh = true;
     }
