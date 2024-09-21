@@ -37,10 +37,8 @@ public partial class UnitControlSystem : SystemBase
             float3 endPosition = UtilsClass.GetMouseWorldPosition();
             SelectionAreaManager.Instance.SelectionArea.gameObject.SetActive(false);
 
-            var lowerLeftPosition = new float3(math.min(startPosition.x, endPosition.x),
-                math.min(startPosition.y, endPosition.y), 0);
-            var upperRightPosition = new float3(math.max(startPosition.x, endPosition.x),
-                math.max(startPosition.y, endPosition.y), 0);
+            var lowerLeftPosition = new float3(math.min(startPosition.x, endPosition.x), math.min(startPosition.y, endPosition.y), 0);
+            var upperRightPosition = new float3(math.max(startPosition.x, endPosition.x), math.max(startPosition.y, endPosition.y), 0);
 
             bool selectOnlyOneEntity = false;
             var selectionAreaSize = math.distance(lowerLeftPosition, upperRightPosition);
@@ -124,139 +122,40 @@ public partial class UnitControlSystem : SystemBase
             }
             else
             {
-                MoveUnitsToHarvestableCell(movePositionList, entityCommandBuffer);
+                MoveUnitsToHarvestableCell(targetGridCell, entityCommandBuffer);
             }
         }
 
         entityCommandBuffer.Playback(EntityManager);
     }
 
-    private void MoveUnitsToHarvestableCell(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
+    private void MoveUnitsToHarvestableCell(int2 targetGridCell, EntityCommandBuffer entityCommandBuffer)
     {
-        var positionIndex = 0;
-        var harvestPosition = movePositionList[positionIndex];
-
         foreach (var (unitSelection, localTransform, entity) in SystemAPI
-                     .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>()
-                     .WithEntityAccess())
+                     .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>().WithEntityAccess())
         {
-            PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX,
-                out var startY);
+            PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
             ValidateGridPosition(ref startX, ref startY);
 
+            var endPosition = targetGridCell;
+
             // TODO: Insert better pathfinding to nearby walkable cell, between end and start, and use that cell as endPosition
-
-            if (harvestPosition.x > startX)
+            if (endPosition.x > startX)
             {
-                harvestPosition.x--;
+                endPosition.x--;
             }
-            else if (harvestPosition.x < startX)
+            else if (endPosition.x < startX)
             {
-                harvestPosition.x++;
-            }
-
-            if (harvestPosition.y > startY)
-            {
-                harvestPosition.y--;
-            }
-            else if (harvestPosition.y < startY)
-            {
-                harvestPosition.y++;
+                endPosition.x++;
             }
 
-            bool walkableCellFound = IsPositionInsideGrid(harvestPosition) && IsPositionWalkable(harvestPosition);
-            if (!walkableCellFound)
+            if (endPosition.y > startY)
             {
-                walkableCellFound = TryGetWalkablePosition(movePositionList, localTransform, out harvestPosition,
-                    ref positionIndex,
-                    out startX, out startY);
-
-                if (!walkableCellFound)
-                {
-                    continue;
-                }
+                endPosition.y--;
             }
-            
-
-            entityCommandBuffer.AddComponent(entity, new PathfindingParams
+            else if (endPosition.y < startY)
             {
-                StartPosition = new int2(startX, startY),
-                EndPosition = harvestPosition
-            });
-
-            // TODO: Refactor
-            var harvestingUnit = EntityManager.GetComponentData<HarvestingUnit>(entity);
-            var targetIsOutOfReach = harvestingUnit.TargetIsOutOfReach;
-            var target = harvestingUnit.Target;
-            var hasTarget = target.x != -1 && target.y != -1;
-            if (hasTarget)
-            {
-                SetDegradationState(target.x, target.y, false);
-
-                foreach (var otherHarvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithAll<HarvestingUnit>())
-                {
-                    // notify all harvestingUnits that a tree has been abandoned
-                    otherHarvestingUnit.ValueRW.IsHarvesting = false;
-                }
-            }
-
-            EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
-            EntityManager.SetComponentData(entity, new HarvestingUnit
-            {
-                IsHarvesting = false,
-                Target = harvestPosition,
-                TargetIsOutOfReach = targetIsOutOfReach
-            });
-        }
-    }
-
-    //private static int2 FindWalkableNeighbourCell(int attempts, int maxAttempts, List<int2> movePositionList,
-    //    int2 target)
-    //{
-    //    attempts++;
-    //    if (attempts > maxAttempts)
-    //    {
-    //        Debug.LogWarning("Nearby neighbours are not walkable");
-    //        return target;
-    //    }
-
-    //    // browse nearby cells
-    //    var neighbour = new int2();
-
-    //    if (!PathfindingGridSetup.Instance.pathfindingGrid.GetGridObject(neighbour.x, neighbour.y).IsWalkable())
-    //    {
-
-    //    }
-
-    //    neighbour = TryGetWalkableNeighbour(target, ref neighbour, 1, 0);
-
-    //    return neighbour;
-    //}
-
-    //private static bool TryGetWalkableNeighbour(int2 target, ref int2 neighbour, int xAdd, int yAdd)
-    //{
-    //    if (!PathfindingGridSetup.Instance.pathfindingGrid.GetGridObject(neighbour.x, neighbour.y).IsWalkable())
-    //    {
-    //        neighbour.x = target.x + xAdd;
-    //        neighbour.y = target.y + yAdd;
-
-    //        neighbour = TryGetWalkableNeighbour(target, neighbour, xAdd, yAdd);
-    //    }
-
-    //    return neighbour;
-    //}
-
-    private void MoveUnitsToWalkableArea(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
-    {
-        int positionIndex = 0;
-        foreach (var (unitSelection, localTransform, entity) in SystemAPI
-                     .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>()
-                     .WithEntityAccess())
-        {
-            if (!TryGetWalkablePosition(movePositionList, localTransform, out var endPosition, ref positionIndex,
-                    out var startX, out var startY))
-            {
-                continue;
+                endPosition.y++;
             }
 
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
@@ -266,19 +165,85 @@ public partial class UnitControlSystem : SystemBase
             });
 
             // TODO: Refactor
-
-            var harvestingUnit = EntityManager.GetComponentData<HarvestingUnit>(entity);
-            var target = harvestingUnit.Target;
-
+            var target = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
             var hasTarget = target.x != -1 && target.y != -1;
             if (hasTarget)
             {
                 SetDegradationState(target.x, target.y, false);
 
-                foreach (var otherHarvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithAll<HarvestingUnit>())
+                foreach (var harvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithAll<HarvestingUnit>())
                 {
                     // notify all harvestingUnits that a tree has been abandoned
-                    otherHarvestingUnit.ValueRW.IsHarvesting = false;
+                    harvestingUnit.ValueRW.IsHarvesting = false;
+                }
+            }
+
+            EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
+            EntityManager.SetComponentData(entity, new HarvestingUnit
+            {
+                IsHarvesting = false,
+                Target = targetGridCell
+            });
+        }
+    }
+
+    private void MoveUnitsToWalkableArea(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
+    {
+        int positionIndex = 0;
+        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>().WithEntityAccess())
+        {
+            var endPosition = movePositionList[positionIndex];
+            positionIndex = (positionIndex + 1) % movePositionList.Count;
+            bool positionIsValid = false;
+
+            int maxAttempts = 100;
+            int attempts = 0;
+            while (!positionIsValid)
+            {
+                if (IsPositionInsideGrid(endPosition) && IsPositionWalkable(endPosition))
+                {
+                    positionIsValid = true;
+                }
+                else
+                {
+                    endPosition = movePositionList[positionIndex];
+                    positionIndex = (positionIndex + 1) % movePositionList.Count;
+                }
+
+                attempts++;
+                if (attempts > maxAttempts)
+                {
+                    // Hack:
+                    positionIsValid = true;
+                }
+            }
+
+            if (attempts > maxAttempts)
+            {
+                Debug.Log("Could not find valid position target... canceling move order");
+                continue;
+            }
+
+            PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            ValidateGridPosition(ref startX, ref startY);
+
+            entityCommandBuffer.AddComponent(entity, new PathfindingParams
+            {
+                StartPosition = new int2(startX, startY),
+                EndPosition = endPosition
+            });
+
+            // TODO: Refactor
+            var target = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
+            var hasTarget = target.x != -1 && target.y != -1;
+            if (hasTarget)
+            {
+                SetDegradationState(target.x, target.y, false);
+
+                foreach (var harvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithAll<HarvestingUnit>())
+                {
+                    // notify all harvestingUnits that a tree has been abandoned
+                    harvestingUnit.ValueRW.IsHarvesting = false;
                 }
             }
 
@@ -286,58 +251,14 @@ public partial class UnitControlSystem : SystemBase
             EntityManager.SetComponentData(entity, new HarvestingUnit
             {
                 IsHarvesting = false,
-                Target = new int2(-1, -1)
+                Target = new int2(-1,-1)
             });
         }
     }
 
-    private bool TryGetWalkablePosition(List<int2> movePositionList, RefRO<LocalTransform> localTransform,
-        out int2 endPosition,
-        ref int positionIndex, out int startX, out int startY)
-    {
-        endPosition = movePositionList[positionIndex];
-        positionIndex = (positionIndex + 1) % movePositionList.Count;
-        bool positionIsValid = false;
-
-        int maxAttempts = 100;
-        int attempts = 0;
-        while (!positionIsValid)
-        {
-            if (IsPositionInsideGrid(endPosition) && IsPositionWalkable(endPosition))
-            {
-                positionIsValid = true;
-            }
-            else
-            {
-                endPosition = movePositionList[positionIndex];
-                positionIndex = (positionIndex + 1) % movePositionList.Count;
-            }
-
-            attempts++;
-            if (attempts > maxAttempts)
-            {
-                // Hack:
-                positionIsValid = true;
-            }
-        }
-
-        if (attempts > maxAttempts)
-        {
-            Debug.Log("Could not find valid position target... canceling move order");
-            startX = 0;
-            startY = 0;
-            return false;
-        }
-
-        PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out startX, out startY);
-        ValidateGridPosition(ref startX, ref startY);
-        return true;
-    }
-
     private void SetDegradationState(int targetX, int targetY, bool state)
     {
-        foreach (var (localTransform, unitDegradation) in
-                 SystemAPI.Query<RefRO<LocalTransform>, RefRW<UnitDegradation>>())
+        foreach (var (localTransform, unitDegradation) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<UnitDegradation>>())
         {
             PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var x, out var y);
             if (targetX != x || targetY != y)
@@ -386,20 +307,16 @@ public partial class UnitControlSystem : SystemBase
                     Debug.Log("DUPLICATE IS THIS: " + i);
                 }
             }
-
             Debug.Log("Duplicate found on index: " + positionList.Count);
         }
-
         if (positionList.Contains(firstPosition + new int2(-a, -b)))
         {
             Debug.Log("Duplicate found on index: " + positionList.Count);
         }
-
         if (positionList.Contains(firstPosition + new int2(-a, b)))
         {
             Debug.Log("Duplicate found on index: " + positionList.Count);
         }
-
         if (positionList.Contains(firstPosition + new int2(a, -b)))
         {
             Debug.Log("Duplicate found on index: " + positionList.Count);
