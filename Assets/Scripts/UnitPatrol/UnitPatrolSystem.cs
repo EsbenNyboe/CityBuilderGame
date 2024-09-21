@@ -8,22 +8,6 @@ public partial class UnitPatrolSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        // foreach (var (unitPatrol, pathFollow) in SystemAPI.Query<RefRW<UnitPatrol>, RefRO<PathFollow>>())
-        // {
-        //     if (pathFollow.ValueRO.PathIndex < 0)
-        //     {
-        //         if (unitPatrol.ValueRO.IsPatrolling)
-        //         {
-        //         }
-        //
-        //         unitPatrol.ValueRW.IsPatrolling = false;
-        //     }
-        //     else
-        //     {
-        //         unitPatrol.ValueRW.IsPatrolling = true;
-        //     }
-        // }
-
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
         foreach (var (unitPatrol, pathFollow, localTransform, entity) in SystemAPI
@@ -34,7 +18,7 @@ public partial class UnitPatrolSystem : SystemBase
                 if (unitPatrol.ValueRO.IsPatrolling)
                 {
                     unitPatrol.ValueRW.IsPatrolling = false;
-                    PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+                    GridSetup.Instance.PathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
 
                     ValidateGridPosition(ref startX, ref startY);
 
@@ -93,7 +77,7 @@ public partial class UnitPatrolSystem : SystemBase
         {
             currentAttempt++;
 
-            if (PathfindingGridSetup.Instance.pathfindingGrid.GetGridObject(endX, endY).IsWalkable())
+            if (GridSetup.Instance.PathfindingGrid.GetGridObject(endX, endY).IsWalkable())
             {
                 return true;
             }
@@ -106,13 +90,13 @@ public partial class UnitPatrolSystem : SystemBase
 
     private void ValidateGridPosition(ref int x, ref int y)
     {
-        x = math.clamp(x, 0, PathfindingGridSetup.Instance.pathfindingGrid.GetWidth() - 1);
-        y = math.clamp(y, 0, PathfindingGridSetup.Instance.pathfindingGrid.GetHeight() - 1);
+        x = math.clamp(x, 0, GridSetup.Instance.PathfindingGrid.GetWidth() - 1);
+        y = math.clamp(y, 0, GridSetup.Instance.PathfindingGrid.GetHeight() - 1);
     }
 
     private void GetRandomPosition(out int x, out int y)
     {
-        x = Random.Range(0, PathfindingGridSetup.Instance.pathfindingGrid.GetWidth() - 1) ;
-        y = Random.Range(0, PathfindingGridSetup.Instance.pathfindingGrid.GetHeight() - 1) ;
+        x = Random.Range(0, GridSetup.Instance.PathfindingGrid.GetWidth() - 1) ;
+        y = Random.Range(0, GridSetup.Instance.PathfindingGrid.GetHeight() - 1) ;
     }
 }

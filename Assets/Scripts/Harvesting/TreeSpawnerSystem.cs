@@ -16,7 +16,7 @@ public partial class TreeSpawnerSystem : SystemBase
     protected override void OnUpdate()
     {
         var treeSpawner = SystemAPI.GetSingleton<TreeSpawner>();
-        var pathfindingGrid = PathfindingGridSetup.Instance.pathfindingGrid;
+        var pathfindingGrid = GridSetup.Instance.PathfindingGrid;
         var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathfindingGrid.GetCellSize() * .5f;
 
         if (Input.GetMouseButtonDown(1) && Input.GetKey(KeyCode.LeftControl))
@@ -56,7 +56,7 @@ public partial class TreeSpawnerSystem : SystemBase
     {
         gridNode.SetIsWalkable(false);
 
-        PathfindingGridSetup.Instance.pathfindingGrid.GetXY(mousePosition, out var x, out var y);
+        GridSetup.Instance.PathfindingGrid.GetXY(mousePosition, out var x, out var y);
 
         var spawnedEntity = EntityManager.Instantiate(treeSpawner.ObjectToSpawn);
         EntityManager.SetComponentData(spawnedEntity, new LocalTransform

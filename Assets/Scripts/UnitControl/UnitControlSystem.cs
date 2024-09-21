@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using CodeMonkey.Utils;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -40,7 +39,7 @@ public partial class UnitControlSystem : SystemBase
             var lowerLeftPosition = new float3(math.min(startPosition.x, endPosition.x), math.min(startPosition.y, endPosition.y), 0);
             var upperRightPosition = new float3(math.max(startPosition.x, endPosition.x), math.max(startPosition.y, endPosition.y), 0);
 
-            bool selectOnlyOneEntity = false;
+            var selectOnlyOneEntity = false;
             var selectionAreaSize = math.distance(lowerLeftPosition, upperRightPosition);
             var selectionAreaMinSize = 2f;
             if (selectionAreaSize < selectionAreaMinSize)
@@ -58,7 +57,7 @@ public partial class UnitControlSystem : SystemBase
                 entityCommandBuffer.RemoveComponent(entity, typeof(UnitSelection));
             }
 
-            int selectedEntityCount = 0;
+            var selectedEntityCount = 0;
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
             {
                 if (selectOnlyOneEntity && selectedEntityCount > 0)
@@ -92,20 +91,20 @@ public partial class UnitControlSystem : SystemBase
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
         var mousePosition = UtilsClass.GetMouseWorldPosition();
-        var cellSize = PathfindingGridSetup.Instance.pathfindingGrid.GetCellSize();
+        var cellSize = GridSetup.Instance.PathfindingGrid.GetCellSize();
 
         var gridCenterModifier = new Vector3(1, 1) * cellSize * 0.5f;
         var targetGridPosition = mousePosition + gridCenterModifier;
 
-        PathfindingGridSetup.Instance.pathfindingGrid.GetXY(targetGridPosition, out var targetX, out var targetY);
+        GridSetup.Instance.PathfindingGrid.GetXY(targetGridPosition, out var targetX, out var targetY);
         ValidateGridPosition(ref targetX, ref targetY);
         var targetGridCell = new int2(targetX, targetY);
 
-        List<int2> movePositionList = GetCellListAroundTargetCell(targetGridCell, 20);
+        var movePositionList = GetCellListAroundTargetCell(targetGridCell, 20);
 
-        for (int i = 0; i < movePositionList.Count; i++)
+        for (var i = 0; i < movePositionList.Count; i++)
         {
-            for (int j = i + 1; j < movePositionList.Count; j++)
+            for (var j = i + 1; j < movePositionList.Count; j++)
             {
                 if (movePositionList[i].x == movePositionList[j].x && movePositionList[i].y == movePositionList[j].y)
                 {
@@ -134,7 +133,7 @@ public partial class UnitControlSystem : SystemBase
         foreach (var (unitSelection, localTransform, entity) in SystemAPI
                      .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>().WithEntityAccess())
         {
-            PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            GridSetup.Instance.PathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
             ValidateGridPosition(ref startX, ref startY);
 
             var endPosition = targetGridCell;
@@ -189,15 +188,16 @@ public partial class UnitControlSystem : SystemBase
 
     private void MoveUnitsToWalkableArea(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
     {
-        int positionIndex = 0;
-        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>().WithEntityAccess())
+        var positionIndex = 0;
+        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>()
+                     .WithPresent<HarvestingUnit>().WithEntityAccess())
         {
             var endPosition = movePositionList[positionIndex];
             positionIndex = (positionIndex + 1) % movePositionList.Count;
-            bool positionIsValid = false;
+            var positionIsValid = false;
 
-            int maxAttempts = 100;
-            int attempts = 0;
+            var maxAttempts = 100;
+            var attempts = 0;
             while (!positionIsValid)
             {
                 if (IsPositionInsideGrid(endPosition) && IsPositionWalkable(endPosition))
@@ -224,7 +224,7 @@ public partial class UnitControlSystem : SystemBase
                 continue;
             }
 
-            PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            GridSetup.Instance.PathfindingGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
             ValidateGridPosition(ref startX, ref startY);
 
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
@@ -251,7 +251,7 @@ public partial class UnitControlSystem : SystemBase
             EntityManager.SetComponentData(entity, new HarvestingUnit
             {
                 IsHarvesting = false,
-                Target = new int2(-1,-1)
+                Target = new int2(-1, -1)
             });
         }
     }
@@ -260,7 +260,7 @@ public partial class UnitControlSystem : SystemBase
     {
         foreach (var (localTransform, unitDegradation) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<UnitDegradation>>())
         {
-            PathfindingGridSetup.Instance.pathfindingGrid.GetXY(localTransform.ValueRO.Position, out var x, out var y);
+            GridSetup.Instance.PathfindingGrid.GetXY(localTransform.ValueRO.Position, out var x, out var y);
             if (targetX != x || targetY != y)
             {
                 continue;
@@ -274,9 +274,9 @@ public partial class UnitControlSystem : SystemBase
     {
         var positionList = new List<int2> { firstPosition };
 
-        for (int i = 1; i < ringCount; i++)
+        for (var i = 1; i < ringCount; i++)
         {
-            for (int j = 1; j < i; j++)
+            for (var j = 1; j < i; j++)
             {
                 AddFourPositionsAroundTarget(positionList, firstPosition, i, j);
                 AddFourPositionsAroundTarget(positionList, firstPosition, j, i);
@@ -300,23 +300,27 @@ public partial class UnitControlSystem : SystemBase
     {
         if (positionList.Contains(firstPosition + new int2(a, b)))
         {
-            for (int i = 0; i < positionList.Count; i++)
+            for (var i = 0; i < positionList.Count; i++)
             {
                 if (positionList[i].Equals(firstPosition + new int2(a, b)))
                 {
                     Debug.Log("DUPLICATE IS THIS: " + i);
                 }
             }
+
             Debug.Log("Duplicate found on index: " + positionList.Count);
         }
+
         if (positionList.Contains(firstPosition + new int2(-a, -b)))
         {
             Debug.Log("Duplicate found on index: " + positionList.Count);
         }
+
         if (positionList.Contains(firstPosition + new int2(-a, b)))
         {
             Debug.Log("Duplicate found on index: " + positionList.Count);
         }
+
         if (positionList.Contains(firstPosition + new int2(a, -b)))
         {
             Debug.Log("Duplicate found on index: " + positionList.Count);
@@ -330,8 +334,8 @@ public partial class UnitControlSystem : SystemBase
 
     private void ValidateGridPosition(ref int x, ref int y)
     {
-        x = math.clamp(x, 0, PathfindingGridSetup.Instance.pathfindingGrid.GetWidth() - 1);
-        y = math.clamp(y, 0, PathfindingGridSetup.Instance.pathfindingGrid.GetHeight() - 1);
+        x = math.clamp(x, 0, GridSetup.Instance.PathfindingGrid.GetWidth() - 1);
+        y = math.clamp(y, 0, GridSetup.Instance.PathfindingGrid.GetHeight() - 1);
     }
 
     private static bool IsPositionInsideGrid(int2 gridPosition)
@@ -339,12 +343,12 @@ public partial class UnitControlSystem : SystemBase
         return
             gridPosition.x >= 0 &&
             gridPosition.y >= 0 &&
-            gridPosition.x < PathfindingGridSetup.Instance.pathfindingGrid.GetWidth() &&
-            gridPosition.y < PathfindingGridSetup.Instance.pathfindingGrid.GetHeight();
+            gridPosition.x < GridSetup.Instance.PathfindingGrid.GetWidth() &&
+            gridPosition.y < GridSetup.Instance.PathfindingGrid.GetHeight();
     }
 
     private static bool IsPositionWalkable(int2 gridPosition)
     {
-        return PathfindingGridSetup.Instance.pathfindingGrid.GetGridObject(gridPosition.x, gridPosition.y).IsWalkable();
+        return GridSetup.Instance.PathfindingGrid.GetGridObject(gridPosition.x, gridPosition.y).IsWalkable();
     }
 }

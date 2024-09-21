@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -51,14 +49,14 @@ public partial class UnitDegradationSystem : SystemBase
             if (normalizedHealth > 0)
             {
                 var currentPosition = localTransform.ValueRO.Position;
-                PathfindingGridSetup.Instance.pathfindingGrid.GetXY(currentPosition, out var x, out var y);
-                var cellSize = PathfindingGridSetup.Instance.pathfindingGrid.GetCellSize();
-                var cellPosition = PathfindingGridSetup.Instance.pathfindingGrid.GetWorldPosition(x, y);
+                GridSetup.Instance.PathfindingGrid.GetXY(currentPosition, out var x, out var y);
+                var cellSize = GridSetup.Instance.PathfindingGrid.GetCellSize();
+                var cellPosition = GridSetup.Instance.PathfindingGrid.GetWorldPosition(x, y);
                 localTransform.ValueRW.Position = new float3
                 {
                     x = currentPosition.x,
                     y = cellPosition.y + cellSize * 0.5f * (1 - normalizedHealth),
-                    z = currentPosition.z,
+                    z = currentPosition.z
                 };
 
                 postTransformMatrix.ValueRW.Value = float4x4.Scale(1, normalizedHealth, 1);
@@ -94,7 +92,9 @@ public partial class UnitDegradationSystem : SystemBase
     {
         // Only register each mesh once, so we can also unregister each mesh just once
         if (!m_MaterialMapping.ContainsKey(material))
+        {
             m_MaterialMapping[material] = hybridRendererSystem.RegisterMaterial(material);
+        }
     }
 
     private void UnregisterMaterials()
@@ -102,14 +102,19 @@ public partial class UnitDegradationSystem : SystemBase
         // Can't call this from OnDestroy(), so we can't do this on teardown
         var hybridRenderer = World.GetExistingSystemManaged<EntitiesGraphicsSystem>();
         if (hybridRenderer == null)
+        {
             return;
+        }
 
         foreach (var kv in m_MaterialMapping)
+        {
             hybridRenderer.UnregisterMaterial(kv.Value);
+        }
     }
+
     private static void DestroyDegradable(RefRW<LocalTransform> localTransform, EntityCommandBuffer ecb, Entity entity)
     {
-        PathfindingGridSetup.Instance.pathfindingGrid.GetGridObject(localTransform.ValueRO.Position).SetIsWalkable(true);
+        GridSetup.Instance.PathfindingGrid.GetGridObject(localTransform.ValueRO.Position).SetIsWalkable(true);
         ecb.DestroyEntity(entity);
     }
 }

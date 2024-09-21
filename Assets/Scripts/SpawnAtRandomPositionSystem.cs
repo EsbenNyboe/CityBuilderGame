@@ -53,7 +53,7 @@ public partial class SpawnAtRandomPositionSystem : SystemBase
         {
             currentAttempt++;
 
-            if (PathfindingGridSetup.Instance.pathfindingGrid.GetGridObject(endX, endY).IsWalkable())
+            if (GridSetup.Instance.PathfindingGrid.GetGridObject(endX, endY).IsWalkable())
             {
                 return;
             }
@@ -66,7 +66,7 @@ public partial class SpawnAtRandomPositionSystem : SystemBase
 
     private void GetRandomPosition(out int x, out int y)
     {
-        x = Random.Range(0, PathfindingGridSetup.Instance.pathfindingGrid.GetWidth() - 1) ;
-        y = Random.Range(0, PathfindingGridSetup.Instance.pathfindingGrid.GetHeight() - 1) ;
+        x = Random.Range(0, GridSetup.Instance.PathfindingGrid.GetWidth() - 1) ;
+        y = Random.Range(0, GridSetup.Instance.PathfindingGrid.GetHeight() - 1) ;
     }
 }

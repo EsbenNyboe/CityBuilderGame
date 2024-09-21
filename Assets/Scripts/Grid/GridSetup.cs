@@ -1,26 +1,13 @@
-﻿/*
-    ------------------- Code Monkey -------------------
+﻿using UnityEngine;
 
-    Thank you for downloading this package
-    I hope you find it useful in your projects
-    If you have any questions let me know
-    Cheers!
-
-               unitycodemonkey.com
-    --------------------------------------------------
- */
-
-using CodeMonkey.Utils;
-using UnityEngine;
-
-public class PathfindingGridSetup : MonoBehaviour
+public class GridSetup : MonoBehaviour
 {
-    [SerializeField] private PathfindingVisual pathfindingVisual;
-    public Grid<GridNode> pathfindingGrid;
+    [SerializeField] private PathfindingVisual _pathfindingVisual;
+    public Grid<GridNode> PathfindingGrid;
 
     private bool _shouldSetToWalkableOnMouseDown;
 
-    public static PathfindingGridSetup Instance { private set; get; }
+    public static GridSetup Instance { private set; get; }
 
     private void Awake()
     {
@@ -29,11 +16,11 @@ public class PathfindingGridSetup : MonoBehaviour
 
     private void Start()
     {
-        pathfindingGrid = new Grid<GridNode>(30, 15, 1f, Vector3.zero, ( grid,  x,  y) => new GridNode(grid, x, y));
+        PathfindingGrid = new Grid<GridNode>(30, 15, 1f, Vector3.zero, ( grid,  x,  y) => new GridNode(grid, x, y));
 
         //pathfindingGrid.GetGridObject(2, 0).SetIsWalkable(false);
 
-        pathfindingVisual.SetGrid(pathfindingGrid);
+        _pathfindingVisual.SetGrid(PathfindingGrid);
     }
 
     private void Update()

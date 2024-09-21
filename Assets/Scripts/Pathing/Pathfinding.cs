@@ -1,15 +1,3 @@
-/*
-    ------------------- Code Monkey -------------------
-
-    Thank you for downloading this package
-    I hope you find it useful in your projects
-    If you have any questions let me know
-    Cheers!
-
-               unitycodemonkey.com
-    --------------------------------------------------
- */
-
 using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
@@ -21,13 +9,13 @@ using UnityEngine;
 
 public partial class Pathfinding : SystemBase
 {
-    private const int MOVE_STRAIGHT_COST = 10;
-    private const int MOVE_DIAGONAL_COST = 14;
+    private const int MoveStraightCost = 10;
+    private const int MoveDiagonalCost = 14;
 
     protected override void OnUpdate()
     {
-        var gridWidth = PathfindingGridSetup.Instance.pathfindingGrid.GetWidth();
-        var gridHeight = PathfindingGridSetup.Instance.pathfindingGrid.GetHeight();
+        var gridWidth = GridSetup.Instance.PathfindingGrid.GetWidth();
+        var gridHeight = GridSetup.Instance.PathfindingGrid.GetHeight();
         var gridSize = new int2(gridWidth, gridHeight);
 
 
@@ -74,7 +62,7 @@ public partial class Pathfinding : SystemBase
 
     private NativeArray<PathNode> GetPathNodeArray()
     {
-        var grid = PathfindingGridSetup.Instance.pathfindingGrid;
+        var grid = GridSetup.Instance.PathfindingGrid;
         var gridSize = new int2(grid.GetWidth(), grid.GetHeight());
 
         var pathNodeArray = new NativeArray<PathNode>(gridSize.x * gridSize.y, Allocator.TempJob);
@@ -169,7 +157,7 @@ public partial class Pathfinding : SystemBase
         var xDistance = math.abs(aPosition.x - bPosition.x);
         var yDistance = math.abs(aPosition.y - bPosition.y);
         var remaining = math.abs(xDistance - yDistance);
-        return MOVE_DIAGONAL_COST * math.min(xDistance, yDistance) + MOVE_STRAIGHT_COST * remaining;
+        return MoveDiagonalCost * math.min(xDistance, yDistance) + MoveStraightCost * remaining;
     }
 
 
