@@ -26,6 +26,7 @@ public partial class UnitDegradationSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        return;
         var degradeEverything = Input.GetKey(KeyCode.A);
         var degradationThisFrame = DegradationPerSec * SystemAPI.Time.DeltaTime;
 

@@ -6,6 +6,7 @@ using UnityEngine;
 
 public partial class TreeSpawnerSystem : SystemBase
 {
+    private const int MaxHealth = 100;
     private static bool _shouldSpawnTreesOnMouseDown;
 
     protected override void OnCreate()
@@ -16,12 +17,13 @@ public partial class TreeSpawnerSystem : SystemBase
     protected override void OnUpdate()
     {
         var treeSpawner = SystemAPI.GetSingleton<TreeSpawner>();
-        var pathfindingGrid = GridSetup.Instance.PathGrid;
-        var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathfindingGrid.GetCellSize() * .5f;
+        var pathGrid = GridSetup.Instance.PathGrid;
+        var damageableGrid = GridSetup.Instance.DamageableGrid;
+        var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathGrid.GetCellSize() * .5f;
 
         if (Input.GetMouseButtonDown(1) && Input.GetKey(KeyCode.LeftControl))
         {
-            var gridNode = pathfindingGrid.GetGridObject(mousePosition);
+            var gridNode = pathGrid.GetGridObject(mousePosition);
             if (gridNode == null)
             {
                 return;
@@ -37,24 +39,26 @@ public partial class TreeSpawnerSystem : SystemBase
 
         if (Input.GetMouseButton(1) && Input.GetKey(KeyCode.LeftControl))
         {
-            var gridNode = pathfindingGrid.GetGridObject(mousePosition);
-            if (gridNode == null)
+            var gridPath = pathGrid.GetGridObject(mousePosition);
+            var gridDamageable = damageableGrid.GetGridObject(mousePosition);
+            if (gridPath == null || gridDamageable == null)
             {
                 return;
             }
 
-            if (!gridNode.IsWalkable())
+            if (!gridPath.IsWalkable() || gridDamageable.IsDamageable())
             {
                 return;
             }
 
-            SpawnTree(gridNode, mousePosition, treeSpawner);
+            SpawnTree(gridPath, gridDamageable, mousePosition, treeSpawner);
         }
     }
 
-    private void SpawnTree(GridPath gridPath, Vector3 mousePosition, TreeSpawner treeSpawner)
+    private void SpawnTree(GridPath gridPath, GridDamageable gridDamageable, Vector3 mousePosition, TreeSpawner treeSpawner)
     {
         gridPath.SetIsWalkable(false);
+        gridDamageable.SetHealth(MaxHealth);
 
         GridSetup.Instance.PathGrid.GetXY(mousePosition, out var x, out var y);
 

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class GridDamageable
 {
     private readonly Grid<GridDamageable> _grid;
@@ -28,5 +30,11 @@ public class GridDamageable
     {
         _health = health;
         _grid.TriggerGridObjectChanged(_x, _y);
+    }
+
+    public void AddToHealth(float delta)
+    {
+        _health += delta;
+        Debug.Log("Health: " + _health);
     }
 }

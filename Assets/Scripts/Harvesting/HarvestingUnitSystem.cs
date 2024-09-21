@@ -4,6 +4,8 @@ using Unity.Transforms;
 
 public partial class HarvestingUnitSystem : SystemBase
 {
+    private const int DamagePerSec = -20;
+
     protected override void OnUpdate()
     {
         foreach (var (harvestingUnit, pathFollow, entity) in SystemAPI.Query<RefRW<HarvestingUnit>, RefRO<PathFollow>>()
@@ -47,6 +49,7 @@ public partial class HarvestingUnitSystem : SystemBase
                 continue;
             }
 
+            GridSetup.Instance.DamageableGrid.GetGridObject(x, y).AddToHealth(DamagePerSec * SystemAPI.Time.DeltaTime);
             unitDegradation.ValueRW.IsDegrading = state;
         }
     }
