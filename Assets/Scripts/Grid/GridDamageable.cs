@@ -43,6 +43,5 @@ public class GridDamageable
     {
         _health += delta;
         _grid.TriggerGridObjectChanged(_x, _y);
-        Debug.Log("Health: " + _health);
     }
 }

@@ -153,13 +153,27 @@ public class PathfindingVisual : MonoBehaviour
                     ? new Vector3(quadWidth, quadHeight) * _gridDamageable.GetCellSize()
                     : Vector3.zero;
 
-                var isAboveHalfHealth = quadWidth > 0.5f;
-                var uv00 = isAboveHalfHealth ? new Vector2(.5f, .5f) : new Vector2(0, 0);
-                var uv11 = isAboveHalfHealth ? new Vector2(1f, 1f) : new Vector2(.5f, .5f);
+                var green = 0.9f;
+                var yellow = 0.4f;
+                var red = 0.1f;
+                var color = quadWidth switch
+                {
+                    > 0.99f => green,
+                    > 0.4f => yellow,
+                    _ => red
+                };
+
+                var uv00 = new Vector3(color, 0f);
+                var uv11 = new Vector3(color, 1f);
 
                 var position = _gridDamageable.GetWorldPosition(x, y);
-                // TODO: Make y-positioning cleaner?
+                // TODO: Make positioning cleaner? Not accounting for cell-size right now...
                 position.y += quadHeight / 2;
+                if (quadWidth < 1)
+                {
+                    position.x -= (1 - quadWidth) / 2;
+                }
+
                 MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
                     uv11);
             }
