@@ -1,7 +1,5 @@
 ﻿using CodeMonkey.Utils;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 
 public partial class TreeSpawnerSystem : SystemBase
@@ -52,7 +50,6 @@ public partial class TreeSpawnerSystem : SystemBase
             }
 
             SpawnTreeWithoutEntity(gridPath, gridDamageable);
-            // SpawnTreeWithEntity(gridPath, gridDamageable, mousePosition, treeSpawner);
         }
     }
 
@@ -60,26 +57,5 @@ public partial class TreeSpawnerSystem : SystemBase
     {
         gridPath.SetIsWalkable(false);
         gridDamageable.SetHealth(MaxHealth);
-    }
-
-    private void SpawnTreeWithEntity(GridPath gridPath, GridDamageable gridDamageable, Vector3 mousePosition, TreeSpawner treeSpawner)
-    {
-        gridPath.SetIsWalkable(false);
-        gridDamageable.SetHealth(MaxHealth);
-
-        GridSetup.Instance.PathGrid.GetXY(mousePosition, out var x, out var y);
-
-        var spawnedEntity = EntityManager.Instantiate(treeSpawner.ObjectToSpawn);
-        EntityManager.SetComponentData(spawnedEntity, new LocalTransform
-        {
-            Position = new float3
-            {
-                x = x,
-                y = y,
-                z = -0.01f
-            },
-            Scale = 1f,
-            Rotation = quaternion.identity
-        });
     }
 }

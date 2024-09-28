@@ -1,6 +1,5 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 
 public partial class HarvestingUnitSystem : SystemBase
 {
@@ -21,8 +20,9 @@ public partial class HarvestingUnitSystem : SystemBase
             var targetY = harvestingUnit.ValueRO.Target.y;
 
             var tileHasNoTree = GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).IsWalkable();
-            if (tileHasNoTree) // Tree probably was destroyed, during pathfinding
+            if (tileHasNoTree)
             {
+                // Tree was probably destroyed, so please stop chopping it!
                 EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
                 harvestingUnit.ValueRW.Target = new int2(-1, -1);
                 continue;
@@ -35,74 +35,7 @@ public partial class HarvestingUnitSystem : SystemBase
                 // DESTROY TREE:
                 GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).SetIsWalkable(true);
                 gridDamageableObject.SetHealth(0);
-                // TODO: Stop chopping that tree!
             }
         }
-    }
-
-    private void SetDegradationState(int targetX, int targetY, bool state)
-    {
-        foreach (var (localTransform, unitDegradation) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<UnitDegradation>>())
-        {
-            GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var x, out var y);
-            if (targetX != x || targetY != y)
-            {
-                continue;
-            }
-
-            unitDegradation.ValueRW.IsDegrading = state;
-        }
-    }
-
-    private bool TryGetNearbyTree(int unitPosX, int unitPosY, out int treePosX, out int treePosY)
-    {
-        if (!NeighbourIsWalkable(unitPosX, unitPosY, 1, 0, out treePosX, out treePosY))
-        {
-            return true;
-        }
-
-        if (!NeighbourIsWalkable(unitPosX, unitPosY, 1, 1, out treePosX, out treePosY))
-        {
-            return true;
-        }
-
-        if (!NeighbourIsWalkable(unitPosX, unitPosY, 0, 1, out treePosX, out treePosY))
-        {
-            return true;
-        }
-
-        if (!NeighbourIsWalkable(unitPosX, unitPosY, -1, 1, out treePosX, out treePosY))
-        {
-            return true;
-        }
-
-        if (!NeighbourIsWalkable(unitPosX, unitPosY, -1, 0, out treePosX, out treePosY))
-        {
-            return true;
-        }
-
-        if (!NeighbourIsWalkable(unitPosX, unitPosY, -1, -1, out treePosX, out treePosY))
-        {
-            return true;
-        }
-
-        if (!NeighbourIsWalkable(unitPosX, unitPosY, 0, -1, out treePosX, out treePosY))
-        {
-            return true;
-        }
-
-        if (!NeighbourIsWalkable(unitPosX, unitPosY, 1, -1, out treePosX, out treePosY))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool NeighbourIsWalkable(int unitPosX, int unitPosY, int xAddition, int yAddition, out int treePosX, out int treePosY)
-    {
-        treePosX = unitPosX + xAddition;
-        treePosY = unitPosY + yAddition;
-        return GridSetup.Instance.PathGrid.GetGridObject(treePosX, treePosY).IsWalkable();
     }
 }

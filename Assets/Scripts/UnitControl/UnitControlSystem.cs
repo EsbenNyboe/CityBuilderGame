@@ -163,20 +163,6 @@ public partial class UnitControlSystem : SystemBase
                 EndPosition = endPosition
             });
 
-            // TODO: Refactor
-            var target = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
-            var hasTarget = target.x != -1 && target.y != -1;
-            if (hasTarget)
-            {
-                SetDegradationState(target.x, target.y, false);
-
-                foreach (var harvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithAll<HarvestingUnit>())
-                {
-                    // notify all harvestingUnits that a tree has been abandoned
-                    // how, though?
-                }
-            }
-
             EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
             EntityManager.SetComponentData(entity, new HarvestingUnit
             {
@@ -232,42 +218,11 @@ public partial class UnitControlSystem : SystemBase
                 EndPosition = endPosition
             });
 
-            // TODO: Refactor
-            var target = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
-            var hasTarget = target.x != -1 && target.y != -1;
-            if (hasTarget)
-            {
-                SetDegradationState(target.x, target.y, false);
-
-                foreach (var harvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithAll<HarvestingUnit>())
-                {
-                    // TODO: This is duplicated elsewhere, why?
-                    // notify all harvestingUnits that a tree has been abandoned
-                    // how, though?
-                }
-            }
-
             EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
             EntityManager.SetComponentData(entity, new HarvestingUnit
             {
                 Target = new int2(-1, -1)
             });
-        }
-    }
-
-    private void SetDegradationState(int targetX, int targetY, bool state)
-    {
-        Debug.LogWarning("Refactor this?");
-        return;
-        foreach (var (localTransform, unitDegradation) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<UnitDegradation>>())
-        {
-            GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var x, out var y);
-            if (targetX != x || targetY != y)
-            {
-                continue;
-            }
-
-            unitDegradation.ValueRW.IsDegrading = state;
         }
     }
 
