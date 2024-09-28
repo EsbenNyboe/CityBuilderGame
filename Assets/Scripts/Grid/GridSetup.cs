@@ -23,7 +23,7 @@ public class GridSetup : MonoBehaviour
         DamageableGrid = new Grid<GridDamageable>(Width, Height, CellSize, Vector3.zero, (grid, x, y) => new GridDamageable(grid, x, y));
 
         // TODO: Is it a problem that we're using a specific grid to control the visual updates?
-        _pathfindingVisual.SetGrid(PathGrid);
+        _pathfindingVisual.SetGrid(PathGrid, DamageableGrid);
     }
 
     private void Update()
