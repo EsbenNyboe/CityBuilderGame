@@ -32,11 +32,11 @@ public partial class HarvestingUnitSystem : SystemBase
             gridDamageableObject.AddToHealth(DamagePerSec * SystemAPI.Time.DeltaTime);
             if (!gridDamageableObject.IsDamageable())
             {
-                // destroy tree?
+                // DESTROY TREE:
+                GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).SetIsWalkable(true);
+                gridDamageableObject.SetHealth(0);
+                // TODO: Stop chopping that tree!
             }
-
-            // TODO: Replace this with trees as grid
-            // SetDegradationState(targetX, targetY, true);
         }
     }
 
