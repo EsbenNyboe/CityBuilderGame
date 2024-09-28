@@ -11,8 +11,7 @@ public class HarvestingUnitAuthoring : MonoBehaviour
             var entity = GetEntity(authoring);
             AddComponent(entity, new HarvestingUnit
             {
-                IsHarvesting = false,
-                Target = new int2(-1,-1)
+                Target = new int2(-1, -1)
             });
             SetComponentEnabled<HarvestingUnit>(entity, false);
         }
@@ -21,6 +20,5 @@ public class HarvestingUnitAuthoring : MonoBehaviour
 
 public struct HarvestingUnit : IComponentData, IEnableableComponent
 {
-    public bool IsHarvesting;
     public int2 Target;
 }

@@ -11,7 +11,8 @@ public partial class HarvestingUnitSystem : SystemBase
         foreach (var (harvestingUnit, pathFollow, entity) in SystemAPI.Query<RefRW<HarvestingUnit>, RefRO<PathFollow>>()
                      .WithAll<HarvestingUnit>().WithEntityAccess())
         {
-            if (pathFollow.ValueRO.PathIndex >= 0)
+            var unitIsTryingToHarvest = pathFollow.ValueRO.PathIndex < 0;
+            if (!unitIsTryingToHarvest)
             {
                 continue;
             }
@@ -19,17 +20,13 @@ public partial class HarvestingUnitSystem : SystemBase
             var targetX = harvestingUnit.ValueRO.Target.x;
             var targetY = harvestingUnit.ValueRO.Target.y;
 
-            if (GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).IsWalkable())
+            var tileHasNoTree = GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).IsWalkable();
+            if (tileHasNoTree) // Tree probably was destroyed, during pathfinding
             {
-                // Tree probably was destroyed, during pathfinding
                 EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
-                harvestingUnit.ValueRW.IsHarvesting = false;
                 harvestingUnit.ValueRW.Target = new int2(-1, -1);
                 continue;
             }
-
-            // TODO: Is this bool even necessary?
-            harvestingUnit.ValueRW.IsHarvesting = true;
 
             var gridDamageableObject = GridSetup.Instance.DamageableGrid.GetGridObject(targetX, targetY);
             gridDamageableObject.AddToHealth(DamagePerSec * SystemAPI.Time.DeltaTime);
@@ -37,14 +34,7 @@ public partial class HarvestingUnitSystem : SystemBase
             {
                 // destroy tree?
             }
-            
-            // if (harvestingUnit.ValueRO.IsHarvesting)
-            // {
-            //     continue;
-            // }
-            //
-            // harvestingUnit.ValueRW.IsHarvesting = true;
-            //
+
             // TODO: Replace this with trees as grid
             // SetDegradationState(targetX, targetY, true);
         }

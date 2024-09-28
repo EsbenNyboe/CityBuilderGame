@@ -173,14 +173,13 @@ public partial class UnitControlSystem : SystemBase
                 foreach (var harvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithAll<HarvestingUnit>())
                 {
                     // notify all harvestingUnits that a tree has been abandoned
-                    harvestingUnit.ValueRW.IsHarvesting = false;
+                    // how, though?
                 }
             }
 
             EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
             EntityManager.SetComponentData(entity, new HarvestingUnit
             {
-                IsHarvesting = false,
                 Target = targetGridCell
             });
         }
@@ -242,15 +241,15 @@ public partial class UnitControlSystem : SystemBase
 
                 foreach (var harvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithAll<HarvestingUnit>())
                 {
+                    // TODO: This is duplicated elsewhere, why?
                     // notify all harvestingUnits that a tree has been abandoned
-                    harvestingUnit.ValueRW.IsHarvesting = false;
+                    // how, though?
                 }
             }
 
             EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
             EntityManager.SetComponentData(entity, new HarvestingUnit
             {
-                IsHarvesting = false,
                 Target = new int2(-1, -1)
             });
         }

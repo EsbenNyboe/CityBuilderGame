@@ -51,11 +51,18 @@ public partial class TreeSpawnerSystem : SystemBase
                 return;
             }
 
-            SpawnTree(gridPath, gridDamageable, mousePosition, treeSpawner);
+            SpawnTreeWithoutEntity(gridPath, gridDamageable);
+            // SpawnTreeWithEntity(gridPath, gridDamageable, mousePosition, treeSpawner);
         }
     }
 
-    private void SpawnTree(GridPath gridPath, GridDamageable gridDamageable, Vector3 mousePosition, TreeSpawner treeSpawner)
+    private void SpawnTreeWithoutEntity(GridPath gridPath, GridDamageable gridDamageable)
+    {
+        gridPath.SetIsWalkable(false);
+        gridDamageable.SetHealth(MaxHealth);
+    }
+
+    private void SpawnTreeWithEntity(GridPath gridPath, GridDamageable gridDamageable, Vector3 mousePosition, TreeSpawner treeSpawner)
     {
         gridPath.SetIsWalkable(false);
         gridDamageable.SetHealth(MaxHealth);
