@@ -3,18 +3,27 @@ using UnityEngine;
 
 public class PathfindingVisual : MonoBehaviour
 {
+    [SerializeField] private MeshFilter _pathGridMeshFilter;
+    [SerializeField] private MeshFilter _damageableGridMeshFilter;
+
     private Grid<GridPath> _gridPath;
     private Grid<GridDamageable> _gridDamageable;
-    private Mesh _mesh;
+
+    private Mesh _pathGridMesh;
+    private Mesh _damageableGridMesh;
+
     private bool _updateMesh;
+    private bool _updateHealthBar;
     private bool _updateText;
 
     private TextMesh[,] _debugTextArray;
 
     private void Awake()
     {
-        _mesh = new Mesh();
-        GetComponent<MeshFilter>().mesh = _mesh;
+        _pathGridMesh = new Mesh();
+        _pathGridMeshFilter.mesh = _pathGridMesh;
+        _damageableGridMesh = new Mesh();
+        _damageableGridMeshFilter.mesh = _damageableGridMesh;
     }
 
     private void LateUpdate()
@@ -30,6 +39,12 @@ public class PathfindingVisual : MonoBehaviour
             _updateText = false;
             UpdateTextVisual();
         }
+
+        if (_updateHealthBar)
+        {
+            _updateHealthBar = false;
+            UpdateHealthBarVisuals();
+        }
     }
 
     public void SetGrid(Grid<GridPath> gridPath, Grid<GridDamageable> gridDamageable)
@@ -37,6 +52,7 @@ public class PathfindingVisual : MonoBehaviour
         _gridPath = gridPath;
         _gridDamageable = gridDamageable;
         UpdateVisual();
+        UpdateHealthBarVisuals();
 
         gridPath.OnGridObjectChanged += Grid_OnGridValueChanged;
         gridDamageable.OnGridObjectChanged += Grid_OnGridValueChanged;
@@ -45,6 +61,7 @@ public class PathfindingVisual : MonoBehaviour
     private void Grid_OnGridValueChanged(object sender, Grid<GridDamageable>.OnGridObjectChangedEventArgs e)
     {
         _updateText = true;
+        _updateHealthBar = true;
     }
 
     private void Grid_OnGridValueChanged(object sender, Grid<GridPath>.OnGridObjectChangedEventArgs e)
@@ -70,6 +87,7 @@ public class PathfindingVisual : MonoBehaviour
 
                 if (!gridNode.IsWalkable())
                 {
+                    // TODO: Insert tree graphic here? 
                     //quadSize = Vector3.zero;
                     uv00 = new Vector2(.5f, .5f);
                     uv11 = new Vector2(1f, 1f);
@@ -80,13 +98,14 @@ public class PathfindingVisual : MonoBehaviour
             }
         }
 
-        _mesh.vertices = vertices;
-        _mesh.uv = uv;
-        _mesh.triangles = triangles;
+        _pathGridMesh.vertices = vertices;
+        _pathGridMesh.uv = uv;
+        _pathGridMesh.triangles = triangles;
     }
 
     private void UpdateTextVisual()
     {
+        return;
         if (_debugTextArray == default)
         {
             _debugTextArray = new TextMesh[_gridDamageable.GetWidth(), _gridDamageable.GetHeight()];
@@ -115,5 +134,39 @@ public class PathfindingVisual : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void UpdateHealthBarVisuals()
+    {
+        MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out var vertices, out var uv, out var triangles);
+
+        for (var x = 0; x < _gridDamageable.GetWidth(); x++)
+        {
+            for (var y = 0; y < _gridDamageable.GetHeight(); y++)
+            {
+                var index = x * _gridDamageable.GetHeight() + y;
+                var gridDamageableObject = _gridDamageable.GetGridObject(x, y);
+
+                var quadWidth = gridDamageableObject.GetHealth() / gridDamageableObject.GetMaxHealth();
+                var quadHeight = 0.5f;
+                var quadSize = gridDamageableObject.IsDamageable()
+                    ? new Vector3(quadWidth, quadHeight) * _gridDamageable.GetCellSize()
+                    : Vector3.zero;
+
+                var isAboveHalfHealth = quadWidth > 0.5f;
+                var uv00 = isAboveHalfHealth ? new Vector2(.5f, .5f) : new Vector2(0, 0);
+                var uv11 = isAboveHalfHealth ? new Vector2(1f, 1f) : new Vector2(.5f, .5f);
+
+                var position = _gridDamageable.GetWorldPosition(x, y);
+                // TODO: Make y-positioning cleaner?
+                position.y += quadHeight / 2;
+                MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
+                    uv11);
+            }
+        }
+
+        _damageableGridMesh.vertices = vertices;
+        _damageableGridMesh.uv = uv;
+        _damageableGridMesh.triangles = triangles;
     }
 }

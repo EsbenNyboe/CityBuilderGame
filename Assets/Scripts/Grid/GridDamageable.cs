@@ -7,6 +7,7 @@ public class GridDamageable
     private readonly int _y;
 
     private float _health;
+    private float _maxHealth;
 
     public GridDamageable(Grid<GridDamageable> grid, int x, int y)
     {
@@ -26,9 +27,15 @@ public class GridDamageable
         return _health;
     }
 
+    public float GetMaxHealth()
+    {
+        return _maxHealth;
+    }
+
     public void SetHealth(float health)
     {
         _health = health;
+        _maxHealth = _health;
         _grid.TriggerGridObjectChanged(_x, _y);
     }
 
