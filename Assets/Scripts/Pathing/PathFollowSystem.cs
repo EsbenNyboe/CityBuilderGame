@@ -107,33 +107,52 @@ public partial class PathFollowSystem : SystemBase
         var harvestTarget = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
         var (nearbyCellsX, nearbyCellsY) = PathingHelpers.GetCellListAroundTargetCell(harvestTarget.x, harvestTarget.y, 20);
 
-        for (var i = 1; i < nearbyCellsX.Count; i++)
+        if (GridSetup.Instance.DamageableGrid.GetGridObject(harvestTarget.x, harvestTarget.y).IsDamageable() &&
+            TryGetValidNeighbourCell(harvestTarget.x, harvestTarget.y, out newPathTargetX, out newPathTargetY))
         {
-            if (!PathingHelpers.IsPositionInsideGrid(nearbyCellsX[i], nearbyCellsY[i]) ||
-                !GridSetup.Instance.DamageableGrid.GetGridObject(nearbyCellsX[i], nearbyCellsY[i]).IsDamageable())
+            return true;
+        }
+
+        var count = nearbyCellsX.Count;
+        for (var i = 1; i < count; i++)
+        {
+            var x = nearbyCellsX[i];
+            var y = nearbyCellsY[i];
+
+            if (!PathingHelpers.IsPositionInsideGrid(x, y) ||
+                !GridSetup.Instance.DamageableGrid.GetGridObject(x, y).IsDamageable())
             {
                 continue;
             }
 
-            for (var j = 0; j < 8; j++)
+            if (TryGetValidNeighbourCell(x, y, out newPathTargetX, out newPathTargetY))
             {
-                PathingHelpers.GetNeighbourCell(j, nearbyCellsX[i], nearbyCellsY[i], out var neighbourX, out var neighbourY);
-
-                if (PathingHelpers.IsPositionInsideGrid(neighbourX, neighbourY) &&
-                    PathingHelpers.IsPositionWalkable(neighbourX, neighbourY) &&
-                    !PathingHelpers.IsPositionOccupied(neighbourX, neighbourY))
-                {
-                    newPathTargetX = neighbourX;
-                    newPathTargetY = neighbourY;
-
-                    SetHarvestingUnit(entity, new int2(nearbyCellsX[i], nearbyCellsY[i]));
-                    return true;
-                }
+                SetHarvestingUnit(entity, new int2(x, y));
+                return true;
             }
         }
 
         newPathTargetX = -1;
         newPathTargetY = -1;
+        return false;
+    }
+
+    private bool TryGetValidNeighbourCell(int x, int y, out int neighbourX, out int neighbourY)
+    {
+        for (var j = 0; j < 8; j++)
+        {
+            PathingHelpers.GetNeighbourCell(j, x, y, out neighbourX, out neighbourY);
+
+            if (PathingHelpers.IsPositionInsideGrid(neighbourX, neighbourY) &&
+                PathingHelpers.IsPositionWalkable(neighbourX, neighbourY) &&
+                !PathingHelpers.IsPositionOccupied(neighbourX, neighbourY))
+            {
+                return true;
+            }
+        }
+
+        neighbourX = -1;
+        neighbourY = -1;
         return false;
     }
 
