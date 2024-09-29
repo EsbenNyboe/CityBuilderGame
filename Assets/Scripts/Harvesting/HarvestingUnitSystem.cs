@@ -34,6 +34,12 @@ public partial class HarvestingUnitSystem : SystemBase
                 var currentTarget = harvestingUnit.ValueRO.Target;
                 if (TryGetNearbyChoppingCell(currentTarget, out var newTarget, out var newPathTarget))
                 {
+                    var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
+                    if (occupationCell.EntityIsOwner(entity))
+                    {
+                        occupationCell.SetOccupied(Entity.Null);
+                    }
+
                     EntityManager.SetComponentData(entity, new HarvestingUnit
                     {
                         Target = newTarget
