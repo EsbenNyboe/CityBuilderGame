@@ -50,15 +50,23 @@ public partial class PathFollowSystem : SystemBase
         if (GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).IsOccupied())
         {
             Debug.Log("OCCUPIED: " + GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).GetOwner());
-            var movePositionList = PathingHelpers.GetCellListAroundTargetCell(new int2(posX, posY), 20);
+            // var movePositionList = PathingHelpers.GetCellListAroundTargetCell(new int2(posX, posY), 20);
 
-            if (!TryGetNearbyVacantCell(movePositionList, out var newEndPosition))
+            var nearbyPositionList = PathingHelpers.GetCellListAroundTargetCellAlternative(posX, posY, 20);
+
+            // IF HARVESTING:
+            if (EntityManager.IsComponentEnabled<HarvestingUnit>(entity))
+            {
+                Debug.Log("I am harvesting");
+            }
+
+            if (!TryGetNearbyVacantCell(nearbyPositionList.Item1, nearbyPositionList.Item2, out var newX, out var newY))
             {
                 Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
                 return;
             }
 
-            SetupPathfinding(entityCommandBuffer, localTransform, entity, newEndPosition);
+            SetupPathfinding(entityCommandBuffer, localTransform, entity, new int2(newX, newY));
         }
         else
         {
@@ -99,6 +107,25 @@ public partial class PathFollowSystem : SystemBase
         }
 
         nearbyCell = default;
+        return false;
+    }
+
+    private static bool TryGetNearbyVacantCell(List<int> cellsX, List<int> cellsY, out int x, out int y)
+    {
+        for (var i = 1; i < cellsX.Count; i++)
+        {
+            x = cellsX[i];
+            y = cellsY[i];
+            if (PathingHelpers.IsPositionInsideGrid(x, y) && PathingHelpers.IsPositionWalkable(x, y)
+                                                          && !PathingHelpers.IsPositionOccupied(x, y)
+               )
+            {
+                return true;
+            }
+        }
+
+        x = default;
+        y = default;
         return false;
     }
 }

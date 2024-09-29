@@ -100,7 +100,8 @@ public partial class UnitControlSystem : SystemBase
         PathingHelpers.ValidateGridPosition(ref targetX, ref targetY);
         var targetGridCell = new int2(targetX, targetY);
 
-        var movePositionList = PathingHelpers.GetCellListAroundTargetCell(targetGridCell, 20);
+        // var movePositionList = PathingHelpers.GetCellListAroundTargetCell(targetGridCell, 20);
+        var movePositionList = PathingHelpers.GetCellListAroundTargetCellAlternative(targetGridCell, 20);
 
         // DEBUGGING:
         for (var i = 0; i < movePositionList.Count; i++)

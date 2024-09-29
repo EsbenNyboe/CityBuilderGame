@@ -5,6 +5,8 @@ using UnityEngine.Assertions;
 public class PathingHelpers
 {
     private static readonly List<int2> PositionList = new ();
+    private static readonly List<int> SimplePositionsX = new ();
+    private static readonly List<int> SimplePositionsY = new ();
     private static readonly List<int> NeighbourDeltasX = new()  { 1, 1, 0, -1, -1, -1, 0, 1 };
     private static readonly List<int> NeighbourDeltasY = new()  { 0, 1, 1, 1, 0, -1, -1, -1 };
 
@@ -37,9 +39,19 @@ public class PathingHelpers
         return GridSetup.Instance.PathGrid.GetGridObject(gridPosition.x, gridPosition.y).IsWalkable();
     }
 
+    public static bool IsPositionWalkable(int x, int y)
+    {
+        return GridSetup.Instance.PathGrid.GetGridObject(x, y).IsWalkable();
+    }
+
     public static bool IsPositionOccupied(int2 gridPosition)
     {
         return GridSetup.Instance.OccupationGrid.GetGridObject(gridPosition.x, gridPosition.y).IsOccupied();
+    }
+
+    public static bool IsPositionOccupied(int x, int y)
+    {
+        return GridSetup.Instance.OccupationGrid.GetGridObject(x, y).IsOccupied();
     }
 
     public static List<int2> GetCellListAroundTargetCell(int2 firstPosition, int ringCount)
@@ -107,9 +119,78 @@ public class PathingHelpers
 
     public static void GetNeighbourCell(int index, int x, int y, out int neighbourX, out int neighbourY)
     {
-        Assert.IsTrue(index >= 0 && index <= 8, "Index must be min 0 and max 8, because a cell can only have 8 neighbours!");
+        Assert.IsTrue(index >= 0 && index < 8, "Index must be min 0 and max 8, because a cell can only have 8 neighbours!");
 
         neighbourX = x + NeighbourDeltasX[index];
         neighbourY = y + NeighbourDeltasY[index];
+    }
+
+    public static List<int2> GetCellListAroundTargetCellAlternative(int2 firstPosition, int ringCount)
+    {
+        // TODO: Fucking decide if you're using int2 or int??? LOL!!!
+
+        PositionList.Clear();
+        var simplePositions = GetCellListAroundTargetCellAlternative(firstPosition.x, firstPosition.y, ringCount);
+        for (var i = 0; i < simplePositions.Item1.Count; i++)
+        {
+            PositionList.Add(new int2(simplePositions.Item1[i], simplePositions.Item2[i]));
+        }
+
+        return PositionList;
+    }
+
+    public static (List<int>, List<int>) GetCellListAroundTargetCellAlternative(int targetX, int targetY, int ringCount)
+    {
+        SimplePositionsX.Clear();
+        SimplePositionsY.Clear();
+
+        // include the target-cell
+        var nextCellX = targetX;
+        var nextCellY = targetY;
+        AddPosition(nextCellX, nextCellY);
+
+        for (var ringSize = 1; ringSize < ringCount; ringSize++)
+        {
+            // start at max X & max Y
+            nextCellX = targetX + ringSize;
+            nextCellY = targetY + ringSize;
+
+            // go to min X
+            while (nextCellX > targetX - ringSize)
+            {
+                nextCellX--;
+                AddPosition(nextCellX, nextCellY);
+            }
+
+            // go to min Y
+            while (nextCellY > targetY - ringSize)
+            {
+                nextCellY--;
+                AddPosition(nextCellX, nextCellY);
+            }
+
+            // go to max X
+            while (nextCellX < targetX + ringSize)
+            {
+                nextCellX++;
+                AddPosition(nextCellX, nextCellY);
+            }
+
+            // go to max Y
+            while (nextCellY < targetY + ringSize)
+            {
+                nextCellY++;
+                AddPosition(nextCellX, nextCellY);
+            }
+        }
+
+        return (SimplePositionsX, SimplePositionsY);
+    }
+
+    private static void AddPosition(int nextCellX, int nextCellY)
+    {
+        SimplePositionsX.Add(nextCellX);
+        SimplePositionsY.Add(nextCellY);
+        // Debug.Log("New position: x: " + nextCellX + " y: " + nextCellY);
     }
 }
