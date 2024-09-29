@@ -52,7 +52,7 @@ public partial class PathFollowSystem : SystemBase
             Debug.Log("OCCUPIED: " + GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).GetOwner());
             // var movePositionList = PathingHelpers.GetCellListAroundTargetCell(new int2(posX, posY), 20);
 
-            var nearbyPositionList = PathingHelpers.GetCellListAroundTargetCellAlternative(posX, posY, 20);
+            var nearbyPositionList = PathingHelpers.GetCellListAroundTargetCell(posX, posY, 20);
 
             // IF HARVESTING:
             if (EntityManager.IsComponentEnabled<HarvestingUnit>(entity))

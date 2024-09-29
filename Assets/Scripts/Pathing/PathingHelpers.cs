@@ -130,7 +130,7 @@ public class PathingHelpers
         // TODO: Fucking decide if you're using int2 or int??? LOL!!!
 
         PositionList.Clear();
-        var simplePositions = GetCellListAroundTargetCellAlternative(firstPosition.x, firstPosition.y, ringCount);
+        var simplePositions = GetCellListAroundTargetCell(firstPosition.x, firstPosition.y, ringCount);
         for (var i = 0; i < simplePositions.Item1.Count; i++)
         {
             PositionList.Add(new int2(simplePositions.Item1[i], simplePositions.Item2[i]));
@@ -139,7 +139,7 @@ public class PathingHelpers
         return PositionList;
     }
 
-    public static (List<int>, List<int>) GetCellListAroundTargetCellAlternative(int targetX, int targetY, int ringCount)
+    public static (List<int>, List<int>) GetCellListAroundTargetCell(int targetX, int targetY, int ringCount)
     {
         SimplePositionsX.Clear();
         SimplePositionsY.Clear();
