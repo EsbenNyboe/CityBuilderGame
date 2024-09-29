@@ -52,7 +52,7 @@ public partial class PathFollowSystem : SystemBase
             Debug.Log("OCCUPIED: " + GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).GetOwner());
             var movePositionList = PathingHelpers.GetCellListAroundTargetCell(new int2(posX, posY), 20);
 
-            if (!TryGetNearbyPosition(movePositionList, out var newEndPosition))
+            if (!TryGetNearbyVacantCell(movePositionList, out var newEndPosition))
             {
                 Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
                 return;
@@ -85,20 +85,20 @@ public partial class PathFollowSystem : SystemBase
         });
     }
 
-    private static bool TryGetNearbyPosition(List<int2> movePositionList, out int2 nearbyPosition)
+    private static bool TryGetNearbyVacantCell(List<int2> movePositionList, out int2 nearbyCell)
     {
         for (var i = 1; i < movePositionList.Count; i++)
         {
-            nearbyPosition = movePositionList[i];
-            if (PathingHelpers.IsPositionInsideGrid(nearbyPosition) && PathingHelpers.IsPositionWalkable(nearbyPosition)
-                                                                    && !PathingHelpers.IsPositionOccupied(nearbyPosition)
+            nearbyCell = movePositionList[i];
+            if (PathingHelpers.IsPositionInsideGrid(nearbyCell) && PathingHelpers.IsPositionWalkable(nearbyCell)
+                                                                && !PathingHelpers.IsPositionOccupied(nearbyCell)
                )
             {
                 return true;
             }
         }
 
-        nearbyPosition = default;
+        nearbyCell = default;
         return false;
     }
 }

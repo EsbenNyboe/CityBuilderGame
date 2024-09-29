@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
+using UnityEngine.Assertions;
 
 public class PathingHelpers
 {
     private static readonly List<int2> PositionList = new ();
+    private static readonly List<int> NeighbourDeltasX = new()  { 1, 1, 0, -1, -1, -1, 0, 1 };
+    private static readonly List<int> NeighbourDeltasY = new()  { 0, 1, 1, 1, 0, -1, -1, -1 };
 
     public static void ValidateGridPosition(ref int x, ref int y)
     {
@@ -18,6 +21,15 @@ public class PathingHelpers
             gridPosition.y >= 0 &&
             gridPosition.x < GridSetup.Instance.PathGrid.GetWidth() &&
             gridPosition.y < GridSetup.Instance.PathGrid.GetHeight();
+    }
+
+    public static bool IsPositionInsideGrid(int x, int y)
+    {
+        return
+            x >= 0 &&
+            y >= 0 &&
+            x < GridSetup.Instance.PathGrid.GetWidth() &&
+            y < GridSetup.Instance.PathGrid.GetHeight();
     }
 
     public static bool IsPositionWalkable(int2 gridPosition)
@@ -91,5 +103,13 @@ public class PathingHelpers
         positionList.Add(firstPosition + new int2(-a, -b));
         positionList.Add(firstPosition + new int2(-a, b));
         positionList.Add(firstPosition + new int2(a, -b));
+    }
+
+    public static void GetNeighbourCell(int index, int x, int y, out int neighbourX, out int neighbourY)
+    {
+        Assert.IsTrue(index >= 0 && index <= 8, "Index must be min 0 and max 8, because a cell can only have 8 neighbours!");
+
+        neighbourX = x + NeighbourDeltasX[index];
+        neighbourY = y + NeighbourDeltasY[index];
     }
 }

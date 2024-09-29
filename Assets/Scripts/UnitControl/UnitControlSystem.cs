@@ -223,56 +223,19 @@ public partial class UnitControlSystem : SystemBase
 
     private static bool TryGetWalkableNeighbourCells(int2 targetGridCell, List<int2> walkableNeighbourCells)
     {
-        if (TryGetWalkableNeighbourCell(targetGridCell, 1, 0, out var neighbourCell))
+        const int maxPossibleNeighbours = 8;
+        for (var i = 0; i < maxPossibleNeighbours; i++)
         {
-            walkableNeighbourCells.Add(neighbourCell);
-        }
+            PathingHelpers.GetNeighbourCell(i, targetGridCell.x, targetGridCell.y, out var neighbourX, out var neighbourY);
 
-        if (TryGetWalkableNeighbourCell(targetGridCell, 1, 1, out neighbourCell))
-        {
-            walkableNeighbourCells.Add(neighbourCell);
-        }
-
-        if (TryGetWalkableNeighbourCell(targetGridCell, 0, 1, out neighbourCell))
-        {
-            walkableNeighbourCells.Add(neighbourCell);
-        }
-
-        if (TryGetWalkableNeighbourCell(targetGridCell, -1, 1, out neighbourCell))
-        {
-            walkableNeighbourCells.Add(neighbourCell);
-        }
-
-        if (TryGetWalkableNeighbourCell(targetGridCell, -1, 0, out neighbourCell))
-        {
-            walkableNeighbourCells.Add(neighbourCell);
-        }
-
-        if (TryGetWalkableNeighbourCell(targetGridCell, -1, -1, out neighbourCell))
-        {
-            walkableNeighbourCells.Add(neighbourCell);
-        }
-
-        if (TryGetWalkableNeighbourCell(targetGridCell, 0, -1, out neighbourCell))
-        {
-            walkableNeighbourCells.Add(neighbourCell);
-        }
-
-        if (TryGetWalkableNeighbourCell(targetGridCell, 1, -1, out neighbourCell))
-        {
-            walkableNeighbourCells.Add(neighbourCell);
+            if (PathingHelpers.IsPositionInsideGrid(neighbourX, neighbourY) &&
+                GridSetup.Instance.PathGrid.GetGridObject(neighbourX, neighbourY).IsWalkable())
+            {
+                walkableNeighbourCells.Add(new int2(neighbourX, neighbourY));
+            }
         }
 
         return walkableNeighbourCells.Count > 0;
-    }
-
-    private static bool TryGetWalkableNeighbourCell(int2 target, int deltaX, int deltaY, out int2 neighbour)
-    {
-        neighbour = target;
-        neighbour.x += deltaX;
-        neighbour.y += deltaY;
-        return PathingHelpers.IsPositionInsideGrid(neighbour) &&
-               GridSetup.Instance.PathGrid.GetGridObject(neighbour.x, neighbour.y).IsWalkable();
     }
 
     private static void AbandonCellIfOccupying(int startX, int startY, Entity entity)
