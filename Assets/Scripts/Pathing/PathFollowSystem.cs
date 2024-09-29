@@ -47,32 +47,98 @@ public partial class PathFollowSystem : SystemBase
         GridSetup.Instance.OccupationGrid.GetXY(localTransform.ValueRO.Position, out var posX, out var posY);
 
         // TODO: Check if it's safe to assume the occupied cell owner is not this entity
-        if (GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).IsOccupied())
+        if (!GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).IsOccupied())
         {
-            Debug.Log("OCCUPIED: " + GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).GetOwner());
-            // var movePositionList = PathingHelpers.GetCellListAroundTargetCell(new int2(posX, posY), 20);
+            // Debug.Log("Set occupied: " + entity);
+            GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).SetOccupied(entity);
+            return;
+        }
+        // IS OCCUPIED:
+        // Debug.Log("OCCUPIED: " + GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).GetOwner());
 
-            var nearbyPositionList = PathingHelpers.GetCellListAroundTargetCell(posX, posY, 20);
+        var newX = -1;
+        var newY = -1;
 
-            // IF HARVESTING:
-            if (EntityManager.IsComponentEnabled<HarvestingUnit>(entity))
+        if (EntityManager.IsComponentEnabled<HarvestingUnit>(entity))
+        {
+            // Debug.Log("Unit cannot harvest, because cell is occupied: " + posX + " " + posY);
+
+            if (TryGetNearbyChoppingCell(entity, out newX, out newY))
             {
-                Debug.Log("I am harvesting");
-            }
-
-            if (!TryGetNearbyVacantCell(nearbyPositionList.Item1, nearbyPositionList.Item2, out var newX, out var newY))
-            {
-                Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
+                SetupPathfinding(entityCommandBuffer, localTransform, entity, new int2(newX, newY));
                 return;
             }
 
-            SetupPathfinding(entityCommandBuffer, localTransform, entity, new int2(newX, newY));
+            Debug.LogWarning("Could not find nearby chopping cell. Disabling harvesting-behaviour...");
         }
-        else
+
+        // var movePositionList = PathingHelpers.GetCellListAroundTargetCell(new int2(posX, posY), 20);
+        var nearbyCells = PathingHelpers.GetCellListAroundTargetCell(posX, posY, 20);
+        if (!TryGetNearbyVacantCell(nearbyCells.Item1, nearbyCells.Item2, out newX, out newY))
         {
-            Debug.Log("Set occupied: " + entity);
-            GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).SetOccupied(entity);
+            Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
+            return;
         }
+
+        SetupPathfinding(entityCommandBuffer, localTransform, entity, new int2(newX, newY));
+        DisableHarvestingUnit(entity);
+    }
+
+    private void SetHarvestingUnit(Entity entity, int2 newTarget)
+    {
+        // EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
+        EntityManager.SetComponentData(entity, new HarvestingUnit
+        {
+            Target = newTarget
+        });
+    }
+
+    private void DisableHarvestingUnit(Entity entity)
+    {
+        EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
+        EntityManager.SetComponentData(entity, new HarvestingUnit
+        {
+            Target = new int2(-1, -1)
+        });
+    }
+
+    private bool TryGetNearbyChoppingCell(Entity entity, out int newPathTargetX, out int newPathTargetY)
+    {
+        var harvestTarget = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
+        var (nearbyCellsX, nearbyCellsY) = PathingHelpers.GetCellListAroundTargetCell(harvestTarget.x, harvestTarget.y, 20);
+
+        for (var i = 1; i < nearbyCellsX.Count; i++)
+        {
+            if (!PathingHelpers.IsPositionInsideGrid(nearbyCellsX[i], nearbyCellsY[i]))
+            {
+                continue;
+            }
+
+            if (!GridSetup.Instance.DamageableGrid.GetGridObject(nearbyCellsX[i], nearbyCellsY[i]).IsDamageable())
+            {
+                continue;
+            }
+
+            for (var j = 0; j < 8; j++)
+            {
+                PathingHelpers.GetNeighbourCell(j, nearbyCellsX[i], nearbyCellsY[i], out var neighbourX, out var neighbourY);
+
+                if (PathingHelpers.IsPositionInsideGrid(neighbourX, neighbourY) &&
+                    PathingHelpers.IsPositionWalkable(neighbourX, neighbourY) &&
+                    !PathingHelpers.IsPositionOccupied(neighbourX, neighbourY))
+                {
+                    newPathTargetX = neighbourX;
+                    newPathTargetY = neighbourY;
+
+                    SetHarvestingUnit(entity, new int2(nearbyCellsX[i], nearbyCellsY[i]));
+                    return true;
+                }
+            }
+        }
+
+        newPathTargetX = -1;
+        newPathTargetY = -1;
+        return false;
     }
 
     private void SetupPathfinding(EntityCommandBuffer entityCommandBuffer, RefRW<LocalTransform> localTransform, Entity entity, int2 newEndPosition)
@@ -84,12 +150,6 @@ public partial class PathFollowSystem : SystemBase
         {
             StartPosition = new int2(startX, startY),
             EndPosition = newEndPosition
-        });
-
-        EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
-        EntityManager.SetComponentData(entity, new HarvestingUnit
-        {
-            Target = new int2(-1, -1)
         });
     }
 
