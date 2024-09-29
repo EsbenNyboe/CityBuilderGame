@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -7,6 +8,8 @@ public partial class PathFollowSystem : SystemBase
 {
     protected override void OnUpdate()
     {
+        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+
         foreach (var (localTransform, pathPositionBuffer, pathFollow, entity) in SystemAPI
                      .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>>().WithEntityAccess())
         {
@@ -29,18 +32,73 @@ public partial class PathFollowSystem : SystemBase
 
                 if (pathFollow.ValueRO.PathIndex < 0)
                 {
-                    GridSetup.Instance.OccupationGrid.GetXY(localTransform.ValueRO.Position, out var posX, out var posY);
-                    if (GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).IsOccupied())
-                    {
-                        Debug.Log("OCCUPIED: " + posX + " " + posY);
-                    }
-                    else
-                    {
-                        GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).SetOccupied(entity);
-                        Debug.Log("Set occupied: " + entity);
-                    }
+                    localTransform.ValueRW.Position = targetPosition;
+
+                    HandleCellOccupation(entityCommandBuffer, localTransform, entity);
                 }
             }
         }
+
+        entityCommandBuffer.Playback(EntityManager);
+    }
+
+    private void HandleCellOccupation(EntityCommandBuffer entityCommandBuffer, RefRW<LocalTransform> localTransform, Entity entity)
+    {
+        GridSetup.Instance.OccupationGrid.GetXY(localTransform.ValueRO.Position, out var posX, out var posY);
+
+        // TODO: Check if it's safe to assume the occupied cell owner is not this entity
+        if (GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).IsOccupied())
+        {
+            Debug.Log("OCCUPIED: " + GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).GetOwner());
+            var movePositionList = PathingHelpers.GetCellListAroundTargetCell(new int2(posX, posY), 20);
+
+            if (!TryGetNearbyPosition(movePositionList, out var newEndPosition))
+            {
+                Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
+                return;
+            }
+
+            SetupPathfinding(entityCommandBuffer, localTransform, entity, newEndPosition);
+        }
+        else
+        {
+            Debug.Log("Set occupied: " + entity);
+            GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).SetOccupied(entity);
+        }
+    }
+
+    private void SetupPathfinding(EntityCommandBuffer entityCommandBuffer, RefRW<LocalTransform> localTransform, Entity entity, int2 newEndPosition)
+    {
+        GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+        PathingHelpers.ValidateGridPosition(ref startX, ref startY);
+
+        entityCommandBuffer.AddComponent(entity, new PathfindingParams
+        {
+            StartPosition = new int2(startX, startY),
+            EndPosition = newEndPosition
+        });
+
+        EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
+        EntityManager.SetComponentData(entity, new HarvestingUnit
+        {
+            Target = new int2(-1, -1)
+        });
+    }
+
+    private static bool TryGetNearbyPosition(List<int2> movePositionList, out int2 nearbyPosition)
+    {
+        for (var i = 1; i < movePositionList.Count; i++)
+        {
+            nearbyPosition = movePositionList[i];
+            if (PathingHelpers.IsPositionInsideGrid(nearbyPosition) && PathingHelpers.IsPositionWalkable(nearbyPosition)
+                                                                    && !PathingHelpers.IsPositionOccupied(nearbyPosition)
+               )
+            {
+                return true;
+            }
+        }
+
+        nearbyPosition = default;
+        return false;
     }
 }

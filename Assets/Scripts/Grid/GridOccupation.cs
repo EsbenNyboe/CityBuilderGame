@@ -21,6 +21,16 @@ public class GridOccupation
         return _owner != Entity.Null && World.DefaultGameObjectInjectionWorld.EntityManager.Exists(_owner);
     }
 
+    public Entity GetOwner()
+    {
+        return _owner;
+    }
+
+    public bool EntityIsOwner(Entity entityToCheck)
+    {
+        return entityToCheck == _owner;
+    }
+
     public void SetOccupied(Entity newOwner)
     {
         _owner = newOwner;

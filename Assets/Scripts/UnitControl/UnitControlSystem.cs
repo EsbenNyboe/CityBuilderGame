@@ -97,10 +97,10 @@ public partial class UnitControlSystem : SystemBase
         var targetGridPosition = mousePosition + gridCenterModifier;
 
         GridSetup.Instance.PathGrid.GetXY(targetGridPosition, out var targetX, out var targetY);
-        ValidateGridPosition(ref targetX, ref targetY);
+        PathingHelpers.ValidateGridPosition(ref targetX, ref targetY);
         var targetGridCell = new int2(targetX, targetY);
 
-        var movePositionList = GetCellListAroundTargetCell(targetGridCell, 20);
+        var movePositionList = PathingHelpers.GetCellListAroundTargetCell(targetGridCell, 20);
 
         // DEBUGGING:
         for (var i = 0; i < movePositionList.Count; i++)
@@ -114,9 +114,9 @@ public partial class UnitControlSystem : SystemBase
             }
         }
 
-        if (IsPositionInsideGrid(targetGridCell))
+        if (PathingHelpers.IsPositionInsideGrid(targetGridCell))
         {
-            if (IsPositionWalkable(targetGridCell))
+            if (PathingHelpers.IsPositionWalkable(targetGridCell))
             {
                 MoveUnitsToWalkableArea(movePositionList, entityCommandBuffer);
             }
@@ -147,7 +147,7 @@ public partial class UnitControlSystem : SystemBase
             positionIndex = (positionIndex + 1) % walkableNeighbourCells.Count;
 
             GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            ValidateGridPosition(ref startX, ref startY);
+            PathingHelpers.ValidateGridPosition(ref startX, ref startY);
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
             {
                 StartPosition = new int2(startX, startY),
@@ -212,7 +212,8 @@ public partial class UnitControlSystem : SystemBase
         neighbour = target;
         neighbour.x += deltaX;
         neighbour.y += deltaY;
-        return IsPositionInsideGrid(neighbour) && GridSetup.Instance.PathGrid.GetGridObject(neighbour.x, neighbour.y).IsWalkable();
+        return PathingHelpers.IsPositionInsideGrid(neighbour) &&
+               GridSetup.Instance.PathGrid.GetGridObject(neighbour.x, neighbour.y).IsWalkable();
     }
 
     private void MoveUnitsToWalkableArea(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
@@ -229,7 +230,7 @@ public partial class UnitControlSystem : SystemBase
             var attempts = 0;
             while (!positionIsValid)
             {
-                if (IsPositionInsideGrid(endPosition) && IsPositionWalkable(endPosition))
+                if (PathingHelpers.IsPositionInsideGrid(endPosition) && PathingHelpers.IsPositionWalkable(endPosition))
                 {
                     positionIsValid = true;
                 }
@@ -254,7 +255,7 @@ public partial class UnitControlSystem : SystemBase
             }
 
             GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            ValidateGridPosition(ref startX, ref startY);
+            PathingHelpers.ValidateGridPosition(ref startX, ref startY);
 
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
             {
@@ -267,88 +268,12 @@ public partial class UnitControlSystem : SystemBase
             {
                 Target = new int2(-1, -1)
             });
-        }
-    }
 
-    private List<int2> GetCellListAroundTargetCell(int2 firstPosition, int ringCount)
-    {
-        var positionList = new List<int2> { firstPosition };
-
-        for (var i = 1; i < ringCount; i++)
-        {
-            for (var j = 1; j < i; j++)
+            var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(startX, startY);
+            if (occupationCell.EntityIsOwner(entity))
             {
-                AddFourPositionsAroundTarget(positionList, firstPosition, i, j);
-                AddFourPositionsAroundTarget(positionList, firstPosition, j, i);
+                occupationCell.SetOccupied(Entity.Null);
             }
-
-            if (i - 1 > 0)
-            {
-                AddFourPositionsAroundTarget(positionList, firstPosition, i - 1, i - 1);
-            }
-
-            positionList.Add(firstPosition + new int2(i, 0));
-            positionList.Add(firstPosition + new int2(-i, 0));
-            positionList.Add(firstPosition + new int2(0, i));
-            positionList.Add(firstPosition + new int2(0, -i));
         }
-
-        return positionList;
-    }
-
-    private static void AddFourPositionsAroundTarget(List<int2> positionList, int2 firstPosition, int a, int b)
-    {
-        if (positionList.Contains(firstPosition + new int2(a, b)))
-        {
-            for (var i = 0; i < positionList.Count; i++)
-            {
-                if (positionList[i].Equals(firstPosition + new int2(a, b)))
-                {
-                    Debug.Log("DUPLICATE IS THIS: " + i);
-                }
-            }
-
-            Debug.Log("Duplicate found on index: " + positionList.Count);
-        }
-
-        if (positionList.Contains(firstPosition + new int2(-a, -b)))
-        {
-            Debug.Log("Duplicate found on index: " + positionList.Count);
-        }
-
-        if (positionList.Contains(firstPosition + new int2(-a, b)))
-        {
-            Debug.Log("Duplicate found on index: " + positionList.Count);
-        }
-
-        if (positionList.Contains(firstPosition + new int2(a, -b)))
-        {
-            Debug.Log("Duplicate found on index: " + positionList.Count);
-        }
-
-        positionList.Add(firstPosition + new int2(a, b));
-        positionList.Add(firstPosition + new int2(-a, -b));
-        positionList.Add(firstPosition + new int2(-a, b));
-        positionList.Add(firstPosition + new int2(a, -b));
-    }
-
-    private void ValidateGridPosition(ref int x, ref int y)
-    {
-        x = math.clamp(x, 0, GridSetup.Instance.PathGrid.GetWidth() - 1);
-        y = math.clamp(y, 0, GridSetup.Instance.PathGrid.GetHeight() - 1);
-    }
-
-    private static bool IsPositionInsideGrid(int2 gridPosition)
-    {
-        return
-            gridPosition.x >= 0 &&
-            gridPosition.y >= 0 &&
-            gridPosition.x < GridSetup.Instance.PathGrid.GetWidth() &&
-            gridPosition.y < GridSetup.Instance.PathGrid.GetHeight();
-    }
-
-    private static bool IsPositionWalkable(int2 gridPosition)
-    {
-        return GridSetup.Instance.PathGrid.GetGridObject(gridPosition.x, gridPosition.y).IsWalkable();
     }
 }
