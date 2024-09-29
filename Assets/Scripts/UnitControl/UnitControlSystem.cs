@@ -121,7 +121,7 @@ public partial class UnitControlSystem : SystemBase
             {
                 MoveUnitsToWalkableArea(movePositionList, entityCommandBuffer);
             }
-            else
+            else if (PathingHelpers.IsPositionDamageable(targetGridCell))
             {
                 MoveUnitsToHarvestableCell(movePositionList, entityCommandBuffer, targetGridCell);
             }

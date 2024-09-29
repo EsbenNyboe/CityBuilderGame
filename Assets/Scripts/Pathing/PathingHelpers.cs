@@ -16,13 +16,13 @@ public class PathingHelpers
         y = math.clamp(y, 0, GridSetup.Instance.PathGrid.GetHeight() - 1);
     }
 
-    public static bool IsPositionInsideGrid(int2 gridPosition)
+    public static bool IsPositionInsideGrid(int2 cell)
     {
         return
-            gridPosition.x >= 0 &&
-            gridPosition.y >= 0 &&
-            gridPosition.x < GridSetup.Instance.PathGrid.GetWidth() &&
-            gridPosition.y < GridSetup.Instance.PathGrid.GetHeight();
+            cell.x >= 0 &&
+            cell.y >= 0 &&
+            cell.x < GridSetup.Instance.PathGrid.GetWidth() &&
+            cell.y < GridSetup.Instance.PathGrid.GetHeight();
     }
 
     public static bool IsPositionInsideGrid(int x, int y)
@@ -34,9 +34,9 @@ public class PathingHelpers
             y < GridSetup.Instance.PathGrid.GetHeight();
     }
 
-    public static bool IsPositionWalkable(int2 gridPosition)
+    public static bool IsPositionWalkable(int2 cell)
     {
-        return GridSetup.Instance.PathGrid.GetGridObject(gridPosition.x, gridPosition.y).IsWalkable();
+        return IsPositionWalkable(cell.x, cell.y);
     }
 
     public static bool IsPositionWalkable(int x, int y)
@@ -44,14 +44,24 @@ public class PathingHelpers
         return GridSetup.Instance.PathGrid.GetGridObject(x, y).IsWalkable();
     }
 
-    public static bool IsPositionOccupied(int2 gridPosition)
+    public static bool IsPositionOccupied(int2 cell)
     {
-        return GridSetup.Instance.OccupationGrid.GetGridObject(gridPosition.x, gridPosition.y).IsOccupied();
+        return IsPositionOccupied(cell.x, cell.y);
     }
 
     public static bool IsPositionOccupied(int x, int y)
     {
         return GridSetup.Instance.OccupationGrid.GetGridObject(x, y).IsOccupied();
+    }
+
+    public static bool IsPositionDamageable(int2 cell)
+    {
+        return IsPositionDamageable(cell.x, cell.y);
+    }
+
+    public static bool IsPositionDamageable(int x, int y)
+    {
+        return GridSetup.Instance.DamageableGrid.GetGridObject(x, y).IsDamageable();
     }
 
     public static List<int2> GetCellListAroundTargetCell(int2 firstPosition, int ringCount)

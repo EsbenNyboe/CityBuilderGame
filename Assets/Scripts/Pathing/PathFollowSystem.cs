@@ -109,12 +109,8 @@ public partial class PathFollowSystem : SystemBase
 
         for (var i = 1; i < nearbyCellsX.Count; i++)
         {
-            if (!PathingHelpers.IsPositionInsideGrid(nearbyCellsX[i], nearbyCellsY[i]))
-            {
-                continue;
-            }
-
-            if (!GridSetup.Instance.DamageableGrid.GetGridObject(nearbyCellsX[i], nearbyCellsY[i]).IsDamageable())
+            if (!PathingHelpers.IsPositionInsideGrid(nearbyCellsX[i], nearbyCellsY[i]) ||
+                !GridSetup.Instance.DamageableGrid.GetGridObject(nearbyCellsX[i], nearbyCellsY[i]).IsDamageable())
             {
                 continue;
             }
