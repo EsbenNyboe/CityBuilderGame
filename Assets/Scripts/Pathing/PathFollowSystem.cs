@@ -63,9 +63,11 @@ public partial class PathFollowSystem : SystemBase
         {
             // Debug.Log("Unit cannot harvest, because cell is occupied: " + posX + " " + posY);
 
-            if (TryGetNearbyChoppingCell(entity, out newX, out newY))
+            var harvestTarget = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
+            if (PathingHelpers.TryGetNearbyChoppingCell(harvestTarget, out var newTarget, out var newPathTarget))
             {
-                SetupPathfinding(entityCommandBuffer, localTransform, entity, new int2(newX, newY));
+                SetHarvestingUnit(entity, newTarget);
+                SetupPathfinding(entityCommandBuffer, localTransform, entity, newPathTarget);
                 return;
             }
 
@@ -100,60 +102,6 @@ public partial class PathFollowSystem : SystemBase
         {
             Target = new int2(-1, -1)
         });
-    }
-
-    private bool TryGetNearbyChoppingCell(Entity entity, out int newPathTargetX, out int newPathTargetY)
-    {
-        var harvestTarget = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
-        var (nearbyCellsX, nearbyCellsY) = PathingHelpers.GetCellListAroundTargetCell(harvestTarget.x, harvestTarget.y, 20);
-
-        if (GridSetup.Instance.DamageableGrid.GetGridObject(harvestTarget.x, harvestTarget.y).IsDamageable() &&
-            TryGetValidNeighbourCell(harvestTarget.x, harvestTarget.y, out newPathTargetX, out newPathTargetY))
-        {
-            return true;
-        }
-
-        var count = nearbyCellsX.Count;
-        for (var i = 1; i < count; i++)
-        {
-            var x = nearbyCellsX[i];
-            var y = nearbyCellsY[i];
-
-            if (!PathingHelpers.IsPositionInsideGrid(x, y) ||
-                !GridSetup.Instance.DamageableGrid.GetGridObject(x, y).IsDamageable())
-            {
-                continue;
-            }
-
-            if (TryGetValidNeighbourCell(x, y, out newPathTargetX, out newPathTargetY))
-            {
-                SetHarvestingUnit(entity, new int2(x, y));
-                return true;
-            }
-        }
-
-        newPathTargetX = -1;
-        newPathTargetY = -1;
-        return false;
-    }
-
-    private bool TryGetValidNeighbourCell(int x, int y, out int neighbourX, out int neighbourY)
-    {
-        for (var j = 0; j < 8; j++)
-        {
-            PathingHelpers.GetNeighbourCell(j, x, y, out neighbourX, out neighbourY);
-
-            if (PathingHelpers.IsPositionInsideGrid(neighbourX, neighbourY) &&
-                PathingHelpers.IsPositionWalkable(neighbourX, neighbourY) &&
-                !PathingHelpers.IsPositionOccupied(neighbourX, neighbourY))
-            {
-                return true;
-            }
-        }
-
-        neighbourX = -1;
-        neighbourY = -1;
-        return false;
     }
 
     private void SetupPathfinding(EntityCommandBuffer entityCommandBuffer, RefRW<LocalTransform> localTransform, Entity entity, int2 newEndPosition)

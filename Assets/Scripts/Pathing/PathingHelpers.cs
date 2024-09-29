@@ -203,4 +203,60 @@ public class PathingHelpers
         SimplePositionsY.Add(nextCellY);
         // Debug.Log("New position: x: " + nextCellX + " y: " + nextCellY);
     }
+
+    public static bool TryGetNearbyChoppingCell(int2 currentTarget, out int2 newTarget, out int2 newPathTarget)
+    {
+        var (nearbyCellsX, nearbyCellsY) = GetCellListAroundTargetCell(currentTarget.x, currentTarget.y, 20);
+
+        if (GridSetup.Instance.DamageableGrid.GetGridObject(currentTarget.x, currentTarget.y).IsDamageable() &&
+            TryGetValidNeighbourCell(currentTarget.x, currentTarget.y, out var newPathTargetX, out var newPathTargetY))
+        {
+            newTarget = currentTarget;
+            newPathTarget = new int2(newPathTargetX, newPathTargetY);
+            return true;
+        }
+
+        var count = nearbyCellsX.Count;
+        for (var i = 1; i < count; i++)
+        {
+            var x = nearbyCellsX[i];
+            var y = nearbyCellsY[i];
+
+            if (!IsPositionInsideGrid(x, y) ||
+                !GridSetup.Instance.DamageableGrid.GetGridObject(x, y).IsDamageable())
+            {
+                continue;
+            }
+
+            if (TryGetValidNeighbourCell(x, y, out newPathTargetX, out newPathTargetY))
+            {
+                newTarget = new int2(x, y);
+                newPathTarget = new int2(newPathTargetX, newPathTargetY);
+                return true;
+            }
+        }
+
+        newTarget = default;
+        newPathTarget = default;
+        return false;
+    }
+
+    private static bool TryGetValidNeighbourCell(int x, int y, out int neighbourX, out int neighbourY)
+    {
+        for (var j = 0; j < 8; j++)
+        {
+            GetNeighbourCell(j, x, y, out neighbourX, out neighbourY);
+
+            if (IsPositionInsideGrid(neighbourX, neighbourY) &&
+                IsPositionWalkable(neighbourX, neighbourY) &&
+                !IsPositionOccupied(neighbourX, neighbourY))
+            {
+                return true;
+            }
+        }
+
+        neighbourX = -1;
+        neighbourY = -1;
+        return false;
+    }
 }
