@@ -102,6 +102,7 @@ public partial class UnitControlSystem : SystemBase
 
         var movePositionList = GetCellListAroundTargetCell(targetGridCell, 20);
 
+        // DEBUGGING:
         for (var i = 0; i < movePositionList.Count; i++)
         {
             for (var j = i + 1; j < movePositionList.Count; j++)
@@ -121,42 +122,32 @@ public partial class UnitControlSystem : SystemBase
             }
             else
             {
-                MoveUnitsToHarvestableCell(targetGridCell, entityCommandBuffer);
+                MoveUnitsToHarvestableCell(movePositionList, entityCommandBuffer, targetGridCell);
             }
         }
 
         entityCommandBuffer.Playback(EntityManager);
     }
 
-    private void MoveUnitsToHarvestableCell(int2 targetGridCell, EntityCommandBuffer entityCommandBuffer)
+    private void MoveUnitsToHarvestableCell(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer, int2 targetGridCell)
     {
+        var walkableNeighbourCells = new List<int2>();
+
+        if (!TryGetWalkableNeighbourCells(targetGridCell, walkableNeighbourCells))
+        {
+            Debug.Log("No walkable neighbour cell found. Please try again!");
+            return;
+        }
+
+        var positionIndex = 0;
         foreach (var (unitSelection, localTransform, entity) in SystemAPI
                      .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>().WithEntityAccess())
         {
+            var endPosition = walkableNeighbourCells[positionIndex];
+            positionIndex = (positionIndex + 1) % walkableNeighbourCells.Count;
+
             GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
             ValidateGridPosition(ref startX, ref startY);
-
-            var endPosition = targetGridCell;
-
-            // TODO: Insert better pathfinding to nearby walkable cell, between end and start, and use that cell as endPosition
-            if (endPosition.x > startX)
-            {
-                endPosition.x--;
-            }
-            else if (endPosition.x < startX)
-            {
-                endPosition.x++;
-            }
-
-            if (endPosition.y > startY)
-            {
-                endPosition.y--;
-            }
-            else if (endPosition.y < startY)
-            {
-                endPosition.y++;
-            }
-
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
             {
                 StartPosition = new int2(startX, startY),
@@ -169,6 +160,59 @@ public partial class UnitControlSystem : SystemBase
                 Target = targetGridCell
             });
         }
+    }
+
+    private static bool TryGetWalkableNeighbourCells(int2 targetGridCell, List<int2> walkableNeighbourCells)
+    {
+        if (TryGetWalkableNeighbourCell(targetGridCell, 1, 0, out var neighbourCell))
+        {
+            walkableNeighbourCells.Add(neighbourCell);
+        }
+
+        if (TryGetWalkableNeighbourCell(targetGridCell, 1, 1, out neighbourCell))
+        {
+            walkableNeighbourCells.Add(neighbourCell);
+        }
+
+        if (TryGetWalkableNeighbourCell(targetGridCell, 0, 1, out neighbourCell))
+        {
+            walkableNeighbourCells.Add(neighbourCell);
+        }
+
+        if (TryGetWalkableNeighbourCell(targetGridCell, -1, 1, out neighbourCell))
+        {
+            walkableNeighbourCells.Add(neighbourCell);
+        }
+
+        if (TryGetWalkableNeighbourCell(targetGridCell, -1, 0, out neighbourCell))
+        {
+            walkableNeighbourCells.Add(neighbourCell);
+        }
+
+        if (TryGetWalkableNeighbourCell(targetGridCell, -1, -1, out neighbourCell))
+        {
+            walkableNeighbourCells.Add(neighbourCell);
+        }
+
+        if (TryGetWalkableNeighbourCell(targetGridCell, 0, -1, out neighbourCell))
+        {
+            walkableNeighbourCells.Add(neighbourCell);
+        }
+
+        if (TryGetWalkableNeighbourCell(targetGridCell, 1, -1, out neighbourCell))
+        {
+            walkableNeighbourCells.Add(neighbourCell);
+        }
+
+        return walkableNeighbourCells.Count > 0;
+    }
+
+    private static bool TryGetWalkableNeighbourCell(int2 target, int deltaX, int deltaY, out int2 neighbour)
+    {
+        neighbour = target;
+        neighbour.x += deltaX;
+        neighbour.y += deltaY;
+        return IsPositionInsideGrid(neighbour) && GridSetup.Instance.PathGrid.GetGridObject(neighbour.x, neighbour.y).IsWalkable();
     }
 
     private void MoveUnitsToWalkableArea(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
