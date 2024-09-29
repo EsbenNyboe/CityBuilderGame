@@ -40,6 +40,7 @@ public partial class HarvestingUnitSystem : SystemBase
                         occupationCell.SetOccupied(Entity.Null);
                     }
 
+                    // TODO: Investigate if this is what produces the error with long-range chopping. Is it maybe a bad idea to depend on PathFollow alone?
                     EntityManager.SetComponentData(entity, new HarvestingUnit
                     {
                         Target = newTarget
