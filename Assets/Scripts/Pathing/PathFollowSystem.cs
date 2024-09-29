@@ -1,6 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 public partial class PathFollowSystem : SystemBase
 {
@@ -25,6 +26,20 @@ public partial class PathFollowSystem : SystemBase
             {
                 // next waypoint
                 pathFollow.ValueRW.PathIndex --;
+
+                if (pathFollow.ValueRO.PathIndex < 0)
+                {
+                    GridSetup.Instance.OccupationGrid.GetXY(localTransform.ValueRO.Position, out var posX, out var posY);
+                    if (GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).IsOccupied())
+                    {
+                        Debug.Log("OCCUPIED: " + posX + " " + posY);
+                    }
+                    else
+                    {
+                        GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).SetOccupied(entity);
+                        Debug.Log("Set occupied: " + entity);
+                    }
+                }
             }
         }
     }

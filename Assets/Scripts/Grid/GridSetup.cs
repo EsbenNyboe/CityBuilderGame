@@ -8,6 +8,7 @@ public class GridSetup : MonoBehaviour
     [SerializeField] private PathfindingVisual _pathfindingVisual;
     public Grid<GridPath> PathGrid;
     public Grid<GridDamageable> DamageableGrid;
+    public Grid<GridOccupation> OccupationGrid;
 
     private bool _shouldSetToWalkableOnMouseDown;
     public static GridSetup Instance { private set; get; }
@@ -21,6 +22,7 @@ public class GridSetup : MonoBehaviour
     {
         PathGrid = new Grid<GridPath>(Width, Height, CellSize, Vector3.zero, ( grid,  x,  y) => new GridPath(grid, x, y));
         DamageableGrid = new Grid<GridDamageable>(Width, Height, CellSize, Vector3.zero, (grid, x, y) => new GridDamageable(grid, x, y));
+        OccupationGrid = new Grid<GridOccupation>(Width, Height, CellSize, Vector3.zero, (grid, x, y) => new GridOccupation(grid, x, y));
 
         // TODO: Is it a problem that we're using a specific grid to control the visual updates?
         _pathfindingVisual.SetGrid(PathGrid, DamageableGrid);
