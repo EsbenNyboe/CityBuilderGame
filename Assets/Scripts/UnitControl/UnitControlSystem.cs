@@ -129,6 +129,63 @@ public partial class UnitControlSystem : SystemBase
         entityCommandBuffer.Playback(EntityManager);
     }
 
+    private void MoveUnitsToWalkableArea(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
+    {
+        var positionIndex = 0;
+        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>()
+                     .WithPresent<HarvestingUnit>().WithEntityAccess())
+        {
+            var endPosition = movePositionList[positionIndex];
+            positionIndex = (positionIndex + 1) % movePositionList.Count;
+            var positionIsValid = false;
+
+            var maxAttempts = 100;
+            var attempts = 0;
+            while (!positionIsValid)
+            {
+                if (PathingHelpers.IsPositionInsideGrid(endPosition) && PathingHelpers.IsPositionWalkable(endPosition))
+                {
+                    positionIsValid = true;
+                }
+                else
+                {
+                    endPosition = movePositionList[positionIndex];
+                    positionIndex = (positionIndex + 1) % movePositionList.Count;
+                }
+
+                attempts++;
+                if (attempts > maxAttempts)
+                {
+                    // Hack:
+                    positionIsValid = true;
+                }
+            }
+
+            if (attempts > maxAttempts)
+            {
+                Debug.Log("Could not find valid position target... canceling move order");
+                continue;
+            }
+
+            GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            PathingHelpers.ValidateGridPosition(ref startX, ref startY);
+
+            entityCommandBuffer.AddComponent(entity, new PathfindingParams
+            {
+                StartPosition = new int2(startX, startY),
+                EndPosition = endPosition
+            });
+
+            EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
+            EntityManager.SetComponentData(entity, new HarvestingUnit
+            {
+                Target = new int2(-1, -1)
+            });
+
+            AbandonCellIfOccupying(startX, startY, entity);
+        }
+    }
+
     private void MoveUnitsToHarvestableCell(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer, int2 targetGridCell)
     {
         var walkableNeighbourCells = new List<int2>();
@@ -159,6 +216,8 @@ public partial class UnitControlSystem : SystemBase
             {
                 Target = targetGridCell
             });
+
+            AbandonCellIfOccupying(startX, startY, entity);
         }
     }
 
@@ -216,64 +275,12 @@ public partial class UnitControlSystem : SystemBase
                GridSetup.Instance.PathGrid.GetGridObject(neighbour.x, neighbour.y).IsWalkable();
     }
 
-    private void MoveUnitsToWalkableArea(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
+    private static void AbandonCellIfOccupying(int startX, int startY, Entity entity)
     {
-        var positionIndex = 0;
-        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>()
-                     .WithPresent<HarvestingUnit>().WithEntityAccess())
+        var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(startX, startY);
+        if (occupationCell.EntityIsOwner(entity))
         {
-            var endPosition = movePositionList[positionIndex];
-            positionIndex = (positionIndex + 1) % movePositionList.Count;
-            var positionIsValid = false;
-
-            var maxAttempts = 100;
-            var attempts = 0;
-            while (!positionIsValid)
-            {
-                if (PathingHelpers.IsPositionInsideGrid(endPosition) && PathingHelpers.IsPositionWalkable(endPosition))
-                {
-                    positionIsValid = true;
-                }
-                else
-                {
-                    endPosition = movePositionList[positionIndex];
-                    positionIndex = (positionIndex + 1) % movePositionList.Count;
-                }
-
-                attempts++;
-                if (attempts > maxAttempts)
-                {
-                    // Hack:
-                    positionIsValid = true;
-                }
-            }
-
-            if (attempts > maxAttempts)
-            {
-                Debug.Log("Could not find valid position target... canceling move order");
-                continue;
-            }
-
-            GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            PathingHelpers.ValidateGridPosition(ref startX, ref startY);
-
-            entityCommandBuffer.AddComponent(entity, new PathfindingParams
-            {
-                StartPosition = new int2(startX, startY),
-                EndPosition = endPosition
-            });
-
-            EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
-            EntityManager.SetComponentData(entity, new HarvestingUnit
-            {
-                Target = new int2(-1, -1)
-            });
-
-            var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(startX, startY);
-            if (occupationCell.EntityIsOwner(entity))
-            {
-                occupationCell.SetOccupied(Entity.Null);
-            }
+            occupationCell.SetOccupied(Entity.Null);
         }
     }
 }
