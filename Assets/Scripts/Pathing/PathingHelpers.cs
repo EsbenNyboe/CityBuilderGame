@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PathingHelpers
 {
+    private static readonly List<int2> PositionList = new ();
+
     public static void ValidateGridPosition(ref int x, ref int y)
     {
         x = math.clamp(x, 0, GridSetup.Instance.PathGrid.GetWidth() - 1);
@@ -31,28 +33,29 @@ public class PathingHelpers
 
     public static List<int2> GetCellListAroundTargetCell(int2 firstPosition, int ringCount)
     {
-        var positionList = new List<int2> { firstPosition };
+        PositionList.Clear();
+        PositionList.Add(firstPosition);
 
         for (var i = 1; i < ringCount; i++)
         {
             for (var j = 1; j < i; j++)
             {
-                AddFourPositionsAroundTarget(positionList, firstPosition, i, j);
-                AddFourPositionsAroundTarget(positionList, firstPosition, j, i);
+                AddFourPositionsAroundTarget(PositionList, firstPosition, i, j);
+                AddFourPositionsAroundTarget(PositionList, firstPosition, j, i);
             }
 
             if (i - 1 > 0)
             {
-                AddFourPositionsAroundTarget(positionList, firstPosition, i - 1, i - 1);
+                AddFourPositionsAroundTarget(PositionList, firstPosition, i - 1, i - 1);
             }
 
-            positionList.Add(firstPosition + new int2(i, 0));
-            positionList.Add(firstPosition + new int2(-i, 0));
-            positionList.Add(firstPosition + new int2(0, i));
-            positionList.Add(firstPosition + new int2(0, -i));
+            PositionList.Add(firstPosition + new int2(i, 0));
+            PositionList.Add(firstPosition + new int2(-i, 0));
+            PositionList.Add(firstPosition + new int2(0, i));
+            PositionList.Add(firstPosition + new int2(0, -i));
         }
 
-        return positionList;
+        return PositionList;
     }
 
     private static void AddFourPositionsAroundTarget(List<int2> positionList, int2 firstPosition, int a, int b)
