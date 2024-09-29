@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine.Assertions;
+using Random = UnityEngine.Random;
 
 public class PathingHelpers
 {
@@ -9,6 +10,8 @@ public class PathingHelpers
     private static readonly List<int> SimplePositionsY = new ();
     private static readonly List<int> NeighbourDeltasX = new()  { 1, 1, 0, -1, -1, -1, 0, 1 };
     private static readonly List<int> NeighbourDeltasY = new()  { 0, 1, 1, 1, 0, -1, -1, -1 };
+    private static readonly List<int> RandomNeighbourIndexList = new();
+    private static readonly List<int> RandomNearbyCellIndexList = new();
 
     public static void ValidateGridPosition(ref int x, ref int y)
     {
@@ -149,7 +152,7 @@ public class PathingHelpers
         return PositionList;
     }
 
-    public static (List<int>, List<int>) GetCellListAroundTargetCell(int targetX, int targetY, int ringCount)
+    public static (List<int>, List<int>) GetCellListAroundTargetCell(int targetX, int targetY, int ringCount, bool includeTarget = true)
     {
         SimplePositionsX.Clear();
         SimplePositionsY.Clear();
@@ -157,7 +160,10 @@ public class PathingHelpers
         // include the target-cell
         var nextCellX = targetX;
         var nextCellY = targetY;
-        AddPosition(nextCellX, nextCellY);
+        if (includeTarget)
+        {
+            AddPosition(nextCellX, nextCellY);
+        }
 
         for (var ringSize = 1; ringSize < ringCount; ringSize++)
         {
@@ -206,7 +212,7 @@ public class PathingHelpers
 
     public static bool TryGetNearbyChoppingCell(int2 currentTarget, out int2 newTarget, out int2 newPathTarget)
     {
-        var (nearbyCellsX, nearbyCellsY) = GetCellListAroundTargetCell(currentTarget.x, currentTarget.y, 20);
+        var (nearbyCellsX, nearbyCellsY) = GetCellListAroundTargetCell(currentTarget.x, currentTarget.y, 30, false);
 
         if (GridSetup.Instance.DamageableGrid.GetGridObject(currentTarget.x, currentTarget.y).IsDamageable() &&
             TryGetValidNeighbourCell(currentTarget.x, currentTarget.y, out var newPathTargetX, out var newPathTargetY))
@@ -217,10 +223,37 @@ public class PathingHelpers
         }
 
         var count = nearbyCellsX.Count;
-        for (var i = 1; i < count; i++)
+        // var ringIndex = 1;
+        // var cellNeighbourAmount = 8;
+        // var randomIndexMin = 0;
+        // var randomIndexMax = cellNeighbourAmount;
+        // InitializeRandomNearbyCellIndexList(randomIndexMin, math.min(randomIndexMax, count));
+
+        var randomSelectionThreshold = math.min(50, count);
+        InitializeRandomNearbyCellIndexList(0, randomSelectionThreshold);
+
+        for (var i = 0; i < count; i++)
         {
-            var x = nearbyCellsX[i];
-            var y = nearbyCellsY[i];
+            // var randomIndex = GetRandomNearbyCellIndex();
+            // if (RandomNearbyCellIndexListIsEmpty())
+            // {
+            //     ringIndex++;
+            //     randomIndexMin = randomIndexMax;
+            //     randomIndexMax = randomIndexMin + cellNeighbourAmount * ringIndex;
+            //     InitializeRandomNearbyCellIndexList(randomIndexMin, math.min(randomIndexMax, count));
+            // }
+
+            var cellIndex = i;
+            if (!RandomNearbyCellIndexListIsEmpty())
+            {
+                cellIndex = GetRandomNearbyCellIndex();
+            }
+
+            var x = nearbyCellsX[cellIndex];
+            var y = nearbyCellsY[cellIndex];
+
+            // var x = nearbyCellsX[i];
+            // var y = nearbyCellsY[i];
 
             if (!IsPositionInsideGrid(x, y) ||
                 !GridSetup.Instance.DamageableGrid.GetGridObject(x, y).IsDamageable())
@@ -243,9 +276,11 @@ public class PathingHelpers
 
     private static bool TryGetValidNeighbourCell(int x, int y, out int neighbourX, out int neighbourY)
     {
+        InitializeRandomNeighbourIndexList(8);
         for (var j = 0; j < 8; j++)
         {
-            GetNeighbourCell(j, x, y, out neighbourX, out neighbourY);
+            var randomIndex = GetRandomNeighbourIndex();
+            GetNeighbourCell(randomIndex, x, y, out neighbourX, out neighbourY);
 
             if (IsPositionInsideGrid(neighbourX, neighbourY) &&
                 IsPositionWalkable(neighbourX, neighbourY) &&
@@ -258,5 +293,44 @@ public class PathingHelpers
         neighbourX = -1;
         neighbourY = -1;
         return false;
+    }
+
+    private static void InitializeRandomNeighbourIndexList(int length)
+    {
+        RandomNeighbourIndexList.Clear();
+        for (var i = 0; i < length; i++)
+        {
+            RandomNeighbourIndexList.Add(i);
+        }
+    }
+
+    private static int GetRandomNeighbourIndex()
+    {
+        var indexListIndex = Random.Range(0, RandomNeighbourIndexList.Count);
+        var cellListIndex = RandomNeighbourIndexList[indexListIndex];
+        RandomNeighbourIndexList.RemoveAt(indexListIndex);
+        return cellListIndex;
+    }
+
+    private static bool RandomNearbyCellIndexListIsEmpty()
+    {
+        return RandomNearbyCellIndexList.Count <= 0;
+    }
+
+    private static void InitializeRandomNearbyCellIndexList(int min, int max)
+    {
+        RandomNearbyCellIndexList.Clear();
+        for (var i = min; i < max; i++)
+        {
+            RandomNearbyCellIndexList.Add(i);
+        }
+    }
+
+    private static int GetRandomNearbyCellIndex()
+    {
+        var indexListIndex = Random.Range(0, RandomNearbyCellIndexList.Count);
+        var cellListIndex = RandomNearbyCellIndexList[indexListIndex];
+        RandomNearbyCellIndexList.RemoveAt(indexListIndex);
+        return cellListIndex;
     }
 }
