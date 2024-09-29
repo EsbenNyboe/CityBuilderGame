@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
-using UnityEngine;
 
 public class PathingHelpers
 {
@@ -60,33 +59,33 @@ public class PathingHelpers
 
     private static void AddFourPositionsAroundTarget(List<int2> positionList, int2 firstPosition, int a, int b)
     {
-        if (positionList.Contains(firstPosition + new int2(a, b)))
-        {
-            for (var i = 0; i < positionList.Count; i++)
-            {
-                if (positionList[i].Equals(firstPosition + new int2(a, b)))
-                {
-                    Debug.Log("DUPLICATE IS THIS: " + i);
-                }
-            }
-
-            Debug.Log("Duplicate found on index: " + positionList.Count);
-        }
-
-        if (positionList.Contains(firstPosition + new int2(-a, -b)))
-        {
-            Debug.Log("Duplicate found on index: " + positionList.Count);
-        }
-
-        if (positionList.Contains(firstPosition + new int2(-a, b)))
-        {
-            Debug.Log("Duplicate found on index: " + positionList.Count);
-        }
-
-        if (positionList.Contains(firstPosition + new int2(a, -b)))
-        {
-            Debug.Log("Duplicate found on index: " + positionList.Count);
-        }
+        // if (positionList.Contains(firstPosition + new int2(a, b)))
+        // {
+        //     for (var i = 0; i < positionList.Count; i++)
+        //     {
+        //         if (positionList[i].Equals(firstPosition + new int2(a, b)))
+        //         {
+        //             Debug.Log("DUPLICATE IS THIS: " + i);
+        //         }
+        //     }
+        //
+        //     Debug.Log("Duplicate found on index: " + positionList.Count);
+        // }
+        //
+        // if (positionList.Contains(firstPosition + new int2(-a, -b)))
+        // {
+        //     Debug.Log("Duplicate found on index: " + positionList.Count);
+        // }
+        //
+        // if (positionList.Contains(firstPosition + new int2(-a, b)))
+        // {
+        //     Debug.Log("Duplicate found on index: " + positionList.Count);
+        // }
+        //
+        // if (positionList.Contains(firstPosition + new int2(a, -b)))
+        // {
+        //     Debug.Log("Duplicate found on index: " + positionList.Count);
+        // }
 
         positionList.Add(firstPosition + new int2(a, b));
         positionList.Add(firstPosition + new int2(-a, -b));
