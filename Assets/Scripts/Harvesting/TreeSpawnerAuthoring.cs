@@ -4,6 +4,7 @@ using UnityEngine;
 public class TreeSpawnerAuthoring : MonoBehaviour
 {
     [SerializeField] private GameObject _objectToSpawn;
+    [SerializeField] private int _amountToSpawn;
 
     public class Baker : Baker<TreeSpawnerAuthoring>
     {
@@ -12,7 +13,8 @@ public class TreeSpawnerAuthoring : MonoBehaviour
             var entity = GetEntity(TransformUsageFlags.None);
             AddComponent(entity, new TreeSpawner
             {
-                ObjectToSpawn = GetEntity(authoring._objectToSpawn, TransformUsageFlags.Dynamic)
+                ObjectToSpawn = GetEntity(authoring._objectToSpawn, TransformUsageFlags.Dynamic),
+                AmountToSpawn = authoring._amountToSpawn
             });
         }
     }
@@ -21,4 +23,5 @@ public class TreeSpawnerAuthoring : MonoBehaviour
 public struct TreeSpawner : IComponentData
 {
     public Entity ObjectToSpawn;
+    public int AmountToSpawn;
 }
