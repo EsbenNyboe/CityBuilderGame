@@ -1,7 +1,6 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 public partial class HarvestingUnitSystem : SystemBase
 {
@@ -69,10 +68,35 @@ public partial class HarvestingUnitSystem : SystemBase
                 GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).SetIsWalkable(true);
                 gridDamageableObject.SetHealth(0);
 
-                int2 deliveryPoint = new int2(5, 5);
-                SetupPathfinding(entityCommandBuffer, localTransform.ValueRO.Position, entity, deliveryPoint);
                 EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
-                EntityManager.SetComponentEnabled<DeliveringUnit>(entity, true);
+
+                var closestDropPoint = new float3(-1, -1, -1);
+                var shortestDropPointDistance = math.INFINITY;
+
+                var position = localTransform.ValueRO.Position;
+                foreach (var (dropPointTransform, dropPoint) in SystemAPI.Query<RefRO<LocalTransform>, RefRO<DropPoint>>())
+                {
+                    var dropPointPosition = dropPointTransform.ValueRO.Position;
+                    var dropPointDistance = math.distance(position, dropPointPosition);
+                    if (dropPointDistance < shortestDropPointDistance)
+                    {
+                        shortestDropPointDistance = dropPointDistance;
+                        closestDropPoint = dropPointPosition;
+                    }
+                }
+
+                if (closestDropPoint.x > -1)
+                {
+                    GridSetup.Instance.PathGrid.GetXY(closestDropPoint, out var x, out var y);
+                    var dropPointCell = new int2(x, y);
+                    EntityManager.SetComponentEnabled<DeliveringUnit>(entity, true);
+                    EntityManager.SetComponentData(entity, new DeliveringUnit
+                    {
+                        Target = dropPointCell
+                    });
+                    PathingHelpers.GetNeighbourCell(0, dropPointCell.x, dropPointCell.y, out var dropPointEntranceX, out var dropPointEntranceY);
+                    SetupPathfinding(entityCommandBuffer, localTransform.ValueRO.Position, entity, new int2(dropPointEntranceX, dropPointEntranceY));
+                }
             }
         }
 
