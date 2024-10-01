@@ -6,6 +6,8 @@ using UnityEngine;
 
 public partial class PathFollowSystem : SystemBase
 {
+    private const bool ShowDebug = true;
+
     protected override void OnUpdate()
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
@@ -24,6 +26,12 @@ public partial class PathFollowSystem : SystemBase
             var moveSpeed = 5f;
 
             localTransform.ValueRW.Position += moveDirection * moveSpeed * SystemAPI.Time.DeltaTime;
+
+            if (ShowDebug)
+            {
+                var pathEndPosition = pathPositionBuffer[0].Position;
+                Debug.DrawLine(localTransform.ValueRO.Position, new Vector3(pathEndPosition.x, pathEndPosition.y), Color.red);
+            }
 
             if (math.distance(localTransform.ValueRO.Position, targetPosition) < 0.1f)
             {
