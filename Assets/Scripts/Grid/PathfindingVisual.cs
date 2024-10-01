@@ -5,16 +5,20 @@ public class PathfindingVisual : MonoBehaviour
 {
     [SerializeField] private MeshFilter _pathGridMeshFilter;
     [SerializeField] private MeshFilter _damageableGridMeshFilter;
+    [SerializeField] private MeshFilter _occupationGridMeshFilter;
 
     private Grid<GridPath> _gridPath;
     private Grid<GridDamageable> _gridDamageable;
+    private Grid<GridOccupation> _gridOccupation;
 
     private Mesh _pathGridMesh;
     private Mesh _damageableGridMesh;
+    private Mesh _occupationGridMesh;
 
-    private bool _updateMesh;
+    private bool _updatePathMesh;
     private bool _updateHealthBar;
     private bool _updateText;
+    private bool _updateOccupationDebugMesh;
 
     private TextMesh[,] _debugTextArray;
 
@@ -24,13 +28,15 @@ public class PathfindingVisual : MonoBehaviour
         _pathGridMeshFilter.mesh = _pathGridMesh;
         _damageableGridMesh = new Mesh();
         _damageableGridMeshFilter.mesh = _damageableGridMesh;
+        _occupationGridMesh = new Mesh();
+        _occupationGridMeshFilter.mesh = _occupationGridMesh;
     }
 
     private void LateUpdate()
     {
-        if (_updateMesh)
+        if (_updatePathMesh)
         {
-            _updateMesh = false;
+            _updatePathMesh = false;
             UpdateVisual();
         }
 
@@ -45,17 +51,31 @@ public class PathfindingVisual : MonoBehaviour
             _updateHealthBar = false;
             UpdateHealthBarVisuals();
         }
+
+        if (_updateOccupationDebugMesh)
+        {
+            _updateOccupationDebugMesh = false;
+            UpdateOccupationDebugMesh();
+        }
     }
 
-    public void SetGrid(Grid<GridPath> gridPath, Grid<GridDamageable> gridDamageable)
+    public void SetGrid(Grid<GridPath> gridPath, Grid<GridDamageable> gridDamageable, Grid<GridOccupation> gridOccupation)
     {
         _gridPath = gridPath;
         _gridDamageable = gridDamageable;
+        _gridOccupation = gridOccupation;
         UpdateVisual();
         UpdateHealthBarVisuals();
+        UpdateOccupationDebugMesh();
 
         gridPath.OnGridObjectChanged += Grid_OnGridValueChanged;
         gridDamageable.OnGridObjectChanged += Grid_OnGridValueChanged;
+        gridOccupation.OnGridObjectChanged += Grid_OnGridValueChanged;
+    }
+
+    private void Grid_OnGridValueChanged(object sender, Grid<GridPath>.OnGridObjectChangedEventArgs e)
+    {
+        _updatePathMesh = true;
     }
 
     private void Grid_OnGridValueChanged(object sender, Grid<GridDamageable>.OnGridObjectChangedEventArgs e)
@@ -64,9 +84,9 @@ public class PathfindingVisual : MonoBehaviour
         _updateHealthBar = true;
     }
 
-    private void Grid_OnGridValueChanged(object sender, Grid<GridPath>.OnGridObjectChangedEventArgs e)
+    private void Grid_OnGridValueChanged(object sender, Grid<GridOccupation>.OnGridObjectChangedEventArgs e)
     {
-        _updateMesh = true;
+        _updateOccupationDebugMesh = true;
     }
 
     private void UpdateVisual()
@@ -182,5 +202,39 @@ public class PathfindingVisual : MonoBehaviour
         _damageableGridMesh.vertices = vertices;
         _damageableGridMesh.uv = uv;
         _damageableGridMesh.triangles = triangles;
+    }
+
+    private void UpdateOccupationDebugMesh()
+    {
+        MeshUtils.CreateEmptyMeshArrays(_gridOccupation.GetWidth() * _gridOccupation.GetHeight(), out var vertices, out var uv, out var triangles);
+
+        for (var x = 0; x < _gridOccupation.GetWidth(); x++)
+        {
+            for (var y = 0; y < _gridOccupation.GetHeight(); y++)
+            {
+                var index = x * _gridOccupation.GetHeight() + y;
+                var occupationCell = _gridOccupation.GetGridObject(x, y);
+
+                var quadWidth = 0.5f;
+                var quadHeight = 0.5f;
+                var quadSize = occupationCell.IsOccupied()
+                    ? new Vector3(quadWidth, quadHeight) * _gridOccupation.GetCellSize()
+                    : Vector3.zero;
+
+                var colorRed = 0.1f;
+                var uv00 = new Vector3(colorRed, 0f);
+                var uv11 = new Vector3(colorRed, 1f);
+
+                var position = _gridOccupation.GetWorldPosition(x, y);
+                // TODO: Make positioning cleaner? Not accounting for cell-size right now...
+
+                MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
+                    uv11);
+            }
+        }
+
+        _occupationGridMesh.vertices = vertices;
+        _occupationGridMesh.uv = uv;
+        _occupationGridMesh.triangles = triangles;
     }
 }

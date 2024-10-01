@@ -25,6 +25,6 @@ public class GridSetup : MonoBehaviour
         OccupationGrid = new Grid<GridOccupation>(Width, Height, CellSize, Vector3.zero, (grid, x, y) => new GridOccupation(grid, x, y));
 
         // TODO: Is it a problem that we're using a specific grid to control the visual updates?
-        _pathfindingVisual.SetGrid(PathGrid, DamageableGrid);
+        _pathfindingVisual.SetGrid(PathGrid, DamageableGrid, OccupationGrid);
     }
 }
