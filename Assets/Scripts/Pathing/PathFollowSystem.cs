@@ -42,7 +42,20 @@ public partial class PathFollowSystem : SystemBase
                 {
                     localTransform.ValueRW.Position = targetPosition;
 
-                    HandleCellOccupation(entityCommandBuffer, localTransform, entity);
+                    if (EntityManager.IsComponentEnabled<DeliveringUnit>(entity))
+                    {
+                        // if (!EntityManager.HasComponent<PathfindingParams>(entity))
+                        // {
+                        // }
+                        var harvestTarget = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
+                        SetupPathfinding(entityCommandBuffer, localTransform, entity, harvestTarget);
+                        EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
+                        EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
+                    }
+                    else
+                    {
+                        HandleCellOccupation(entityCommandBuffer, localTransform, entity);
+                    }
                 }
             }
         }
@@ -111,6 +124,8 @@ public partial class PathFollowSystem : SystemBase
         //{
         //    Target = new int2(-1, -1)
         //});
+
+        EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
     }
 
     private void SetupPathfinding(EntityCommandBuffer entityCommandBuffer, RefRW<LocalTransform> localTransform, Entity entity, int2 newEndPosition)

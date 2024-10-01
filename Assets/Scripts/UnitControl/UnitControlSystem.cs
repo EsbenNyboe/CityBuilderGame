@@ -183,6 +183,8 @@ public partial class UnitControlSystem : SystemBase
                 Target = new int2(-1, -1)
             });
 
+            EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
+
             AbandonCellIfOccupying(startX, startY, entity);
         }
     }
@@ -217,6 +219,8 @@ public partial class UnitControlSystem : SystemBase
             {
                 Target = targetGridCell
             });
+
+            EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
 
             AbandonCellIfOccupying(startX, startY, entity);
         }
