@@ -94,8 +94,24 @@ public partial class HarvestingUnitSystem : SystemBase
                     {
                         Target = dropPointCell
                     });
-                    PathingHelpers.GetNeighbourCell(0, dropPointCell.x, dropPointCell.y, out var dropPointEntranceX, out var dropPointEntranceY);
-                    SetupPathfinding(entityCommandBuffer, localTransform.ValueRO.Position, entity, new int2(dropPointEntranceX, dropPointEntranceY));
+
+                    var closestDropPointEntrance = new int2(-1, -1);
+                    var shortestDropPointEntranceDistance = math.INFINITY;
+                    GridSetup.Instance.PathGrid.GetXY(position, out var posX, out var posY);
+                    var cellPosition = new int2(posX, posY);
+                    for (var i = 0; i < 8; i++)
+                    {
+                        PathingHelpers.GetNeighbourCell(i, dropPointCell.x, dropPointCell.y, out var dropPointEntranceX, out var dropPointEntranceY);
+                        var dropPointEntrance = new int2(dropPointEntranceX, dropPointEntranceY);
+                        var dropPointEntranceDistance = math.distance(cellPosition, dropPointEntrance);
+                        if (dropPointEntranceDistance < shortestDropPointEntranceDistance)
+                        {
+                            closestDropPointEntrance = dropPointEntrance;
+                            shortestDropPointEntranceDistance = dropPointEntranceDistance;
+                        }
+                    }
+
+                    SetupPathfinding(entityCommandBuffer, localTransform.ValueRO.Position, entity, closestDropPointEntrance);
                 }
             }
         }
