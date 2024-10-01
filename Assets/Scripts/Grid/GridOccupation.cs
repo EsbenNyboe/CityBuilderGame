@@ -2,7 +2,8 @@ using Unity.Entities;
 
 public class GridOccupation
 {
-    private const bool ShowDebug = true;
+    private const bool ShowDebug = false;
+
     private readonly Grid<GridOccupation> _grid;
     private readonly int _x;
     private readonly int _y;

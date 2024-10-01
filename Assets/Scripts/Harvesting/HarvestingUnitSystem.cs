@@ -112,6 +112,12 @@ public partial class HarvestingUnitSystem : SystemBase
                     }
 
                     SetupPathfinding(entityCommandBuffer, localTransform.ValueRO.Position, entity, closestDropPointEntrance);
+
+                    var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
+                    if (occupationCell.EntityIsOwner(entity))
+                    {
+                        occupationCell.SetOccupied(Entity.Null);
+                    }
                 }
             }
         }

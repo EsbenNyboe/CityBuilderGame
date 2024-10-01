@@ -51,6 +51,12 @@ public partial class PathFollowSystem : SystemBase
                         SetupPathfinding(entityCommandBuffer, localTransform, entity, harvestTarget);
                         EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
                         EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
+
+                        var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
+                        if (occupationCell.EntityIsOwner(entity))
+                        {
+                            occupationCell.SetOccupied(Entity.Null);
+                        }
                     }
                     else
                     {
@@ -105,6 +111,12 @@ public partial class PathFollowSystem : SystemBase
 
         SetupPathfinding(entityCommandBuffer, localTransform, entity, new int2(newX, newY));
         DisableHarvestingUnit(entity);
+
+        var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
+        if (occupationCell.EntityIsOwner(entity))
+        {
+            occupationCell.SetOccupied(Entity.Null);
+        }
     }
 
     private void SetHarvestingUnit(Entity entity, int2 newTarget)
