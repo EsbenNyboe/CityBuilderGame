@@ -151,6 +151,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 650ba2e7ac9098647822ddcc8be883a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _width: 60
+  _height: 30
   _pathfindingVisual: {fileID: 992141009}
 --- !u!4 &27382666
 Transform:
@@ -414,7 +416,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 15
+  orthographic size: 18
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -439,7 +441,7 @@ Transform:
   m_GameObject: {fileID: 332213900}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 14.19, y: 6.84, z: -10}
+  m_LocalPosition: {x: 29.63, y: 13.9, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -931,7 +933,7 @@ Transform:
   m_GameObject: {fileID: 2070562901}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 9.62, y: 7.78, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
