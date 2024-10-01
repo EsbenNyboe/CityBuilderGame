@@ -21,6 +21,11 @@ public partial class HarvestingUnitSystem : SystemBase
                 continue;
             }
 
+            if (EntityManager.HasComponent<PathfindingParams>(entity))
+            {
+                continue;
+            }
+
             var targetX = harvestingUnit.ValueRO.Target.x;
             var targetY = harvestingUnit.ValueRO.Target.y;
 
@@ -28,7 +33,7 @@ public partial class HarvestingUnitSystem : SystemBase
             if (tileHasNoTree)
             {
                 // Tree was probably destroyed, so please stop chopping it!
-                Debug.Log("Tree was probably destroyed, so please stop chopping it!");
+                //Debug.Log("Tree was probably destroyed, so please stop chopping it!");
 
                 // Seek new tree:
                 var currentTarget = harvestingUnit.ValueRO.Target;
@@ -50,7 +55,7 @@ public partial class HarvestingUnitSystem : SystemBase
                 else
                 {
                     EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
-                    harvestingUnit.ValueRW.Target = new int2(-1, -1);
+                    //harvestingUnit.ValueRW.Target = new int2(-1, -1);
                 }
 
                 continue;
@@ -63,6 +68,11 @@ public partial class HarvestingUnitSystem : SystemBase
                 // DESTROY TREE:
                 GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).SetIsWalkable(true);
                 gridDamageableObject.SetHealth(0);
+
+                int2 deliveryPoint = new int2(5, 5);
+                SetupPathfinding(entityCommandBuffer, localTransform.ValueRO.Position, entity, deliveryPoint);
+                EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
+                EntityManager.SetComponentEnabled<DeliveringUnit>(entity, true);
             }
         }
 

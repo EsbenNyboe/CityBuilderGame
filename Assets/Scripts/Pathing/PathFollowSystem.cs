@@ -95,13 +95,14 @@ public partial class PathFollowSystem : SystemBase
         });
     }
 
+    // TODO: Fix race-condition with DeliveringUnitSystem
     private void DisableHarvestingUnit(Entity entity)
     {
         EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
-        EntityManager.SetComponentData(entity, new HarvestingUnit
-        {
-            Target = new int2(-1, -1)
-        });
+        //EntityManager.SetComponentData(entity, new HarvestingUnit
+        //{
+        //    Target = new int2(-1, -1)
+        //});
     }
 
     private void SetupPathfinding(EntityCommandBuffer entityCommandBuffer, RefRW<LocalTransform> localTransform, Entity entity, int2 newEndPosition)
