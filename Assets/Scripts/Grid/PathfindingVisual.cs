@@ -22,6 +22,18 @@ public class PathfindingVisual : MonoBehaviour
 
     private TextMesh[,] _debugTextArray;
 
+    Vector3[]   pathMeshVertices;
+    Vector2[]   pathMeshUv;
+    int[]       pathMeshTriangles;
+
+    Vector3[]   healthBarVertices;
+    Vector2[]   healthBarUv;
+    int[]       healthBarTriangles;
+
+    Vector3[] occupationDebugMeshVertices;
+    Vector2[] occupationDebugMeshUv;
+    int[] occupationDebugMeshTriangles;
+
     private void Awake()
     {
         _pathGridMesh = new Mesh();
@@ -64,6 +76,12 @@ public class PathfindingVisual : MonoBehaviour
         _gridPath = gridPath;
         _gridDamageable = gridDamageable;
         _gridOccupation = gridOccupation;
+
+
+        MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out pathMeshVertices, out pathMeshUv, out pathMeshTriangles);
+        MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out healthBarVertices, out healthBarUv, out healthBarTriangles);
+        MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out occupationDebugMeshVertices, out occupationDebugMeshUv, out occupationDebugMeshTriangles);
+
         UpdateVisual();
         UpdateHealthBarVisuals();
         UpdateOccupationDebugMesh();
@@ -91,8 +109,6 @@ public class PathfindingVisual : MonoBehaviour
 
     private void UpdateVisual()
     {
-        MeshUtils.CreateEmptyMeshArrays(_gridPath.GetWidth() * _gridPath.GetHeight(), out var vertices, out var uv, out var triangles);
-
         for (var x = 0; x < _gridPath.GetWidth(); x++)
         {
             for (var y = 0; y < _gridPath.GetHeight(); y++)
@@ -113,14 +129,14 @@ public class PathfindingVisual : MonoBehaviour
                     uv11 = new Vector2(1f, 1f);
                 }
 
-                MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, _gridPath.GetWorldPosition(x, y) + quadSize * .0f, 0f, quadSize, uv00,
+                MeshUtils.AddToMeshArrays(pathMeshVertices, pathMeshUv, pathMeshTriangles, index, _gridPath.GetWorldPosition(x, y) + quadSize * .0f, 0f, quadSize, uv00,
                     uv11);
             }
         }
 
-        _pathGridMesh.vertices = vertices;
-        _pathGridMesh.uv = uv;
-        _pathGridMesh.triangles = triangles;
+        _pathGridMesh.vertices = pathMeshVertices;
+        _pathGridMesh.uv = pathMeshUv;
+        _pathGridMesh.triangles = pathMeshTriangles;
     }
 
     private void UpdateTextVisual()
@@ -158,8 +174,6 @@ public class PathfindingVisual : MonoBehaviour
 
     private void UpdateHealthBarVisuals()
     {
-        MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out var vertices, out var uv, out var triangles);
-
         for (var x = 0; x < _gridDamageable.GetWidth(); x++)
         {
             for (var y = 0; y < _gridDamageable.GetHeight(); y++)
@@ -194,20 +208,18 @@ public class PathfindingVisual : MonoBehaviour
                     position.x -= (1 - quadWidth) / 2;
                 }
 
-                MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
+                MeshUtils.AddToMeshArrays(healthBarVertices, healthBarUv, healthBarTriangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
                     uv11);
             }
         }
 
-        _damageableGridMesh.vertices = vertices;
-        _damageableGridMesh.uv = uv;
-        _damageableGridMesh.triangles = triangles;
+        _damageableGridMesh.vertices = healthBarVertices;
+        _damageableGridMesh.uv = healthBarUv;
+        _damageableGridMesh.triangles = healthBarTriangles;
     }
 
     private void UpdateOccupationDebugMesh()
     {
-        MeshUtils.CreateEmptyMeshArrays(_gridOccupation.GetWidth() * _gridOccupation.GetHeight(), out var vertices, out var uv, out var triangles);
-
         for (var x = 0; x < _gridOccupation.GetWidth(); x++)
         {
             for (var y = 0; y < _gridOccupation.GetHeight(); y++)
@@ -228,13 +240,13 @@ public class PathfindingVisual : MonoBehaviour
                 var position = _gridOccupation.GetWorldPosition(x, y);
                 // TODO: Make positioning cleaner? Not accounting for cell-size right now...
 
-                MeshUtils.AddToMeshArrays(vertices, uv, triangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
+                MeshUtils.AddToMeshArrays(occupationDebugMeshVertices, occupationDebugMeshUv, occupationDebugMeshTriangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
                     uv11);
             }
         }
 
-        _occupationGridMesh.vertices = vertices;
-        _occupationGridMesh.uv = uv;
-        _occupationGridMesh.triangles = triangles;
+        _occupationGridMesh.vertices = occupationDebugMeshVertices;
+        _occupationGridMesh.uv = occupationDebugMeshUv;
+        _occupationGridMesh.triangles = occupationDebugMeshTriangles;
     }
 }
