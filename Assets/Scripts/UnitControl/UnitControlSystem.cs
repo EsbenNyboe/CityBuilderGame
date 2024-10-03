@@ -101,12 +101,13 @@ public partial class UnitControlSystem : SystemBase
         var targetGridCell = new int2(targetX, targetY);
 
         // var movePositionList = PathingHelpers.GetCellListAroundTargetCell(targetGridCell, 20);
-        var movePositionList = PathingHelpers.GetCellListAroundTargetCellAlternative(targetGridCell, 20);
+        //var movePositionList = PathingHelpers.GetCellListAroundTargetCellAlternative(targetGridCell, 20);
+        var movePositionList = PathingHelpers.GetCellListAroundTargetCell30Rings(targetGridCell.x, targetGridCell.y);
 
         // DEBUGGING:
-        for (var i = 0; i < movePositionList.Count; i++)
+        for (var i = 0; i < movePositionList.Length; i++)
         {
-            for (var j = i + 1; j < movePositionList.Count; j++)
+            for (var j = i + 1; j < movePositionList.Length; j++)
             {
                 if (movePositionList[i].x == movePositionList[j].x && movePositionList[i].y == movePositionList[j].y)
                 {
@@ -130,14 +131,14 @@ public partial class UnitControlSystem : SystemBase
         entityCommandBuffer.Playback(EntityManager);
     }
 
-    private void MoveUnitsToWalkableArea(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
+    private void MoveUnitsToWalkableArea(int2[] movePositionList, EntityCommandBuffer entityCommandBuffer)
     {
         var positionIndex = 0;
         foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>()
                      .WithPresent<HarvestingUnit>().WithEntityAccess())
         {
             var endPosition = movePositionList[positionIndex];
-            positionIndex = (positionIndex + 1) % movePositionList.Count;
+            positionIndex = (positionIndex + 1) % movePositionList.Length;
             var positionIsValid = false;
 
             var maxAttempts = 100;
@@ -151,7 +152,7 @@ public partial class UnitControlSystem : SystemBase
                 else
                 {
                     endPosition = movePositionList[positionIndex];
-                    positionIndex = (positionIndex + 1) % movePositionList.Count;
+                    positionIndex = (positionIndex + 1) % movePositionList.Length;
                 }
 
                 attempts++;
@@ -189,7 +190,7 @@ public partial class UnitControlSystem : SystemBase
         }
     }
 
-    private void MoveUnitsToHarvestableCell(List<int2> movePositionList, EntityCommandBuffer entityCommandBuffer, int2 targetGridCell)
+    private void MoveUnitsToHarvestableCell(int2[] movePositionList, EntityCommandBuffer entityCommandBuffer, int2 targetGridCell)
     {
         var walkableNeighbourCells = new List<int2>();
 

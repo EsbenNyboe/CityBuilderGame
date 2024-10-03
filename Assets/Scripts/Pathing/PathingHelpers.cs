@@ -13,6 +13,8 @@ public class PathingHelpers
     private static readonly List<int> RandomNeighbourIndexList = new();
     private static readonly List<int> RandomNearbyCellIndexList = new();
 
+    private static int2[] PositionListWith30Rings;
+
     public static void ValidateGridPosition(ref int x, ref int y)
     {
         x = math.clamp(x, 0, GridSetup.Instance.PathGrid.GetWidth() - 1);
@@ -332,5 +334,111 @@ public class PathingHelpers
         var cellListIndex = RandomNearbyCellIndexList[indexListIndex];
         RandomNearbyCellIndexList.RemoveAt(indexListIndex);
         return cellListIndex;
+    }
+
+
+
+    public static int2[] GetCellListAroundTargetCell30Rings(int targetX, int targetY)
+    {
+        return GetCellListAroundTargetCellPerformant(targetX, targetY, 5, PositionListWith30Rings);
+    }
+
+    private static int2[] GetCellListAroundTargetCellPerformant(int targetX, int targetY, int ringCount, int2[] cachedList)
+    {
+        if (cachedList == default)
+        {
+            cachedList = new int2[CalculatePositionListLength(ringCount)];
+        }
+
+        int index = 0;
+        // include the target-cell
+        cachedList[index].x = targetX;
+        cachedList[index].y = targetY;
+
+        for (var ringSize = 1; ringSize < ringCount; ringSize++)
+        {
+            // start at max X & max Y
+            int x = targetX + ringSize;
+            int y = targetY + ringSize;
+
+            // go to min X
+            while (x > targetX - ringSize)
+            {
+                index++;
+                x--;
+                cachedList[index].x = x;
+                cachedList[index].y = y;
+            }
+
+            // go to min Y
+            while (y > targetY - ringSize)
+            {
+                index++;
+                y--;
+                cachedList[index].x = x;
+                cachedList[index].y = y;
+            }
+
+            // go to max X
+            while (x < targetX + ringSize)
+            {
+                index++;
+                x++;
+                cachedList[index].x = x;
+                cachedList[index].y = y;
+            }
+
+            // go to max Y
+            while (y < targetY + ringSize)
+            {
+                index++;
+                y++;
+                cachedList[index].x = x;
+                cachedList[index].y = y;
+            }
+        }
+
+        return cachedList;
+    }
+
+    private static int CalculatePositionListLength(int ringCount)
+    {
+        int length = 1;
+        for (var ringSize = 1; ringSize < ringCount; ringSize++)
+        {
+            // start at max X & max Y
+            int x = ringSize;
+            int y = ringSize;
+
+            // go to min X
+            while (x > -ringSize)
+            {
+                length++;
+                x--;
+            }
+
+            // go to min Y
+            while (y > -ringSize)
+            {
+                length++;
+                y--;
+            }
+
+            // go to max X
+            while (x < ringSize)
+            {
+                length++;
+                x++;
+            }
+
+            // go to max Y
+            while (y < ringSize)
+            {
+                length++;
+                y++;
+            }
+        }
+
+        return length;
     }
 }
