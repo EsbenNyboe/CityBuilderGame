@@ -147,13 +147,13 @@ public partial class Pathfinding : SystemBase
         return path;
     }
 
-    private static bool IsPositionInsideGrid(int2 gridPosition, int2 gridSize)
+    private static bool IsPositionInsideGrid(int x, int y, int2 gridSize)
     {
         return
-            gridPosition.x >= 0 &&
-            gridPosition.y >= 0 &&
-            gridPosition.x < gridSize.x &&
-            gridPosition.y < gridSize.y;
+            x >= 0 &&
+            y >= 0 &&
+            x < gridSize.x &&
+            y < gridSize.y;
     }
 
     private static int CalculateIndex(int x, int y, int gridWidth)
@@ -161,14 +161,13 @@ public partial class Pathfinding : SystemBase
         return x + y * gridWidth;
     }
 
-    private static int CalculateDistanceCost(int2 aPosition, int2 bPosition)
+    private static int CalculateDistanceCost(int aPosX, int aPosY, int bPosX, int bPosY)
     {
-        var xDistance = math.abs(aPosition.x - bPosition.x);
-        var yDistance = math.abs(aPosition.y - bPosition.y);
+        var xDistance = math.abs(aPosX - bPosX);
+        var yDistance = math.abs(aPosY - bPosY);
         var remaining = math.abs(xDistance - yDistance);
         return MoveDiagonalCost * math.min(xDistance, yDistance) + MoveStraightCost * remaining;
     }
-
 
     private static int GetLowestCostFNodeIndex(NativeList<int> openList, NativeArray<PathNode> pathNodeArray)
     {
@@ -247,7 +246,7 @@ public partial class Pathfinding : SystemBase
             for (var i = 0; i < PathNodeArray.Length; i++)
             {
                 var pathNode = PathNodeArray[i];
-                pathNode.hCost = CalculateDistanceCost(new int2(pathNode.x, pathNode.y), EndPosition);
+                pathNode.hCost = CalculateDistanceCost(pathNode.x, pathNode.y, EndPosition.x, EndPosition.y);
                 pathNode.cameFromNodeIndex = -1;
 
                 PathNodeArray[i] = pathNode;
@@ -301,15 +300,16 @@ public partial class Pathfinding : SystemBase
                 for (var i = 0; i < neighbourOffsetArray.Length; i++)
                 {
                     var neighbourOffset = neighbourOffsetArray[i];
-                    var neighbourPosition = new int2(currentNode.x + neighbourOffset.x, currentNode.y + neighbourOffset.y);
+                    var neighbourPosX = currentNode.x + neighbourOffset.x;
+                    var neighbourPosY = currentNode.y + neighbourOffset.y;
 
-                    if (!IsPositionInsideGrid(neighbourPosition, GridSize))
+                    if (!IsPositionInsideGrid(neighbourPosX, neighbourPosY, GridSize))
                     {
                         // Neighbour not valid position
                         continue;
                     }
 
-                    var neighbourNodeIndex = CalculateIndex(neighbourPosition.x, neighbourPosition.y, GridSize.x);
+                    var neighbourNodeIndex = CalculateIndex(neighbourPosX, neighbourPosY, GridSize.x);
 
                     if (closedList.Contains(neighbourNodeIndex))
                     {
@@ -324,9 +324,7 @@ public partial class Pathfinding : SystemBase
                         continue;
                     }
 
-                    var currentNodePosition = new int2(currentNode.x, currentNode.y);
-
-                    var tentativeGCost = currentNode.gCost + CalculateDistanceCost(currentNodePosition, neighbourPosition);
+                    var tentativeGCost = currentNode.gCost + CalculateDistanceCost(currentNode.x, currentNode.y, neighbourPosX, neighbourPosY);
                     if (tentativeGCost < neighbourNode.gCost)
                     {
                         neighbourNode.cameFromNodeIndex = currentNodeIndex;
