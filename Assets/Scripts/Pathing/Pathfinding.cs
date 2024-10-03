@@ -11,11 +11,13 @@ public partial class Pathfinding : SystemBase
 {
     private const int MoveStraightCost = 10;
     private const int MoveDiagonalCost = 14;
+    private static NativeArray<PathNode> PathNodeArrayTemplate;
 
     protected override void OnUpdate()
     {
-        var gridWidth = GridSetup.Instance.PathGrid.GetWidth();
-        var gridHeight = GridSetup.Instance.PathGrid.GetHeight();
+        var grid = GridSetup.Instance.PathGrid;
+        var gridWidth = grid.GetWidth();
+        var gridHeight = grid.GetHeight();
         var gridSize = new int2(gridWidth, gridHeight);
 
         var findPathJobList = new List<FindPathJob>();
@@ -24,6 +26,11 @@ public partial class Pathfinding : SystemBase
 
         int maxPathfindingSchedulesPerFrame = 30;
         int currentAmountOfSchedules = 0;
+
+        if (!PathNodeArrayTemplate.IsCreated)
+        {
+            PathNodeArrayTemplate = GetNewPathNodeArray(grid, gridSize);
+        }
 
         foreach (var (pathfindingParams, pathPositionBuffer, entity) in SystemAPI.Query<RefRO<PathfindingParams>, DynamicBuffer<PathPosition>>()
                      .WithEntityAccess())
@@ -51,7 +58,7 @@ public partial class Pathfinding : SystemBase
             entityCommandBuffer.RemoveComponent<PathfindingParams>(entity);
         }
 
-        JobHandle.CompleteAll(jobHandleList);
+        JobHandle.CompleteAll(jobHandleList.AsArray());
 
         foreach (var findPathJob in findPathJobList)
         {
@@ -66,6 +73,10 @@ public partial class Pathfinding : SystemBase
             }.Run();
         }
 
+        if (PathNodeArrayTemplate.IsCreated)
+        {
+            PathNodeArrayTemplate.Dispose();
+        }
         entityCommandBuffer.Playback(EntityManager);
     }
 
@@ -75,7 +86,23 @@ public partial class Pathfinding : SystemBase
         var gridSize = new int2(grid.GetWidth(), grid.GetHeight());
 
         var pathNodeArray = new NativeArray<PathNode>(gridSize.x * gridSize.y, Allocator.TempJob);
+        pathNodeArray.CopyFrom(PathNodeArrayTemplate);
 
+        return pathNodeArray;
+    }
+
+    private NativeArray<PathNode> GetNewPathNodeArray(Grid<GridPath> grid, int2 gridSize)
+    {
+
+        var pathNodeArray = new NativeArray<PathNode>(gridSize.x * gridSize.y, Allocator.TempJob);
+
+        pathNodeArray = FillArray(grid, gridSize, pathNodeArray);
+
+        return pathNodeArray;
+    }
+
+    private static NativeArray<PathNode> FillArray(Grid<GridPath> grid, int2 gridSize, NativeArray<PathNode> pathNodeArray)
+    {
         for (var x = 0; x < gridSize.x; x++)
         {
             for (var y = 0; y < gridSize.y; y++)
