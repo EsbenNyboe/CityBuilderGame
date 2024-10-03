@@ -24,7 +24,7 @@ public partial class Pathfinding : SystemBase
         var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
-        int maxPathfindingSchedulesPerFrame = 30;
+        int maxPathfindingSchedulesPerFrame = 500;
         int currentAmountOfSchedules = 0;
 
         if (!PathNodeArrayTemplate.IsCreated)

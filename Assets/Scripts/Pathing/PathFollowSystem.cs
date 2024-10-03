@@ -91,11 +91,6 @@ public partial class PathFollowSystem : SystemBase
             GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).SetOccupied(entity);
             return;
         }
-        // IS OCCUPIED:
-        // Debug.Log("OCCUPIED: " + GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).GetOwner());
-
-        var newX = -1;
-        var newY = -1;
 
         if (EntityManager.IsComponentEnabled<HarvestingUnit>(entity))
         {
@@ -112,15 +107,15 @@ public partial class PathFollowSystem : SystemBase
             Debug.LogWarning("Could not find nearby chopping cell. Disabling harvesting-behaviour...");
         }
 
-        // var movePositionList = PathingHelpers.GetCellListAroundTargetCell(new int2(posX, posY), 20);
-        var nearbyCells = PathingHelpers.GetCellListAroundTargetCell(posX, posY, 20);
-        if (!TryGetNearbyVacantCell(nearbyCells.Item1, nearbyCells.Item2, out newX, out newY))
+        var nearbyCells = PathingHelpers.GetCellListAroundTargetCell30Rings(posX, posY);
+        //var nearbyCells = PathingHelpers.GetCellListAroundTargetCell(posX, posY, 20);
+        if (!TryGetNearbyVacantCell(nearbyCells, out int2 vacantCell))
         {
             Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
             return;
         }
 
-        SetupPathfinding(entityCommandBuffer, localTransform, entity, new int2(newX, newY));
+        SetupPathfinding(entityCommandBuffer, localTransform, entity, vacantCell);
         DisableHarvestingUnit(entity);
 
         var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
@@ -163,9 +158,9 @@ public partial class PathFollowSystem : SystemBase
         });
     }
 
-    private static bool TryGetNearbyVacantCell(List<int2> movePositionList, out int2 nearbyCell)
+    private static bool TryGetNearbyVacantCell(int2[] movePositionList, out int2 nearbyCell)
     {
-        for (var i = 1; i < movePositionList.Count; i++)
+        for (var i = 1; i < movePositionList.Length; i++)
         {
             nearbyCell = movePositionList[i];
             if (PathingHelpers.IsPositionInsideGrid(nearbyCell) && PathingHelpers.IsPositionWalkable(nearbyCell)

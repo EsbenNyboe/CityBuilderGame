@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.Assertions;
 using Random = UnityEngine.Random;
 
@@ -140,20 +141,6 @@ public class PathingHelpers
         neighbourY = y + NeighbourDeltasY[index];
     }
 
-    public static List<int2> GetCellListAroundTargetCellAlternative(int2 firstPosition, int ringCount)
-    {
-        // TODO: Fucking decide if you're using int2 or int??? LOL!!!
-
-        PositionList.Clear();
-        var simplePositions = GetCellListAroundTargetCell(firstPosition.x, firstPosition.y, ringCount);
-        for (var i = 0; i < simplePositions.Item1.Count; i++)
-        {
-            PositionList.Add(new int2(simplePositions.Item1[i], simplePositions.Item2[i]));
-        }
-
-        return PositionList;
-    }
-
     public static (List<int>, List<int>) GetCellListAroundTargetCell(int targetX, int targetY, int ringCount, bool includeTarget = true)
     {
         SimplePositionsX.Clear();
@@ -214,7 +201,7 @@ public class PathingHelpers
 
     public static bool TryGetNearbyChoppingCell(int2 currentTarget, out int2 newTarget, out int2 newPathTarget)
     {
-        var (nearbyCellsX, nearbyCellsY) = GetCellListAroundTargetCell(currentTarget.x, currentTarget.y, 30, false);
+        var nearbyCells = GetCellListAroundTargetCell30Rings(currentTarget.x, currentTarget.y);
 
         if (GridSetup.Instance.DamageableGrid.GetGridObject(currentTarget.x, currentTarget.y).IsDamageable() &&
             TryGetValidNeighbourCell(currentTarget.x, currentTarget.y, out var newPathTargetX, out var newPathTargetY))
@@ -224,38 +211,21 @@ public class PathingHelpers
             return true;
         }
 
-        var count = nearbyCellsX.Count;
-        // var ringIndex = 1;
-        // var cellNeighbourAmount = 8;
-        // var randomIndexMin = 0;
-        // var randomIndexMax = cellNeighbourAmount;
-        // InitializeRandomNearbyCellIndexList(randomIndexMin, math.min(randomIndexMax, count));
+        var count = nearbyCells.Length;
 
         var randomSelectionThreshold = math.min(50, count);
         InitializeRandomNearbyCellIndexList(0, randomSelectionThreshold);
 
         for (var i = 0; i < count; i++)
         {
-            // var randomIndex = GetRandomNearbyCellIndex();
-            // if (RandomNearbyCellIndexListIsEmpty())
-            // {
-            //     ringIndex++;
-            //     randomIndexMin = randomIndexMax;
-            //     randomIndexMax = randomIndexMin + cellNeighbourAmount * ringIndex;
-            //     InitializeRandomNearbyCellIndexList(randomIndexMin, math.min(randomIndexMax, count));
-            // }
-
             var cellIndex = i;
             if (!RandomNearbyCellIndexListIsEmpty())
             {
                 cellIndex = GetRandomNearbyCellIndex();
             }
 
-            var x = nearbyCellsX[cellIndex];
-            var y = nearbyCellsY[cellIndex];
-
-            // var x = nearbyCellsX[i];
-            // var y = nearbyCellsY[i];
+            var x = nearbyCells[cellIndex].x;
+            var y = nearbyCells[cellIndex].y;
 
             if (!IsPositionInsideGrid(x, y) ||
                 !GridSetup.Instance.DamageableGrid.GetGridObject(x, y).IsDamageable())
