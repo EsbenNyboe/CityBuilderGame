@@ -18,7 +18,7 @@ class CameraController : MonoBehaviour
     {
         var moveDelta = Vector3.zero;
 
-        if (Input.GetKey(KeyCode.A))
+        if (Input.GetKey(KeyCode.A) && !Input.GetKey(KeyCode.LeftControl))
         {
             moveDelta.x -= _movementSpeed * Time.deltaTime;
         }

@@ -15,6 +15,11 @@ public partial class UnitControlSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        if (Input.GetKeyDown(KeyCode.A) && Input.GetKey(KeyCode.LeftControl))
+        {
+            SelectAllUnits();
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
             // Mouse pressed
@@ -251,5 +256,20 @@ public partial class UnitControlSystem : SystemBase
         {
             occupationCell.SetOccupied(Entity.Null);
         }
+    }
+
+    private void SelectAllUnits()
+    {
+        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+
+        foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
+        {
+            if (!EntityManager.HasComponent<UnitSelection>(entity))
+            {
+                entityCommandBuffer.AddComponent(entity, new UnitSelection());
+            }
+        }
+
+        entityCommandBuffer.Playback(EntityManager);
     }
 }
