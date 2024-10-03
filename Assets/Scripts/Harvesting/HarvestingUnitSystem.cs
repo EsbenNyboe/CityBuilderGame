@@ -4,7 +4,7 @@ using Unity.Transforms;
 
 public partial class HarvestingUnitSystem : SystemBase
 {
-    private const int DamagePerSec = -20;
+    private const int DamagePerSec = -1;
 
     protected override void OnUpdate()
     {
@@ -61,7 +61,7 @@ public partial class HarvestingUnitSystem : SystemBase
             }
 
             var gridDamageableObject = GridSetup.Instance.DamageableGrid.GetGridObject(targetX, targetY);
-            gridDamageableObject.AddToHealth(DamagePerSec * SystemAPI.Time.DeltaTime);
+            gridDamageableObject.AddToHealth(DamagePerSec * SystemAPI.Time.DeltaTime * Globals.GameSpeed());
             if (!gridDamageableObject.IsDamageable())
             {
                 // DESTROY TREE:

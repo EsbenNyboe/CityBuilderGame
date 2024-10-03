@@ -16,7 +16,7 @@ public partial class MoveToSystem : SystemBase
                 {
                     float3 moveDir = math.normalize(moveTo.ValueRO.Position - localTransform.ValueRO.Position);
                     moveTo.ValueRW.LastMoveDir = moveDir;
-                    localTransform.ValueRW.Position += moveDir * moveTo.ValueRO.MoveSpeed * SystemAPI.Time.DeltaTime;
+                    localTransform.ValueRW.Position += moveDir * moveTo.ValueRO.MoveSpeed * SystemAPI.Time.DeltaTime * Globals.GameSpeed();
                 }
                 else
                 {

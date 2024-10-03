@@ -25,7 +25,9 @@ public partial class PathFollowSystem : SystemBase
             var moveDirection = math.normalizesafe(targetPosition - localTransform.ValueRO.Position);
             var moveSpeed = 5f;
 
-            localTransform.ValueRW.Position += moveDirection * moveSpeed * SystemAPI.Time.DeltaTime;
+            var distanceBeforeMoving = math.distance(localTransform.ValueRO.Position, targetPosition);
+            localTransform.ValueRW.Position += moveDirection * moveSpeed * SystemAPI.Time.DeltaTime * Globals.GameSpeed();
+            var distanceAfterMoving = math.distance(localTransform.ValueRO.Position, targetPosition);
 
             if (ShowDebug)
             {
@@ -33,7 +35,16 @@ public partial class PathFollowSystem : SystemBase
                 Debug.DrawLine(localTransform.ValueRO.Position, new Vector3(pathEndPosition.x, pathEndPosition.y), Color.red);
             }
 
-            if (math.distance(localTransform.ValueRO.Position, targetPosition) < 0.1f)
+            bool unitIsOnNextPathPosition = distanceAfterMoving < 0.1f;
+
+            // HACK:
+            if (!unitIsOnNextPathPosition && distanceAfterMoving > distanceBeforeMoving)
+            {
+                unitIsOnNextPathPosition = true;
+                localTransform.ValueRW.Position = targetPosition;
+            }
+
+            if (unitIsOnNextPathPosition)
             {
                 // next waypoint
                 pathFollow.ValueRW.PathIndex --;
