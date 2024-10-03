@@ -340,7 +340,7 @@ public class PathingHelpers
 
     public static int2[] GetCellListAroundTargetCell30Rings(int targetX, int targetY)
     {
-        return GetCellListAroundTargetCellPerformant(targetX, targetY, 5, PositionListWith30Rings);
+        return GetCellListAroundTargetCellPerformant(targetX, targetY, 30, PositionListWith30Rings);
     }
 
     private static int2[] GetCellListAroundTargetCellPerformant(int targetX, int targetY, int ringCount, int2[] cachedList)
