@@ -18,13 +18,22 @@ public partial class Pathfinding : SystemBase
         var gridHeight = GridSetup.Instance.PathGrid.GetHeight();
         var gridSize = new int2(gridWidth, gridHeight);
 
-
         var findPathJobList = new List<FindPathJob>();
         var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+
+        int maxPathfindingSchedulesPerFrame = 30;
+        int currentAmountOfSchedules = 0;
+
         foreach (var (pathfindingParams, pathPositionBuffer, entity) in SystemAPI.Query<RefRO<PathfindingParams>, DynamicBuffer<PathPosition>>()
                      .WithEntityAccess())
         {
+            if (currentAmountOfSchedules > maxPathfindingSchedulesPerFrame)
+            {
+                continue;
+            }
+            currentAmountOfSchedules++;
+
             // Debug.Log("Find path");
             var findPathJob = new FindPathJob
             {
