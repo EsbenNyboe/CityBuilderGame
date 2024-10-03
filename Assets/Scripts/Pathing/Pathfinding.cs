@@ -279,15 +279,24 @@ public partial class Pathfinding : SystemBase
                 PathNodeArray[i] = pathNode;
             }
 
-            var neighbourOffsetArray = new NativeArray<int2>(8, Allocator.Temp);
-            neighbourOffsetArray[0] = new int2(-1, 0); // Left
-            neighbourOffsetArray[1] = new int2(+1, 0); // Right
-            neighbourOffsetArray[2] = new int2(0, +1); // Up
-            neighbourOffsetArray[3] = new int2(0, -1); // Down
-            neighbourOffsetArray[4] = new int2(-1, -1); // Left Down
-            neighbourOffsetArray[5] = new int2(-1, +1); // Left Up
-            neighbourOffsetArray[6] = new int2(+1, -1); // Right Down
-            neighbourOffsetArray[7] = new int2(+1, +1); // Right Up
+            var neighbourOffsetArrayX = new NativeArray<int>(8, Allocator.Temp);
+            neighbourOffsetArrayX[0] = -1; // Left
+            neighbourOffsetArrayX[1] = +1; // Right
+            neighbourOffsetArrayX[2] = 0; // Up
+            neighbourOffsetArrayX[3] = 0; // Down
+            neighbourOffsetArrayX[4] = -1; // Left Down
+            neighbourOffsetArrayX[5] = -1; // Left Up
+            neighbourOffsetArrayX[6] = +1; // Right Down
+            neighbourOffsetArrayX[7] = +1; // Right Up
+            var neighbourOffsetArrayY = new NativeArray<int>(8, Allocator.Temp);
+            neighbourOffsetArrayY[0] = 0; // Left
+            neighbourOffsetArrayY[1] = 0; // Right
+            neighbourOffsetArrayY[2] = +1; // Up
+            neighbourOffsetArrayY[3] = -1; // Down
+            neighbourOffsetArrayY[4] = -1; // Left Down
+            neighbourOffsetArrayY[5] = +1; // Left Up
+            neighbourOffsetArrayY[6] = -1; // Right Down
+            neighbourOffsetArrayY[7] = +1; // Right Up
 
             var endNodeIndex = CalculateIndex(EndPosition.x, EndPosition.y, GridSize.x);
 
@@ -324,11 +333,10 @@ public partial class Pathfinding : SystemBase
 
                 closedList.Add(currentNodeIndex);
 
-                for (var i = 0; i < neighbourOffsetArray.Length; i++)
+                for (var i = 0; i < neighbourOffsetArrayX.Length; i++)
                 {
-                    var neighbourOffset = neighbourOffsetArray[i];
-                    var neighbourPosX = currentNode.x + neighbourOffset.x;
-                    var neighbourPosY = currentNode.y + neighbourOffset.y;
+                    var neighbourPosX = currentNode.x + neighbourOffsetArrayX[i];
+                    var neighbourPosY = currentNode.y + neighbourOffsetArrayY[i];
 
                     if (!IsPositionInsideGrid(neighbourPosX, neighbourPosY, GridSize))
                     {
@@ -367,7 +375,8 @@ public partial class Pathfinding : SystemBase
                 }
             }
 
-            neighbourOffsetArray.Dispose();
+            neighbourOffsetArrayX.Dispose();
+            neighbourOffsetArrayY.Dispose();
             openList.Dispose();
             closedList.Dispose();
         }
