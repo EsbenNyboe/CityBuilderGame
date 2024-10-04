@@ -39,6 +39,11 @@ public class GridDamageable
         _grid.TriggerGridObjectChanged(_x, _y);
     }
 
+    public void RemoveFromHealth(float delta)
+    {
+        AddToHealth(-delta);
+    }
+
     public void AddToHealth(float delta)
     {
         _health += delta;

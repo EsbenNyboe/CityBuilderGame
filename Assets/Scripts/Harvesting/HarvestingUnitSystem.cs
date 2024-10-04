@@ -4,16 +4,52 @@ using Unity.Transforms;
 
 public partial class HarvestingUnitSystem : SystemBase
 {
-    private const int DamagePerSec = -1;
+    private const float ChopAnimationDuration = 1f;
+    private const float ChopAnimationSize = 0.5f;
 
     protected override void OnUpdate()
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
+        // TODO: Optimize this:
+        foreach (var harvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithDisabled<HarvestingUnit>())
+        {
+            harvestingUnit.ValueRW.CurrentProgress = 0;
+            harvestingUnit.ValueRW.ChopAnimationProgress = ChopAnimationDuration;
+            harvestingUnit.ValueRW.DoChopAnimation = false;
+        }
+
         foreach (var (localTransform, harvestingUnit, pathFollow, entity) in SystemAPI
                      .Query<RefRO<LocalTransform>, RefRW<HarvestingUnit>, RefRO<PathFollow>>()
                      .WithAll<HarvestingUnit>().WithEntityAccess())
         {
+            if (harvestingUnit.ValueRO.DoChopAnimation)
+            {
+                var chopAnimationProgress = harvestingUnit.ValueRO.ChopAnimationProgress;
+                chopAnimationProgress -= SystemAPI.Time.DeltaTime;
+                harvestingUnit.ValueRW.ChopAnimationProgress = chopAnimationProgress;
+
+                if (chopAnimationProgress < 0)
+                {
+                    harvestingUnit.ValueRW.ChopAnimationProgress = ChopAnimationDuration;
+                    chopAnimationProgress = 0;
+                    harvestingUnit.ValueRW.DoChopAnimation = false;
+                }
+
+                var child = EntityManager.GetBuffer<Child>(entity);
+                var childEntity = child[0].Value;
+                var childTransform = EntityManager.GetComponentData<LocalTransform>(childEntity);
+                var childPosition = childTransform.Position;
+                var chopAnimationPosition = (chopAnimationProgress / ChopAnimationDuration) * ChopAnimationSize;
+                childPosition.x = chopAnimationPosition;
+                EntityManager.SetComponentData(childEntity, new LocalTransform()
+                {
+                    Position = childPosition,
+                    Scale = 1f,
+                    Rotation = quaternion.identity
+                });
+            }
+
             var unitIsTryingToHarvest = pathFollow.ValueRO.PathIndex < 0;
             if (!unitIsTryingToHarvest)
             {
@@ -61,7 +97,16 @@ public partial class HarvestingUnitSystem : SystemBase
             }
 
             var gridDamageableObject = GridSetup.Instance.DamageableGrid.GetGridObject(targetX, targetY);
-            gridDamageableObject.AddToHealth(DamagePerSec * SystemAPI.Time.DeltaTime * Globals.HarvestingSpeed() * Globals.GameSpeed());
+            var harvestingAmount = Globals.HarvestingSpeed() * Globals.GameSpeed() * SystemAPI.Time.DeltaTime;
+            gridDamageableObject.RemoveFromHealth(harvestingAmount);
+            harvestingUnit.ValueRW.CurrentProgress += harvestingAmount;
+            if (harvestingUnit.ValueRO.CurrentProgress > 10)
+            {
+                harvestingUnit.ValueRW.DoChopAnimation = true;
+                harvestingUnit.ValueRW.CurrentProgress = 0;
+                harvestingUnit.ValueRW.ChopAnimationProgress = ChopAnimationDuration;
+            }
+
             if (!gridDamageableObject.IsDamageable())
             {
                 // DESTROY TREE:
