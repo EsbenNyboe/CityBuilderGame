@@ -109,7 +109,6 @@ public partial class Pathfinding : SystemBase
             {
                 GridSize = gridSize,
                 CombinedPathNodeArray = combinedPathNodeArray,
-                PathNodeArrayStart = indexedPathNodeArrayStart[i],
                 Entity = entities[i],
                 PathFindingParamsLookup = GetComponentLookup<PathfindingParams>(),
                 PathFollowLookup = GetComponentLookup<PathFollow>(),
@@ -360,8 +359,8 @@ public partial class Pathfinding : SystemBase
             pathPositionBuffer.Clear();
 
             var pathFindingParams = PathFindingParamsLookup[Entity];
-            var endNodeIndex = CalculateIndex(pathFindingParams.EndPosition.x, pathFindingParams.EndPosition.y, GridSize.x) + PathNodeArrayStart;
-            var endNode = CombinedPathNodeArray[endNodeIndex];
+            var endNodeIndex = CalculateIndex(pathFindingParams.EndPosition.x, pathFindingParams.EndPosition.y, GridSize.x);
+            var endNode = CombinedPathNodeArray[endNodeIndex + PathNodeArrayStart];
 
             if (endNode.cameFromNodeIndex == -1)
             {
@@ -431,13 +430,13 @@ public partial class Pathfinding : SystemBase
             neighbourOffsetArrayY[6] = -1; // Right Down
             neighbourOffsetArrayY[7] = +1; // Right Up
 
-            var endNodeIndex = CalculateIndex(IndexedEndPosition[index].x, IndexedEndPosition[index].y, GridSize.x) + IndexedPathNodeArrayStart[index];
-            var startNodeIndex = CalculateIndex(IndexedStartPosition[index].x, IndexedStartPosition[index].y, GridSize.x) + IndexedPathNodeArrayStart[index];
+            var endNodeIndex = CalculateIndex(IndexedEndPosition[index].x, IndexedEndPosition[index].y, GridSize.x);
+            var startNodeIndex = CalculateIndex(IndexedStartPosition[index].x, IndexedStartPosition[index].y, GridSize.x);
 
-            var startNode = CombinedPathNodeArray[startNodeIndex];
+            var startNode = CombinedPathNodeArray[startNodeIndex + IndexedPathNodeArrayStart[index]];
             startNode.gCost = 0;
             startNode.CalculateFCost();
-            CombinedPathNodeArray[startNode.index] = startNode;
+            CombinedPathNodeArray[startNode.index + IndexedPathNodeArrayStart[index]] = startNode;
 
             var openList = new NativeList<int>(Allocator.Temp);
             var closedList = new NativeList<int>(Allocator.Temp);
@@ -446,8 +445,8 @@ public partial class Pathfinding : SystemBase
 
             while (openList.Length > 0)
             {
-                var currentNodeIndex = GetLowestCostFNodeIndex(openList, CombinedPathNodeArray);
-                var currentNode = CombinedPathNodeArray[currentNodeIndex];
+                var currentNodeIndex = GetLowestCostFNodeIndex(openList, CombinedPathNodeArray, IndexedPathNodeArrayStart[index]);
+                var currentNode = CombinedPathNodeArray[currentNodeIndex + IndexedPathNodeArrayStart[index]];
 
                 if (currentNodeIndex == endNodeIndex)
                 {
@@ -478,7 +477,7 @@ public partial class Pathfinding : SystemBase
                         continue;
                     }
 
-                    var neighbourNodeIndex = CalculateIndex(neighbourPosX, neighbourPosY, GridSize.x) + IndexedPathNodeArrayStart[index];
+                    var neighbourNodeIndex = CalculateIndex(neighbourPosX, neighbourPosY, GridSize.x);
 
                     if (closedList.Contains(neighbourNodeIndex))
                     {
@@ -486,7 +485,7 @@ public partial class Pathfinding : SystemBase
                         continue;
                     }
 
-                    var neighbourNode = CombinedPathNodeArray[neighbourNodeIndex];
+                    var neighbourNode = CombinedPathNodeArray[neighbourNodeIndex + IndexedPathNodeArrayStart[index]];
                     if (!neighbourNode.isWalkable)
                     {
                         // Not walkable
@@ -499,7 +498,7 @@ public partial class Pathfinding : SystemBase
                         neighbourNode.cameFromNodeIndex = currentNodeIndex;
                         neighbourNode.gCost = tentativeGCost;
                         neighbourNode.CalculateFCost();
-                        CombinedPathNodeArray[neighbourNodeIndex] = neighbourNode;
+                        CombinedPathNodeArray[neighbourNodeIndex + IndexedPathNodeArrayStart[index]] = neighbourNode;
 
                         if (!openList.Contains(neighbourNode.index))
                         {
