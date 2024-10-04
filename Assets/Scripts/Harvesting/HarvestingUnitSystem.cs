@@ -100,7 +100,7 @@ public partial class HarvestingUnitSystem : SystemBase
             }
 
             var gridDamageableObject = GridSetup.Instance.DamageableGrid.GetGridObject(targetX, targetY);
-            harvestingUnit.ValueRW.TimeUntilNextChop -= SystemAPI.Time.DeltaTime / Globals.ChopDuration();
+            harvestingUnit.ValueRW.TimeUntilNextChop -= SystemAPI.Time.DeltaTime;
             if (harvestingUnit.ValueRO.TimeUntilNextChop < 0)
             {
                 gridDamageableObject.RemoveFromHealth(Globals.DamagePerChop());
