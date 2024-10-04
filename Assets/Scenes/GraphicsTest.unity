@@ -671,6 +671,7 @@ GameObject:
   - component: {fileID: 597997350}
   - component: {fileID: 597997349}
   - component: {fileID: 597997351}
+  - component: {fileID: 597997352}
   m_Layer: 0
   m_Name: Globals
   m_TagString: Untagged
@@ -691,8 +692,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gameSpeed: 1
-  _chopDuration: 1
-  _damagePerChop: 10
   _maxPathfindingPerFrame: 500
   _brushSize: 10
 --- !u!4 &597997350
@@ -723,6 +722,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _showOccupationGrid: 0
+--- !u!114 &597997352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597997348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac8d91d1792cc1545b8f18ea4ccc7990, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _chopDuration: 2
+  _damagePerChop: 10
+  _chopAnimationSize: 0.4
+  _chopAnimationIdleTime: 0.5
 --- !u!1 &614670184
 GameObject:
   m_ObjectHideFlags: 0
