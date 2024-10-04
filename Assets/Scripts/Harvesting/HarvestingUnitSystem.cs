@@ -81,6 +81,7 @@ public partial class HarvestingUnitSystem : SystemBase
                 harvestingUnit.ValueRW.DoChopAnimation = true;
                 harvestingUnit.ValueRW.TimeUntilNextChop = chopDuration;
                 harvestingUnit.ValueRW.ChopAnimationProgress = chopDuration;
+                SoundManager.Instance.PlayChopSound(localTransform.ValueRO.Position);
             }
 
             if (!gridDamageableObject.IsDamageable())
