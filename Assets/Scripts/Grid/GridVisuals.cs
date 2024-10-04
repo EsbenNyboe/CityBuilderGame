@@ -220,6 +220,13 @@ public class GridVisuals : MonoBehaviour
 
     private void UpdateOccupationDebugMesh()
     {
+        if (!DebugGlobals.ShowOccupationGrid())
+        {
+            _occupationGridMesh = new Mesh();
+            _occupationGridMeshFilter.mesh = _occupationGridMesh;
+            return;
+        }
+
         for (var x = 0; x < _gridOccupation.GetWidth(); x++)
         {
             for (var y = 0; y < _gridOccupation.GetHeight(); y++)

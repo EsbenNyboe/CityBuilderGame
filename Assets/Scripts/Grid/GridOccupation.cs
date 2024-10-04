@@ -2,8 +2,6 @@ using Unity.Entities;
 
 public class GridOccupation
 {
-    private const bool ShowDebug = false;
-
     private readonly Grid<GridOccupation> _grid;
     private readonly int _x;
     private readonly int _y;
@@ -36,10 +34,6 @@ public class GridOccupation
     public void SetOccupied(Entity newOwner)
     {
         _owner = newOwner;
-
-        if (ShowDebug)
-        {
-            _grid.TriggerGridObjectChanged(_x, _y);
-        }
+        _grid.TriggerGridObjectChanged(_x, _y);
     }
 }

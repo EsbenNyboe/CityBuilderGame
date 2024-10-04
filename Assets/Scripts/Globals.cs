@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-class Globals : MonoBehaviour
+public class Globals : MonoBehaviour
 {
     public static Globals Instance;
 
