@@ -1025,7 +1025,7 @@ MonoBehaviour:
     PitchCenter: 0.876
     PitchVariance: 0.183
   _destroyTreeSound:
-    Clip: {fileID: 8300000, guid: 05584246eccfce94a93154346a146de8, type: 3}
+    Clip: {fileID: 8300000, guid: 2e9e3e5656109314ea9a27d419bc14df, type: 3}
     Volume: 0.864
     PitchCenter: 0.862
     PitchVariance: 0.143
