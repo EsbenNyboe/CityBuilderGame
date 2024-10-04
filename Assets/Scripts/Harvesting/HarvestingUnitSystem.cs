@@ -194,11 +194,13 @@ public partial class HarvestingUnitSystem : SystemBase
 
         // Apply animation output:
         var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
+
+        float angleInDegrees = chopDirection.x > 0 ? 0f : 180f;
         EntityManager.SetComponentData(childEntity, new LocalTransform()
         {
             Position = childPosition,
             Scale = 1f,
-            Rotation = quaternion.identity
+            Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0)
         });
     }
 }

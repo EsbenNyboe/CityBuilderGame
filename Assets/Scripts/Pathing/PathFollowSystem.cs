@@ -75,8 +75,22 @@ public partial class PathFollowSystem : SystemBase
                     }
                 }
             }
-        }
 
+            
+
+            if (moveDirection.x != 0)
+            {
+                float angleInDegrees = moveDirection.x > 0 ? 0f : 180f;
+                var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
+                var childLocalTransform = EntityManager.GetComponentData<LocalTransform>(childEntity);
+                EntityManager.SetComponentData(childEntity, new LocalTransform()
+                {
+                    Position = childLocalTransform.Position,
+                    Scale = 1,
+                    Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0)
+                });
+            }
+        }
         entityCommandBuffer.Playback(EntityManager);
     }
 
