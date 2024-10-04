@@ -30,4 +30,12 @@ public class GridSetup : MonoBehaviour
         // TODO: Is it a problem that we're using a specific grid to control the visual updates?
         _pathfindingVisual.SetGrid(PathGrid, DamageableGrid, OccupationGrid);
     }
+
+    private void OnValidate()
+    {
+        if (_width * _height >= 16400)
+        {
+            Debug.LogError("Grid is too big");
+        }
+    }
 }
