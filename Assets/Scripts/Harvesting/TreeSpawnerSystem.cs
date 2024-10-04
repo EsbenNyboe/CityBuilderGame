@@ -7,10 +7,12 @@ public partial class TreeSpawnerSystem : SystemBase
 {
     private const int MaxHealth = 100;
     private static bool _shouldSpawnTreesOnMouseDown;
+    private static bool _isInitialized;
 
     protected override void OnCreate()
     {
         RequireForUpdate<TreeSpawner>();
+        _isInitialized = false;
     }
 
     protected override void OnUpdate()
@@ -19,6 +21,34 @@ public partial class TreeSpawnerSystem : SystemBase
         var pathGrid = GridSetup.Instance.PathGrid;
         var damageableGrid = GridSetup.Instance.DamageableGrid;
         var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathGrid.GetCellSize() * .5f;
+
+        if (!_isInitialized)
+        {
+            _isInitialized = true;
+
+            var areasToExclude = TreeGridSetup.AreasToExclude();
+            var width = pathGrid.GetWidth();
+            var height = pathGrid.GetHeight();
+
+            for (var x = 0; x < width; x++)
+            {
+                for (var y = 0; y < height; y++)
+                {
+                    foreach (var areaToExclude in areasToExclude)
+                    {
+                        if (x >= areaToExclude.StartCell.x && x <= areaToExclude.EndCell.x &&
+                            y >= areaToExclude.StartCell.y && y <= areaToExclude.EndCell.y)
+                        {
+                            continue;
+                        }
+
+                        var gridPath = pathGrid.GetGridObject(x, y);
+                        var gridDamageable = damageableGrid.GetGridObject(x, y);
+                        TrySpawnTree(gridPath, gridDamageable);
+                    }
+                }
+            }
+        }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {

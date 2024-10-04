@@ -132,8 +132,9 @@ GameObject:
   m_Component:
   - component: {fileID: 27382666}
   - component: {fileID: 27382665}
+  - component: {fileID: 27382667}
   m_Layer: 0
-  m_Name: PathfindingGridSetup
+  m_Name: GridSetup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -169,6 +170,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &27382667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 27382664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8d387e3dfc89b84cbf0900bd5897ee5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _areasToExclude:
+  - StartCell:
+      x: 0
+      y: 0
+    EndCell:
+      x: 100
+      y: 11
 --- !u!1 &77065669
 GameObject:
   m_ObjectHideFlags: 0
@@ -670,6 +690,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gameSpeed: 1
+  _harvestingSpeed: 1
   _maxPathfindingPerFrame: 500
   _brushSize: 10
 --- !u!4 &597997350
