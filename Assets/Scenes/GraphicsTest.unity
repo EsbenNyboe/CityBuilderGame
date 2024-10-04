@@ -151,8 +151,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 650ba2e7ac9098647822ddcc8be883a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _width: 101
-  _height: 102
+  _width: 165
+  _height: 99
   _pathfindingVisual: {fileID: 992141009}
 --- !u!4 &27382666
 Transform:
@@ -507,7 +507,7 @@ MonoBehaviour:
   _movementSpeed: 25
   _zoomSpeed: 2.74
   _minSize: 1.79
-  _maxSize: 30.63
+  _maxSize: 89.8
 --- !u!1 &487013235
 GameObject:
   m_ObjectHideFlags: 0
