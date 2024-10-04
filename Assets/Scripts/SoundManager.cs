@@ -11,6 +11,9 @@ public class SoundManager : MonoBehaviour
     [SerializeField]
     private SoundConfig _chopSound;
 
+    [SerializeField]
+    private SoundConfig _destroyTreeSound;
+
     private Queue<AudioSource> _pool;
 
     public static SoundManager Instance { get; private set; }
@@ -42,7 +45,11 @@ public class SoundManager : MonoBehaviour
         PlayAtPosition(_chopSound, position);
     }
 
-    // TODO: Volume, pitch
+    public void PlayDestroyTreeSound(Vector3 position)
+    {
+        PlayAtPosition(_destroyTreeSound, position);
+    }
+
     private void PlayAtPosition(SoundConfig sound, Vector3 position)
     {
         AudioSource poolItem;

@@ -87,6 +87,7 @@ public partial class HarvestingUnitSystem : SystemBase
             if (!gridDamageableObject.IsDamageable())
             {
                 // DESTROY TREE:
+                SoundManager.Instance.PlayDestroyTreeSound(localTransform.ValueRO.Position);
                 GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).SetIsWalkable(true);
                 gridDamageableObject.SetHealth(0);
 

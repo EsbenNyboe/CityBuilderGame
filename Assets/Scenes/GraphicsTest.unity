@@ -1021,9 +1021,14 @@ MonoBehaviour:
   _template: {fileID: 1980316763}
   _chopSound:
     Clip: {fileID: 8300000, guid: 68ee48be4137e2148b90297b7658a8e1, type: 3}
-    Volume: 0.857
+    Volume: 0.85
     PitchCenter: 0.876
     PitchVariance: 0.183
+  _destroyTreeSound:
+    Clip: {fileID: 8300000, guid: 05584246eccfce94a93154346a146de8, type: 3}
+    Volume: 0.864
+    PitchCenter: 0.862
+    PitchVariance: 0.143
 --- !u!4 &1980316762
 Transform:
   m_ObjectHideFlags: 0
