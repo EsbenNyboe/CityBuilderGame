@@ -61,7 +61,7 @@ public partial class HarvestingUnitSystem : SystemBase
             }
 
             var gridDamageableObject = GridSetup.Instance.DamageableGrid.GetGridObject(targetX, targetY);
-            gridDamageableObject.AddToHealth(DamagePerSec * SystemAPI.Time.DeltaTime * Globals.GameSpeed());
+            gridDamageableObject.AddToHealth(DamagePerSec * SystemAPI.Time.DeltaTime * Globals.HarvestingSpeed() * Globals.GameSpeed());
             if (!gridDamageableObject.IsDamageable())
             {
                 // DESTROY TREE:

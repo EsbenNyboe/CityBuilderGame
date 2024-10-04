@@ -1,5 +1,6 @@
 ﻿using CodeMonkey.Utils;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 public partial class TreeSpawnerSystem : SystemBase
@@ -51,9 +52,16 @@ public partial class TreeSpawnerSystem : SystemBase
 
         if (Input.GetMouseButton(1) && Input.GetKey(KeyCode.LeftControl))
         {
-            var gridPath = pathGrid.GetGridObject(mousePosition);
-            var gridDamageable = damageableGrid.GetGridObject(mousePosition);
-            TrySpawnTree(gridPath, gridDamageable);
+            var brushSize = Globals.BrushSize();
+            GridSetup.Instance.PathGrid.GetXY(mousePosition, out var x, out var y);
+            var cellList = PathingHelpers.GetCellListAroundTargetCell(new int2(x, y), brushSize);
+
+            for (int i = 0; i < cellList.Count; i++)
+            {
+                var gridPath = pathGrid.GetGridObject(cellList[i].x, cellList[i].y);
+                var gridDamageable = damageableGrid.GetGridObject(cellList[i].x, cellList[i].y);
+                TrySpawnTree(gridPath, gridDamageable);
+            }
         }
     }
 

@@ -670,6 +670,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gameSpeed: 1
+  _maxPathfindingPerFrame: 500
+  _brushSize: 10
 --- !u!4 &597997350
 Transform:
   m_ObjectHideFlags: 0
