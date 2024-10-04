@@ -17,7 +17,7 @@ public partial class SpawnCubesSystem : SystemBase
             return;
         }
 
-        Enabled = false;
+        //Enabled = false;
 
         var spawnCubesConfig = SystemAPI.GetSingleton<SpawnCubesConfig>();
 
@@ -41,12 +41,14 @@ public partial class SpawnCubesSystem : SystemBase
                 Scale = 1f,
                 Rotation = quaternion.identity
             });
+
+            GridSetup.Instance.OccupationGrid.GetGridObject(x, y).SetOccupied(spawnedEntity);
         }
     }
 
     private bool GetNextValidGridPosition(ref int gridIndex, out int x, out int y)
     {
-        var maxAttempts = 10;
+        var maxAttempts = 5000;
         var currentAttempt = 0;
         x = 0;
         y = 0;
@@ -61,11 +63,12 @@ public partial class SpawnCubesSystem : SystemBase
                 return false;
             }
 
-            gridIndex++;
-            if (ValidateWalkableGridPosition(x, y))
+            if (ValidateWalkableGridPosition(x, y) && ValidateVacantGridPosition(x, y))
             {
                 return true;
             }
+
+            gridIndex++;
         }
 
         Debug.Log("No valid grid position found: Not walkable");
@@ -87,4 +90,10 @@ public partial class SpawnCubesSystem : SystemBase
     {
         return GridSetup.Instance.PathGrid.GetGridObject(x, y).IsWalkable();
     }
+
+    private bool ValidateVacantGridPosition(int x, int y)
+    {
+        return !GridSetup.Instance.OccupationGrid.GetGridObject(x, y).IsOccupied();
+    }
+
 }

@@ -50,20 +50,6 @@ public partial class TreeSpawnerSystem : SystemBase
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            var gridIndex = 0;
-            for (var i = 0; i < treeSpawner.AmountToSpawn; i++)
-            {
-                if (GetNextValidGridPositionFromTop(ref gridIndex, out var x, out var y))
-                {
-                    var gridPath = pathGrid.GetGridObject(x, y);
-                    var gridDamageable = damageableGrid.GetGridObject(x, y);
-                    TrySpawnTree(gridPath, gridDamageable);
-                }
-            }
-        }
-
         if (Input.GetMouseButtonDown(1) && Input.GetKey(KeyCode.LeftControl))
         {
             var gridNode = pathGrid.GetGridObject(mousePosition);

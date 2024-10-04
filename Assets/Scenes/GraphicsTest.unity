@@ -184,11 +184,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _areasToExclude:
   - StartCell:
-      x: 0
-      y: 0
+      x: 20
+      y: 20
     EndCell:
       x: 100
-      y: 11
+      y: 50
 --- !u!1 &77065669
 GameObject:
   m_ObjectHideFlags: 0
