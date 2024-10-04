@@ -9,8 +9,6 @@ public partial class HarvestingUnitSystem : SystemBase
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
         var chopDuration = ChopAnimationManager.ChopDuration();
-        var chopSize = ChopAnimationManager.ChopAnimationSize();
-        var chopIdleTime = ChopAnimationManager.ChopAnimationPostIdleTimeNormalized();
 
         // TODO: Optimize this:
         foreach (var harvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithDisabled<HarvestingUnit>())
@@ -26,38 +24,7 @@ public partial class HarvestingUnitSystem : SystemBase
         {
             if (harvestingUnit.ValueRO.DoChopAnimation)
             {
-                var chopAnimationProgress = harvestingUnit.ValueRO.ChopAnimationProgress;
-                chopAnimationProgress -= SystemAPI.Time.DeltaTime;
-                harvestingUnit.ValueRW.ChopAnimationProgress = chopAnimationProgress;
-
-                if (chopAnimationProgress < 0)
-                {
-                    harvestingUnit.ValueRW.ChopAnimationProgress = chopDuration;
-                    chopAnimationProgress = 0;
-                    harvestingUnit.ValueRW.DoChopAnimation = false;
-                }
-
-                var chopAnimationProgressNormalized = chopAnimationProgress / chopDuration;
-                var chopAnimationProgressAboveIdleTime = chopAnimationProgressNormalized - chopIdleTime;
-
-                var chopAnimationProgressReNormalized = math.max(0, chopAnimationProgressAboveIdleTime) * (1 + chopIdleTime);
-
-                var chopAnimationPosition = chopAnimationProgressReNormalized * chopSize;
-
-                var chopTarget = harvestingUnit.ValueRO.Target;
-                var chopTargetPosition = GridSetup.Instance.PathGrid.GetWorldPosition(chopTarget.x, chopTarget.y);
-
-                var chopDirection = (chopTargetPosition - (Vector3)localTransform.ValueRO.Position).normalized;
-                var childPosition = chopAnimationPosition * chopDirection;
-
-
-                var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
-                EntityManager.SetComponentData(childEntity, new LocalTransform()
-                {
-                    Position = childPosition,
-                    Scale = 1f,
-                    Rotation = quaternion.identity
-                });
+                DoChopAnimation(localTransform, harvestingUnit, entity);
             }
 
             var unitIsTryingToHarvest = pathFollow.ValueRO.PathIndex < 0;
@@ -188,6 +155,48 @@ public partial class HarvestingUnitSystem : SystemBase
         {
             StartPosition = new int2(startX, startY),
             EndPosition = newEndPosition
+        });
+    }
+
+    private void DoChopAnimation(RefRO<LocalTransform> localTransform, RefRW<HarvestingUnit> harvestingUnit, Entity entity)
+    {
+        var chopDuration = ChopAnimationManager.ChopDuration();
+        var chopSize = ChopAnimationManager.ChopAnimationSize();
+        var chopIdleTime = ChopAnimationManager.ChopAnimationPostIdleTimeNormalized();
+        
+        // Manage animation state:
+        var timeLeft = harvestingUnit.ValueRO.ChopAnimationProgress;
+        timeLeft -= SystemAPI.Time.DeltaTime;
+        harvestingUnit.ValueRW.ChopAnimationProgress = timeLeft;
+
+        if (timeLeft < 0)
+        {
+            harvestingUnit.ValueRW.ChopAnimationProgress = chopDuration;
+            timeLeft = 0;
+            harvestingUnit.ValueRW.DoChopAnimation = false;
+        }
+
+        // Calculate animation input:
+        var timeLeftNormalized = timeLeft / chopDuration;
+        var timeLeftBeforeIdling = timeLeftNormalized - chopIdleTime;
+        var timeLeftBeforeIdlingNormalized = math.max(0, timeLeftBeforeIdling) * (1 + chopIdleTime);
+
+        // Calculate animation output:
+        var positionDistanceFromOrigin = timeLeftBeforeIdlingNormalized * chopSize;
+
+        var chopTarget = harvestingUnit.ValueRO.Target;
+        var chopTargetPosition = GridSetup.Instance.PathGrid.GetWorldPosition(chopTarget.x, chopTarget.y);
+        var chopDirection = (chopTargetPosition - (Vector3)localTransform.ValueRO.Position).normalized;
+
+        var childPosition = positionDistanceFromOrigin * chopDirection;
+
+        // Apply animation output:
+        var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
+        EntityManager.SetComponentData(childEntity, new LocalTransform()
+        {
+            Position = childPosition,
+            Scale = 1f,
+            Rotation = quaternion.identity
         });
     }
 }
