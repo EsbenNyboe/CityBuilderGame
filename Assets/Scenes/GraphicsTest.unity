@@ -737,7 +737,7 @@ MonoBehaviour:
   _chopDuration: 2
   _damagePerChop: 10
   _chopAnimationSize: 0.4
-  _chopAnimationIdleTime: 0.5
+  _chopAnimationIdleTime: 0.729
 --- !u!1 &614670184
 GameObject:
   m_ObjectHideFlags: 0

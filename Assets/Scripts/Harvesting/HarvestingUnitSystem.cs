@@ -1,6 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 public partial class HarvestingUnitSystem : SystemBase
 {
@@ -36,18 +37,21 @@ public partial class HarvestingUnitSystem : SystemBase
                     harvestingUnit.ValueRW.DoChopAnimation = false;
                 }
 
-                var child = EntityManager.GetBuffer<Child>(entity);
-                var childEntity = child[0].Value;
-                var childTransform = EntityManager.GetComponentData<LocalTransform>(childEntity);
-                var childPosition = childTransform.Position;
-
                 var chopAnimationProgressNormalized = chopAnimationProgress / chopDuration;
                 var chopAnimationProgressAboveIdleTime = chopAnimationProgressNormalized - chopIdleTime;
 
                 var chopAnimationProgressReNormalized = math.max(0, chopAnimationProgressAboveIdleTime) * (1 + chopIdleTime);
 
                 var chopAnimationPosition = chopAnimationProgressReNormalized * chopSize;
-                childPosition.x = chopAnimationPosition;
+
+                var chopTarget = harvestingUnit.ValueRO.Target;
+                var chopTargetPosition = GridSetup.Instance.PathGrid.GetWorldPosition(chopTarget.x, chopTarget.y);
+
+                var chopDirection = (chopTargetPosition - (Vector3)localTransform.ValueRO.Position).normalized;
+                var childPosition = chopAnimationPosition * chopDirection;
+
+
+                var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
                 EntityManager.SetComponentData(childEntity, new LocalTransform()
                 {
                     Position = childPosition,
