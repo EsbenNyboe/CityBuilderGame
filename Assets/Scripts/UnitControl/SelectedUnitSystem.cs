@@ -26,8 +26,16 @@ public partial class SelectedUnitSystem : SystemBase
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
-        foreach (var (unitSelection, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
+        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
         {
+            var unitPosition = localTransform.ValueRO.Position;
+            GridSetup.Instance.PathGrid.GetXY(unitPosition, out var x, out var y);
+            GridSetup.Instance.PathGrid.GetGridObject(x, y).SetIsWalkable(true);
+            if (GridSetup.Instance.OccupationGrid.GetGridObject(x, y).EntityIsOwner(entity))
+            {
+                GridSetup.Instance.OccupationGrid.GetGridObject(x, y).SetOccupied(Entity.Null);
+            }
+
             entityCommandBuffer.DestroyEntity(entity);
         }
 
