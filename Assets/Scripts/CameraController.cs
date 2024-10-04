@@ -7,6 +7,8 @@ class CameraController : MonoBehaviour
     [SerializeField] private float _zoomSpeed;
     [SerializeField] private float _minSize;
     [SerializeField] private float _maxSize;
+    [SerializeField] private float _minSizeListenerProximity;
+    [SerializeField] private float _maxSizeListenerProximity;
 
     private void Update()
     {
@@ -44,5 +46,10 @@ class CameraController : MonoBehaviour
         size -= Input.GetAxis("Mouse ScrollWheel") * _zoomSpeed;
         size = Mathf.Clamp(size, _minSize, _maxSize);
         Camera.main.orthographicSize = size;
+
+        var zoomAmount = (size - _minSize) / _maxSize;
+        var listenerProximity = Mathf.Lerp(_minSizeListenerProximity, _maxSizeListenerProximity, zoomAmount);
+
+        transform.position = new Vector3(transform.position.x, transform.position.y, listenerProximity);
     }
 }

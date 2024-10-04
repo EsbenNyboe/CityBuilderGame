@@ -528,6 +528,8 @@ MonoBehaviour:
   _zoomSpeed: 2.74
   _minSize: 1.79
   _maxSize: 89.8
+  _minSizeListenerProximity: -1
+  _maxSizeListenerProximity: -61
 --- !u!1 &487013235
 GameObject:
   m_ObjectHideFlags: 0
@@ -1058,7 +1060,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 66.3
+  MaxDistance: 68.1
   Pan2D: 0
   rolloffMode: 2
   BypassEffects: 0
@@ -1077,17 +1079,17 @@ AudioSource:
       inWeight: 0.33333334
       outWeight: 0.09363296
     - serializedVersion: 3
-      time: 0.08830303
+      time: 0.067703664
       value: 0.75860673
-      inSlope: -3.3354344
-      outSlope: -3.3354344
+      inSlope: -4.2033706
+      outSlope: -4.2033706
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.20292695
+      inWeight: 0.50212646
       outWeight: 0.036636405
     - serializedVersion: 3
-      time: 0.30208233
-      value: 0.22965047
+      time: 0.21406963
+      value: 0.16623494
       inSlope: -1.3021345
       outSlope: -1.3021345
       tangentMode: 0
@@ -1095,13 +1097,22 @@ AudioSource:
       inWeight: 0.2650052
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: -0.29988867
-      outSlope: -0.29988867
+      time: 0.47155732
+      value: 0.024074681
+      inSlope: -0.13022648
+      outSlope: -0.13022648
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.11091796
+      inWeight: 0.33333334
+      outWeight: 0.1801723
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -0.057732575
+      outSlope: -0.057732575
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.2177667
       outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
