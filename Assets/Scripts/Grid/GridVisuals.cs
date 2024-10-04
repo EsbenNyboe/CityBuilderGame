@@ -1,7 +1,7 @@
 ﻿using CodeMonkey.Utils;
 using UnityEngine;
 
-public class PathfindingVisual : MonoBehaviour
+public class GridVisuals : MonoBehaviour
 {
     [SerializeField] private MeshFilter _pathGridMeshFilter;
     [SerializeField] private MeshFilter _damageableGridMeshFilter;

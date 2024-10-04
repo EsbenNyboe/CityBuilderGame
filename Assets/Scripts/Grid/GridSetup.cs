@@ -8,7 +8,7 @@ public class GridSetup : MonoBehaviour
 
     [SerializeField] private int _height = 30;
 
-    [SerializeField] private PathfindingVisual _pathfindingVisual;
+    [SerializeField] private GridVisuals _pathfindingVisual;
     public Grid<GridPath> PathGrid;
     public Grid<GridDamageable> DamageableGrid;
     public Grid<GridOccupation> OccupationGrid;
