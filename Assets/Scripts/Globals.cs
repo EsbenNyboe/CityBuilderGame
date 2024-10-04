@@ -7,7 +7,9 @@ public class Globals : MonoBehaviour
     [SerializeField]
     private float _gameSpeed = 1f;
     [SerializeField]
-    private float _harvestingSpeed = 1f;
+    private float _chopDuration = 1f;
+    [SerializeField]
+    private float _damagePerChop = 10f;
     [SerializeField]
     private int _maxPathfindingPerFrame = 500;
     [SerializeField]
@@ -23,9 +25,14 @@ public class Globals : MonoBehaviour
         return Instance._gameSpeed;
     }
 
-    public static float HarvestingSpeed()
+    public static float ChopDuration()
     {
-        return Instance._harvestingSpeed;
+        return Instance._chopDuration / GameSpeed();
+    }
+
+    public static float DamagePerChop()
+    {
+        return Instance._damagePerChop;
     }
 
     public static int MaxPathfindingPerFrame()

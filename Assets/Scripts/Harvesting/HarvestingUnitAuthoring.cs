@@ -21,7 +21,7 @@ public class HarvestingUnitAuthoring : MonoBehaviour
 public struct HarvestingUnit : IComponentData, IEnableableComponent
 {
     public int2 Target;
-    public float CurrentProgress;
+    public float TimeUntilNextChop;
     public float ChopAnimationProgress;
     public bool DoChopAnimation;
 }

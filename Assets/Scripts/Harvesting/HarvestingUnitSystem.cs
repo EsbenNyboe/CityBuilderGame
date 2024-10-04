@@ -4,8 +4,8 @@ using Unity.Transforms;
 
 public partial class HarvestingUnitSystem : SystemBase
 {
-    private const float ChopAnimationDuration = 1f;
     private const float ChopAnimationSize = 0.5f;
+    private const float ChopAnimationPostIdleTimeNormalized = 0.01f;
 
     protected override void OnUpdate()
     {
@@ -14,8 +14,8 @@ public partial class HarvestingUnitSystem : SystemBase
         // TODO: Optimize this:
         foreach (var harvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithDisabled<HarvestingUnit>())
         {
-            harvestingUnit.ValueRW.CurrentProgress = 0;
-            harvestingUnit.ValueRW.ChopAnimationProgress = ChopAnimationDuration;
+            harvestingUnit.ValueRW.TimeUntilNextChop = 0;
+            harvestingUnit.ValueRW.ChopAnimationProgress = Globals.ChopDuration();
             harvestingUnit.ValueRW.DoChopAnimation = false;
         }
 
@@ -31,7 +31,7 @@ public partial class HarvestingUnitSystem : SystemBase
 
                 if (chopAnimationProgress < 0)
                 {
-                    harvestingUnit.ValueRW.ChopAnimationProgress = ChopAnimationDuration;
+                    harvestingUnit.ValueRW.ChopAnimationProgress = Globals.ChopDuration();
                     chopAnimationProgress = 0;
                     harvestingUnit.ValueRW.DoChopAnimation = false;
                 }
@@ -40,7 +40,10 @@ public partial class HarvestingUnitSystem : SystemBase
                 var childEntity = child[0].Value;
                 var childTransform = EntityManager.GetComponentData<LocalTransform>(childEntity);
                 var childPosition = childTransform.Position;
-                var chopAnimationPosition = (chopAnimationProgress / ChopAnimationDuration) * ChopAnimationSize;
+
+                var chopAnimationProgressNormalized = chopAnimationProgress / Globals.ChopDuration();
+                var chopAnimationProgressAboveIdleTime = math.max(chopAnimationProgressNormalized, ChopAnimationPostIdleTimeNormalized);
+                var chopAnimationPosition = chopAnimationProgressAboveIdleTime * ChopAnimationSize;
                 childPosition.x = chopAnimationPosition;
                 EntityManager.SetComponentData(childEntity, new LocalTransform()
                 {
@@ -97,14 +100,13 @@ public partial class HarvestingUnitSystem : SystemBase
             }
 
             var gridDamageableObject = GridSetup.Instance.DamageableGrid.GetGridObject(targetX, targetY);
-            var harvestingAmount = Globals.HarvestingSpeed() * Globals.GameSpeed() * SystemAPI.Time.DeltaTime;
-            gridDamageableObject.RemoveFromHealth(harvestingAmount);
-            harvestingUnit.ValueRW.CurrentProgress += harvestingAmount;
-            if (harvestingUnit.ValueRO.CurrentProgress > 10)
+            harvestingUnit.ValueRW.TimeUntilNextChop -= SystemAPI.Time.DeltaTime / Globals.ChopDuration();
+            if (harvestingUnit.ValueRO.TimeUntilNextChop < 0)
             {
+                gridDamageableObject.RemoveFromHealth(Globals.DamagePerChop());
                 harvestingUnit.ValueRW.DoChopAnimation = true;
-                harvestingUnit.ValueRW.CurrentProgress = 0;
-                harvestingUnit.ValueRW.ChopAnimationProgress = ChopAnimationDuration;
+                harvestingUnit.ValueRW.TimeUntilNextChop = Globals.ChopDuration();
+                harvestingUnit.ValueRW.ChopAnimationProgress = Globals.ChopDuration();
             }
 
             if (!gridDamageableObject.IsDamageable())
