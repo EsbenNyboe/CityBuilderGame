@@ -18,8 +18,18 @@ public partial class SpriteSheetRendererSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform), typeof(UnitWalkAnimation));
+        var unitMesh = SpriteSheetRendererManager.Instance.UnitMesh;
+        var unitWalkEntityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform), typeof(UnitWalkAnimation));
+        var unitWalkMaterial = SpriteSheetRendererManager.Instance.UnitWalk;
+        HandleMeshRendering(unitWalkEntityQuery, unitMesh, unitWalkMaterial);
 
+        var unitIdleEntityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform), typeof(UnitIdleAnimation));
+        var unitIdleMaterial = SpriteSheetRendererManager.Instance.UnitIdle;
+        HandleMeshRendering(unitIdleEntityQuery, unitMesh, unitIdleMaterial);
+    }
+
+    private void HandleMeshRendering(EntityQuery entityQuery, Mesh unitMesh, Material unitWalkingMaterial)
+    {
         // Create sliced queues of the data, before sorting
         CreateSlicedQueues(entityQuery, out var nativeQueue_1, out var nativeQueue_2);
 
@@ -35,7 +45,7 @@ public partial class SpriteSheetRendererSystem : SystemBase
         MergeSlicedArrays(jobHandleArray, out var matrixArray, out var uvArray, nativeArray_1, nativeArray_2);
 
         // Setup uv's to select sprite-frame, then draw mesh for all instances
-        DrawMesh(uvArray, matrixArray);
+        DrawMesh(unitMesh, unitWalkingMaterial, uvArray, matrixArray);
 
         jobHandleArray.Dispose();
         matrixArray.Dispose();
@@ -140,11 +150,9 @@ public partial class SpriteSheetRendererSystem : SystemBase
         JobHandle.CompleteAll(jobHandleArray);
     }
 
-    private static void DrawMesh(NativeArray<Vector4> uvArray, NativeArray<Matrix4x4> matrixArray)
+    private static void DrawMesh(Mesh mesh, Material material, NativeArray<Vector4> uvArray, NativeArray<Matrix4x4> matrixArray)
     {
         var materialPropertyBlock = new MaterialPropertyBlock();
-        var mesh = SpriteSheetRendererManager.Instance.UnitMesh;
-        var unitWalkingMaterial = SpriteSheetRendererManager.Instance.UnitWalking;
 
         var sliceCount = 1023;
         var matrixInstancedArray = new Matrix4x4[sliceCount];
@@ -158,7 +166,7 @@ public partial class SpriteSheetRendererSystem : SystemBase
             NativeArray<Vector4>.Copy(uvArray, i, uvInstancedArray, 0, sliceSize);
 
             materialPropertyBlock.SetVectorArray("_MainTex_UV", uvInstancedArray);
-            Graphics.DrawMeshInstanced(mesh, 0, unitWalkingMaterial, matrixInstancedArray, sliceSize, materialPropertyBlock);
+            Graphics.DrawMeshInstanced(mesh, 0, material, matrixInstancedArray, sliceSize, materialPropertyBlock);
         }
     }
 

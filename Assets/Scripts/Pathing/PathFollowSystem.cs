@@ -17,18 +17,12 @@ public partial class PathFollowSystem : SystemBase
         {
             if (pathFollow.ValueRO.PathIndex < 0)
             {
-                if (EntityManager.HasComponent<UnitWalkAnimation>(entity))
-                {
-                    entityCommandBuffer.RemoveComponent<UnitWalkAnimation>(entity);
-                }
+                SetAnimationToIdle(entity, entityCommandBuffer);
 
                 continue;
             }
 
-            if (!EntityManager.HasComponent<UnitWalkAnimation>(entity))
-            {
-                entityCommandBuffer.AddComponent<UnitWalkAnimation>(entity);
-            }
+            SetAnimationToWalk(entity, entityCommandBuffer);
 
             var pathPosition = pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position;
             var targetPosition = new float3(pathPosition.x, pathPosition.y, 0);
@@ -214,5 +208,31 @@ public partial class PathFollowSystem : SystemBase
         x = default;
         y = default;
         return false;
+    }
+
+    private void SetAnimationToIdle(Entity entity, EntityCommandBuffer entityCommandBuffer)
+    {
+        if (EntityManager.HasComponent<UnitWalkAnimation>(entity))
+        {
+            entityCommandBuffer.RemoveComponent<UnitWalkAnimation>(entity);
+        }
+
+        if (!EntityManager.HasComponent<UnitIdleAnimation>(entity))
+        {
+            entityCommandBuffer.AddComponent<UnitIdleAnimation>(entity);
+        }
+    }
+
+    private void SetAnimationToWalk(Entity entity, EntityCommandBuffer entityCommandBuffer)
+    {
+        if (!EntityManager.HasComponent<UnitWalkAnimation>(entity))
+        {
+            entityCommandBuffer.AddComponent<UnitWalkAnimation>(entity);
+        }
+
+        if (EntityManager.HasComponent<UnitIdleAnimation>(entity))
+        {
+            entityCommandBuffer.RemoveComponent<UnitIdleAnimation>(entity);
+        }
     }
 }

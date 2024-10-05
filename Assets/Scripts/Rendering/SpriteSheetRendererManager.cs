@@ -4,7 +4,8 @@ public class SpriteSheetRendererManager : MonoBehaviour
 {
     public static SpriteSheetRendererManager Instance;
     public Mesh UnitMesh;
-    public Material UnitWalking;
+    public Material UnitWalk;
+    public Material UnitIdle;
 
     private void Awake()
     {
