@@ -1,36 +1,58 @@
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Transforms;
 using UnityEngine;
 
 [UpdateAfter(typeof(SpriteSheetAnimationSystem))]
 public partial class SpriteSheetRendererSystem : SystemBase
 {
+    protected override void OnCreate()
+    {
+        RequireForUpdate<SpriteSheetAnimationData>();
+    }
+
     protected override void OnUpdate()
     {
         var materialPropertyBlock = new MaterialPropertyBlock();
         var mesh = SpriteSheetRendererManager.Instance.TestMesh;
         var material = SpriteSheetRendererManager.Instance.TestMaterial;
-        var camera = Camera.main;
 
-        var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimationData));
+        var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimationData), typeof(LocalTransform));
 
         var animationDataArray = entityQuery.ToComponentDataArray<SpriteSheetAnimationData>(Allocator.TempJob);
+        var localTransformArray = entityQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
 
-        if (animationDataArray.Length >= 1)
+        for (var i = 0; i < localTransformArray.Length; i++)
         {
-            var matrixList = new List<Matrix4x4>();
-            var uvList = new List<Vector4>();
-            for (var i = 0; i < animationDataArray.Length; i++)
+            for (var j = i + 1; j < localTransformArray.Length; j++)
             {
-                matrixList.Add(animationDataArray[i].Matrix);
-                uvList.Add(animationDataArray[i].Uv);
-            }
+                if (localTransformArray[i].Position.y < localTransformArray[j].Position.y)
+                {
+                    // Swap
+                    var localTransform = localTransformArray[i];
+                    localTransformArray[i] = localTransformArray[j];
+                    localTransformArray[j] = localTransform;
 
-            materialPropertyBlock.SetVectorArray("_MainTex_UV", uvList.ToArray());
-            Graphics.DrawMeshInstanced(mesh, 0, material, matrixList.ToArray(), matrixList.Count, materialPropertyBlock);
+                    var spriteSheetAnimationData = animationDataArray[i];
+                    animationDataArray[i] = animationDataArray[j];
+                    animationDataArray[j] = spriteSheetAnimationData;
+                }
+            }
         }
 
+        var matrixList = new List<Matrix4x4>();
+        var uvList = new List<Vector4>();
+        for (var i = 0; i < animationDataArray.Length; i++)
+        {
+            matrixList.Add(animationDataArray[i].Matrix);
+            uvList.Add(animationDataArray[i].Uv);
+        }
+
+        materialPropertyBlock.SetVectorArray("_MainTex_UV", uvList.ToArray());
+        Graphics.DrawMeshInstanced(mesh, 0, material, matrixList.ToArray(), matrixList.Count, materialPropertyBlock);
+
         animationDataArray.Dispose();
+        localTransformArray.Dispose();
     }
 }
