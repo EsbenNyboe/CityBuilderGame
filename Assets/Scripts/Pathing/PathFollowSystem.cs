@@ -35,7 +35,7 @@ public partial class PathFollowSystem : SystemBase
                 Debug.DrawLine(localTransform.ValueRO.Position, new Vector3(pathEndPosition.x, pathEndPosition.y), Color.red);
             }
 
-            bool unitIsOnNextPathPosition = distanceAfterMoving < 0.1f;
+            var unitIsOnNextPathPosition = distanceAfterMoving < 0.1f;
 
             // HACK:
             if (!unitIsOnNextPathPosition && distanceAfterMoving > distanceBeforeMoving)
@@ -47,7 +47,7 @@ public partial class PathFollowSystem : SystemBase
             if (unitIsOnNextPathPosition)
             {
                 // next waypoint
-                pathFollow.ValueRW.PathIndex --;
+                pathFollow.ValueRW.PathIndex--;
 
                 if (pathFollow.ValueRO.PathIndex < 0)
                 {
@@ -76,21 +76,19 @@ public partial class PathFollowSystem : SystemBase
                 }
             }
 
-            
 
             if (moveDirection.x != 0)
             {
-                float angleInDegrees = moveDirection.x > 0 ? 0f : 180f;
-                var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
-                var childLocalTransform = EntityManager.GetComponentData<LocalTransform>(childEntity);
-                EntityManager.SetComponentData(childEntity, new LocalTransform()
+                var angleInDegrees = moveDirection.x > 0 ? 0f : 180f;
+                EntityManager.SetComponentData(entity, new LocalTransform
                 {
-                    Position = childLocalTransform.Position,
+                    Position = localTransform.ValueRO.Position,
                     Scale = 1,
                     Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0)
                 });
             }
         }
+
         entityCommandBuffer.Playback(EntityManager);
     }
 
@@ -123,7 +121,7 @@ public partial class PathFollowSystem : SystemBase
 
         var nearbyCells = PathingHelpers.GetCellListAroundTargetCell30Rings(posX, posY);
         //var nearbyCells = PathingHelpers.GetCellListAroundTargetCell(posX, posY, 20);
-        if (!TryGetNearbyVacantCell(nearbyCells, out int2 vacantCell))
+        if (!TryGetNearbyVacantCell(nearbyCells, out var vacantCell))
         {
             Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
             return;

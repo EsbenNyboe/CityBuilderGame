@@ -1,5 +1,4 @@
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -28,7 +27,7 @@ public partial class SpriteSheetAnimationSystem : SystemBase
             var position = localTransform.ValueRO.Position;
             // sort sprites, by putting lower sprites in front of higher ones:
             // positon.z = positon.y * 0.01f;
-            spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, quaternion.identity, Vector3.one);
+            spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, localTransform.ValueRO.Rotation, Vector3.one);
         }
     }
 }
