@@ -1,3 +1,4 @@
+using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -17,22 +18,45 @@ public partial class SpriteSheetRendererSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        // Create sliced queues of the data, before sorting
+        CreateSlicedQueues(out var nativeQueue_1, out var nativeQueue_2);
+
+        var jobHandleArray = new NativeArray<JobHandle>(2, Allocator.TempJob);
+
+        // Convert sliced queues into sliced arrays
+        ConvertQueuesToArrays(jobHandleArray, nativeQueue_1, nativeQueue_2, out var nativeArray_1, out var nativeArray_2);
+
+        // Sort the sliced arrays
+        SortSlicedArrays(jobHandleArray, nativeArray_1, nativeArray_2);
+
+        // Grab sliced arrays and merge them into one array per domain
+        MergeSlicedArrays(jobHandleArray, out var matrixArray, out var uvArray, nativeArray_1, nativeArray_2);
+
+        // Setup uv's to select sprite-frame, then draw mesh for all instances
+        DrawMesh(uvArray, matrixArray);
+
+        jobHandleArray.Dispose();
+        matrixArray.Dispose();
+        uvArray.Dispose();
+        nativeQueue_1.Dispose();
+        nativeQueue_2.Dispose();
+        nativeArray_1.Dispose();
+        nativeArray_2.Dispose();
+    }
+
+    private void CreateSlicedQueues(out NativeQueue<RenderData> nativeQueue_1, out NativeQueue<RenderData> nativeQueue_2)
+    {
+        var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimationData), typeof(LocalTransform));
+
         var camera = Camera.main;
         if (camera == null)
         {
             Debug.LogError("Camera is null");
-            return;
+            throw new Exception();
         }
 
-        var materialPropertyBlock = new MaterialPropertyBlock();
-        var mesh = SpriteSheetRendererManager.Instance.TestMesh;
-        var material = SpriteSheetRendererManager.Instance.TestMaterial;
-
-        var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimationData), typeof(LocalTransform));
-
-        // Create sliced queues of the data, before sorting
-        var nativeQueue_1 = new NativeQueue<RenderData>(Allocator.TempJob);
-        var nativeQueue_2 = new NativeQueue<RenderData>(Allocator.TempJob);
+        nativeQueue_1 = new NativeQueue<RenderData>(Allocator.TempJob);
+        nativeQueue_2 = new NativeQueue<RenderData>(Allocator.TempJob);
 
         float3 cameraPosition = camera.transform.position;
         var yBottom = cameraPosition.y - camera.orthographicSize;
@@ -51,12 +75,14 @@ public partial class SpriteSheetRendererSystem : SystemBase
             // NativeQueue_2 = nativeQueue_2.ToConcurrent(),
         };
         cullAndSortJob.Run(entityQuery);
+    }
 
-        // Convert sliced queues into sliced arrays
-        var nativeArray_1 = new NativeArray<RenderData>(nativeQueue_1.Count, Allocator.TempJob);
-        var nativeArray_2 = new NativeArray<RenderData>(nativeQueue_2.Count, Allocator.TempJob);
-
-        var jobHandleArray = new NativeArray<JobHandle>(2, Allocator.TempJob);
+    private static void ConvertQueuesToArrays(NativeArray<JobHandle> jobHandleArray, NativeQueue<RenderData> nativeQueue_1,
+        NativeQueue<RenderData> nativeQueue_2,
+        out NativeArray<RenderData> nativeArray_1, out NativeArray<RenderData> nativeArray_2)
+    {
+        nativeArray_1 = new NativeArray<RenderData>(nativeQueue_1.Count, Allocator.TempJob);
+        nativeArray_2 = new NativeArray<RenderData>(nativeQueue_2.Count, Allocator.TempJob);
 
         var nativeQueueToArrayJob_1 = new NativeQueueToArrayJob
         {
@@ -71,11 +97,11 @@ public partial class SpriteSheetRendererSystem : SystemBase
         };
         jobHandleArray[1] = nativeQueueToArrayJob_2.Schedule();
         JobHandle.CompleteAll(jobHandleArray);
+    }
 
-        nativeQueue_1.Dispose();
-        nativeQueue_2.Dispose();
-
-        // Sort the sliced arrays
+    private static void SortSlicedArrays(NativeArray<JobHandle> jobHandleArray, NativeArray<RenderData> nativeArray_1,
+        NativeArray<RenderData> nativeArray_2)
+    {
         var sortByPosition_1 = new SortByPositionJob
         {
             SortArray = nativeArray_1
@@ -88,11 +114,14 @@ public partial class SpriteSheetRendererSystem : SystemBase
         };
         jobHandleArray[1] = sortByPositionJob_2.Schedule();
         JobHandle.CompleteAll(jobHandleArray);
+    }
 
-        // Grab sliced arrays and merge them into one array per domain
+    private static void MergeSlicedArrays(NativeArray<JobHandle> jobHandleArray, out NativeArray<Matrix4x4> matrixArray,
+        out NativeArray<Vector4> uvArray, NativeArray<RenderData> nativeArray_1, NativeArray<RenderData> nativeArray_2)
+    {
         var visibleEntityTotal = nativeArray_1.Length + nativeArray_2.Length;
-        var matrixArray = new NativeArray<Matrix4x4>(visibleEntityTotal, Allocator.TempJob);
-        var uvArray = new NativeArray<Vector4>(visibleEntityTotal, Allocator.TempJob);
+        matrixArray = new NativeArray<Matrix4x4>(visibleEntityTotal, Allocator.TempJob);
+        uvArray = new NativeArray<Vector4>(visibleEntityTotal, Allocator.TempJob);
 
         var fillArraysParallelJob_1 = new FillArraysParallelJob
         {
@@ -111,16 +140,16 @@ public partial class SpriteSheetRendererSystem : SystemBase
             StartIndex = nativeArray_1.Length
         };
         jobHandleArray[1] = fillArraysParallelJob_2.Schedule(nativeArray_2.Length, 10);
-
         JobHandle.CompleteAll(jobHandleArray);
-        // NativeArray<Matrix4x4>.Copy(matrixArray, startIndex, matrixArray2, 0, length);
+    }
 
+    private static void DrawMesh(NativeArray<Vector4> uvArray, NativeArray<Matrix4x4> matrixArray)
+    {
+        var materialPropertyBlock = new MaterialPropertyBlock();
+        var mesh = SpriteSheetRendererManager.Instance.TestMesh;
+        var material = SpriteSheetRendererManager.Instance.TestMaterial;
         materialPropertyBlock.SetVectorArray("_MainTex_UV", uvArray.ToArray());
         Graphics.DrawMeshInstanced(mesh, 0, material, matrixArray.ToArray(), matrixArray.Length, materialPropertyBlock);
-
-        nativeArray_1.Dispose();
-        nativeArray_2.Dispose();
-        jobHandleArray.Dispose();
     }
 
     private struct RenderData
