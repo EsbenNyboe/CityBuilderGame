@@ -3,9 +3,9 @@ using UnityEngine;
 
 public class SpriteSheetAnimationAuthoring : MonoBehaviour
 {
-    [SerializeField] private int _frameCount = 4;
-
-    [SerializeField] private float _frameTimerMax = 0.1f;
+    // [SerializeField] private int _frameCount = 4;
+    //
+    // [SerializeField] private float _frameTimerMax = 0.1f;
 
     public class SpriteSheetAnimationDataBaker : Baker<SpriteSheetAnimationAuthoring>
     {
@@ -15,8 +15,8 @@ public class SpriteSheetAnimationAuthoring : MonoBehaviour
             AddComponent(entity,
                 new SpriteSheetAnimation
                 {
-                    FrameCount = authoring._frameCount,
-                    FrameTimerMax = authoring._frameTimerMax
+                    // FrameCount = authoring._frameCount,
+                    // FrameTimerMax = authoring._frameTimerMax
                 });
         }
     }

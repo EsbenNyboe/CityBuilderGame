@@ -19,11 +19,11 @@ public partial class SpriteSheetRendererSystem : SystemBase
     protected override void OnUpdate()
     {
         var unitMesh = SpriteSheetRendererManager.Instance.UnitMesh;
-        var unitWalkEntityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform), typeof(UnitWalkAnimation));
+        var unitWalkEntityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform), typeof(AnimationUnitWalk));
         var unitWalkMaterial = SpriteSheetRendererManager.Instance.UnitWalk;
         HandleMeshRendering(unitWalkEntityQuery, unitMesh, unitWalkMaterial);
 
-        var unitIdleEntityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform), typeof(UnitIdleAnimation));
+        var unitIdleEntityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform), typeof(AnimationUnitIdle));
         var unitIdleMaterial = SpriteSheetRendererManager.Instance.UnitIdle;
         HandleMeshRendering(unitIdleEntityQuery, unitMesh, unitIdleMaterial);
     }

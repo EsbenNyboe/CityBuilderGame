@@ -8,6 +8,12 @@ public partial class PathFollowSystem : SystemBase
 {
     private const bool ShowDebug = true;
 
+    protected override void OnCreate()
+    {
+        RequireForUpdate<AnimationUnitIdle>();
+        RequireForUpdate<AnimationUnitWalk>();
+    }
+
     protected override void OnUpdate()
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
@@ -17,12 +23,12 @@ public partial class PathFollowSystem : SystemBase
         {
             if (pathFollow.ValueRO.PathIndex < 0)
             {
-                SetAnimationToIdle(entity, entityCommandBuffer);
+                SetAnimationToIdle(entity);
 
                 continue;
             }
 
-            SetAnimationToWalk(entity, entityCommandBuffer);
+            SetAnimationToWalk(entity);
 
             var pathPosition = pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position;
             var targetPosition = new float3(pathPosition.x, pathPosition.y, 0);
@@ -210,29 +216,43 @@ public partial class PathFollowSystem : SystemBase
         return false;
     }
 
-    private void SetAnimationToIdle(Entity entity, EntityCommandBuffer entityCommandBuffer)
+    private void SetAnimationToIdle(Entity entity)
     {
-        if (EntityManager.HasComponent<UnitWalkAnimation>(entity))
+        if (!EntityManager.IsComponentEnabled<AnimationUnitIdle>(entity))
         {
-            entityCommandBuffer.RemoveComponent<UnitWalkAnimation>(entity);
+            EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, true);
+            var animationUnitIdle = EntityManager.GetComponentData<AnimationUnitIdle>(entity);
+            EntityManager.SetComponentData(entity, new SpriteSheetAnimation
+            {
+                FrameCount = animationUnitIdle.FrameCount,
+                FrameTimerMax = animationUnitIdle.FrameTimerMax,
+                Uv = new Vector4(1f / animationUnitIdle.FrameCount, 1, 0, 0)
+            });
         }
 
-        if (!EntityManager.HasComponent<UnitIdleAnimation>(entity))
+        if (EntityManager.IsComponentEnabled<AnimationUnitWalk>(entity))
         {
-            entityCommandBuffer.AddComponent<UnitIdleAnimation>(entity);
+            EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, false);
         }
     }
 
-    private void SetAnimationToWalk(Entity entity, EntityCommandBuffer entityCommandBuffer)
+    private void SetAnimationToWalk(Entity entity)
     {
-        if (!EntityManager.HasComponent<UnitWalkAnimation>(entity))
+        if (!EntityManager.IsComponentEnabled<AnimationUnitWalk>(entity))
         {
-            entityCommandBuffer.AddComponent<UnitWalkAnimation>(entity);
+            EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, true);
+            var animationUnitWalk = EntityManager.GetComponentData<AnimationUnitWalk>(entity);
+            EntityManager.SetComponentData(entity, new SpriteSheetAnimation
+            {
+                FrameCount = animationUnitWalk.FrameCount,
+                FrameTimerMax = animationUnitWalk.FrameTimerMax,
+                Uv = new Vector4(1f / animationUnitWalk.FrameCount, 1, 0, 0)
+            });
         }
 
-        if (EntityManager.HasComponent<UnitIdleAnimation>(entity))
+        if (EntityManager.IsComponentEnabled<AnimationUnitIdle>(entity))
         {
-            entityCommandBuffer.RemoveComponent<UnitIdleAnimation>(entity);
+            EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, false);
         }
     }
 }

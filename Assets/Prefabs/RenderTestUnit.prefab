@@ -229,6 +229,8 @@ GameObject:
   - component: {fileID: 1934921819528018948}
   - component: {fileID: 4612885748129178576}
   - component: {fileID: 3164927378971013003}
+  - component: {fileID: 7377133192682804467}
+  - component: {fileID: 1617471341567733263}
   m_Layer: 0
   m_Name: RenderTestUnit
   m_TagString: Untagged
@@ -344,3 +346,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _frameCount: 2
   _frameTimerMax: 0.1
+--- !u!114 &7377133192682804467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4976699055111691379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66be402e5a694c158d46b7d1dd8af666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _frameCount: 2
+  _frameTimerMax: 0.1
+--- !u!114 &1617471341567733263
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4976699055111691379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d780496317e4050aecb499e2cf4f567, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _frameCount: 2
+  _frameTimerMax: 0.7
