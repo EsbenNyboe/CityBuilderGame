@@ -145,8 +145,21 @@ public partial class SpriteSheetRendererSystem : SystemBase
         var materialPropertyBlock = new MaterialPropertyBlock();
         var mesh = SpriteSheetRendererManager.Instance.TestMesh;
         var material = SpriteSheetRendererManager.Instance.TestMaterial;
-        materialPropertyBlock.SetVectorArray("_MainTex_UV", uvArray.ToArray());
-        Graphics.DrawMeshInstanced(mesh, 0, material, matrixArray.ToArray(), matrixArray.Length, materialPropertyBlock);
+
+        var sliceCount = 1023;
+        var matrixInstancedArray = new Matrix4x4[sliceCount];
+        var uvInstancedArray = new Vector4[sliceCount];
+
+        // Should we use animationDataArray instead of matrixArray? Assuming we don't have to, since they should have the same length, right?
+        for (var i = 0; i < matrixArray.Length; i += sliceCount)
+        {
+            var sliceSize = math.min(matrixArray.Length - i, sliceCount);
+            NativeArray<Matrix4x4>.Copy(matrixArray, i, matrixInstancedArray, 0, sliceSize);
+            NativeArray<Vector4>.Copy(uvArray, i, uvInstancedArray, 0, sliceSize);
+
+            materialPropertyBlock.SetVectorArray("_MainTex_UV", uvInstancedArray);
+            Graphics.DrawMeshInstanced(mesh, 0, material, matrixInstancedArray, sliceSize, materialPropertyBlock);
+        }
     }
 
     private struct RenderData
