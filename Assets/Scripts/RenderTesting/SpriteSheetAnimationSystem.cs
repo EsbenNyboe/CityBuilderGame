@@ -23,12 +23,12 @@ public partial class SpriteSheetAnimationSystem : SystemBase
                 var uv = new Vector4(uvScaleX, uvScaleY, uvOffsetX, uvOffsetY);
 
                 spriteSheetAnimationData.ValueRW.Uv = uv;
-
-                var positon = localTransform.ValueRO.Position;
-                // sort sprites, by putting lower sprites in front of higher ones:
-                positon.z = positon.y * 0.01f;
-                spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(positon, quaternion.identity, Vector3.one);
             }
+
+            var position = localTransform.ValueRO.Position;
+            // sort sprites, by putting lower sprites in front of higher ones:
+            // positon.z = positon.y * 0.01f;
+            spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, quaternion.identity, Vector3.one);
         }
     }
 }
