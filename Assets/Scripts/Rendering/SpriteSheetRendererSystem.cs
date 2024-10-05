@@ -13,13 +13,15 @@ public partial class SpriteSheetRendererSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireForUpdate<SpriteSheetAnimationData>();
+        RequireForUpdate<SpriteSheetAnimation>();
     }
 
     protected override void OnUpdate()
     {
+        var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform), typeof(UnitWalkAnimation));
+
         // Create sliced queues of the data, before sorting
-        CreateSlicedQueues(out var nativeQueue_1, out var nativeQueue_2);
+        CreateSlicedQueues(entityQuery, out var nativeQueue_1, out var nativeQueue_2);
 
         var jobHandleArray = new NativeArray<JobHandle>(2, Allocator.TempJob);
 
@@ -44,10 +46,8 @@ public partial class SpriteSheetRendererSystem : SystemBase
         nativeArray_2.Dispose();
     }
 
-    private void CreateSlicedQueues(out NativeQueue<RenderData> nativeQueue_1, out NativeQueue<RenderData> nativeQueue_2)
+    private void CreateSlicedQueues(EntityQuery entityQuery, out NativeQueue<RenderData> nativeQueue_1, out NativeQueue<RenderData> nativeQueue_2)
     {
-        var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimationData), typeof(LocalTransform));
-
         var camera = Camera.main;
         if (camera == null)
         {
@@ -143,8 +143,8 @@ public partial class SpriteSheetRendererSystem : SystemBase
     private static void DrawMesh(NativeArray<Vector4> uvArray, NativeArray<Matrix4x4> matrixArray)
     {
         var materialPropertyBlock = new MaterialPropertyBlock();
-        var mesh = SpriteSheetRendererManager.Instance.TestMesh;
-        var material = SpriteSheetRendererManager.Instance.TestMaterial;
+        var mesh = SpriteSheetRendererManager.Instance.UnitMesh;
+        var unitWalkingMaterial = SpriteSheetRendererManager.Instance.UnitWalking;
 
         var sliceCount = 1023;
         var matrixInstancedArray = new Matrix4x4[sliceCount];
@@ -158,7 +158,7 @@ public partial class SpriteSheetRendererSystem : SystemBase
             NativeArray<Vector4>.Copy(uvArray, i, uvInstancedArray, 0, sliceSize);
 
             materialPropertyBlock.SetVectorArray("_MainTex_UV", uvInstancedArray);
-            Graphics.DrawMeshInstanced(mesh, 0, material, matrixInstancedArray, sliceSize, materialPropertyBlock);
+            Graphics.DrawMeshInstanced(mesh, 0, unitWalkingMaterial, matrixInstancedArray, sliceSize, materialPropertyBlock);
         }
     }
 
@@ -180,7 +180,7 @@ public partial class SpriteSheetRendererSystem : SystemBase
         public NativeQueue<RenderData> NativeQueue_1;
         public NativeQueue<RenderData> NativeQueue_2;
 
-        public void Execute(Entity entity, ref LocalTransform localTransform, ref SpriteSheetAnimationData animationData)
+        public void Execute(Entity entity, ref LocalTransform localTransform, ref SpriteSheetAnimation animationData)
         {
             var positionY = localTransform.Position.y;
             if (!(positionY > yBottom) || !(positionY < yTop_1))

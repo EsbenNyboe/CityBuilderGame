@@ -17,7 +17,17 @@ public partial class PathFollowSystem : SystemBase
         {
             if (pathFollow.ValueRO.PathIndex < 0)
             {
+                if (EntityManager.HasComponent<UnitWalkAnimation>(entity))
+                {
+                    entityCommandBuffer.RemoveComponent<UnitWalkAnimation>(entity);
+                }
+
                 continue;
+            }
+
+            if (!EntityManager.HasComponent<UnitWalkAnimation>(entity))
+            {
+                entityCommandBuffer.AddComponent<UnitWalkAnimation>(entity);
             }
 
             var pathPosition = pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position;

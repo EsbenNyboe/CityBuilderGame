@@ -266,8 +266,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac2e507f0ce144d99ef96c400f480c3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TestMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
-  TestMaterial: {fileID: 2100000, guid: 907d49b4c245cb545ba8f1385fa5ff5b, type: 2}
+  UnitMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  UnitWalking: {fileID: 2100000, guid: 907d49b4c245cb545ba8f1385fa5ff5b, type: 2}
 --- !u!4 &214506563
 Transform:
   m_ObjectHideFlags: 0

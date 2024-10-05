@@ -6,7 +6,7 @@ public partial class SpriteSheetAnimationSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        foreach (var (spriteSheetAnimationData, localTransform) in SystemAPI.Query<RefRW<SpriteSheetAnimationData>, RefRW<LocalTransform>>())
+        foreach (var (spriteSheetAnimationData, localTransform) in SystemAPI.Query<RefRW<SpriteSheetAnimation>, RefRW<LocalTransform>>())
         {
             spriteSheetAnimationData.ValueRW.FrameTimer += SystemAPI.Time.DeltaTime;
             while (spriteSheetAnimationData.ValueRO.FrameTimer > spriteSheetAnimationData.ValueRO.FrameTimerMax)
