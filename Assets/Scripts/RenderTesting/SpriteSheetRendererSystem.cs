@@ -1,5 +1,6 @@
+using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
-using Unity.Transforms;
 using UnityEngine;
 
 [UpdateAfter(typeof(SpriteSheetAnimationSystem))]
@@ -7,12 +8,29 @@ public partial class SpriteSheetRendererSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        foreach (var (spriteSheetAnimationData, localTransform) in SystemAPI.Query<RefRO<SpriteSheetAnimationData>, RefRO<LocalTransform>>())
+        var materialPropertyBlock = new MaterialPropertyBlock();
+        var mesh = SpriteSheetRendererManager.Instance.TestMesh;
+        var material = SpriteSheetRendererManager.Instance.TestMaterial;
+        var camera = Camera.main;
+
+        var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimationData));
+
+        var animationDataArray = entityQuery.ToComponentDataArray<SpriteSheetAnimationData>(Allocator.TempJob);
+
+        if (animationDataArray.Length >= 1)
         {
-            var materialPropertyBlock = new MaterialPropertyBlock();
-            materialPropertyBlock.SetVector("_MainTex_ST", spriteSheetAnimationData.ValueRO.Uv);
-            Graphics.DrawMesh(SpriteSheetRendererManager.Instance.TestMesh, spriteSheetAnimationData.ValueRO.Matrix,
-                SpriteSheetRendererManager.Instance.TestMaterial, 0, Camera.main, 0, materialPropertyBlock);
+            var matrixList = new List<Matrix4x4>();
+            var uvList = new List<Vector4>();
+            for (var i = 0; i < animationDataArray.Length; i++)
+            {
+                matrixList.Add(animationDataArray[i].Matrix);
+                uvList.Add(animationDataArray[i].Uv);
+            }
+
+            materialPropertyBlock.SetVectorArray("_MainTex_UV", uvList.ToArray());
+            Graphics.DrawMeshInstanced(mesh, 0, material, matrixList.ToArray(), matrixList.Count, materialPropertyBlock);
         }
+
+        animationDataArray.Dispose();
     }
 }
