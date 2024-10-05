@@ -12,17 +12,21 @@ public partial class DeliveringUnitSystem : SystemBase
             {
                 continue;
             }
+
             deliveringUnit.ValueRW.IsDisplayingDeliveryItem = false;
             var childLevel1 = EntityManager.GetBuffer<Child>(entity)[0].Value;
             var childLevel2 = EntityManager.GetBuffer<Child>(childLevel1)[0].Value;
             EntityManager.SetComponentEnabled<MaterialMeshInfo>(childLevel2, false);
         }
-        foreach (var (deliveringUnit, entity) in SystemAPI.Query<RefRW<DeliveringUnit>>().WithAll<DeliveringUnit>().WithEntityAccess())
+
+        foreach (var (deliveringUnit, entity) in SystemAPI.Query<RefRW<DeliveringUnit>>()
+                     .WithAll<DeliveringUnit>().WithEntityAccess())
         {
             if (deliveringUnit.ValueRO.IsDisplayingDeliveryItem)
             {
                 continue;
             }
+
             deliveringUnit.ValueRW.IsDisplayingDeliveryItem = true;
             var childLevel1 = EntityManager.GetBuffer<Child>(entity)[0].Value;
             var childLevel2 = EntityManager.GetBuffer<Child>(childLevel1)[0].Value;

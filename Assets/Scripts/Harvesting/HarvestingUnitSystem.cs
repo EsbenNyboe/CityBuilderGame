@@ -11,7 +11,8 @@ public partial class HarvestingUnitSystem : SystemBase
         var chopDuration = ChopAnimationManager.ChopDuration();
 
         // TODO: Optimize this:
-        foreach (var harvestingUnit in SystemAPI.Query<RefRW<HarvestingUnit>>().WithDisabled<HarvestingUnit>())
+        foreach (var (localTransform, harvestingUnit, entity) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<HarvestingUnit>>()
+                     .WithDisabled<HarvestingUnit>().WithEntityAccess())
         {
             harvestingUnit.ValueRW.TimeUntilNextChop = 0;
             harvestingUnit.ValueRW.ChopAnimationProgress = chopDuration;
@@ -165,7 +166,7 @@ public partial class HarvestingUnitSystem : SystemBase
         var chopDuration = ChopAnimationManager.ChopDuration();
         var chopSize = ChopAnimationManager.ChopAnimationSize();
         var chopIdleTime = ChopAnimationManager.ChopAnimationPostIdleTimeNormalized();
-        
+
         // Manage animation state:
         var timeLeft = harvestingUnit.ValueRO.ChopAnimationProgress;
         timeLeft -= SystemAPI.Time.DeltaTime;
@@ -195,8 +196,8 @@ public partial class HarvestingUnitSystem : SystemBase
         // Apply animation output:
         var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
 
-        float angleInDegrees = chopDirection.x > 0 ? 0f : 180f;
-        EntityManager.SetComponentData(childEntity, new LocalTransform()
+        var angleInDegrees = chopDirection.x > 0 ? 0f : 180f;
+        EntityManager.SetComponentData(childEntity, new LocalTransform
         {
             Position = childPosition,
             Scale = 1f,

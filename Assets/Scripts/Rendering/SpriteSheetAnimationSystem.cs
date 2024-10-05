@@ -2,12 +2,13 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateAfter(typeof(PathFollowSystem))]
+[UpdateBefore(typeof(PathFollowSystem))]
 public partial class SpriteSheetAnimationSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        foreach (var (spriteSheetAnimationData, localTransform) in SystemAPI.Query<RefRW<SpriteSheetAnimation>, RefRW<LocalTransform>>())
+        foreach (var (spriteSheetAnimationData, localToWorld, entity) in SystemAPI.Query<RefRW<SpriteSheetAnimation>, RefRW<LocalToWorld>>()
+                     .WithEntityAccess())
         {
             spriteSheetAnimationData.ValueRW.FrameTimer += SystemAPI.Time.DeltaTime;
             while (spriteSheetAnimationData.ValueRO.FrameTimer > spriteSheetAnimationData.ValueRO.FrameTimerMax)
@@ -25,10 +26,10 @@ public partial class SpriteSheetAnimationSystem : SystemBase
                 spriteSheetAnimationData.ValueRW.Uv = uv;
             }
 
-            var position = localTransform.ValueRO.Position;
+            var position = localToWorld.ValueRO.Position;
             // sort sprites, by putting lower sprites in front of higher ones:
             // positon.z = positon.y * 0.01f;
-            spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, localTransform.ValueRO.Rotation, Vector3.one);
+            spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, localToWorld.ValueRO.Rotation, Vector3.one);
         }
     }
 }

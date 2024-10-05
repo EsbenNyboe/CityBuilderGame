@@ -184,8 +184,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _areasToExclude:
   - StartCell:
-      x: 20
-      y: 20
+      x: 10
+      y: 10
     EndCell:
       x: 100
       y: 50

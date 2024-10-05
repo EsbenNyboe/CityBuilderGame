@@ -1,7 +1,6 @@
 using Unity.Entities;
 using UnityEngine;
 
-[UpdateAfter(typeof(SpriteSheetAnimationAuthoring))]
 public class AnimationUnitIdleAuthoring : MonoBehaviour
 {
     [SerializeField] private int _frameCount;
