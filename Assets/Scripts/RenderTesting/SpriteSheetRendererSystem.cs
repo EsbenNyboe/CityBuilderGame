@@ -70,9 +70,6 @@ public partial class SpriteSheetRendererSystem : SystemBase
             yBottom = yBottom,
             NativeQueue_1 = nativeQueue_1,
             NativeQueue_2 = nativeQueue_2
-            // ToConcurrent doesn't exist... is it necessary?
-            // NativeQueue_1 = nativeQueue_1.ToConcurrent(),
-            // NativeQueue_2 = nativeQueue_2.ToConcurrent(),
         };
         cullAndSortJob.Run(entityQuery);
     }
@@ -167,8 +164,6 @@ public partial class SpriteSheetRendererSystem : SystemBase
         public float yTop_2; // Second slice from top
         public float yBottom; // Bottom most cull position
 
-        // Concurrent is unknown... is it necessary to add the "Concurrent" part? 
-        // public NativeQueue<RenderData>.Concurrent NativeQueue_1;
         public NativeQueue<RenderData> NativeQueue_1;
         public NativeQueue<RenderData> NativeQueue_2;
 
@@ -231,9 +226,7 @@ public partial class SpriteSheetRendererSystem : SystemBase
                     if (SortArray[i].Position.y < SortArray[j].Position.y)
                     {
                         // Swap
-                        var localTransform = SortArray[i];
-                        SortArray[i] = SortArray[j];
-                        SortArray[j] = localTransform;
+                        (SortArray[i], SortArray[j]) = (SortArray[j], SortArray[i]);
                     }
                 }
             }
