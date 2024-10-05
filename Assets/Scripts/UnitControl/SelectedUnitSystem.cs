@@ -14,6 +14,7 @@ public partial class SelectedUnitSystem : SystemBase
         foreach (var (_, localTransform) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>())
         {
             Graphics.DrawMesh(mesh, localTransform.ValueRO.Position + positionOffset, Quaternion.identity, material, 0);
+            CameraController.Instance.FollowPosition = localTransform.ValueRO.Position;
         }
 
         if (Input.GetKeyDown(KeyCode.Delete))

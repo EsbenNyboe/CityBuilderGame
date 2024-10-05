@@ -571,12 +571,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdcab57f5da21514188545cf0ff01e99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  FollowPosition: {x: 0, y: 0, z: 0}
   _movementSpeed: 25
   _zoomSpeed: 2.74
   _minSize: 1.79
   _maxSize: 89.8
   _minSizeListenerProximity: -1
   _maxSizeListenerProximity: -61
+  _followLerpFactor: 0.963
 --- !u!1 &487013235
 GameObject:
   m_ObjectHideFlags: 0

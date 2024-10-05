@@ -1,14 +1,27 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
-class CameraController : MonoBehaviour
+public class CameraController : MonoBehaviour
 {
+    public static CameraController Instance;
+
+    [HideInInspector] public Vector3 FollowPosition;
+
     [SerializeField] private float _movementSpeed;
     [SerializeField] private float _zoomSpeed;
     [SerializeField] private float _minSize;
     [SerializeField] private float _maxSize;
     [SerializeField] private float _minSizeListenerProximity;
     [SerializeField] private float _maxSizeListenerProximity;
+
+    [Range(0.00001f, 0.99999f)] [SerializeField]
+    private float _followLerpFactor;
+
+    private bool _isFollowingSelectedUnit;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     private void Update()
     {
@@ -24,20 +37,34 @@ class CameraController : MonoBehaviour
         {
             moveDelta.x -= _movementSpeed * Time.deltaTime;
         }
+
         if (Input.GetKey(KeyCode.D))
         {
             moveDelta.x += _movementSpeed * Time.deltaTime;
         }
+
         if (Input.GetKey(KeyCode.S))
         {
             moveDelta.y -= _movementSpeed * Time.deltaTime;
         }
+
         if (Input.GetKey(KeyCode.W))
         {
             moveDelta.y += _movementSpeed * Time.deltaTime;
         }
 
         transform.position += moveDelta;
+
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            _isFollowingSelectedUnit = !_isFollowingSelectedUnit;
+        }
+
+        if (_isFollowingSelectedUnit)
+        {
+            var followPosition = new Vector3(FollowPosition.x, FollowPosition.y, transform.position.z);
+            transform.position = Vector3.Lerp(transform.position, followPosition, _followLerpFactor);
+        }
     }
 
     private void CameraZoom()
