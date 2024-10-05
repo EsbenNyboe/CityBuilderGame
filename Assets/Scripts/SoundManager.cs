@@ -1,34 +1,19 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class SoundManager : MonoBehaviour
 {
-    [SerializeField]
-    private AudioSource _template;
+    [SerializeField] private AudioSource _template;
 
-    [SerializeField]
-    private SoundConfig _chopSound;
+    [SerializeField] private SoundConfig _chopSound;
 
-    [SerializeField]
-    private SoundConfig _destroyTreeSound;
+    [SerializeField] private SoundConfig _destroyTreeSound;
 
     private Queue<AudioSource> _pool;
 
     public static SoundManager Instance { get; private set; }
-
-    [Serializable]
-    public class SoundConfig
-    {
-        public AudioClip Clip;
-        [Range(0, 1)]
-        public float Volume = 1;
-        [Range(0.5f, 1.5f)]
-        public float PitchCenter = 1;
-        [Range(0f, 0.499f)]
-        public float PitchVariance = 0;
-    }
 
     private void Awake()
     {
@@ -76,7 +61,7 @@ public class SoundManager : MonoBehaviour
         poolItem.volume = sound.Volume;
         var pitchMin = sound.PitchCenter - sound.PitchVariance;
         var pitchMax = sound.PitchCenter + sound.PitchVariance;
-        poolItem.pitch = UnityEngine.Random.Range(pitchMin, pitchMax);
+        poolItem.pitch = Random.Range(pitchMin, pitchMax);
     }
 
     private AudioSource CreatePoolItem()
@@ -92,7 +77,6 @@ public class SoundManager : MonoBehaviour
         poolItem.dopplerLevel = template.dopplerLevel;
         poolItem.bypassReverbZones = template.bypassReverbZones;
         poolItem.clip = template.clip;
-        poolItem.gamepadSpeakerOutputType = template.gamepadSpeakerOutputType;
         poolItem.ignoreListenerPause = template.ignoreListenerPause;
         poolItem.ignoreListenerVolume = template.ignoreListenerVolume;
         poolItem.loop = template.loop;
@@ -113,5 +97,17 @@ public class SoundManager : MonoBehaviour
         poolItem.spread = template.spread;
         poolItem.velocityUpdateMode = template.velocityUpdateMode;
         poolItem.volume = template.volume;
+    }
+
+    [Serializable]
+    public class SoundConfig
+    {
+        public AudioClip Clip;
+
+        [Range(0, 1)] public float Volume = 1;
+
+        [Range(0.5f, 1.5f)] public float PitchCenter = 1;
+
+        [Range(0f, 0.499f)] public float PitchVariance;
     }
 }
