@@ -1,5 +1,4 @@
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -10,16 +9,9 @@ public partial class SpriteSheetRendererSystem : SystemBase
     {
         foreach (var (spriteSheetAnimationData, localTransform) in SystemAPI.Query<RefRO<SpriteSheetAnimationData>, RefRO<LocalTransform>>())
         {
-            var uvScaleX = 1f / spriteSheetAnimationData.ValueRO.FrameCount;
-            var uvOffsetX = uvScaleX * spriteSheetAnimationData.ValueRO.CurrentFrame;
-            var uvScaleY = 1f;
-            var uvOffsetY = 0f;
-            var uv = new Vector4(uvScaleX, uvScaleY, uvOffsetX, uvOffsetY);
-
             var materialPropertyBlock = new MaterialPropertyBlock();
-
-            materialPropertyBlock.SetVector("_MainTex_ST", uv);
-            Graphics.DrawMesh(SpriteSheetRendererManager.Instance.TestMesh, localTransform.ValueRO.Position, quaternion.identity,
+            materialPropertyBlock.SetVector("_MainTex_ST", spriteSheetAnimationData.ValueRO.Uv);
+            Graphics.DrawMesh(SpriteSheetRendererManager.Instance.TestMesh, spriteSheetAnimationData.ValueRO.Matrix,
                 SpriteSheetRendererManager.Instance.TestMaterial, 0, Camera.main, 0, materialPropertyBlock);
         }
     }

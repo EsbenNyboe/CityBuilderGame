@@ -1,10 +1,13 @@
 using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
+using UnityEngine;
 
 public partial class SpriteSheetAnimationSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        foreach (var spriteSheetAnimationData in SystemAPI.Query<RefRW<SpriteSheetAnimationData>>())
+        foreach (var (spriteSheetAnimationData, localTransform) in SystemAPI.Query<RefRW<SpriteSheetAnimationData>, RefRW<LocalTransform>>())
         {
             spriteSheetAnimationData.ValueRW.FrameTimer += SystemAPI.Time.DeltaTime;
             while (spriteSheetAnimationData.ValueRO.FrameTimer > spriteSheetAnimationData.ValueRO.FrameTimerMax)
@@ -12,6 +15,19 @@ public partial class SpriteSheetAnimationSystem : SystemBase
                 spriteSheetAnimationData.ValueRW.FrameTimer -= spriteSheetAnimationData.ValueRO.FrameTimerMax;
                 spriteSheetAnimationData.ValueRW.CurrentFrame =
                     (spriteSheetAnimationData.ValueRO.CurrentFrame + 1) % spriteSheetAnimationData.ValueRO.FrameCount;
+
+                var uvScaleX = 1f / spriteSheetAnimationData.ValueRO.FrameCount;
+                var uvOffsetX = uvScaleX * spriteSheetAnimationData.ValueRO.CurrentFrame;
+                var uvScaleY = 1f;
+                var uvOffsetY = 0f;
+                var uv = new Vector4(uvScaleX, uvScaleY, uvOffsetX, uvOffsetY);
+
+                spriteSheetAnimationData.ValueRW.Uv = uv;
+
+                var positon = localTransform.ValueRO.Position;
+                // sort sprites, by putting lower sprites in front of higher ones:
+                positon.z = positon.y * 0.01f;
+                spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(positon, quaternion.identity, Vector3.one);
             }
         }
     }

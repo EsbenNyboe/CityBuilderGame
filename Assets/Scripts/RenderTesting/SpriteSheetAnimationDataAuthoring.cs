@@ -3,11 +3,7 @@ using UnityEngine;
 
 public class SpriteSheetAnimationDataAuthoring : MonoBehaviour
 {
-    [SerializeField] private int _currentFrame;
-
     [SerializeField] private int _frameCount = 4;
-
-    [SerializeField] private float _frameTimer;
 
     [SerializeField] private float _frameTimerMax = 0.1f;
 
@@ -19,9 +15,7 @@ public class SpriteSheetAnimationDataAuthoring : MonoBehaviour
             AddComponent(entity,
                 new SpriteSheetAnimationData
                 {
-                    CurrentFrame = authoring._currentFrame,
                     FrameCount = authoring._frameCount,
-                    FrameTimer = authoring._frameTimer,
                     FrameTimerMax = authoring._frameTimerMax
                 });
         }
@@ -34,4 +28,6 @@ public struct SpriteSheetAnimationData : IComponentData
     public int FrameCount;
     public float FrameTimer;
     public float FrameTimerMax;
+    public Vector4 Uv;
+    public Matrix4x4 Matrix;
 }
