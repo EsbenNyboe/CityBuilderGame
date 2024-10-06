@@ -9,7 +9,8 @@ using Unity.Transforms;
 using UnityEngine;
 
 [UpdateAfter(typeof(SpriteSheetAnimationSystem))]
-public partial class SpriteSheetRendererSystem : SystemBase
+[DisableAutoCreation]
+public partial class SpriteSheetRendererSystem_OLD : SystemBase
 {
     protected override void OnCreate()
     {
@@ -19,9 +20,13 @@ public partial class SpriteSheetRendererSystem : SystemBase
     protected override void OnUpdate()
     {
         var unitMesh = SpriteSheetRendererManager.Instance.UnitMesh;
-        var unitIdleEntityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform));
-        var unitMaterial = SpriteSheetRendererManager.Instance.UnitMaterial;
-        HandleMeshRendering(unitIdleEntityQuery, unitMesh, unitMaterial);
+        var unitWalkEntityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform), typeof(AnimationUnitWalk));
+        var unitWalkMaterial = SpriteSheetRendererManager.Instance.UnitWalk;
+        HandleMeshRendering(unitWalkEntityQuery, unitMesh, unitWalkMaterial);
+
+        var unitIdleEntityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform), typeof(AnimationUnitIdle));
+        var unitIdleMaterial = SpriteSheetRendererManager.Instance.UnitIdle;
+        HandleMeshRendering(unitIdleEntityQuery, unitMesh, unitIdleMaterial);
     }
 
     private void HandleMeshRendering(EntityQuery entityQuery, Mesh unitMesh, Material unitWalkingMaterial)

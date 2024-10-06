@@ -19,8 +19,8 @@ public partial class SpriteSheetAnimationSystem : SystemBase
 
                 var uvScaleX = 1f / spriteSheetAnimationData.ValueRO.FrameCount;
                 var uvOffsetX = uvScaleX * spriteSheetAnimationData.ValueRO.CurrentFrame;
-                var uvScaleY = 1f;
-                var uvOffsetY = 0f;
+                var uvScaleY = spriteSheetAnimationData.ValueRO.Uv.y;
+                var uvOffsetY = spriteSheetAnimationData.ValueRO.Uv.w;
                 var uv = new Vector4(uvScaleX, uvScaleY, uvOffsetX, uvOffsetY);
 
                 spriteSheetAnimationData.ValueRW.Uv = uv;

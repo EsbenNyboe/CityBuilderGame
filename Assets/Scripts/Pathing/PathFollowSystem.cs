@@ -227,7 +227,7 @@ public partial class PathFollowSystem : SystemBase
             {
                 FrameCount = animationUnitIdle.FrameCount,
                 FrameTimerMax = animationUnitIdle.FrameTimerMax,
-                Uv = new Vector4(1f / animationUnitIdle.FrameCount, 1, 0, 0)
+                Uv = new Vector4(1f / animationUnitIdle.FrameCount, 0.5f, 0, animationUnitIdle.FrameRow)
             };
             if (!EntityManager.HasComponent<SpriteSheetAnimation>(entity))
             {
@@ -262,7 +262,7 @@ public partial class PathFollowSystem : SystemBase
             {
                 FrameCount = animationUnitWalk.FrameCount,
                 FrameTimerMax = animationUnitWalk.FrameTimerMax,
-                Uv = new Vector4(1f / animationUnitWalk.FrameCount, 1, 0, 0)
+                Uv = new Vector4(1f / animationUnitWalk.FrameCount, 0.5f, 0, animationUnitWalk.FrameRow)
             };
 
             if (!EntityManager.HasComponent<SpriteSheetAnimation>(entity))

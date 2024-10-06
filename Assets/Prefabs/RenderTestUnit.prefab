@@ -228,6 +228,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _frameCount: 2
+  _frameRow: 0
   _frameTimerMax: 0.1
 --- !u!114 &4496206307122269084
 MonoBehaviour:
@@ -242,6 +243,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _frameCount: 2
+  _frameRow: 0.5
   _frameTimerMax: 0.7
 --- !u!1 &4976699055111691379
 GameObject:
