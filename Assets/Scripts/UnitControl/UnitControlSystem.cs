@@ -46,7 +46,7 @@ public partial class UnitControlSystem : SystemBase
 
             var selectOnlyOneEntity = false;
             var selectionAreaSize = math.distance(lowerLeftPosition, upperRightPosition);
-            var selectionAreaMinSize = 2f;
+            var selectionAreaMinSize = SelectionAreaManager.Instance.GetMinSelectionArea();
             if (selectionAreaSize < selectionAreaMinSize)
             {
                 lowerLeftPosition += new float3(-1, -1, 0) * (selectionAreaMinSize - selectionAreaSize) * 0.5f;
