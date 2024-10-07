@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using CodeMonkey.Utils;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -59,6 +60,13 @@ public partial class UnitControlSystem : SystemBase
 
             foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
             {
+                var currentName = EntityManager.GetName(entity);
+                if (currentName.Contains("SelectedUnit"))
+                {
+                    currentName = currentName.Replace("SelectedUnit", "");
+                    EntityManager.SetName(entity, currentName);
+                }
+
                 entityCommandBuffer.RemoveComponent(entity, typeof(UnitSelection));
             }
 
@@ -76,6 +84,12 @@ public partial class UnitControlSystem : SystemBase
                     entityPosition.x <= upperRightPosition.x &&
                     entityPosition.y <= upperRightPosition.y)
                 {
+                    var currentName = EntityManager.GetName(entity);
+                    if (!currentName.Contains("SelectedUnit"))
+                    {
+                        EntityManager.SetName(entity, new StringBuilder().Append(currentName).Append("SelectedUnit").ToString());
+                    }
+
                     entityCommandBuffer.AddComponent(entity, new UnitSelection());
                     selectedEntityCount++;
                 }
