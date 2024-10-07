@@ -83,10 +83,12 @@ public partial class PathFollowSystem : SystemBase
 
             if (moveDirection.x != 0)
             {
-                var angleInDegrees = moveDirection.x > 0 ? 180f : 0f;
-                EntityManager.SetComponentData(entity, new LocalTransform
+                // NOTE: The child transform is also controlled by HarvestingUnitSystem, on DoChopAnimation
+                var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
+                var angleInDegrees = moveDirection.x > 0 ? 0f : 180f;
+                EntityManager.SetComponentData(childEntity, new LocalTransform
                 {
-                    Position = localTransform.ValueRO.Position,
+                    Position = Vector3.zero,
                     Scale = 1,
                     Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0)
                 });

@@ -269,6 +269,7 @@ MonoBehaviour:
   UnitMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   UnitWalk: {fileID: 2100000, guid: 907d49b4c245cb545ba8f1385fa5ff5b, type: 2}
   UnitIdle: {fileID: 2100000, guid: 620bdb72c56a8fa44b3a42dba41a4e9b, type: 2}
+  UnitMaterial: {fileID: 2100000, guid: 15344670bae78d74881afe584ca526b0, type: 2}
 --- !u!4 &214506563
 Transform:
   m_ObjectHideFlags: 0
@@ -613,6 +614,7 @@ MonoBehaviour:
   UnitSelectedMesh: {fileID: 0}
   _meshWidth: 1.2
   _meshHeight: 0.3
+  _minSelectionArea: 1
 --- !u!4 &487013237
 Transform:
   m_ObjectHideFlags: 0
@@ -744,7 +746,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gameSpeed: 1
   _maxPathfindingPerFrame: 500
-  _brushSize: 10
+  _brushSize: 5
 --- !u!4 &597997350
 Transform:
   m_ObjectHideFlags: 0

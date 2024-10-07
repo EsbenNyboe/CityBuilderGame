@@ -196,7 +196,11 @@ public partial class HarvestingUnitSystem : SystemBase
         // Apply animation output:
         var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
 
-        var angleInDegrees = chopDirection.x > 0 ? 0f : 180f;
+        // NOTE: The child transform is also controlled by PathFollowSystem, when unit is moving
+        // TODO: Handle position-anim-direction in a smarter way (conflicts with parent, which is controlled by walk-direction)
+        // TODO: Handle angle in a smarter way, when chop-sprite-animation is ready to implement
+        // var angleInDegrees = chopDirection.x > 0 ? 0f : 180f;
+        var angleInDegrees = 0f;
         EntityManager.SetComponentData(childEntity, new LocalTransform
         {
             Position = childPosition,
