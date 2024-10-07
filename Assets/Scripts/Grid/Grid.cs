@@ -16,11 +16,13 @@ using UnityEngine;
 
 public class Grid<TGridObject>
 {
-    private readonly int width;
-    private readonly int height;
     private readonly float cellSize;
-    private readonly Vector3 originPosition;
     private readonly TGridObject[,] gridArray;
+    private readonly int height;
+
+    private readonly Vector3 originPosition;
+
+    private readonly int width;
 
     public Grid(int width, int height, float cellSize, Vector3 originPosition, Func<Grid<TGridObject>, int, int, TGridObject> createGridObject)
     {
@@ -58,7 +60,7 @@ public class Grid<TGridObject>
             Debug.DrawLine(GetWorldPosition(0, height), GetWorldPosition(width, height), Color.white, 100f);
             Debug.DrawLine(GetWorldPosition(width, 0), GetWorldPosition(width, height), Color.white, 100f);
 
-            OnGridObjectChanged += ( sender,  eventArgs) =>
+            OnGridObjectChanged += (sender, eventArgs) =>
             {
                 debugTextArray[eventArgs.x, eventArgs.y].text = gridArray[eventArgs.x, eventArgs.y]?.ToString();
             };

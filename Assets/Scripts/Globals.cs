@@ -2,32 +2,32 @@
 
 public class Globals : MonoBehaviour
 {
-    public static Globals Instance;
+    private static Globals _instance;
 
-    [SerializeField]
-    private float _gameSpeed = 1f;
-    [SerializeField]
-    private int _maxPathfindingPerFrame = 500;
-    [SerializeField]
-    private int _brushSize = 1;
+    [SerializeField] private float _gameSpeed = 1f;
+
+    [SerializeField] private int _maxPathfindingPerFrame = 500;
+
+    [SerializeField] private int _brushSize = 1;
+
 
     private void Awake()
     {
-        Instance = this;
+        _instance = this;
     }
 
     public static float GameSpeed()
     {
-        return Instance._gameSpeed;
+        return _instance._gameSpeed;
     }
 
     public static int MaxPathfindingPerFrame()
     {
-        return Instance._maxPathfindingPerFrame;
+        return _instance._maxPathfindingPerFrame;
     }
 
     public static int BrushSize()
     {
-        return Instance._brushSize;
+        return _instance._brushSize;
     }
 }

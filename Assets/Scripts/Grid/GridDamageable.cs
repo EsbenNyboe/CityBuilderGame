@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class GridDamageable
 {
     private readonly Grid<GridDamageable> _grid;
@@ -7,6 +5,7 @@ public class GridDamageable
     private readonly int _y;
 
     private float _health;
+
     private float _maxHealth;
 
     public GridDamageable(Grid<GridDamageable> grid, int x, int y)

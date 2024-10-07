@@ -9,11 +9,11 @@ public class GridSetup : MonoBehaviour
     [SerializeField] private int _height = 30;
 
     [SerializeField] private GridVisuals _pathfindingVisual;
-    public Grid<GridPath> PathGrid;
-    public Grid<GridDamageable> DamageableGrid;
-    public Grid<GridOccupation> OccupationGrid;
 
     private bool _shouldSetToWalkableOnMouseDown;
+    public Grid<GridDamageable> DamageableGrid;
+    public Grid<GridOccupation> OccupationGrid;
+    public Grid<GridPath> PathGrid;
     public static GridSetup Instance { private set; get; }
 
     private void Awake()
@@ -23,7 +23,7 @@ public class GridSetup : MonoBehaviour
 
     private void Start()
     {
-        PathGrid = new Grid<GridPath>(_width, _height, CellSize, Vector3.zero, ( grid,  x,  y) => new GridPath(grid, x, y));
+        PathGrid = new Grid<GridPath>(_width, _height, CellSize, Vector3.zero, (grid, x, y) => new GridPath(grid, x, y));
         DamageableGrid = new Grid<GridDamageable>(_width, _height, CellSize, Vector3.zero, (grid, x, y) => new GridDamageable(grid, x, y));
         OccupationGrid = new Grid<GridOccupation>(_width, _height, CellSize, Vector3.zero, (grid, x, y) => new GridOccupation(grid, x, y));
 

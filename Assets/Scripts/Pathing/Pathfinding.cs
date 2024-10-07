@@ -24,8 +24,8 @@ public partial class Pathfinding : SystemBase
         var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
-        int maxPathfindingSchedulesPerFrame = Globals.MaxPathfindingPerFrame();
-        int currentAmountOfSchedules = 0;
+        var maxPathfindingSchedulesPerFrame = Globals.MaxPathfindingPerFrame();
+        var currentAmountOfSchedules = 0;
 
         if (!PathNodeArrayTemplate.IsCreated)
         {
@@ -39,6 +39,7 @@ public partial class Pathfinding : SystemBase
             {
                 continue;
             }
+
             currentAmountOfSchedules++;
 
             // Debug.Log("Find path");
@@ -77,6 +78,7 @@ public partial class Pathfinding : SystemBase
         {
             PathNodeArrayTemplate.Dispose();
         }
+
         entityCommandBuffer.Playback(EntityManager);
     }
 
@@ -93,7 +95,6 @@ public partial class Pathfinding : SystemBase
 
     private NativeArray<PathNode> GetNewPathNodeArray(Grid<GridPath> grid, int2 gridSize)
     {
-
         var pathNodeArray = new NativeArray<PathNode>(gridSize.x * gridSize.y, Allocator.TempJob);
 
         pathNodeArray = FillArray(grid, gridSize, pathNodeArray);

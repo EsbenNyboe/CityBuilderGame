@@ -936,7 +936,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _pathGridMeshFilter: {fileID: 1713798521}
-  _damageableGridMeshFilter: {fileID: 614670185}
+  _healthBarMeshFilter: {fileID: 614670185}
   _occupationGridMeshFilter: {fileID: 561805990}
 --- !u!4 &992141010
 Transform:

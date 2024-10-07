@@ -1,16 +1,15 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
-using UnityEngine;
 using UnityEngine.Assertions;
 using Random = UnityEngine.Random;
 
 public class PathingHelpers
 {
-    private static readonly List<int2> PositionList = new ();
-    private static readonly List<int> SimplePositionsX = new ();
-    private static readonly List<int> SimplePositionsY = new ();
-    private static readonly List<int> NeighbourDeltasX = new()  { 1, 1, 0, -1, -1, -1, 0, 1 };
-    private static readonly List<int> NeighbourDeltasY = new()  { 0, 1, 1, 1, 0, -1, -1, -1 };
+    private static readonly List<int2> PositionList = new();
+    private static readonly List<int> SimplePositionsX = new();
+    private static readonly List<int> SimplePositionsY = new();
+    private static readonly List<int> NeighbourDeltasX = new() { 1, 1, 0, -1, -1, -1, 0, 1 };
+    private static readonly List<int> NeighbourDeltasY = new() { 0, 1, 1, 1, 0, -1, -1, -1 };
     private static readonly List<int> RandomNeighbourIndexList = new();
     private static readonly List<int> RandomNearbyCellIndexList = new();
 
@@ -307,7 +306,6 @@ public class PathingHelpers
     }
 
 
-
     public static int2[] GetCellListAroundTargetCell30Rings(int targetX, int targetY)
     {
         return GetCellListAroundTargetCellPerformant(targetX, targetY, 30, ref PositionListWith30Rings);
@@ -320,7 +318,7 @@ public class PathingHelpers
             cachedList = new int2[CalculatePositionListLength(ringCount)];
         }
 
-        int index = 0;
+        var index = 0;
         // include the target-cell
         cachedList[index].x = targetX;
         cachedList[index].y = targetY;
@@ -328,8 +326,8 @@ public class PathingHelpers
         for (var ringSize = 1; ringSize < ringCount; ringSize++)
         {
             // start at max X & max Y
-            int x = targetX + ringSize;
-            int y = targetY + ringSize;
+            var x = targetX + ringSize;
+            var y = targetY + ringSize;
 
             // go to min X
             while (x > targetX - ringSize)
@@ -373,12 +371,12 @@ public class PathingHelpers
 
     private static int CalculatePositionListLength(int ringCount)
     {
-        int length = 1;
+        var length = 1;
         for (var ringSize = 1; ringSize < ringCount; ringSize++)
         {
             // start at max X & max Y
-            int x = ringSize;
-            int y = ringSize;
+            var x = ringSize;
+            var y = ringSize;
 
             // go to min X
             while (x > -ringSize)

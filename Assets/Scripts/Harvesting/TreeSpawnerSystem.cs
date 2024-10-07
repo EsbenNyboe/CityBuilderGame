@@ -72,7 +72,7 @@ public partial class TreeSpawnerSystem : SystemBase
             GridSetup.Instance.PathGrid.GetXY(mousePosition, out var x, out var y);
             var cellList = PathingHelpers.GetCellListAroundTargetCell(new int2(x, y), brushSize);
 
-            for (int i = 0; i < cellList.Count; i++)
+            for (var i = 0; i < cellList.Count; i++)
             {
                 var gridPath = pathGrid.GetGridObject(cellList[i].x, cellList[i].y);
                 var gridDamageable = damageableGrid.GetGridObject(cellList[i].x, cellList[i].y);

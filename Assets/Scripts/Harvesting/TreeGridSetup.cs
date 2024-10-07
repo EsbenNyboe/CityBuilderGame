@@ -1,13 +1,11 @@
 ﻿using System;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
 public class TreeGridSetup : MonoBehaviour
 {
-    [SerializeField] private AreaToExclude[] _areasToExclude;
-
     public static TreeGridSetup Instance;
+    [SerializeField] private AreaToExclude[] _areasToExclude;
 
     private void Awake()
     {

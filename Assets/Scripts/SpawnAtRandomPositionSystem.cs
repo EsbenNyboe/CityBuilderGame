@@ -45,6 +45,7 @@ public partial class SpawnAtRandomPositionSystem : SystemBase
         entityCommandBuffer.Playback(EntityManager);
     }
 
+
     private void ValidateWalkableTargetPosition(ref int endX, ref int endY)
     {
         var maxAttempts = 10;
@@ -66,7 +67,7 @@ public partial class SpawnAtRandomPositionSystem : SystemBase
 
     private void GetRandomPosition(out int x, out int y)
     {
-        x = Random.Range(0, GridSetup.Instance.PathGrid.GetWidth() - 1) ;
-        y = Random.Range(0, GridSetup.Instance.PathGrid.GetHeight() - 1) ;
+        x = Random.Range(0, GridSetup.Instance.PathGrid.GetWidth() - 1);
+        y = Random.Range(0, GridSetup.Instance.PathGrid.GetHeight() - 1);
     }
 }

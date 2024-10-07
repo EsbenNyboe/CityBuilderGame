@@ -4,9 +4,7 @@ public class DebugGlobals : MonoBehaviour
 {
     public static DebugGlobals Instance;
 
-    [SerializeField]
-    private bool _showOccupationGrid = false;
-    [SerializeField]
+    [SerializeField] private bool _showOccupationGrid;
 
     private void Awake()
     {
