@@ -1,16 +1,18 @@
-﻿using System;
-using CodeMonkey.Utils;
+﻿using CodeMonkey.Utils;
 using UnityEngine;
 
 public class GridVisuals : MonoBehaviour
 {
     [SerializeField] private MeshFilter _pathMeshFilter;
-
+    [SerializeField] private MeshFilter _treeMeshFilter;
     [SerializeField] private MeshFilter _healthBarMeshFilter;
-
     [SerializeField] private MeshFilter _occupationDebugMeshFilter;
 
+    public float FrameSize;
+    public float FrameOffset;
+
     private Mesh _pathMesh;
+    private Mesh _treeMesh;
     private Mesh _healthBarMesh;
     private Mesh _occupationDebugMesh;
     private TextMesh[,] _debugTextArray;
@@ -20,19 +22,23 @@ public class GridVisuals : MonoBehaviour
     private Grid<GridOccupation> _gridOccupation;
 
     private bool _updatePathMesh;
-    private bool _updateHealthBarMesh;
+    private bool _updateTreeMesh;
+    private bool _updateDamageableMeshes;
     private bool _updateOccupationDebugMesh;
-    private bool _updateText;
+    private bool _updateDamageableText;
 
     private int[] pathMeshTriangles;
+    private int[] treeTriangles;
     private int[] healthBarTriangles;
     private int[] occupationDebugTriangles;
 
     private Vector2[] pathUv;
+    private Vector2[] treeUv;
     private Vector2[] healthBarUv;
     private Vector2[] occupationDebugUv;
 
     private Vector3[] pathVertices;
+    private Vector3[] treeVertices;
     private Vector3[] healthBarVertices;
     private Vector3[] occupationDebugVertices;
 
@@ -40,6 +46,8 @@ public class GridVisuals : MonoBehaviour
     {
         _pathMesh = new Mesh();
         _pathMeshFilter.mesh = _pathMesh;
+        _treeMesh = new Mesh();
+        _treeMeshFilter.mesh = _treeMesh;
         _healthBarMesh = new Mesh();
         _healthBarMeshFilter.mesh = _healthBarMesh;
         _occupationDebugMesh = new Mesh();
@@ -54,15 +62,15 @@ public class GridVisuals : MonoBehaviour
             UpdateVisual();
         }
 
-        if (_updateText)
+        if (_updateDamageableText)
         {
-            _updateText = false;
+            _updateDamageableText = false;
             // UpdateTextVisual();
         }
 
-        if (_updateHealthBarMesh)
+        if (_updateDamageableMeshes)
         {
-            _updateHealthBarMesh = false;
+            _updateDamageableMeshes = false;
             UpdateTreeVisuals();
             UpdateHealthBarVisuals();
         }
@@ -83,6 +91,8 @@ public class GridVisuals : MonoBehaviour
 
         MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out pathVertices, out pathUv,
             out pathMeshTriangles);
+        MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out treeVertices, out treeUv,
+            out treeTriangles);
         MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out healthBarVertices, out healthBarUv,
             out healthBarTriangles);
         MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out occupationDebugVertices,
@@ -105,8 +115,8 @@ public class GridVisuals : MonoBehaviour
 
     private void Grid_OnGridValueChanged(object sender, Grid<GridDamageable>.OnGridObjectChangedEventArgs e)
     {
-        _updateText = true;
-        _updateHealthBarMesh = true;
+        _updateDamageableText = true;
+        _updateDamageableMeshes = true;
     }
 
     private void Grid_OnGridValueChanged(object sender, Grid<GridOccupation>.OnGridObjectChangedEventArgs e)
@@ -128,13 +138,15 @@ public class GridVisuals : MonoBehaviour
                 var uv00 = new Vector2(0, 0);
                 var uv11 = new Vector2(.5f, .5f);
 
-                if (!gridNode.IsWalkable())
-                {
-                    // TODO: Insert tree graphic here? 
-                    //quadSize = Vector3.zero;
-                    uv00 = new Vector2(.5f, .5f);
-                    uv11 = new Vector2(1f, 1f);
-                }
+                uv00 = new Vector2(.5f, .5f);
+                uv11 = new Vector2(1f, 1f);
+
+                // if (!gridNode.IsWalkable())
+                // {
+                //     //quadSize = Vector3.zero;
+                //     uv00 = new Vector2(.5f, .5f);
+                //     uv11 = new Vector2(1f, 1f);
+                // }
 
                 MeshUtils.AddToMeshArrays(pathVertices, pathUv, pathMeshTriangles, index, _gridPath.GetWorldPosition(x, y) + quadSize * .0f,
                     0f, quadSize, uv00,
@@ -181,7 +193,56 @@ public class GridVisuals : MonoBehaviour
 
     private void UpdateTreeVisuals()
     {
-        // throw new NotImplementedException();
+        for (var x = 0; x < _gridDamageable.GetWidth(); x++)
+        {
+            for (var y = 0; y < _gridDamageable.GetHeight(); y++)
+            {
+                var gridDamageableObject = _gridDamageable.GetGridObject(x, y);
+                var health = gridDamageableObject.GetHealth();
+
+                var maxHealth = gridDamageableObject.GetMaxHealth();
+                var healthNormalized = health / maxHealth;
+
+                var frameSize = 0.25f;
+
+                var frameOffset = 0.0f; // max health tree
+
+                if (healthNormalized < 1f)
+                {
+                    frameOffset = 0.25f;
+                }
+
+                if (healthNormalized < 0.66f)
+                {
+                    frameOffset = 0.5f;
+                }
+
+                if (healthNormalized < 0.33f)
+                {
+                    frameOffset = 0.75f;
+                }
+
+                if (health <= 0)
+                {
+                    frameOffset = 1f;
+                }
+
+                var uv00 = new Vector3(frameOffset, 0);
+                var uv11 = new Vector3(frameOffset + frameSize, 1);
+
+
+                var index = x * _gridDamageable.GetHeight() + y;
+                var quadSize = new Vector3(1, 1) * _gridPath.GetCellSize();
+                var position = _gridDamageable.GetWorldPosition(x, y);
+
+                MeshUtils.AddToMeshArrays(treeVertices, treeUv, treeTriangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
+                    uv11);
+            }
+        }
+
+        _treeMesh.vertices = treeVertices;
+        _treeMesh.uv = treeUv;
+        _treeMesh.triangles = treeTriangles;
     }
 
     private void UpdateHealthBarVisuals()
@@ -193,8 +254,11 @@ public class GridVisuals : MonoBehaviour
                 var index = x * _gridDamageable.GetHeight() + y;
                 var gridDamageableObject = _gridDamageable.GetGridObject(x, y);
 
-                var quadWidth = gridDamageableObject.GetHealth() / gridDamageableObject.GetMaxHealth();
-                var quadHeight = 0.5f;
+                var healthNormalized = gridDamageableObject.GetHealth() / gridDamageableObject.GetMaxHealth();
+                var widthPercentage = 0.75f;
+                var quadWidth = healthNormalized * widthPercentage;
+
+                var quadHeight = 0.1f;
                 var quadSize = gridDamageableObject.IsDamageable()
                     ? new Vector3(quadWidth, quadHeight) * _gridDamageable.GetCellSize()
                     : Vector3.zero;
@@ -202,9 +266,9 @@ public class GridVisuals : MonoBehaviour
                 var green = 0.9f;
                 var yellow = 0.4f;
                 var red = 0.1f;
-                var color = quadWidth switch
+                var color = healthNormalized switch
                 {
-                    > 0.99f => green,
+                    > 0.85f => green,
                     > 0.4f => yellow,
                     _ => red
                 };
@@ -214,10 +278,16 @@ public class GridVisuals : MonoBehaviour
 
                 var position = _gridDamageable.GetWorldPosition(x, y);
                 // TODO: Make positioning cleaner? Not accounting for cell-size right now...
-                position.y += quadHeight / 2;
-                if (quadWidth < 1)
+                // position.x += widthPercentage * 0.5f;
+                position.y += 0.4f;
+                if (healthNormalized < 1)
                 {
-                    position.x -= (1 - quadWidth) / 2;
+                    position.x -= (1 - healthNormalized) / 2;
+                }
+                else
+                {
+                    // Hide health, if full
+                    quadSize = Vector3.zero;
                 }
 
                 MeshUtils.AddToMeshArrays(healthBarVertices, healthBarUv, healthBarTriangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
