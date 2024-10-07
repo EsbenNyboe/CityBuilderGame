@@ -19,15 +19,14 @@ public partial class SpriteSheetRendererSystem : SystemBase
     protected override void OnUpdate()
     {
         var unitMesh = SpriteSheetRendererManager.Instance.UnitMesh;
-        var unitIdleEntityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalTransform));
         var unitMaterial = SpriteSheetRendererManager.Instance.UnitMaterial;
-        HandleMeshRendering(unitIdleEntityQuery, unitMesh, unitMaterial);
+        HandleMeshRendering(unitMesh, unitMaterial);
     }
 
-    private void HandleMeshRendering(EntityQuery entityQuery, Mesh unitMesh, Material unitWalkingMaterial)
+    private void HandleMeshRendering(Mesh unitMesh, Material unitWalkingMaterial)
     {
         // Create sliced queues of the data, before sorting
-        CreateSlicedQueues(entityQuery, out var nativeQueue_1, out var nativeQueue_2);
+        CreateSlicedQueues(out var nativeQueue_1, out var nativeQueue_2);
 
         var jobHandleArray = new NativeArray<JobHandle>(2, Allocator.TempJob);
 
@@ -52,8 +51,10 @@ public partial class SpriteSheetRendererSystem : SystemBase
         nativeArray_2.Dispose();
     }
 
-    private void CreateSlicedQueues(EntityQuery entityQuery, out NativeQueue<RenderData> nativeQueue_1, out NativeQueue<RenderData> nativeQueue_2)
+    private void CreateSlicedQueues(out NativeQueue<RenderData> nativeQueue_1, out NativeQueue<RenderData> nativeQueue_2)
     {
+        var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalToWorld));
+
         var camera = Camera.main;
         if (camera == null)
         {
@@ -184,9 +185,9 @@ public partial class SpriteSheetRendererSystem : SystemBase
         public NativeQueue<RenderData> NativeQueue_1;
         public NativeQueue<RenderData> NativeQueue_2;
 
-        public void Execute(Entity entity, ref LocalTransform localTransform, ref SpriteSheetAnimation animationData)
+        public void Execute(Entity entity, ref LocalToWorld localToWorld, ref SpriteSheetAnimation animationData)
         {
-            var positionY = localTransform.Position.y;
+            var positionY = localToWorld.Position.y;
             if (!(positionY > yBottom) || !(positionY < yTop_1))
             {
                 // Not valid position
@@ -195,7 +196,7 @@ public partial class SpriteSheetRendererSystem : SystemBase
             var renderData = new RenderData
             {
                 Entity = entity,
-                Position = localTransform.Position,
+                Position = localToWorld.Position,
                 Matrix = animationData.Matrix,
                 Uv = animationData.Uv
             };
