@@ -1,51 +1,49 @@
-﻿using CodeMonkey.Utils;
+﻿using System;
+using CodeMonkey.Utils;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class GridVisuals : MonoBehaviour
 {
-    [SerializeField] private MeshFilter _pathGridMeshFilter;
+    [SerializeField] private MeshFilter _pathMeshFilter;
 
-    [FormerlySerializedAs("_damageableGridMeshFilter")] [SerializeField]
-    private MeshFilter _healthBarMeshFilter;
+    [SerializeField] private MeshFilter _healthBarMeshFilter;
 
-    [SerializeField] private MeshFilter _occupationGridMeshFilter;
-    private Mesh _damageableGridMesh;
+    [SerializeField] private MeshFilter _occupationDebugMeshFilter;
 
+    private Mesh _pathMesh;
+    private Mesh _healthBarMesh;
+    private Mesh _occupationDebugMesh;
     private TextMesh[,] _debugTextArray;
+
+    private Grid<GridPath> _gridPath;
     private Grid<GridDamageable> _gridDamageable;
     private Grid<GridOccupation> _gridOccupation;
 
-    private Grid<GridPath> _gridPath;
-    private Mesh _occupationGridMesh;
-
-    private Mesh _pathGridMesh;
-    private bool _updateHealthBar;
-    private bool _updateOccupationDebugMesh;
-
     private bool _updatePathMesh;
+    private bool _updateHealthBarMesh;
+    private bool _updateOccupationDebugMesh;
     private bool _updateText;
-    private int[] healthBarTriangles;
-    private Vector2[] healthBarUv;
 
-    private Vector3[] healthBarVertices;
-    private int[] occupationDebugMeshTriangles;
-    private Vector2[] occupationDebugMeshUv;
-
-    private Vector3[] occupationDebugMeshVertices;
     private int[] pathMeshTriangles;
-    private Vector2[] pathMeshUv;
+    private int[] healthBarTriangles;
+    private int[] occupationDebugTriangles;
 
-    private Vector3[] pathMeshVertices;
+    private Vector2[] pathUv;
+    private Vector2[] healthBarUv;
+    private Vector2[] occupationDebugUv;
+
+    private Vector3[] pathVertices;
+    private Vector3[] healthBarVertices;
+    private Vector3[] occupationDebugVertices;
 
     private void Awake()
     {
-        _pathGridMesh = new Mesh();
-        _pathGridMeshFilter.mesh = _pathGridMesh;
-        _damageableGridMesh = new Mesh();
-        _healthBarMeshFilter.mesh = _damageableGridMesh;
-        _occupationGridMesh = new Mesh();
-        _occupationGridMeshFilter.mesh = _occupationGridMesh;
+        _pathMesh = new Mesh();
+        _pathMeshFilter.mesh = _pathMesh;
+        _healthBarMesh = new Mesh();
+        _healthBarMeshFilter.mesh = _healthBarMesh;
+        _occupationDebugMesh = new Mesh();
+        _occupationDebugMeshFilter.mesh = _occupationDebugMesh;
     }
 
     private void LateUpdate()
@@ -59,12 +57,13 @@ public class GridVisuals : MonoBehaviour
         if (_updateText)
         {
             _updateText = false;
-            UpdateTextVisual();
+            // UpdateTextVisual();
         }
 
-        if (_updateHealthBar)
+        if (_updateHealthBarMesh)
         {
-            _updateHealthBar = false;
+            _updateHealthBarMesh = false;
+            UpdateTreeVisuals();
             UpdateHealthBarVisuals();
         }
 
@@ -82,14 +81,15 @@ public class GridVisuals : MonoBehaviour
         _gridOccupation = gridOccupation;
 
 
-        MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out pathMeshVertices, out pathMeshUv,
+        MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out pathVertices, out pathUv,
             out pathMeshTriangles);
         MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out healthBarVertices, out healthBarUv,
             out healthBarTriangles);
-        MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out occupationDebugMeshVertices,
-            out occupationDebugMeshUv, out occupationDebugMeshTriangles);
+        MeshUtils.CreateEmptyMeshArrays(_gridDamageable.GetWidth() * _gridDamageable.GetHeight(), out occupationDebugVertices,
+            out occupationDebugUv, out occupationDebugTriangles);
 
         UpdateVisual();
+        UpdateTreeVisuals();
         UpdateHealthBarVisuals();
         UpdateOccupationDebugMesh();
 
@@ -106,7 +106,7 @@ public class GridVisuals : MonoBehaviour
     private void Grid_OnGridValueChanged(object sender, Grid<GridDamageable>.OnGridObjectChangedEventArgs e)
     {
         _updateText = true;
-        _updateHealthBar = true;
+        _updateHealthBarMesh = true;
     }
 
     private void Grid_OnGridValueChanged(object sender, Grid<GridOccupation>.OnGridObjectChangedEventArgs e)
@@ -136,20 +136,19 @@ public class GridVisuals : MonoBehaviour
                     uv11 = new Vector2(1f, 1f);
                 }
 
-                MeshUtils.AddToMeshArrays(pathMeshVertices, pathMeshUv, pathMeshTriangles, index, _gridPath.GetWorldPosition(x, y) + quadSize * .0f,
+                MeshUtils.AddToMeshArrays(pathVertices, pathUv, pathMeshTriangles, index, _gridPath.GetWorldPosition(x, y) + quadSize * .0f,
                     0f, quadSize, uv00,
                     uv11);
             }
         }
 
-        _pathGridMesh.vertices = pathMeshVertices;
-        _pathGridMesh.uv = pathMeshUv;
-        _pathGridMesh.triangles = pathMeshTriangles;
+        _pathMesh.vertices = pathVertices;
+        _pathMesh.uv = pathUv;
+        _pathMesh.triangles = pathMeshTriangles;
     }
 
     private void UpdateTextVisual()
     {
-        return;
         if (_debugTextArray == default)
         {
             _debugTextArray = new TextMesh[_gridDamageable.GetWidth(), _gridDamageable.GetHeight()];
@@ -178,6 +177,11 @@ public class GridVisuals : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void UpdateTreeVisuals()
+    {
+        // throw new NotImplementedException();
     }
 
     private void UpdateHealthBarVisuals()
@@ -221,17 +225,17 @@ public class GridVisuals : MonoBehaviour
             }
         }
 
-        _damageableGridMesh.vertices = healthBarVertices;
-        _damageableGridMesh.uv = healthBarUv;
-        _damageableGridMesh.triangles = healthBarTriangles;
+        _healthBarMesh.vertices = healthBarVertices;
+        _healthBarMesh.uv = healthBarUv;
+        _healthBarMesh.triangles = healthBarTriangles;
     }
 
     private void UpdateOccupationDebugMesh()
     {
         if (!DebugGlobals.ShowOccupationGrid())
         {
-            _occupationGridMesh = new Mesh();
-            _occupationGridMeshFilter.mesh = _occupationGridMesh;
+            _occupationDebugMesh = new Mesh();
+            _occupationDebugMeshFilter.mesh = _occupationDebugMesh;
             return;
         }
 
@@ -255,14 +259,14 @@ public class GridVisuals : MonoBehaviour
                 var position = _gridOccupation.GetWorldPosition(x, y);
                 // TODO: Make positioning cleaner? Not accounting for cell-size right now...
 
-                MeshUtils.AddToMeshArrays(occupationDebugMeshVertices, occupationDebugMeshUv, occupationDebugMeshTriangles, index,
+                MeshUtils.AddToMeshArrays(occupationDebugVertices, occupationDebugUv, occupationDebugTriangles, index,
                     position + quadSize * .0f, 0f, quadSize, uv00,
                     uv11);
             }
         }
 
-        _occupationGridMesh.vertices = occupationDebugMeshVertices;
-        _occupationGridMesh.uv = occupationDebugMeshUv;
-        _occupationGridMesh.triangles = occupationDebugMeshTriangles;
+        _occupationDebugMesh.vertices = occupationDebugVertices;
+        _occupationDebugMesh.uv = occupationDebugUv;
+        _occupationDebugMesh.triangles = occupationDebugTriangles;
     }
 }
