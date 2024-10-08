@@ -189,50 +189,6 @@ MonoBehaviour:
     EndCell:
       x: 100
       y: 50
---- !u!1 &77065669
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 77065671}
-  - component: {fileID: 77065670}
-  m_Layer: 0
-  m_Name: DegradationVisuals
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &77065670
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 77065669}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fbb039e18dd2b04b9a178f69554192e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &77065671
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 77065669}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &214506561
 GameObject:
   m_ObjectHideFlags: 0
@@ -263,8 +219,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   UnitMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
-  UnitWalk: {fileID: 2100000, guid: 907d49b4c245cb545ba8f1385fa5ff5b, type: 2}
-  UnitIdle: {fileID: 2100000, guid: 620bdb72c56a8fa44b3a42dba41a4e9b, type: 2}
   UnitMaterial: {fileID: 2100000, guid: 15344670bae78d74881afe584ca526b0, type: 2}
 --- !u!4 &214506563
 Transform:
@@ -1380,7 +1334,6 @@ SceneRoots:
   - {fileID: 992141010}
   - {fileID: 957593148}
   - {fileID: 487013237}
-  - {fileID: 77065671}
   - {fileID: 597997350}
   - {fileID: 1980316762}
   - {fileID: 214506563}
