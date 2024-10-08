@@ -17,8 +17,6 @@ public partial class SpawnCubesSystem : SystemBase
             return;
         }
 
-        //Enabled = false;
-
         var spawnCubesConfig = SystemAPI.GetSingleton<SpawnCubesConfig>();
 
         var gridIndex = 0;
@@ -95,5 +93,4 @@ public partial class SpawnCubesSystem : SystemBase
     {
         return !GridSetup.Instance.OccupationGrid.GetGridObject(x, y).IsOccupied();
     }
-
 }

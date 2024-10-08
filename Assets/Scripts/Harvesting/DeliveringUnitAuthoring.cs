@@ -8,7 +8,7 @@ public class DeliveringUnitAuthoring : MonoBehaviour
     {
         public override void Bake(DeliveringUnitAuthoring authoring)
         {
-            var entity = GetEntity(authoring);
+            var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
             AddComponent(entity, new DeliveringUnit
             {
                 Target = new int2(-1, -1),

@@ -9,7 +9,7 @@ public class PathFollowAuthoring : MonoBehaviour
     {
         public override void Bake(PathFollowAuthoring authoring)
         {
-            var entity = GetEntity(authoring);
+            var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
             AddComponent(entity, new PathFollow
             {
                 PathIndex = authoring._pathIndex

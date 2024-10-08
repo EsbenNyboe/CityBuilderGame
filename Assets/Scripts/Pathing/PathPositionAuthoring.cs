@@ -10,7 +10,7 @@ public class PathPositionAuthoring : MonoBehaviour
     {
         public override void Bake(PathPositionAuthoring authoring)
         {
-            var entity = GetEntity(authoring);
+            var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
             AddBuffer<PathPosition>(entity);
         }
     }
