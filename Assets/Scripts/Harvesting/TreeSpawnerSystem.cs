@@ -11,13 +11,11 @@ public partial class TreeSpawnerSystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireForUpdate<TreeSpawner>();
         _isInitialized = false;
     }
 
     protected override void OnUpdate()
     {
-        var treeSpawner = SystemAPI.GetSingleton<TreeSpawner>();
         var pathGrid = GridSetup.Instance.PathGrid;
         var damageableGrid = GridSetup.Instance.DamageableGrid;
         var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathGrid.GetCellSize() * .5f;
