@@ -11,6 +11,12 @@ using UnityEngine;
 [UpdateAfter(typeof(SpriteSheetAnimationSystem))]
 public partial class SpriteSheetRendererSystem : SystemBase
 {
+    private static Vector4[] _uvInstancedArray = new Vector4[SliceCount];
+
+    private static Matrix4x4[] _matrixInstancedArray = new Matrix4x4[SliceCount];
+
+    private static int SliceCount => 1023;
+
     protected override void OnCreate()
     {
         RequireForUpdate<SpriteSheetAnimation>();
@@ -152,18 +158,18 @@ public partial class SpriteSheetRendererSystem : SystemBase
         var materialPropertyBlock = new MaterialPropertyBlock();
 
         var sliceCount = 1023;
-        var matrixInstancedArray = new Matrix4x4[sliceCount];
-        var uvInstancedArray = new Vector4[sliceCount];
+        _matrixInstancedArray = new Matrix4x4[sliceCount];
+        _uvInstancedArray = new Vector4[sliceCount];
 
         // Should we use animationDataArray instead of matrixArray? Assuming we don't have to, since they should have the same length, right?
-        for (var i = 0; i < matrixArray.Length; i += sliceCount)
+        for (var i = 0; i < matrixArray.Length; i += SliceCount)
         {
-            var sliceSize = math.min(matrixArray.Length - i, sliceCount);
-            NativeArray<Matrix4x4>.Copy(matrixArray, i, matrixInstancedArray, 0, sliceSize);
-            NativeArray<Vector4>.Copy(uvArray, i, uvInstancedArray, 0, sliceSize);
+            var sliceSize = math.min(matrixArray.Length - i, SliceCount);
+            NativeArray<Matrix4x4>.Copy(matrixArray, i, _matrixInstancedArray, 0, sliceSize);
+            NativeArray<Vector4>.Copy(uvArray, i, _uvInstancedArray, 0, sliceSize);
 
-            materialPropertyBlock.SetVectorArray("_MainTex_UV", uvInstancedArray);
-            Graphics.DrawMeshInstanced(mesh, 0, material, matrixInstancedArray, sliceSize, materialPropertyBlock);
+            materialPropertyBlock.SetVectorArray("_MainTex_UV", _uvInstancedArray);
+            Graphics.DrawMeshInstanced(mesh, 0, material, _matrixInstancedArray, sliceSize, materialPropertyBlock);
         }
     }
 
