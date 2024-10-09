@@ -193,10 +193,14 @@ public class GridVisuals : MonoBehaviour
 
     private void UpdateTreeVisuals()
     {
+        var numberOfTrees = 0;
+
         for (var x = 0; x < _gridDamageable.GetWidth(); x++)
         {
             for (var y = 0; y < _gridDamageable.GetHeight(); y++)
             {
+                numberOfTrees++;
+
                 var gridDamageableObject = _gridDamageable.GetGridObject(x, y);
                 var health = gridDamageableObject.GetHealth();
 
@@ -224,7 +228,9 @@ public class GridVisuals : MonoBehaviour
 
                 if (health <= 0)
                 {
+                    // There's no tree
                     frameOffset = 1f;
+                    numberOfTrees--;
                 }
 
                 var uv00 = new Vector3(frameOffset, 0);
@@ -243,6 +249,8 @@ public class GridVisuals : MonoBehaviour
         _treeMesh.vertices = treeVertices;
         _treeMesh.uv = treeUv;
         _treeMesh.triangles = treeTriangles;
+
+        GlobalStatusDisplay.SetNumberOfTrees(numberOfTrees);
     }
 
     private void UpdateHealthBarVisuals()
