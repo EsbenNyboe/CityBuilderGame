@@ -11,10 +11,13 @@ public partial class PathFollowSystem : SystemBase
     protected override void OnUpdate()
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+        var numberOfUnits = 0;
 
         foreach (var (localTransform, pathPositionBuffer, pathFollow, entity) in SystemAPI
                      .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>>().WithEntityAccess())
         {
+            numberOfUnits++;
+
             if (pathFollow.ValueRO.PathIndex < 0)
             {
                 SetAnimationToIdle(entity, entityCommandBuffer);
@@ -95,6 +98,7 @@ public partial class PathFollowSystem : SystemBase
             }
         }
 
+        GlobalStatusDisplay.SetNumberOfUnits(numberOfUnits);
         entityCommandBuffer.Playback(EntityManager);
     }
 
