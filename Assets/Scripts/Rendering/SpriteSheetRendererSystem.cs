@@ -11,9 +11,9 @@ using UnityEngine;
 [UpdateAfter(typeof(SpriteSheetAnimationSystem))]
 public partial class SpriteSheetRendererSystem : SystemBase
 {
-    private static Vector4[] _uvInstancedArray = new Vector4[SliceCount];
+    private static readonly Vector4[] _uvInstancedArray = new Vector4[SliceCount];
 
-    private static Matrix4x4[] _matrixInstancedArray = new Matrix4x4[SliceCount];
+    private static readonly Matrix4x4[] _matrixInstancedArray = new Matrix4x4[SliceCount];
 
     private static int SliceCount => 1023;
 
@@ -156,10 +156,6 @@ public partial class SpriteSheetRendererSystem : SystemBase
     private static void DrawMesh(Mesh mesh, Material material, NativeArray<Vector4> uvArray, NativeArray<Matrix4x4> matrixArray)
     {
         var materialPropertyBlock = new MaterialPropertyBlock();
-
-        var sliceCount = 1023;
-        _matrixInstancedArray = new Matrix4x4[sliceCount];
-        _uvInstancedArray = new Vector4[sliceCount];
 
         // Should we use animationDataArray instead of matrixArray? Assuming we don't have to, since they should have the same length, right?
         for (var i = 0; i < matrixArray.Length; i += SliceCount)
