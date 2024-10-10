@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -20,12 +19,8 @@ public partial class PathFollowSystem : SystemBase
 
             if (pathFollow.ValueRO.PathIndex < 0)
             {
-                SetAnimationToIdle(entity, entityCommandBuffer);
-
                 continue;
             }
-
-            SetAnimationToWalk(entity, entityCommandBuffer);
 
             var pathPosition = pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position;
             var targetPosition = new float3(pathPosition.x, pathPosition.y, 0);
@@ -189,81 +184,5 @@ public partial class PathFollowSystem : SystemBase
 
         nearbyCell = default;
         return false;
-    }
-
-    private static bool TryGetNearbyVacantCell(List<int> cellsX, List<int> cellsY, out int x, out int y)
-    {
-        for (var i = 1; i < cellsX.Count; i++)
-        {
-            x = cellsX[i];
-            y = cellsY[i];
-            if (PathingHelpers.IsPositionInsideGrid(x, y) && PathingHelpers.IsPositionWalkable(x, y)
-                                                          && !PathingHelpers.IsPositionOccupied(x, y)
-               )
-            {
-                return true;
-            }
-        }
-
-        x = default;
-        y = default;
-        return false;
-    }
-
-    private void SetAnimationToIdle(Entity entity, EntityCommandBuffer entityCommandBuffer)
-    {
-        // if (!EntityManager.IsComponentEnabled<AnimationUnitIdle>(entity))
-        // {
-        //     // EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, true);
-        //     // var animationUnitIdle = EntityManager.GetComponentData<AnimationUnitIdle>(entity);
-        //     // var spriteSheetAnimation = new SpriteSheetAnimation
-        //     // {
-        //     //     FrameCount = animationUnitIdle.FrameCount,
-        //     //     FrameTimerMax = animationUnitIdle.FrameTimerMax,
-        //     //     Uv = new Vector4(1f / animationUnitIdle.FrameCount, 0.5f, 0, animationUnitIdle.FrameRow)
-        //     // };
-        //     // if (!EntityManager.HasComponent<SpriteSheetAnimation>(entity))
-        //     // {
-        //     //     entityCommandBuffer.AddComponent(entity, spriteSheetAnimation);
-        //     // }
-        //     // else
-        //     // {
-        //     //     EntityManager.SetComponentData(entity, spriteSheetAnimation);
-        //     // }
-        // }
-        //
-        // if (EntityManager.IsComponentEnabled<AnimationUnitWalk>(entity))
-        // {
-        //     EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, false);
-        // }
-    }
-
-    private void SetAnimationToWalk(Entity entity, EntityCommandBuffer entityCommandBuffer)
-    {
-        // if (!EntityManager.IsComponentEnabled<AnimationUnitWalk>(entity))
-        // {
-        //     EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, true);
-        //     var animationUnitWalk = EntityManager.GetComponentData<AnimationUnitWalk>(entity);
-        //     var spriteSheetAnimation = new SpriteSheetAnimation
-        //     {
-        //         FrameCount = animationUnitWalk.FrameCount,
-        //         FrameTimerMax = animationUnitWalk.FrameTimerMax,
-        //         Uv = new Vector4(1f / animationUnitWalk.FrameCount, 0.5f, 0, animationUnitWalk.FrameRow)
-        //     };
-        //
-        //     if (!EntityManager.HasComponent<SpriteSheetAnimation>(entity))
-        //     {
-        //         entityCommandBuffer.AddComponent(entity, spriteSheetAnimation);
-        //     }
-        //     else
-        //     {
-        //         EntityManager.SetComponentData(entity, spriteSheetAnimation);
-        //     }
-        // }
-        //
-        // if (EntityManager.IsComponentEnabled<AnimationUnitIdle>(entity))
-        // {
-        //     EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, false);
-        // }
     }
 }
