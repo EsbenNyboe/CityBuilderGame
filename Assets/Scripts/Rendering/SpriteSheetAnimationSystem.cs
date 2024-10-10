@@ -1,15 +1,16 @@
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
 [UpdateAfter(typeof(AnimationUnitSystem))]
-public partial class SpriteSheetAnimationSystem : SystemBase
+public partial struct SpriteSheetAnimationSystem : ISystem
 {
-    protected override void OnUpdate()
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
     {
-        foreach (var (spriteSheetAnimationData, localToWorld, spriteTransform, entity) in SystemAPI
-                     .Query<RefRW<SpriteSheetAnimation>, RefRO<LocalToWorld>, RefRO<SpriteTransform>>()
-                     .WithEntityAccess())
+        foreach (var (spriteSheetAnimationData, localToWorld, spriteTransform) in SystemAPI
+                     .Query<RefRW<SpriteSheetAnimation>, RefRO<LocalToWorld>, RefRO<SpriteTransform>>())
         {
             spriteSheetAnimationData.ValueRW.FrameTimer += SystemAPI.Time.DeltaTime;
             while (spriteSheetAnimationData.ValueRO.FrameTimer > spriteSheetAnimationData.ValueRO.FrameTimerMax)
