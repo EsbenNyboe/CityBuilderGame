@@ -27,14 +27,15 @@ public partial class Pathfinding : SystemBase
         var maxPathfindingSchedulesPerFrame = Globals.MaxPathfindingPerFrame();
         var currentAmountOfSchedules = 0;
 
-        if (!PathNodeArrayTemplate.IsCreated)
-        {
-            PathNodeArrayTemplate = GetNewPathNodeArray(grid, gridSize);
-        }
-
         foreach (var (pathfindingParams, pathPositionBuffer, entity) in SystemAPI.Query<RefRO<PathfindingParams>, DynamicBuffer<PathPosition>>()
                      .WithEntityAccess())
         {
+            var templateIsCreated = PathNodeArrayTemplate.IsCreated;
+            if (!templateIsCreated)
+            {
+                PathNodeArrayTemplate = GetNewPathNodeArray(grid, gridSize);
+            }
+
             if (currentAmountOfSchedules > maxPathfindingSchedulesPerFrame)
             {
                 continue;
