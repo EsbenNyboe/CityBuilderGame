@@ -212,58 +212,58 @@ public partial class PathFollowSystem : SystemBase
 
     private void SetAnimationToIdle(Entity entity, EntityCommandBuffer entityCommandBuffer)
     {
-        if (!EntityManager.IsComponentEnabled<AnimationUnitIdle>(entity))
-        {
-            EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, true);
-            var animationUnitIdle = EntityManager.GetComponentData<AnimationUnitIdle>(entity);
-            var spriteSheetAnimation = new SpriteSheetAnimation
-            {
-                FrameCount = animationUnitIdle.FrameCount,
-                FrameTimerMax = animationUnitIdle.FrameTimerMax,
-                Uv = new Vector4(1f / animationUnitIdle.FrameCount, 0.5f, 0, animationUnitIdle.FrameRow)
-            };
-            if (!EntityManager.HasComponent<SpriteSheetAnimation>(entity))
-            {
-                entityCommandBuffer.AddComponent(entity, spriteSheetAnimation);
-            }
-            else
-            {
-                EntityManager.SetComponentData(entity, spriteSheetAnimation);
-            }
-        }
-
-        if (EntityManager.IsComponentEnabled<AnimationUnitWalk>(entity))
-        {
-            EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, false);
-        }
+        // if (!EntityManager.IsComponentEnabled<AnimationUnitIdle>(entity))
+        // {
+        //     // EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, true);
+        //     // var animationUnitIdle = EntityManager.GetComponentData<AnimationUnitIdle>(entity);
+        //     // var spriteSheetAnimation = new SpriteSheetAnimation
+        //     // {
+        //     //     FrameCount = animationUnitIdle.FrameCount,
+        //     //     FrameTimerMax = animationUnitIdle.FrameTimerMax,
+        //     //     Uv = new Vector4(1f / animationUnitIdle.FrameCount, 0.5f, 0, animationUnitIdle.FrameRow)
+        //     // };
+        //     // if (!EntityManager.HasComponent<SpriteSheetAnimation>(entity))
+        //     // {
+        //     //     entityCommandBuffer.AddComponent(entity, spriteSheetAnimation);
+        //     // }
+        //     // else
+        //     // {
+        //     //     EntityManager.SetComponentData(entity, spriteSheetAnimation);
+        //     // }
+        // }
+        //
+        // if (EntityManager.IsComponentEnabled<AnimationUnitWalk>(entity))
+        // {
+        //     EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, false);
+        // }
     }
 
     private void SetAnimationToWalk(Entity entity, EntityCommandBuffer entityCommandBuffer)
     {
-        if (!EntityManager.IsComponentEnabled<AnimationUnitWalk>(entity))
-        {
-            EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, true);
-            var animationUnitWalk = EntityManager.GetComponentData<AnimationUnitWalk>(entity);
-            var spriteSheetAnimation = new SpriteSheetAnimation
-            {
-                FrameCount = animationUnitWalk.FrameCount,
-                FrameTimerMax = animationUnitWalk.FrameTimerMax,
-                Uv = new Vector4(1f / animationUnitWalk.FrameCount, 0.5f, 0, animationUnitWalk.FrameRow)
-            };
-
-            if (!EntityManager.HasComponent<SpriteSheetAnimation>(entity))
-            {
-                entityCommandBuffer.AddComponent(entity, spriteSheetAnimation);
-            }
-            else
-            {
-                EntityManager.SetComponentData(entity, spriteSheetAnimation);
-            }
-        }
-
-        if (EntityManager.IsComponentEnabled<AnimationUnitIdle>(entity))
-        {
-            EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, false);
-        }
+        // if (!EntityManager.IsComponentEnabled<AnimationUnitWalk>(entity))
+        // {
+        //     EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, true);
+        //     var animationUnitWalk = EntityManager.GetComponentData<AnimationUnitWalk>(entity);
+        //     var spriteSheetAnimation = new SpriteSheetAnimation
+        //     {
+        //         FrameCount = animationUnitWalk.FrameCount,
+        //         FrameTimerMax = animationUnitWalk.FrameTimerMax,
+        //         Uv = new Vector4(1f / animationUnitWalk.FrameCount, 0.5f, 0, animationUnitWalk.FrameRow)
+        //     };
+        //
+        //     if (!EntityManager.HasComponent<SpriteSheetAnimation>(entity))
+        //     {
+        //         entityCommandBuffer.AddComponent(entity, spriteSheetAnimation);
+        //     }
+        //     else
+        //     {
+        //         EntityManager.SetComponentData(entity, spriteSheetAnimation);
+        //     }
+        // }
+        //
+        // if (EntityManager.IsComponentEnabled<AnimationUnitIdle>(entity))
+        // {
+        //     EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, false);
+        // }
     }
 }

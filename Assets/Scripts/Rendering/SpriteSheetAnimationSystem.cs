@@ -2,7 +2,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateBefore(typeof(PathFollowSystem))]
+[UpdateAfter(typeof(AnimationUnitSystem))]
 public partial class SpriteSheetAnimationSystem : SystemBase
 {
     protected override void OnUpdate()
