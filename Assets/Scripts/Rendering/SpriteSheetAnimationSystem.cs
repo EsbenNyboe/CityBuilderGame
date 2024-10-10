@@ -7,7 +7,8 @@ public partial class SpriteSheetAnimationSystem : SystemBase
 {
     protected override void OnUpdate()
     {
-        foreach (var (spriteSheetAnimationData, localToWorld, entity) in SystemAPI.Query<RefRW<SpriteSheetAnimation>, RefRW<LocalToWorld>>()
+        foreach (var (spriteSheetAnimationData, localToWorld, spriteTransform, entity) in SystemAPI
+                     .Query<RefRW<SpriteSheetAnimation>, RefRO<LocalToWorld>, RefRO<SpriteTransform>>()
                      .WithEntityAccess())
         {
             spriteSheetAnimationData.ValueRW.FrameTimer += SystemAPI.Time.DeltaTime;
@@ -26,10 +27,11 @@ public partial class SpriteSheetAnimationSystem : SystemBase
                 spriteSheetAnimationData.ValueRW.Uv = uv;
             }
 
-            var position = localToWorld.ValueRO.Position;
+            var position = localToWorld.ValueRO.Position + spriteTransform.ValueRO.Position;
+            var rotation = spriteTransform.ValueRO.Rotation;
             // sort sprites, by putting lower sprites in front of higher ones:
             // positon.z = positon.y * 0.01f;
-            spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, localToWorld.ValueRO.Rotation, Vector3.one);
+            spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
         }
     }
 }

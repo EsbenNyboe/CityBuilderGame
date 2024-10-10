@@ -19,13 +19,13 @@ public partial class HarvestingUnitSystem : SystemBase
             harvestingUnit.ValueRW.DoChopAnimation = false;
         }
 
-        foreach (var (localTransform, harvestingUnit, pathFollow, entity) in SystemAPI
-                     .Query<RefRO<LocalTransform>, RefRW<HarvestingUnit>, RefRO<PathFollow>>()
+        foreach (var (localTransform, harvestingUnit, pathFollow, spriteTransform, entity) in SystemAPI
+                     .Query<RefRO<LocalTransform>, RefRW<HarvestingUnit>, RefRO<PathFollow>, RefRW<SpriteTransform>>()
                      .WithAll<HarvestingUnit>().WithEntityAccess())
         {
             if (harvestingUnit.ValueRO.DoChopAnimation)
             {
-                DoChopAnimation(localTransform, harvestingUnit, entity);
+                DoChopAnimation(localTransform, harvestingUnit, spriteTransform);
             }
 
             var unitIsTryingToHarvest = pathFollow.ValueRO.PathIndex < 0;
@@ -161,7 +161,7 @@ public partial class HarvestingUnitSystem : SystemBase
         });
     }
 
-    private void DoChopAnimation(RefRO<LocalTransform> localTransform, RefRW<HarvestingUnit> harvestingUnit, Entity entity)
+    private void DoChopAnimation(RefRO<LocalTransform> localTransform, RefRW<HarvestingUnit> harvestingUnit, RefRW<SpriteTransform> spriteTransform)
     {
         var chopDuration = ChopAnimationManager.ChopDuration();
         var chopSize = ChopAnimationManager.ChopAnimationSize();
@@ -194,18 +194,8 @@ public partial class HarvestingUnitSystem : SystemBase
         var childPosition = positionDistanceFromOrigin * chopDirection;
 
         // Apply animation output:
-        var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
-
-        // NOTE: The child transform is also controlled by PathFollowSystem, when unit is moving
-        // TODO: Handle position-anim-direction in a smarter way (conflicts with parent, which is controlled by walk-direction)
-        // TODO: Handle angle in a smarter way, when chop-sprite-animation is ready to implement
-        // var angleInDegrees = chopDirection.x > 0 ? 0f : 180f;
         var angleInDegrees = 0f;
-        EntityManager.SetComponentData(childEntity, new LocalTransform
-        {
-            Position = childPosition,
-            Scale = 1f,
-            Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0)
-        });
+        spriteTransform.ValueRW.Position = childPosition;
+        spriteTransform.ValueRW.Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
     }
 }

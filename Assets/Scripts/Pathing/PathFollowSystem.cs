@@ -13,8 +13,8 @@ public partial class PathFollowSystem : SystemBase
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
         var numberOfUnits = 0;
 
-        foreach (var (localTransform, pathPositionBuffer, pathFollow, entity) in SystemAPI
-                     .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>>().WithEntityAccess())
+        foreach (var (localTransform, pathPositionBuffer, pathFollow, spriteTransform, entity) in SystemAPI
+                     .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>, RefRW<SpriteTransform>>().WithEntityAccess())
         {
             numberOfUnits++;
 
@@ -86,15 +86,9 @@ public partial class PathFollowSystem : SystemBase
 
             if (moveDirection.x != 0)
             {
-                // NOTE: The child transform is also controlled by HarvestingUnitSystem, on DoChopAnimation
-                var childEntity = EntityManager.GetBuffer<Child>(entity)[0].Value;
                 var angleInDegrees = moveDirection.x > 0 ? 0f : 180f;
-                EntityManager.SetComponentData(childEntity, new LocalTransform
-                {
-                    Position = Vector3.zero,
-                    Scale = 1,
-                    Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0)
-                });
+                spriteTransform.ValueRW.Position = Vector3.zero;
+                spriteTransform.ValueRW.Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
             }
         }
 
@@ -216,15 +210,8 @@ public partial class PathFollowSystem : SystemBase
         return false;
     }
 
-    private void SetAnimationToIdle(Entity parentEntity, EntityCommandBuffer entityCommandBuffer)
+    private void SetAnimationToIdle(Entity entity, EntityCommandBuffer entityCommandBuffer)
     {
-        if (!EntityManager.HasComponent<Child>(parentEntity))
-        {
-            // WHY THOUGH?
-            return;
-        }
-
-        var entity = EntityManager.GetBuffer<Child>(parentEntity)[0].Value;
         if (!EntityManager.IsComponentEnabled<AnimationUnitIdle>(entity))
         {
             EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, true);
@@ -251,15 +238,8 @@ public partial class PathFollowSystem : SystemBase
         }
     }
 
-    private void SetAnimationToWalk(Entity parentEntity, EntityCommandBuffer entityCommandBuffer)
+    private void SetAnimationToWalk(Entity entity, EntityCommandBuffer entityCommandBuffer)
     {
-        if (!EntityManager.HasComponent<Child>(parentEntity))
-        {
-            // WHY THOUGH?
-            return;
-        }
-
-        var entity = EntityManager.GetBuffer<Child>(parentEntity)[0].Value;
         if (!EntityManager.IsComponentEnabled<AnimationUnitWalk>(entity))
         {
             EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, true);
