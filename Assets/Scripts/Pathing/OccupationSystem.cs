@@ -11,10 +11,10 @@ public partial class OccupationSystem : SystemBase
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
         // TODO: Test if "WithAll" is necessary
         // TODO: Test if "WithAll<TryDeoccupy>" is faster that RefRO
-        foreach (var (tryDeoccupy, localTransform, harvestingUnit, entity) in SystemAPI
-                     .Query<RefRO<TryDeoccupy>, RefRO<LocalTransform>, RefRO<HarvestingUnit>>().WithAll<HarvestingUnit>().WithEntityAccess())
+        foreach (var (tryDeoccupy, localTransform, entity) in SystemAPI
+                     .Query<RefRO<TryDeoccupy>, RefRO<LocalTransform>>().WithEntityAccess())
         {
-            var newTarget = harvestingUnit.ValueRO.Target;
+            var newTarget = tryDeoccupy.ValueRO.NewTarget;
             HandleCellDeoccupation(entityCommandBuffer, localTransform, entity, newTarget);
             entityCommandBuffer.RemoveComponent<TryDeoccupy>(entity);
         }

@@ -59,7 +59,10 @@ public partial struct PathFollowSystem : ISystem
 
                     if (state.EntityManager.IsComponentEnabled<DeliveringUnit>(entity))
                     {
-                        entityCommandBuffer.AddComponent(entity, new TryDeoccupy());
+                        entityCommandBuffer.AddComponent(entity, new TryDeoccupy
+                        {
+                            NewTarget = state.EntityManager.GetComponentData<HarvestingUnit>(entity).Target
+                        });
                     }
                     else
                     {
