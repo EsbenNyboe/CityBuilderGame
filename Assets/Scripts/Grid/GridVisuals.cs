@@ -233,8 +233,8 @@ public class GridVisuals : MonoBehaviour
                     numberOfTrees--;
                 }
 
-                var uv00 = new Vector3(frameOffset, 0);
-                var uv11 = new Vector3(frameOffset + frameSize, 1);
+                var uv00 = new Vector2(frameOffset, 0);
+                var uv11 = new Vector2(frameOffset + frameSize, 1);
 
 
                 var index = x * _gridDamageable.GetHeight() + y;
@@ -281,8 +281,8 @@ public class GridVisuals : MonoBehaviour
                     _ => red
                 };
 
-                var uv00 = new Vector3(color, 0f);
-                var uv11 = new Vector3(color, 1f);
+                var uv00 = new Vector2(color, 0f);
+                var uv11 = new Vector2(color, 1f);
 
                 var position = _gridDamageable.GetWorldPosition(x, y);
                 // TODO: Make positioning cleaner? Not accounting for cell-size right now...
@@ -331,8 +331,8 @@ public class GridVisuals : MonoBehaviour
                     : Vector3.zero;
 
                 var colorRed = 0.1f;
-                var uv00 = new Vector3(colorRed, 0f);
-                var uv11 = new Vector3(colorRed, 1f);
+                var uv00 = new Vector2(colorRed, 0f);
+                var uv11 = new Vector2(colorRed, 1f);
 
                 var position = _gridOccupation.GetWorldPosition(x, y);
                 // TODO: Make positioning cleaner? Not accounting for cell-size right now...
