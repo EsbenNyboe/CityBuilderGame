@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
+[UpdateAfter(typeof(OccupationSystem))]
 public partial class HarvestingUnitSystem : SystemBase
 {
     protected override void OnUpdate()

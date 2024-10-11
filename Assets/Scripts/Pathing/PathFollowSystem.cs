@@ -1,22 +1,23 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public partial class PathFollowSystem : SystemBase
+[BurstCompile]
+public partial struct PathFollowSystem : ISystem
 {
     private const bool ShowDebug = true;
 
-    protected override void OnUpdate()
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
     {
-        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
-        var numberOfUnits = 0;
+        var entityCommandBuffer = new EntityCommandBuffer(Allocator.Temp);
 
         foreach (var (localTransform, pathPositionBuffer, pathFollow, spriteTransform, entity) in SystemAPI
                      .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>, RefRW<SpriteTransform>>().WithEntityAccess())
         {
-            numberOfUnits++;
-
             if (pathFollow.ValueRO.PathIndex < 0)
             {
                 continue;
@@ -28,7 +29,7 @@ public partial class PathFollowSystem : SystemBase
             var moveSpeed = 5f;
 
             var distanceBeforeMoving = math.distance(localTransform.ValueRO.Position, targetPosition);
-            localTransform.ValueRW.Position += moveDirection * moveSpeed * SystemAPI.Time.DeltaTime * Globals.GameSpeed();
+            localTransform.ValueRW.Position += moveDirection * moveSpeed * SystemAPI.Time.DeltaTime; // * Globals.GameSpeed();
             var distanceAfterMoving = math.distance(localTransform.ValueRO.Position, targetPosition);
 
             if (ShowDebug)
@@ -38,6 +39,7 @@ public partial class PathFollowSystem : SystemBase
             }
 
             var unitIsOnNextPathPosition = distanceAfterMoving < 0.1f;
+
 
             // HACK:
             if (!unitIsOnNextPathPosition && distanceAfterMoving > distanceBeforeMoving)
@@ -55,25 +57,13 @@ public partial class PathFollowSystem : SystemBase
                 {
                     localTransform.ValueRW.Position = targetPosition;
 
-                    if (EntityManager.IsComponentEnabled<DeliveringUnit>(entity))
+                    if (state.EntityManager.IsComponentEnabled<DeliveringUnit>(entity))
                     {
-                        // if (!EntityManager.HasComponent<PathfindingParams>(entity))
-                        // {
-                        // }
-                        var harvestTarget = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
-                        SetupPathfinding(entityCommandBuffer, localTransform, entity, harvestTarget);
-                        EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
-                        EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
-
-                        var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
-                        if (occupationCell.EntityIsOwner(entity))
-                        {
-                            occupationCell.SetOccupied(Entity.Null);
-                        }
+                        entityCommandBuffer.AddComponent(entity, new TryDeoccupy());
                     }
                     else
                     {
-                        HandleCellOccupation(entityCommandBuffer, localTransform, entity);
+                        entityCommandBuffer.AddComponent(entity, new TryOccupy());
                     }
                 }
             }
@@ -87,102 +77,6 @@ public partial class PathFollowSystem : SystemBase
             }
         }
 
-        GlobalStatusDisplay.SetNumberOfUnits(numberOfUnits);
-        entityCommandBuffer.Playback(EntityManager);
-    }
-
-    private void HandleCellOccupation(EntityCommandBuffer entityCommandBuffer, RefRW<LocalTransform> localTransform, Entity entity)
-    {
-        GridSetup.Instance.OccupationGrid.GetXY(localTransform.ValueRO.Position, out var posX, out var posY);
-
-        // TODO: Check if it's safe to assume the occupied cell owner is not this entity
-        if (!GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).IsOccupied())
-        {
-            // Debug.Log("Set occupied: " + entity);
-            GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).SetOccupied(entity);
-            return;
-        }
-
-        if (EntityManager.IsComponentEnabled<HarvestingUnit>(entity))
-        {
-            // Debug.Log("Unit cannot harvest, because cell is occupied: " + posX + " " + posY);
-
-            var harvestTarget = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
-            if (PathingHelpers.TryGetNearbyChoppingCell(harvestTarget, out var newTarget, out var newPathTarget))
-            {
-                SetHarvestingUnit(entity, newTarget);
-                SetupPathfinding(entityCommandBuffer, localTransform, entity, newPathTarget);
-                return;
-            }
-
-            Debug.LogWarning("Could not find nearby chopping cell. Disabling harvesting-behaviour...");
-        }
-
-        var nearbyCells = PathingHelpers.GetCellListAroundTargetCell30Rings(posX, posY);
-        //var nearbyCells = PathingHelpers.GetCellListAroundTargetCell(posX, posY, 20);
-        if (!TryGetNearbyVacantCell(nearbyCells, out var vacantCell))
-        {
-            Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
-            return;
-        }
-
-        SetupPathfinding(entityCommandBuffer, localTransform, entity, vacantCell);
-        DisableHarvestingUnit(entity);
-
-        var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
-        if (occupationCell.EntityIsOwner(entity))
-        {
-            occupationCell.SetOccupied(Entity.Null);
-        }
-    }
-
-    private void SetHarvestingUnit(Entity entity, int2 newTarget)
-    {
-        // EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
-        EntityManager.SetComponentData(entity, new HarvestingUnit
-        {
-            Target = newTarget
-        });
-    }
-
-    // TODO: Fix race-condition with DeliveringUnitSystem
-    private void DisableHarvestingUnit(Entity entity)
-    {
-        EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
-        //EntityManager.SetComponentData(entity, new HarvestingUnit
-        //{
-        //    Target = new int2(-1, -1)
-        //});
-
-        EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
-    }
-
-    private void SetupPathfinding(EntityCommandBuffer entityCommandBuffer, RefRW<LocalTransform> localTransform, Entity entity, int2 newEndPosition)
-    {
-        GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-        PathingHelpers.ValidateGridPosition(ref startX, ref startY);
-
-        entityCommandBuffer.AddComponent(entity, new PathfindingParams
-        {
-            StartPosition = new int2(startX, startY),
-            EndPosition = newEndPosition
-        });
-    }
-
-    private static bool TryGetNearbyVacantCell(int2[] movePositionList, out int2 nearbyCell)
-    {
-        for (var i = 1; i < movePositionList.Length; i++)
-        {
-            nearbyCell = movePositionList[i];
-            if (PathingHelpers.IsPositionInsideGrid(nearbyCell) && PathingHelpers.IsPositionWalkable(nearbyCell)
-                                                                && !PathingHelpers.IsPositionOccupied(nearbyCell)
-               )
-            {
-                return true;
-            }
-        }
-
-        nearbyCell = default;
-        return false;
+        entityCommandBuffer.Playback(state.EntityManager);
     }
 }
