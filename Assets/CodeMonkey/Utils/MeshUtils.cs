@@ -35,6 +35,23 @@ public static class MeshUtils
         }
     }
 
+    private static Quaternion GetQuaternionEuler(int rot)
+    {
+        rot = rot % 360;
+        if (rot < 0)
+        {
+            rot += 360;
+        }
+
+        //if (rot >= 360) rot -= 360;
+        if (cachedQuaternionEulerArr == null)
+        {
+            CacheQuaternionEuler();
+        }
+
+        return cachedQuaternionEulerArr[rot];
+    }
+
     private static Quaternion GetQuaternionEuler(float rotFloat)
     {
         var rot = Mathf.RoundToInt(rotFloat);
@@ -141,7 +158,7 @@ public static class MeshUtils
         return mesh;
     }
 
-    public static void AddToMeshArrays(Vector3[] vertices, Vector2[] uvs, int[] triangles, int index, Vector3 pos, float rot, Vector3 baseSize,
+    public static void AddToMeshArrays(Vector3[] vertices, Vector2[] uvs, int[] triangles, int index, Vector3 pos, int rot, Vector3 baseSize,
         Vector2 uv00, Vector2 uv11)
     {
         //Relocate vertices

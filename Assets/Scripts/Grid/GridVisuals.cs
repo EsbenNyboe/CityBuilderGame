@@ -149,7 +149,7 @@ public class GridVisuals : MonoBehaviour
                 // }
 
                 MeshUtils.AddToMeshArrays(pathVertices, pathUv, pathMeshTriangles, index, _gridPath.GetWorldPosition(x, y) + quadSize * .0f,
-                    0f, quadSize, uv00,
+                    0, quadSize, uv00,
                     uv11);
             }
         }
@@ -241,7 +241,7 @@ public class GridVisuals : MonoBehaviour
                 var quadSize = new Vector3(1, 1) * _gridPath.GetCellSize();
                 var position = _gridDamageable.GetWorldPosition(x, y);
 
-                MeshUtils.AddToMeshArrays(treeVertices, treeUv, treeTriangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
+                MeshUtils.AddToMeshArrays(treeVertices, treeUv, treeTriangles, index, position + quadSize * .0f, 0, quadSize, uv00,
                     uv11);
             }
         }
@@ -298,7 +298,7 @@ public class GridVisuals : MonoBehaviour
                     quadSize = Vector3.zero;
                 }
 
-                MeshUtils.AddToMeshArrays(healthBarVertices, healthBarUv, healthBarTriangles, index, position + quadSize * .0f, 0f, quadSize, uv00,
+                MeshUtils.AddToMeshArrays(healthBarVertices, healthBarUv, healthBarTriangles, index, position + quadSize * .0f, 0, quadSize, uv00,
                     uv11);
             }
         }
@@ -338,7 +338,7 @@ public class GridVisuals : MonoBehaviour
                 // TODO: Make positioning cleaner? Not accounting for cell-size right now...
 
                 MeshUtils.AddToMeshArrays(occupationDebugVertices, occupationDebugUv, occupationDebugTriangles, index,
-                    position + quadSize * .0f, 0f, quadSize, uv00,
+                    position + quadSize * .0f, 0, quadSize, uv00,
                     uv11);
             }
         }
