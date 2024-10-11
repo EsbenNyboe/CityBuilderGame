@@ -59,7 +59,8 @@ public class GridVisuals : MonoBehaviour
         if (_updatePathMesh)
         {
             _updatePathMesh = false;
-            UpdateVisual();
+            // Currently there's no need to update grid-floor, when changing the walkable-state of a cell 
+            // UpdateVisual();
         }
 
         if (_updateDamageableText)
@@ -126,11 +127,14 @@ public class GridVisuals : MonoBehaviour
 
     private void UpdateVisual()
     {
-        for (var x = 0; x < _gridPath.GetWidth(); x++)
+        var gridWidth = _gridPath.GetWidth();
+        var gridHeight = _gridPath.GetHeight();
+
+        for (var x = 0; x < gridWidth; x++)
         {
-            for (var y = 0; y < _gridPath.GetHeight(); y++)
+            for (var y = 0; y < gridHeight; y++)
             {
-                var index = x * _gridPath.GetHeight() + y;
+                var index = x * gridHeight + y;
                 var quadSize = new Vector3(1, 1) * _gridPath.GetCellSize();
 
                 var gridNode = _gridPath.GetGridObject(x, y);
@@ -193,15 +197,19 @@ public class GridVisuals : MonoBehaviour
 
     private void UpdateTreeVisuals()
     {
-        var numberOfTrees = 0;
-
-        for (var x = 0; x < _gridDamageable.GetWidth(); x++)
+        var gridWidth = _gridDamageable.GetWidth();
+        var gridHeight = _gridDamageable.GetHeight();
+        for (var x = 0; x < gridWidth; x++)
         {
-            for (var y = 0; y < _gridDamageable.GetHeight(); y++)
+            for (var y = 0; y < gridHeight; y++)
             {
-                numberOfTrees++;
-
                 var gridDamageableObject = _gridDamageable.GetGridObject(x, y);
+                if (!gridDamageableObject.IsDirty())
+                {
+                    continue;
+                }
+                // Note: The reason we don't call ClearDirty() is, because we need to wait for healthBars to update first
+
                 var health = gridDamageableObject.GetHealth();
 
                 var maxHealth = gridDamageableObject.GetMaxHealth();
@@ -230,14 +238,13 @@ public class GridVisuals : MonoBehaviour
                 {
                     // There's no tree
                     frameOffset = 1f;
-                    numberOfTrees--;
                 }
 
                 var uv00 = new Vector2(frameOffset, 0);
                 var uv11 = new Vector2(frameOffset + frameSize, 1);
 
 
-                var index = x * _gridDamageable.GetHeight() + y;
+                var index = x * gridHeight + y;
                 var quadSize = new Vector3(1, 1) * _gridPath.GetCellSize();
                 var position = _gridDamageable.GetWorldPosition(x, y);
 
@@ -249,18 +256,25 @@ public class GridVisuals : MonoBehaviour
         _treeMesh.vertices = treeVertices;
         _treeMesh.uv = treeUv;
         _treeMesh.triangles = treeTriangles;
-
-        GlobalStatusDisplay.SetNumberOfTrees(numberOfTrees);
     }
 
     private void UpdateHealthBarVisuals()
     {
-        for (var x = 0; x < _gridDamageable.GetWidth(); x++)
+        var gridWidth = _gridDamageable.GetWidth();
+        var gridHeight = _gridDamageable.GetHeight();
+        for (var x = 0; x < gridWidth; x++)
         {
-            for (var y = 0; y < _gridDamageable.GetHeight(); y++)
+            for (var y = 0; y < gridHeight; y++)
             {
-                var index = x * _gridDamageable.GetHeight() + y;
                 var gridDamageableObject = _gridDamageable.GetGridObject(x, y);
+                if (!gridDamageableObject.IsDirty())
+                {
+                    continue;
+                }
+
+                gridDamageableObject.ClearDirty();
+
+                var index = x * gridHeight + y;
 
                 var healthNormalized = gridDamageableObject.GetHealth() / gridDamageableObject.GetMaxHealth();
                 var widthPercentage = 0.75f;

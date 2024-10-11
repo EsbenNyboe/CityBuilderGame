@@ -8,6 +8,8 @@ public class GridDamageable
 
     private float _maxHealth;
 
+    private bool _isDirty = true;
+
     public GridDamageable(Grid<GridDamageable> grid, int x, int y)
     {
         _grid = grid;
@@ -35,6 +37,7 @@ public class GridDamageable
     {
         _health = health;
         _maxHealth = _health;
+        _isDirty = true;
         _grid.TriggerGridObjectChanged(_x, _y);
     }
 
@@ -43,9 +46,20 @@ public class GridDamageable
         AddToHealth(-delta);
     }
 
-    public void AddToHealth(float delta)
+    private void AddToHealth(float delta)
     {
         _health += delta;
+        _isDirty = true;
         _grid.TriggerGridObjectChanged(_x, _y);
+    }
+
+    public bool IsDirty()
+    {
+        return _isDirty;
+    }
+
+    public void ClearDirty()
+    {
+        _isDirty = false;
     }
 }
