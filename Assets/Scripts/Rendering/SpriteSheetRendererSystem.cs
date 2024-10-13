@@ -71,13 +71,23 @@ public partial class SpriteSheetRendererSystem : SystemBase
         nativeQueue_1 = new NativeQueue<RenderData>(Allocator.TempJob);
         nativeQueue_2 = new NativeQueue<RenderData>(Allocator.TempJob);
 
+        var cullBuffer = 1f; // We add some buffer, so culling is not noticable
         float3 cameraPosition = camera.transform.position;
-        var yBottom = cameraPosition.y - camera.orthographicSize;
-        var yTop_1 = cameraPosition.y + camera.orthographicSize;
+        var screenRatio = Screen.width / (float)Screen.height;
+        var cameraSizeX = camera.orthographicSize * screenRatio + cullBuffer;
+        var cameraSizeY = camera.orthographicSize + cullBuffer;
+
+        var xLeft = cameraPosition.x - cameraSizeX;
+        var xRight = cameraPosition.x + cameraSizeX;
+
+        var yBottom = cameraPosition.y - cameraSizeY;
+        var yTop_1 = cameraPosition.y + cameraSizeY;
         var yTop_2 = cameraPosition.y + 0f;
 
         var cullAndSortJob = new CullAndSort
         {
+            xLeft = xLeft,
+            xRight = xRight,
             yTop_1 = yTop_1,
             yTop_2 = yTop_2,
             yBottom = yBottom,
@@ -180,6 +190,8 @@ public partial class SpriteSheetRendererSystem : SystemBase
     [BurstCompile]
     private partial struct CullAndSort : IJobEntity
     {
+        public float xLeft; // Left most cull position
+        public float xRight; // Right most cull position
         public float yTop_1; // Top most cull position
         public float yTop_2; // Second slice from top
         public float yBottom; // Bottom most cull position
@@ -189,10 +201,18 @@ public partial class SpriteSheetRendererSystem : SystemBase
 
         public void Execute(Entity entity, ref LocalToWorld localToWorld, ref SpriteSheetAnimation animationData)
         {
+            var positionX = localToWorld.Position.x;
+            if (!(positionX > xLeft) || !(positionX < xRight))
+            {
+                // Unit is not within horizontal view-bounds. No need to render.
+                return;
+            }
+
             var positionY = localToWorld.Position.y;
             if (!(positionY > yBottom) || !(positionY < yTop_1))
             {
-                // Not valid position
+                // Unit is not within vertical view-bounds. No need to render.
+                return;
             }
 
             var renderData = new RenderData

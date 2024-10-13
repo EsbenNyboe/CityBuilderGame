@@ -46,7 +46,7 @@ public partial class SpawnCubesSystem : SystemBase
 
     private bool GetNextValidGridPosition(ref int gridIndex, out int x, out int y)
     {
-        var maxAttempts = 5000;
+        var maxAttempts = 20000;
         var currentAttempt = 0;
         x = 0;
         y = 0;
