@@ -308,7 +308,7 @@ public partial class Pathfinding : SystemBase
             PathNodeArray[startNode.index] = startNode;
 
             var openList = new NativeList<int>(Allocator.Temp);
-            var closedList = new NativeList<int>(Allocator.Temp);
+            var closedHashSet = new NativeHashSet<int>(1, Allocator.Temp);
 
             openList.Add(startNode.index);
 
@@ -333,7 +333,7 @@ public partial class Pathfinding : SystemBase
                     }
                 }
 
-                closedList.Add(currentNodeIndex);
+                closedHashSet.Add(currentNodeIndex);
 
                 for (var i = 0; i < neighbourOffsetArrayX.Length; i++)
                 {
@@ -348,7 +348,7 @@ public partial class Pathfinding : SystemBase
 
                     var neighbourNodeIndex = CalculateIndex(neighbourPosX, neighbourPosY, GridSize.x);
 
-                    if (closedList.Contains(neighbourNodeIndex))
+                    if (closedHashSet.Contains(neighbourNodeIndex))
                     {
                         // Already searched this node
                         continue;
@@ -380,7 +380,7 @@ public partial class Pathfinding : SystemBase
             neighbourOffsetArrayX.Dispose();
             neighbourOffsetArrayY.Dispose();
             openList.Dispose();
-            closedList.Dispose();
+            closedHashSet.Dispose();
         }
     }
 }
