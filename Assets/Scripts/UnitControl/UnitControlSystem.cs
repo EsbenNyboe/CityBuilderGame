@@ -197,12 +197,17 @@ public partial class UnitControlSystem : SystemBase
                 EndPosition = endPosition
             });
 
+            entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
+            SystemAPI.SetComponent(entity, new SpriteTransform
+            {
+                Position = float3.zero,
+                Rotation = quaternion.identity
+            });
             EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
             EntityManager.SetComponentData(entity, new HarvestingUnit
             {
                 Target = new int2(-1, -1)
             });
-
             EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
 
             AbandonCellIfOccupying(startX, startY, entity);

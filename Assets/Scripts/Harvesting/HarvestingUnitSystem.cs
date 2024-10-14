@@ -1,7 +1,6 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 [UpdateAfter(typeof(OccupationSystem))]
 public partial class HarvestingUnitSystem : SystemBase
@@ -10,31 +9,21 @@ public partial class HarvestingUnitSystem : SystemBase
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
         var chopDuration = ChopAnimationManager.ChopDuration();
-
-        // TODO: Optimize this:
-        foreach (var (localTransform, harvestingUnit, entity) in SystemAPI.Query<RefRO<LocalTransform>, RefRW<HarvestingUnit>>()
-                     .WithDisabled<HarvestingUnit>().WithEntityAccess())
-        {
-            harvestingUnit.ValueRW.TimeUntilNextChop = 0;
-            harvestingUnit.ValueRW.ChopAnimationProgress = chopDuration;
-            harvestingUnit.ValueRW.DoChopAnimation = false;
-        }
+        var chopSize = ChopAnimationManager.ChopAnimationSize();
+        var chopIdleTime = ChopAnimationManager.ChopAnimationPostIdleTimeNormalized();
 
         foreach (var (localTransform, harvestingUnit, pathFollow, spriteTransform, entity) in SystemAPI
                      .Query<RefRO<LocalTransform>, RefRW<HarvestingUnit>, RefRO<PathFollow>, RefRW<SpriteTransform>>()
                      .WithAll<HarvestingUnit>().WithEntityAccess())
         {
-            if (harvestingUnit.ValueRO.DoChopAnimation)
-            {
-                DoChopAnimation(localTransform, harvestingUnit, spriteTransform);
-            }
-
+            // TODO: Replace with create/destroy component
             var unitIsTryingToHarvest = pathFollow.ValueRO.PathIndex < 0;
             if (!unitIsTryingToHarvest)
             {
                 continue;
             }
 
+            // TODO: Try replace with "WithNone"
             if (EntityManager.HasComponent<PathfindingParams>(entity))
             {
                 continue;
@@ -53,6 +42,7 @@ public partial class HarvestingUnitSystem : SystemBase
                 var currentTarget = harvestingUnit.ValueRO.Target;
                 if (PathingHelpers.TryGetNearbyChoppingCell(currentTarget, out var newTarget, out var newPathTarget))
                 {
+                    // TODO: Replace with TryDeoccupy-component
                     var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
                     if (occupationCell.EntityIsOwner(entity))
                     {
@@ -68,6 +58,12 @@ public partial class HarvestingUnitSystem : SystemBase
                 }
                 else
                 {
+                    entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
+                    SystemAPI.SetComponent(entity, new SpriteTransform
+                    {
+                        Position = float3.zero,
+                        Rotation = quaternion.identity
+                    });
                     EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
                     //harvestingUnit.ValueRW.Target = new int2(-1, -1);
                 }
@@ -79,11 +75,19 @@ public partial class HarvestingUnitSystem : SystemBase
             harvestingUnit.ValueRW.TimeUntilNextChop -= SystemAPI.Time.DeltaTime;
             if (harvestingUnit.ValueRO.TimeUntilNextChop < 0)
             {
-                gridDamageableObject.RemoveFromHealth(ChopAnimationManager.DamagePerChop());
-                harvestingUnit.ValueRW.DoChopAnimation = true;
                 harvestingUnit.ValueRW.TimeUntilNextChop = chopDuration;
-                harvestingUnit.ValueRW.ChopAnimationProgress = chopDuration;
+
+                gridDamageableObject.RemoveFromHealth(ChopAnimationManager.DamagePerChop());
                 SoundManager.Instance.PlayChopSound(localTransform.ValueRO.Position);
+                var chopTarget = harvestingUnit.ValueRO.Target;
+                entityCommandBuffer.AddComponent(entity, new ChopAnimation
+                {
+                    TargetPosition = GridSetup.Instance.PathGrid.GetWorldPosition(chopTarget.x, chopTarget.y),
+                    ChopAnimationProgress = chopDuration,
+                    ChopDuration = chopDuration,
+                    ChopSize = chopSize,
+                    ChopIdleTime = chopIdleTime
+                });
             }
 
             if (!gridDamageableObject.IsDamageable())
@@ -93,6 +97,12 @@ public partial class HarvestingUnitSystem : SystemBase
                 GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).SetIsWalkable(true);
                 gridDamageableObject.SetHealth(0);
 
+                entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
+                SystemAPI.SetComponent(entity, new SpriteTransform
+                {
+                    Position = float3.zero,
+                    Rotation = quaternion.identity
+                });
                 EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
 
                 var closestDropPoint = new float3(-1, -1, -1);
@@ -161,42 +171,14 @@ public partial class HarvestingUnitSystem : SystemBase
             EndPosition = newEndPosition
         });
     }
+}
 
-    private void DoChopAnimation(RefRO<LocalTransform> localTransform, RefRW<HarvestingUnit> harvestingUnit, RefRW<SpriteTransform> spriteTransform)
-    {
-        var chopDuration = ChopAnimationManager.ChopDuration();
-        var chopSize = ChopAnimationManager.ChopAnimationSize();
-        var chopIdleTime = ChopAnimationManager.ChopAnimationPostIdleTimeNormalized();
+public struct ChopAnimation : IComponentData
+{
+    public float3 TargetPosition;
+    public float ChopAnimationProgress;
 
-        // Manage animation state:
-        var timeLeft = harvestingUnit.ValueRO.ChopAnimationProgress;
-        timeLeft -= SystemAPI.Time.DeltaTime;
-        harvestingUnit.ValueRW.ChopAnimationProgress = timeLeft;
-
-        if (timeLeft < 0)
-        {
-            harvestingUnit.ValueRW.ChopAnimationProgress = chopDuration;
-            timeLeft = 0;
-            harvestingUnit.ValueRW.DoChopAnimation = false;
-        }
-
-        // Calculate animation input:
-        var timeLeftNormalized = timeLeft / chopDuration;
-        var timeLeftBeforeIdling = timeLeftNormalized - chopIdleTime;
-        var timeLeftBeforeIdlingNormalized = math.max(0, timeLeftBeforeIdling) * (1 + chopIdleTime);
-
-        // Calculate animation output:
-        var positionDistanceFromOrigin = timeLeftBeforeIdlingNormalized * chopSize;
-
-        var chopTarget = harvestingUnit.ValueRO.Target;
-        var chopTargetPosition = GridSetup.Instance.PathGrid.GetWorldPosition(chopTarget.x, chopTarget.y);
-        var chopDirection = (chopTargetPosition - (Vector3)localTransform.ValueRO.Position).normalized;
-
-        var childPosition = positionDistanceFromOrigin * chopDirection;
-
-        // Apply animation output:
-        var angleInDegrees = 0f;
-        spriteTransform.ValueRW.Position = childPosition;
-        spriteTransform.ValueRW.Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
-    }
+    public float ChopDuration;
+    public float ChopSize;
+    public float ChopIdleTime;
 }

@@ -78,7 +78,7 @@ public partial class OccupationSystem : SystemBase
         }
 
         SetupPathfinding(entityCommandBuffer, localTransform, entity, vacantCell);
-        DisableHarvestingUnit(entity);
+        DisableHarvestingUnit(entityCommandBuffer, entity);
 
         var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
         if (occupationCell.EntityIsOwner(entity))
@@ -97,8 +97,14 @@ public partial class OccupationSystem : SystemBase
     }
 
     // TODO: Fix race-condition with DeliveringUnitSystem
-    private void DisableHarvestingUnit(Entity entity)
+    private void DisableHarvestingUnit(EntityCommandBuffer entityCommandBuffer, Entity entity)
     {
+        entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
+        SystemAPI.SetComponent(entity, new SpriteTransform
+        {
+            Position = float3.zero,
+            Rotation = quaternion.identity
+        });
         EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
         //EntityManager.SetComponentData(entity, new HarvestingUnit
         //{

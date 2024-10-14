@@ -22,6 +22,4 @@ public struct HarvestingUnit : IComponentData, IEnableableComponent
 {
     public int2 Target;
     public float TimeUntilNextChop;
-    public float ChopAnimationProgress;
-    public bool DoChopAnimation;
 }
