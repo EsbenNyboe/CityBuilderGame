@@ -1,36 +1,36 @@
-﻿using Unity.Entities;
+﻿using Unity.Burst;
+using Unity.Entities;
 using Unity.Rendering;
 using Unity.Transforms;
 
-public partial class DeliveringUnitSystem : SystemBase
+[BurstCompile]
+public partial struct DeliveringUnitSystem : ISystem
 {
-    protected override void OnUpdate()
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
     {
         foreach (var (deliveringUnit, entity) in SystemAPI.Query<RefRW<DeliveringUnit>>().WithDisabled<DeliveringUnit>().WithEntityAccess())
         {
-            if (!deliveringUnit.ValueRO.IsDisplayingDeliveryItem)
+            if (deliveringUnit.ValueRO.IsDisplayingDeliveryItem)
             {
-                continue;
+                EnableDeliveryGraphic(ref state, deliveringUnit, entity, false);
             }
-
-            deliveringUnit.ValueRW.IsDisplayingDeliveryItem = false;
-            var childLevel1 = EntityManager.GetBuffer<Child>(entity)[0].Value;
-            var childLevel2 = EntityManager.GetBuffer<Child>(childLevel1)[0].Value;
-            EntityManager.SetComponentEnabled<MaterialMeshInfo>(childLevel2, false);
         }
 
         foreach (var (deliveringUnit, entity) in SystemAPI.Query<RefRW<DeliveringUnit>>()
                      .WithAll<DeliveringUnit>().WithEntityAccess())
         {
-            if (deliveringUnit.ValueRO.IsDisplayingDeliveryItem)
+            if (!deliveringUnit.ValueRO.IsDisplayingDeliveryItem)
             {
-                continue;
+                EnableDeliveryGraphic(ref state, deliveringUnit, entity, true);
             }
-
-            deliveringUnit.ValueRW.IsDisplayingDeliveryItem = true;
-            var childLevel1 = EntityManager.GetBuffer<Child>(entity)[0].Value;
-            var childLevel2 = EntityManager.GetBuffer<Child>(childLevel1)[0].Value;
-            EntityManager.SetComponentEnabled<MaterialMeshInfo>(childLevel2, true);
         }
+    }
+
+    private static void EnableDeliveryGraphic(ref SystemState state, RefRW<DeliveringUnit> deliveringUnit, Entity entity, bool enable)
+    {
+        deliveringUnit.ValueRW.IsDisplayingDeliveryItem = enable;
+        var child = state.EntityManager.GetBuffer<Child>(entity)[0].Value;
+        state.EntityManager.SetComponentEnabled<MaterialMeshInfo>(child, enable);
     }
 }
