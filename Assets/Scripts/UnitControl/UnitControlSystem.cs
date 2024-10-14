@@ -71,7 +71,7 @@ public partial class UnitControlSystem : SystemBase
             }
 
             var selectedEntityCount = 0;
-            foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
+            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<Selectable>, RefRO<LocalTransform>>().WithEntityAccess())
             {
                 if (selectOnlyOneEntity && selectedEntityCount > 0)
                 {
@@ -281,12 +281,9 @@ public partial class UnitControlSystem : SystemBase
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
-        foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
+        foreach (var (_, entity) in SystemAPI.Query<RefRO<Selectable>>().WithEntityAccess())
         {
-            if (!EntityManager.HasComponent<UnitSelection>(entity))
-            {
-                entityCommandBuffer.AddComponent(entity, new UnitSelection());
-            }
+            entityCommandBuffer.AddComponent(entity, new UnitSelection());
         }
 
         entityCommandBuffer.Playback(EntityManager);

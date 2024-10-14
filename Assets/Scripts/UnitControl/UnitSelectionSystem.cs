@@ -3,7 +3,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public partial class SelectedUnitSystem : SystemBase
+public partial class UnitSelectionSystem : SystemBase
 {
     protected override void OnUpdate()
     {
