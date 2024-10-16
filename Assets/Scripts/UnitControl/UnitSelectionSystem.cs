@@ -10,6 +10,8 @@ public partial class UnitSelectionSystem : SystemBase
         var material = SelectionAreaManager.Instance.UnitSelectedMaterial;
         var mesh = SelectionAreaManager.Instance.UnitSelectedMesh;
 
+        CameraController.Instance.FollowPosition = Vector3.zero;
+
         var positionOffset = new float3(0, -0.4f, 0);
         foreach (var (_, localTransform) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>())
         {

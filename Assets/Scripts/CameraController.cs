@@ -60,7 +60,7 @@ public class CameraController : MonoBehaviour
             _isFollowingSelectedUnit = !_isFollowingSelectedUnit;
         }
 
-        if (_isFollowingSelectedUnit)
+        if (_isFollowingSelectedUnit && FollowPosition != Vector3.zero)
         {
             var followPosition = new Vector3(FollowPosition.x, FollowPosition.y, transform.position.z);
             transform.position = Vector3.Lerp(transform.position, followPosition, _followLerpFactor);

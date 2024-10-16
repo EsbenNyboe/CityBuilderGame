@@ -80,6 +80,7 @@ public partial class OccupationSystem : SystemBase
         SetupPathfinding(entityCommandBuffer, localTransform, entity, vacantCell);
         DisableHarvestingUnit(entityCommandBuffer, entity);
 
+        // TODO: Check if this is actually necessary.. This can be removed, right?
         var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
         if (occupationCell.EntityIsOwner(entity))
         {

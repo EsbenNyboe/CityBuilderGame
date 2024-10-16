@@ -1,17 +1,17 @@
 ﻿using CodeMonkey.Utils;
+using Unity.Entities;
 using UnityEngine;
 
 public class GridVisuals : MonoBehaviour
 {
     [SerializeField] private MeshFilter _pathMeshFilter;
+    [SerializeField] private MeshFilter _pathMeshFilterTest;
     [SerializeField] private MeshFilter _treeMeshFilter;
     [SerializeField] private MeshFilter _healthBarMeshFilter;
     [SerializeField] private MeshFilter _occupationDebugMeshFilter;
 
-    public float FrameSize;
-    public float FrameOffset;
-
     private Mesh _pathMesh;
+    private Mesh _pathMeshTest;
     private Mesh _treeMesh;
     private Mesh _healthBarMesh;
     private Mesh _occupationDebugMesh;
@@ -28,24 +28,31 @@ public class GridVisuals : MonoBehaviour
     private bool _updateDamageableText;
 
     private int[] pathMeshTriangles;
+    private int[] pathMeshTrianglesTest;
     private int[] treeTriangles;
     private int[] healthBarTriangles;
     private int[] occupationDebugTriangles;
 
     private Vector2[] pathUv;
+    private Vector2[] pathUvTest;
     private Vector2[] treeUv;
     private Vector2[] healthBarUv;
     private Vector2[] occupationDebugUv;
 
     private Vector3[] pathVertices;
+    private Vector3[] pathVerticesTest;
     private Vector3[] treeVertices;
     private Vector3[] healthBarVertices;
     private Vector3[] occupationDebugVertices;
+
+    private SystemHandle _gridManagerEntity;
 
     private void Awake()
     {
         _pathMesh = new Mesh();
         _pathMeshFilter.mesh = _pathMesh;
+        _pathMeshTest = new Mesh();
+        _pathMeshFilterTest.mesh = _pathMeshTest;
         _treeMesh = new Mesh();
         _treeMeshFilter.mesh = _treeMesh;
         _healthBarMesh = new Mesh();
@@ -56,6 +63,25 @@ public class GridVisuals : MonoBehaviour
 
     private void LateUpdate()
     {
+        // HACK: This is done in late-update to make sure, the GridManagerSystem has been created. Not sure, if it's necessary though...
+        if (_gridManagerEntity == default)
+        {
+            _gridManagerEntity = World.DefaultGameObjectInjectionWorld.GetExistingSystem<GridManagerSystem>();
+
+            MeshUtils.CreateEmptyMeshArrays(
+                World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerEntity).WalkableGrid.Length,
+                out pathVerticesTest, out pathUvTest, out pathMeshTrianglesTest);
+        }
+
+        var gridManager = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerEntity);
+        if (gridManager.WalkableGridIsDirty)
+        {
+            Debug.Log("Set dirty to false");
+            gridManager.WalkableGridIsDirty = false;
+            UpdateGridManagerVisual(ref gridManager);
+            World.DefaultGameObjectInjectionWorld.EntityManager.SetComponentData(_gridManagerEntity, gridManager);
+        }
+
         if (_updatePathMesh)
         {
             _updatePathMesh = false;
@@ -123,6 +149,47 @@ public class GridVisuals : MonoBehaviour
     private void Grid_OnGridValueChanged(object sender, Grid<GridOccupation>.OnGridObjectChangedEventArgs e)
     {
         _updateOccupationDebugMesh = true;
+    }
+
+    private void UpdateGridManagerVisual(ref GridManager gridManager)
+    {
+        var gridWidth = gridManager.Width;
+        var gridHeight = gridManager.Height;
+
+        for (var x = 0; x < gridWidth; x++)
+        {
+            for (var y = 0; y < gridHeight; y++)
+            {
+                var index = x * gridHeight + y;
+                var walkableCell = gridManager.WalkableGrid[index];
+                if (!walkableCell.IsDirty)
+                {
+                    continue;
+                }
+
+                walkableCell.IsDirty = false;
+                gridManager.WalkableGrid[index] = walkableCell;
+
+                var uv00 = new Vector2(0, 0);
+                var uv11 = new Vector2(.5f, .5f);
+
+                if (!walkableCell.IsWalkable)
+                {
+                    //quadSize = Vector3.zero;
+                    uv00 = new Vector2(.5f, .5f);
+                    uv11 = new Vector2(1f, 1f);
+                }
+
+                var quadSize = Vector3.one; // GridManager currently only supports a cellSize of one
+                var worldPosition = new Vector3(x, y, 0f); // GridManager currently only supports a cellSize of one, and originPosition of zero
+                MeshUtils.AddToMeshArrays(pathVerticesTest, pathUvTest, pathMeshTrianglesTest, index, worldPosition + quadSize * .0f, 0, quadSize,
+                    uv00, uv11);
+            }
+        }
+
+        _pathMeshTest.vertices = pathVerticesTest;
+        _pathMeshTest.uv = pathUvTest;
+        _pathMeshTest.triangles = pathMeshTrianglesTest;
     }
 
     private void UpdateVisual()
