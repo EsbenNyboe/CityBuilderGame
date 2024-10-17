@@ -7,17 +7,25 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
+[UpdateAfter(typeof(GridManagerSystem))]
 public partial class Pathfinding : SystemBase
 {
     private const int MoveStraightCost = 10;
     private const int MoveDiagonalCost = 14;
     private static NativeArray<PathNode> PathNodeArrayTemplate;
+    private SystemHandle _gridManagerSystemHandle;
+
+    protected override void OnCreate()
+    {
+        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
+    }
 
     protected override void OnUpdate()
     {
-        var grid = GridSetup.Instance.PathGrid;
-        var gridWidth = grid.GetWidth();
-        var gridHeight = grid.GetHeight();
+        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+        var walkableGrid = gridManager.WalkableGrid;
+        var gridWidth = gridManager.Width;
+        var gridHeight = gridManager.Height;
         var gridSize = new int2(gridWidth, gridHeight);
 
         var findPathJobList = new List<FindPathJob>();
@@ -33,7 +41,7 @@ public partial class Pathfinding : SystemBase
             var templateIsCreated = PathNodeArrayTemplate.IsCreated;
             if (!templateIsCreated)
             {
-                PathNodeArrayTemplate = GetNewPathNodeArray(grid, gridSize);
+                PathNodeArrayTemplate = GetNewPathNodeArray(walkableGrid, gridSize);
             }
 
             if (currentAmountOfSchedules > maxPathfindingSchedulesPerFrame)
@@ -47,7 +55,7 @@ public partial class Pathfinding : SystemBase
             var findPathJob = new FindPathJob
             {
                 GridSize = gridSize,
-                PathNodeArray = GetPathNodeArray(),
+                PathNodeArray = GetPathNodeArray(gridSize),
                 StartPosition = pathfindingParams.ValueRO.StartPosition,
                 EndPosition = pathfindingParams.ValueRO.EndPosition,
                 Entity = entity,
@@ -83,18 +91,15 @@ public partial class Pathfinding : SystemBase
         entityCommandBuffer.Playback(EntityManager);
     }
 
-    private NativeArray<PathNode> GetPathNodeArray()
+    private NativeArray<PathNode> GetPathNodeArray(int2 gridSize)
     {
-        var grid = GridSetup.Instance.PathGrid;
-        var gridSize = new int2(grid.GetWidth(), grid.GetHeight());
-
         var pathNodeArray = new NativeArray<PathNode>(gridSize.x * gridSize.y, Allocator.TempJob);
         pathNodeArray.CopyFrom(PathNodeArrayTemplate);
 
         return pathNodeArray;
     }
 
-    private NativeArray<PathNode> GetNewPathNodeArray(Grid<GridPath> grid, int2 gridSize)
+    private NativeArray<PathNode> GetNewPathNodeArray(NativeArray<WalkableCell> grid, int2 gridSize)
     {
         var pathNodeArray = new NativeArray<PathNode>(gridSize.x * gridSize.y, Allocator.TempJob);
 
@@ -103,7 +108,7 @@ public partial class Pathfinding : SystemBase
         return pathNodeArray;
     }
 
-    private static NativeArray<PathNode> FillArray(Grid<GridPath> grid, int2 gridSize, NativeArray<PathNode> pathNodeArray)
+    private static NativeArray<PathNode> FillArray(NativeArray<WalkableCell> grid, int2 gridSize, NativeArray<PathNode> pathNodeArray)
     {
         for (var x = 0; x < gridSize.x; x++)
         {
@@ -116,7 +121,7 @@ public partial class Pathfinding : SystemBase
 
                 pathNode.gCost = int.MaxValue;
 
-                pathNode.isWalkable = grid.GetGridObject(x, y).IsWalkable();
+                pathNode.isWalkable = grid[pathNode.index].IsWalkable;
                 pathNode.cameFromNodeIndex = -1;
 
                 pathNodeArray[pathNode.index] = pathNode;
