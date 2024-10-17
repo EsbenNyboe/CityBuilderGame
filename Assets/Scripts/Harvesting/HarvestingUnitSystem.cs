@@ -40,7 +40,7 @@ public partial class HarvestingUnitSystem : SystemBase
 
                 // Seek new tree:
                 var currentTarget = harvestingUnit.ValueRO.Target;
-                if (PathingHelpers.TryGetNearbyChoppingCell(currentTarget, out var newTarget, out var newPathTarget))
+                if (PathingHelpers.TryGetNearbyChoppingCell_OLD(currentTarget, out var newTarget, out var newPathTarget))
                 {
                     // TODO: Replace with TryDeoccupy-component
                     var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
