@@ -76,7 +76,6 @@ public class GridVisuals : MonoBehaviour
         var gridManager = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerEntity);
         if (gridManager.WalkableGridIsDirty)
         {
-            Debug.Log("Set dirty to false");
             gridManager.WalkableGridIsDirty = false;
             UpdateGridManagerVisual(ref gridManager);
             World.DefaultGameObjectInjectionWorld.EntityManager.SetComponentData(_gridManagerEntity, gridManager);

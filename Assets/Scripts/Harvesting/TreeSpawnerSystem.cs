@@ -3,34 +3,40 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
+[UpdateAfter(typeof(GridManagerSystem))]
 public partial class TreeSpawnerSystem : SystemBase
 {
     private const int MaxHealth = 100;
     private static bool _shouldSpawnTreesOnMouseDown;
     private static bool _isInitialized;
+    private SystemHandle _gridManagerSystemHandle;
 
     protected override void OnCreate()
     {
         _isInitialized = false;
+        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
     }
 
     protected override void OnUpdate()
     {
-        var pathGrid = GridSetup.Instance.PathGrid;
+        // var pathGrid = GridSetup.Instance.PathGrid;
+        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+        var walkableGrid = gridManager.WalkableGrid;
+        var gridWidth = gridManager.Width;
+        var gridHeight = gridManager.Height;
+        var cellSize = 1f; // gridManager currently only supports cellSize 1
         var damageableGrid = GridSetup.Instance.DamageableGrid;
-        var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathGrid.GetCellSize() * .5f;
+        var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * cellSize * .5f;
 
         if (!_isInitialized)
         {
             _isInitialized = true;
 
             var areasToExclude = TreeGridSetup.AreasToExclude();
-            var width = pathGrid.GetWidth();
-            var height = pathGrid.GetHeight();
 
-            for (var x = 0; x < width; x++)
+            for (var x = 0; x < gridWidth; x++)
             {
-                for (var y = 0; y < height; y++)
+                for (var y = 0; y < gridHeight; y++)
                 {
                     foreach (var areaToExclude in areasToExclude)
                     {
@@ -40,9 +46,12 @@ public partial class TreeSpawnerSystem : SystemBase
                             continue;
                         }
 
-                        var gridPath = pathGrid.GetGridObject(x, y);
+                        var index = x * gridHeight + y;
+
+                        var walkableCell = walkableGrid[index];
                         var gridDamageable = damageableGrid.GetGridObject(x, y);
-                        TrySpawnTree(gridPath, gridDamageable);
+                        TrySpawnTree(ref walkableCell, gridDamageable);
+                        walkableGrid[index] = walkableCell;
                     }
                 }
             }
@@ -50,13 +59,12 @@ public partial class TreeSpawnerSystem : SystemBase
 
         if (Input.GetMouseButtonDown(1) && Input.GetKey(KeyCode.LeftControl))
         {
-            var gridNode = pathGrid.GetGridObject(mousePosition);
-            if (gridNode == null)
+            var x = Mathf.FloorToInt(mousePosition.x);
+            var y = Mathf.FloorToInt(mousePosition.y);
+            if (x > -1 && x < gridWidth && y > -1 && y < gridHeight)
             {
-                return;
+                _shouldSpawnTreesOnMouseDown = walkableGrid[x * gridHeight + y].IsWalkable;
             }
-
-            _shouldSpawnTreesOnMouseDown = gridNode.IsWalkable();
         }
 
         if (!_shouldSpawnTreesOnMouseDown)
@@ -72,31 +80,33 @@ public partial class TreeSpawnerSystem : SystemBase
 
             for (var i = 0; i < cellList.Count; i++)
             {
-                var gridPath = pathGrid.GetGridObject(cellList[i].x, cellList[i].y);
+                var index = cellList[i].x * gridHeight + cellList[i].y;
+                var walkableCell = walkableGrid[index];
                 var gridDamageable = damageableGrid.GetGridObject(cellList[i].x, cellList[i].y);
-                TrySpawnTree(gridPath, gridDamageable);
+                TrySpawnTree(ref walkableCell, gridDamageable);
+                walkableGrid[index] = walkableCell;
             }
         }
     }
 
-    private void TrySpawnTree(GridPath gridPath, GridDamageable gridDamageable)
+    private void TrySpawnTree(ref WalkableCell walkableCell, GridDamageable gridDamageable)
     {
-        if (gridPath == null || gridDamageable == null)
+        if (gridDamageable == null)
         {
             return;
         }
 
-        if (!gridPath.IsWalkable() || gridDamageable.IsDamageable())
+        if (!walkableCell.IsWalkable || gridDamageable.IsDamageable())
         {
             return;
         }
 
-        SpawnTreeWithoutEntity(gridPath, gridDamageable);
+        SpawnTreeWithoutEntity(ref walkableCell, gridDamageable);
     }
 
-    private void SpawnTreeWithoutEntity(GridPath gridPath, GridDamageable gridDamageable)
+    private void SpawnTreeWithoutEntity(ref WalkableCell walkableCell, GridDamageable gridDamageable)
     {
-        gridPath.SetIsWalkable(false);
+        walkableCell.IsWalkable = false;
         gridDamageable.SetHealth(MaxHealth);
     }
 

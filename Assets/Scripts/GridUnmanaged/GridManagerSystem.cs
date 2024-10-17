@@ -27,7 +27,7 @@ public partial class GridManagerSystem : SystemBase
         for (var i = 0; i < grid.Length; i++)
         {
             var cell = grid[i];
-            cell.IsWalkable = false;
+            cell.IsWalkable = true;
             cell.IsDirty = true;
             grid[i] = cell;
         }
@@ -66,8 +66,11 @@ public partial class GridManagerSystem : SystemBase
     protected override void OnDestroy()
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(SystemHandle);
-        Debug.Log("Test: " + gridManager.WalkableGrid[0].IsWalkable);
-        Debug.Log("Test2: " + gridManager.WalkableGridIsDirty);
+        for (var i = 0; i < gridManager.WalkableGrid.Length; i++)
+        {
+            // Debug.Log("IsWalkable: " + gridManager.WalkableGrid[i].IsWalkable);
+        }
+
         gridManager.WalkableGrid.Dispose();
     }
 }
