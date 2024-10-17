@@ -39,12 +39,12 @@ public partial class HarvestingUnitSystem : SystemBase
                 continue;
             }
 
-            if (!GridHelpers.CellsAreNeighbours(localTransform.ValueRO.Position, harvestingUnit.ValueRO.Target))
+            if (!GridHelpers.CellsAreTouching(localTransform.ValueRO.Position, harvestingUnit.ValueRO.Target))
             {
                 GridHelpers.GetXY(localTransform.ValueRO.Position, out var x, out var y);
-                Debug.Log("Unit is trying to chop a tree that is too far away! Position: " + x + " " + y + " Target: " +
-                          harvestingUnit.ValueRO.Target.x + " " + harvestingUnit.ValueRO.Target.y);
                 SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
+                Debug.LogError("Unit is trying to chop a tree that is too far away! Position: " + x + " " + y + " Target: " +
+                               harvestingUnit.ValueRO.Target.x + " " + harvestingUnit.ValueRO.Target.y);
                 continue;
             }
 
@@ -168,6 +168,7 @@ public partial class HarvestingUnitSystem : SystemBase
 
                     SetupPathfinding(gridManager, entityCommandBuffer, localTransform.ValueRO.Position, entity, closestDropPointEntrance);
 
+                    // TODO: Should this be added to OccupationSystemSystem? If so, it would cause DeliveringUnit to break.
                     var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
                     if (occupationCell.EntityIsOwner(entity))
                     {
