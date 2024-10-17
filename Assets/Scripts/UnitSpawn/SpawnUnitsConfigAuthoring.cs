@@ -1,18 +1,18 @@
 using Unity.Entities;
 using UnityEngine;
 
-public class SpawnCubesConfigAuthoring : MonoBehaviour
+public class SpawnUnitsConfigAuthoring : MonoBehaviour
 {
     [SerializeField] private GameObject _objectToSpawn;
 
     [SerializeField] private int _amountToSpawn;
 
-    public class Baker : Baker<SpawnCubesConfigAuthoring>
+    public class Baker : Baker<SpawnUnitsConfigAuthoring>
     {
-        public override void Bake(SpawnCubesConfigAuthoring authoring)
+        public override void Bake(SpawnUnitsConfigAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.None);
-            AddComponent(entity, new SpawnCubesConfig
+            AddComponent(entity, new SpawnUnitsConfig
             {
                 ObjectToSpawn = GetEntity(authoring._objectToSpawn, TransformUsageFlags.Dynamic),
                 AmountToSpawn = authoring._amountToSpawn
@@ -21,7 +21,7 @@ public class SpawnCubesConfigAuthoring : MonoBehaviour
     }
 }
 
-public struct SpawnCubesConfig : IComponentData
+public struct SpawnUnitsConfig : IComponentData
 {
     public Entity ObjectToSpawn;
     public int AmountToSpawn;

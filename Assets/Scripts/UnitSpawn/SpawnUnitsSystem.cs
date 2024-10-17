@@ -3,11 +3,12 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public partial class SpawnCubesSystem : SystemBase
+[UpdateAfter(typeof(GridManagerSystem))]
+public partial class SpawnUnitsSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        RequireForUpdate<SpawnCubesConfig>();
+        RequireForUpdate<SpawnUnitsConfig>();
     }
 
     protected override void OnUpdate()
@@ -17,17 +18,19 @@ public partial class SpawnCubesSystem : SystemBase
             return;
         }
 
-        var spawnCubesConfig = SystemAPI.GetSingleton<SpawnCubesConfig>();
+        var spawnUnitsConfig = SystemAPI.GetSingleton<SpawnUnitsConfig>();
+        var gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
+        var gridManager = SystemAPI.GetComponent<GridManager>(gridManagerSystemHandle);
 
         var gridIndex = 0;
-        for (var i = 0; i < spawnCubesConfig.AmountToSpawn; i++)
+        for (var i = 0; i < spawnUnitsConfig.AmountToSpawn; i++)
         {
-            if (!GetNextValidGridPosition(ref gridIndex, out var x, out var y))
+            if (!GetNextValidGridPosition(gridManager, ref gridIndex, out var x, out var y))
             {
                 return;
             }
 
-            var spawnedEntity = EntityManager.Instantiate(spawnCubesConfig.ObjectToSpawn);
+            var spawnedEntity = EntityManager.Instantiate(spawnUnitsConfig.ObjectToSpawn);
             EntityManager.SetComponentData(spawnedEntity, new LocalTransform
             {
                 Position = new float3
@@ -44,7 +47,7 @@ public partial class SpawnCubesSystem : SystemBase
         }
     }
 
-    private bool GetNextValidGridPosition(ref int gridIndex, out int x, out int y)
+    private bool GetNextValidGridPosition(GridManager gridManager, ref int gridIndex, out int x, out int y)
     {
         var maxAttempts = 20000;
         var currentAttempt = 0;
@@ -55,13 +58,13 @@ public partial class SpawnCubesSystem : SystemBase
         {
             currentAttempt++;
 
-            if (!GetNextGridPosition(gridIndex, out x, out y))
+            if (!GetNextGridPosition(gridManager, gridIndex, out x, out y))
             {
                 Debug.Log("No valid grid position found: Outside range");
                 return false;
             }
 
-            if (ValidateWalkableGridPosition(x, y) && ValidateVacantGridPosition(x, y))
+            if (ValidateWalkableGridPosition(gridManager, gridIndex) && ValidateVacantGridPosition(x, y))
             {
                 return true;
             }
@@ -73,10 +76,10 @@ public partial class SpawnCubesSystem : SystemBase
         return false;
     }
 
-    private bool GetNextGridPosition(int gridIndex, out int x, out int y)
+    private bool GetNextGridPosition(GridManager gridManager, int gridIndex, out int x, out int y)
     {
-        var width = GridSetup.Instance.PathGrid.GetWidth();
-        var maxY = GridSetup.Instance.PathGrid.GetHeight() - 1;
+        var width = gridManager.Width;
+        var maxY = gridManager.Height - 1;
 
         x = gridIndex % width;
         y = gridIndex / width;
@@ -84,9 +87,9 @@ public partial class SpawnCubesSystem : SystemBase
         return y <= maxY;
     }
 
-    private bool ValidateWalkableGridPosition(int x, int y)
+    private bool ValidateWalkableGridPosition(GridManager gridManager, int gridIndex)
     {
-        return GridSetup.Instance.PathGrid.GetGridObject(x, y).IsWalkable();
+        return gridManager.WalkableGrid[gridIndex].IsWalkable;
     }
 
     private bool ValidateVacantGridPosition(int x, int y)

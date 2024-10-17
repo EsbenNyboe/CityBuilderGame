@@ -21,7 +21,7 @@ public partial class GridManagerSystem : SystemBase
     protected override void OnCreate()
     {
         var width = 100;
-        var height = 200;
+        var height = 100;
 
         var grid = new NativeArray<WalkableCell>(width * height, Allocator.Persistent);
         for (var i = 0; i < grid.Length; i++)
