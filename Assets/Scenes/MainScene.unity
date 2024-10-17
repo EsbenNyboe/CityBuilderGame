@@ -188,6 +188,12 @@ MonoBehaviour:
       y: 10
     EndCell:
       x: 90
+      y: 50
+  - StartCell:
+      x: 10
+      y: 69
+    EndCell:
+      x: 90
       y: 90
 --- !u!1 &214506561
 GameObject:
@@ -828,7 +834,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6756d81dbd32014bbe35442b31baf53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _showOccupationGrid: 0
+  _showOccupationGrid: 1
 --- !u!114 &597997352
 MonoBehaviour:
   m_ObjectHideFlags: 0

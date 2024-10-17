@@ -37,19 +37,15 @@ public partial class TreeSpawnerSystem : SystemBase
             {
                 for (var y = 0; y < gridHeight; y++)
                 {
-                    foreach (var areaToExclude in areasToExclude)
+                    if (ExcludeCell(areasToExclude, x, y))
                     {
-                        if (x >= areaToExclude.StartCell.x && x <= areaToExclude.EndCell.x &&
-                            y >= areaToExclude.StartCell.y && y <= areaToExclude.EndCell.y)
-                        {
-                            continue;
-                        }
-
-                        var index = x * gridHeight + y;
-
-                        var gridDamageable = damageableGrid.GetGridObject(x, y);
-                        TrySpawnTree(gridManager, index, gridDamageable);
+                        continue;
                     }
+
+                    var index = x * gridHeight + y;
+
+                    var gridDamageable = damageableGrid.GetGridObject(x, y);
+                    TrySpawnTree(gridManager, index, gridDamageable);
                 }
             }
         }
@@ -83,6 +79,20 @@ public partial class TreeSpawnerSystem : SystemBase
         }
     }
 
+    private static bool ExcludeCell(TreeGridSetup.AreaToExclude[] areasToExclude, int x, int y)
+    {
+        foreach (var areaToExclude in areasToExclude)
+        {
+            if (x >= areaToExclude.StartCell.x && x <= areaToExclude.EndCell.x &&
+                y >= areaToExclude.StartCell.y && y <= areaToExclude.EndCell.y)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void TrySpawnTree(GridManager gridManager, int gridIndex, GridDamageable gridDamageable)
     {
         if (gridDamageable == null)
@@ -102,7 +112,7 @@ public partial class TreeSpawnerSystem : SystemBase
     {
         GridHelpers.SetIsWalkable(ref gridManager, gridIndex, false);
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-        
+
         gridDamageable.SetHealth(MaxHealth);
     }
 }
