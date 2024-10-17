@@ -42,7 +42,7 @@ public partial class TreeSpawnerSystem : SystemBase
                         continue;
                     }
 
-                    var index = x * gridHeight + y;
+                    var index = GridHelpers.GetIndex(gridManager, x, y);
 
                     var gridDamageable = damageableGrid.GetGridObject(x, y);
                     TrySpawnTree(gridManager, index, gridDamageable);

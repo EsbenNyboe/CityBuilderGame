@@ -78,13 +78,16 @@ public partial class SpawnUnitsSystem : SystemBase
 
     private bool GetNextGridPosition(GridManager gridManager, int gridIndex, out int x, out int y)
     {
-        var width = gridManager.Width;
-        var maxY = gridManager.Height - 1;
+        if (gridIndex >= gridManager.WalkableGrid.Length)
+        {
+            x = -1;
+            y = -1;
+            return false;
+        }
 
-        x = gridIndex % width;
-        y = gridIndex / width;
+        GridHelpers.GetXY(gridManager, gridIndex, out x, out y);
 
-        return y <= maxY;
+        return true;
     }
 
     private bool ValidateWalkableGridPosition(GridManager gridManager, int gridIndex)

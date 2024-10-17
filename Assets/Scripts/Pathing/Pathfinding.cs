@@ -117,7 +117,7 @@ public partial class Pathfinding : SystemBase
                 var pathNode = new PathNode();
                 pathNode.x = x;
                 pathNode.y = y;
-                pathNode.index = CalculateIndex(x, y, gridSize.x);
+                pathNode.index = GridHelpers.GetIndex(gridSize.y, x, y);
 
                 pathNode.gCost = int.MaxValue;
 
@@ -190,11 +190,6 @@ public partial class Pathfinding : SystemBase
             y < gridSize.y;
     }
 
-    private static int CalculateIndex(int x, int y, int gridWidth)
-    {
-        return x + y * gridWidth;
-    }
-
     private static int CalculateDistanceCost(int aPosX, int aPosY, int bPosX, int bPosY)
     {
         var xDistance = math.abs(aPosX - bPosX);
@@ -237,7 +232,8 @@ public partial class Pathfinding : SystemBase
             pathPositionBuffer.Clear();
 
             var pathFindingParams = PathFindingParamsLookup[Entity];
-            var endNodeIndex = CalculateIndex(pathFindingParams.EndPosition.x, pathFindingParams.EndPosition.y, GridSize.x);
+
+            var endNodeIndex = GridHelpers.GetIndex(GridSize.y, pathFindingParams.EndPosition.x, pathFindingParams.EndPosition.y);
             var endNode = PathNodeArray[endNodeIndex];
 
             if (endNode.cameFromNodeIndex == -1)
@@ -305,9 +301,10 @@ public partial class Pathfinding : SystemBase
             neighbourOffsetArrayY[6] = -1; // Right Down
             neighbourOffsetArrayY[7] = +1; // Right Up
 
-            var endNodeIndex = CalculateIndex(EndPosition.x, EndPosition.y, GridSize.x);
+            var endNodeIndex = GridHelpers.GetIndex(GridSize.y, EndPosition.x, EndPosition.y);
+            var startNodeIndex = GridHelpers.GetIndex(GridSize.y, StartPosition.x, StartPosition.y);
 
-            var startNode = PathNodeArray[CalculateIndex(StartPosition.x, StartPosition.y, GridSize.x)];
+            var startNode = PathNodeArray[startNodeIndex];
             startNode.gCost = 0;
             startNode.CalculateFCost();
             PathNodeArray[startNode.index] = startNode;
@@ -351,7 +348,7 @@ public partial class Pathfinding : SystemBase
                         continue;
                     }
 
-                    var neighbourNodeIndex = CalculateIndex(neighbourPosX, neighbourPosY, GridSize.x);
+                    var neighbourNodeIndex = GridHelpers.GetIndex(GridSize.y, neighbourPosX, neighbourPosY);
 
                     if (closedHashSet.Contains(neighbourNodeIndex))
                     {

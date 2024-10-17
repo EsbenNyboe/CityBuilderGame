@@ -64,6 +64,14 @@ public class GridHelpers
         return x * gridHeight + y;
     }
 
+    public static void GetXY(GridManager gridManager, int gridIndex, out int x, out int y)
+    {
+        var height = gridManager.Height;
+
+        x = gridIndex / height;
+        y = gridIndex % height;
+    }
+
     public static void GetXY(Vector3 worldPosition, out int x, out int y)
     {
         // gridManager currently only supports default origin-position (Vector3.zero) and default cellSize (1f)
