@@ -1,13 +1,14 @@
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine;
 
 public struct GridManager : IComponentData
 {
     public int Width;
     public int Height;
     public NativeArray<WalkableCell> WalkableGrid;
+    public NativeArray<DamageableCell> DamageableGrid;
     public bool WalkableGridIsDirty;
+    public bool DamageableGridIsDirty;
 }
 
 public struct WalkableCell
@@ -16,20 +17,39 @@ public struct WalkableCell
     public bool IsDirty;
 }
 
+public struct DamageableCell
+{
+    public float Health;
+    public float MaxHealth;
+    public bool IsDirty;
+}
+
 public partial class GridManagerSystem : SystemBase
 {
+    private const int MaxHealth = 100;
+
     protected override void OnCreate()
     {
         var width = 100;
         var height = 100;
 
-        var grid = new NativeArray<WalkableCell>(width * height, Allocator.Persistent);
-        for (var i = 0; i < grid.Length; i++)
+        var walkableGrid = new NativeArray<WalkableCell>(width * height, Allocator.Persistent);
+        for (var i = 0; i < walkableGrid.Length; i++)
         {
-            var cell = grid[i];
+            var cell = walkableGrid[i];
             cell.IsWalkable = true;
             cell.IsDirty = true;
-            grid[i] = cell;
+            walkableGrid[i] = cell;
+        }
+
+        var damageableGrid = new NativeArray<DamageableCell>(width * height, Allocator.Persistent);
+        for (var i = 0; i < damageableGrid.Length; i++)
+        {
+            var cell = damageableGrid[i];
+            cell.Health = 0;
+            cell.MaxHealth = MaxHealth;
+            cell.IsDirty = true;
+            damageableGrid[i] = cell;
         }
 
         EntityManager.AddComponent<GridManager>(SystemHandle);
@@ -37,30 +57,15 @@ public partial class GridManagerSystem : SystemBase
         {
             Width = width,
             Height = height,
-            WalkableGrid = grid,
-            WalkableGridIsDirty = true
+            WalkableGrid = walkableGrid,
+            DamageableGrid = damageableGrid,
+            WalkableGridIsDirty = true,
+            DamageableGridIsDirty = true
         });
     }
 
     protected override void OnUpdate()
     {
-        if (!Input.GetKeyDown(KeyCode.Return))
-        {
-            return;
-        }
-
-        var gridManager = SystemAPI.GetComponent<GridManager>(SystemHandle);
-
-        for (var i = 0; i < gridManager.WalkableGrid.Length; i++)
-        {
-            var cell = gridManager.WalkableGrid[i];
-            cell.IsWalkable = !cell.IsWalkable;
-            cell.IsDirty = true;
-            gridManager.WalkableGrid[i] = cell;
-        }
-
-        gridManager.WalkableGridIsDirty = true;
-        SystemAPI.SetComponent(SystemHandle, gridManager);
     }
 
     protected override void OnDestroy()

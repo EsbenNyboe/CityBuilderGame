@@ -6,7 +6,6 @@ using UnityEngine;
 [UpdateAfter(typeof(GridManagerSystem))]
 public partial class TreeSpawnerSystem : SystemBase
 {
-    private const int MaxHealth = 100;
     private static bool _shouldSpawnTreesOnMouseDown;
     private static bool _isInitialized;
     private SystemHandle _gridManagerSystemHandle;
@@ -24,7 +23,6 @@ public partial class TreeSpawnerSystem : SystemBase
         var gridWidth = gridManager.Width;
         var gridHeight = gridManager.Height;
         var cellSize = 1f; // gridManager currently only supports cellSize 1
-        var damageableGrid = GridSetup.Instance.DamageableGrid;
         var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * cellSize * .5f;
 
         if (!_isInitialized)
@@ -43,9 +41,7 @@ public partial class TreeSpawnerSystem : SystemBase
                     }
 
                     var index = GridHelpers.GetIndex(gridManager, x, y);
-
-                    var gridDamageable = damageableGrid.GetGridObject(x, y);
-                    TrySpawnTree(gridManager, index, gridDamageable);
+                    TrySpawnTree(gridManager, index);
                 }
             }
         }
@@ -73,8 +69,7 @@ public partial class TreeSpawnerSystem : SystemBase
             for (var i = 0; i < cellList.Count; i++)
             {
                 var index = cellList[i].x * gridHeight + cellList[i].y;
-                var gridDamageable = damageableGrid.GetGridObject(cellList[i].x, cellList[i].y);
-                TrySpawnTree(gridManager, index, gridDamageable);
+                TrySpawnTree(gridManager, index);
             }
         }
     }
@@ -93,26 +88,20 @@ public partial class TreeSpawnerSystem : SystemBase
         return false;
     }
 
-    private void TrySpawnTree(GridManager gridManager, int gridIndex, GridDamageable gridDamageable)
+    private void TrySpawnTree(GridManager gridManager, int gridIndex)
     {
-        if (gridDamageable == null)
+        if (!gridManager.WalkableGrid[gridIndex].IsWalkable || gridManager.DamageableGrid[gridIndex].Health > 0)
         {
             return;
         }
 
-        if (!gridManager.WalkableGrid[gridIndex].IsWalkable || gridDamageable.IsDamageable())
-        {
-            return;
-        }
-
-        SpawnTreeWithoutEntity(gridManager, gridIndex, gridDamageable);
+        SpawnTreeWithoutEntity(gridManager, gridIndex);
     }
 
-    private void SpawnTreeWithoutEntity(GridManager gridManager, int gridIndex, GridDamageable gridDamageable)
+    private void SpawnTreeWithoutEntity(GridManager gridManager, int gridIndex)
     {
         GridHelpers.SetIsWalkable(ref gridManager, gridIndex, false);
+        GridHelpers.SetHealthToMax(ref gridManager, gridIndex);
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-
-        gridDamageable.SetHealth(MaxHealth);
     }
 }

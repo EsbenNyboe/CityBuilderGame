@@ -82,6 +82,13 @@ public class GridVisuals : MonoBehaviour
             World.DefaultGameObjectInjectionWorld.EntityManager.SetComponentData(_gridManagerSystemHandle, gridManager);
         }
 
+        if (gridManager.DamageableGridIsDirty)
+        {
+            gridManager.DamageableGridIsDirty = false;
+            UpdateGridManagerDamageableVisuals(ref gridManager);
+            World.DefaultGameObjectInjectionWorld.EntityManager.SetComponentData(_gridManagerSystemHandle, gridManager);
+        }
+
         if (_updatePathMesh)
         {
             _updatePathMesh = false;
@@ -98,8 +105,8 @@ public class GridVisuals : MonoBehaviour
         if (_updateDamageableMeshes)
         {
             _updateDamageableMeshes = false;
-            UpdateTreeVisuals();
-            UpdateHealthBarVisuals();
+            UpdateTreeVisuals_OLD();
+            UpdateHealthBarVisuals_OLD();
         }
 
         if (_updateOccupationDebugMesh)
@@ -126,8 +133,8 @@ public class GridVisuals : MonoBehaviour
             out occupationDebugUv, out occupationDebugTriangles);
 
         UpdateVisual();
-        UpdateTreeVisuals();
-        UpdateHealthBarVisuals();
+        UpdateTreeVisuals_OLD();
+        UpdateHealthBarVisuals_OLD();
         UpdateOccupationDebugMesh();
 
         gridPath.OnGridObjectChanged += Grid_OnGridValueChanged;
@@ -160,7 +167,7 @@ public class GridVisuals : MonoBehaviour
         {
             for (var y = 0; y < gridHeight; y++)
             {
-                var index = x * gridHeight + y;
+                var index = GridHelpers.GetIndex(gridManager, x, y);
                 var walkableCell = gridManager.WalkableGrid[index];
                 if (!walkableCell.IsDirty)
                 {
@@ -262,8 +269,80 @@ public class GridVisuals : MonoBehaviour
         }
     }
 
-    private void UpdateTreeVisuals()
+    private void UpdateGridManagerDamageableVisuals(ref GridManager gridManager)
     {
+        UpdateTreeVisuals(ref gridManager);
+        UpdateHealthbarVisuals(ref gridManager);
+    }
+
+    private void UpdateTreeVisuals(ref GridManager gridManager)
+    {
+        var gridWidth = gridManager.Width;
+        var gridHeight = gridManager.Height;
+        for (var x = 0; x < gridWidth; x++)
+        {
+            for (var y = 0; y < gridHeight; y++)
+            {
+                var index = GridHelpers.GetIndex(gridManager, x, y);
+                var damageableCell = gridManager.DamageableGrid[index];
+                if (!damageableCell.IsDirty)
+                {
+                    continue;
+                }
+
+                // Note: The reason we don't call ClearDirty() is, because we need to wait for healthBars to update first
+                // damageableCell.IsDirty = false;
+                // gridManager.DamageableGrid[index] = damageableCell;
+
+                var health = damageableCell.Health;
+
+                var maxHealth = damageableCell.MaxHealth;
+                var healthNormalized = health / maxHealth;
+
+                var frameSize = 0.25f;
+
+                var frameOffset = 0.0f; // max health tree
+
+                if (healthNormalized < 1f)
+                {
+                    frameOffset = 0.25f;
+                }
+
+                if (healthNormalized < 0.66f)
+                {
+                    frameOffset = 0.5f;
+                }
+
+                if (healthNormalized < 0.33f)
+                {
+                    frameOffset = 0.75f;
+                }
+
+                if (health <= 0)
+                {
+                    // There's no tree
+                    frameOffset = 1f;
+                }
+
+                var uv00 = new Vector2(frameOffset, 0);
+                var uv11 = new Vector2(frameOffset + frameSize, 1);
+
+                var quadSize = Vector3.one; // GridManager currently only supports a cellSize of one
+                var worldPosition = new Vector3(x, y, 0f); // GridManager currently only supports a cellSize of one, and originPosition of zero
+
+                MeshUtils.AddToMeshArrays(treeVertices, treeUv, treeTriangles, index, worldPosition + quadSize * .0f, 0, quadSize, uv00,
+                    uv11);
+            }
+        }
+
+        _treeMesh.vertices = treeVertices;
+        _treeMesh.uv = treeUv;
+        _treeMesh.triangles = treeTriangles;
+    }
+
+    private void UpdateTreeVisuals_OLD()
+    {
+        return;
         var gridWidth = _gridDamageable.GetWidth();
         var gridHeight = _gridDamageable.GetHeight();
         for (var x = 0; x < gridWidth; x++)
@@ -325,8 +404,77 @@ public class GridVisuals : MonoBehaviour
         _treeMesh.triangles = treeTriangles;
     }
 
-    private void UpdateHealthBarVisuals()
+    private void UpdateHealthbarVisuals(ref GridManager gridManager)
     {
+        var gridWidth = _gridDamageable.GetWidth();
+        var gridHeight = _gridDamageable.GetHeight();
+        for (var x = 0; x < gridWidth; x++)
+        {
+            for (var y = 0; y < gridHeight; y++)
+            {
+                var index = GridHelpers.GetIndex(gridManager, x, y);
+                var damageableCell = gridManager.DamageableGrid[index];
+                if (!damageableCell.IsDirty)
+                {
+                    continue;
+                }
+
+                damageableCell.IsDirty = false;
+                gridManager.DamageableGrid[index] = damageableCell;
+
+                var healthNormalized = damageableCell.Health / damageableCell.MaxHealth;
+                var widthPercentage = 0.75f;
+                var quadWidth = healthNormalized * widthPercentage;
+
+                var quadHeight = 0.1f;
+
+                var cellSize = 1f; // GridManager currently only supports a cellSize of one
+                var worldPosition = new Vector3(x, y, 0f); // GridManager currently only supports a cellSize of one, and originPosition of zero
+
+                var quadSize = damageableCell.Health > 0
+                    ? new Vector3(quadWidth, quadHeight) * cellSize
+                    : Vector3.zero;
+
+                var green = 0.9f;
+                var yellow = 0.4f;
+                var red = 0.1f;
+                var color = healthNormalized switch
+                {
+                    > 0.85f => green,
+                    > 0.4f => yellow,
+                    _ => red
+                };
+
+                var uv00 = new Vector2(color, 0f);
+                var uv11 = new Vector2(color, 1f);
+
+                // TODO: Make positioning cleaner? Not accounting for cell-size right now...
+                // position.x += widthPercentage * 0.5f;
+                worldPosition.y += 0.4f;
+                if (healthNormalized < 1)
+                {
+                    worldPosition.x -= (1 - healthNormalized) / 2;
+                }
+                else
+                {
+                    // Hide health, if full
+                    quadSize = Vector3.zero;
+                }
+
+                MeshUtils.AddToMeshArrays(healthBarVertices, healthBarUv, healthBarTriangles, index, worldPosition + quadSize * .0f, 0, quadSize,
+                    uv00,
+                    uv11);
+            }
+        }
+
+        _healthBarMesh.vertices = healthBarVertices;
+        _healthBarMesh.uv = healthBarUv;
+        _healthBarMesh.triangles = healthBarTriangles;
+    }
+
+    private void UpdateHealthBarVisuals_OLD()
+    {
+        return;
         var gridWidth = _gridDamageable.GetWidth();
         var gridHeight = _gridDamageable.GetHeight();
         for (var x = 0; x < gridWidth; x++)

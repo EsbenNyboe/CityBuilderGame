@@ -90,13 +90,15 @@ public partial class HarvestingUnitSystem : SystemBase
                 continue;
             }
 
-            var gridDamageableObject = GridSetup.Instance.DamageableGrid.GetGridObject(targetX, targetY);
+            var cellIndex = GridHelpers.GetIndex(gridManager, targetX, targetY);
             harvestingUnit.ValueRW.TimeUntilNextChop -= SystemAPI.Time.DeltaTime;
             if (harvestingUnit.ValueRO.TimeUntilNextChop < 0)
             {
                 harvestingUnit.ValueRW.TimeUntilNextChop = chopDuration;
 
-                gridDamageableObject.RemoveFromHealth(ChopAnimationManager.DamagePerChop());
+                GridHelpers.AddDamage(ref gridManager, cellIndex, ChopAnimationManager.DamagePerChop());
+                SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+
                 SoundManager.Instance.PlayChopSound(localTransform.ValueRO.Position);
                 var chopTarget = harvestingUnit.ValueRO.Target;
                 entityCommandBuffer.AddComponent(entity, new ChopAnimation
@@ -109,13 +111,13 @@ public partial class HarvestingUnitSystem : SystemBase
                 });
             }
 
-            if (!gridDamageableObject.IsDamageable())
+            if (gridManager.DamageableGrid[cellIndex].Health <= 0)
             {
                 // DESTROY TREE:
                 SoundManager.Instance.PlayDestroyTreeSound(localTransform.ValueRO.Position);
                 GridHelpers.SetIsWalkable(ref gridManager, targetX, targetY, true);
+                GridHelpers.SetHealth(ref gridManager, cellIndex, 0);
                 SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-                gridDamageableObject.SetHealth(0);
 
                 entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
                 SystemAPI.SetComponent(entity, new SpriteTransform

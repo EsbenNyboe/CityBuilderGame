@@ -48,6 +48,45 @@ public class GridHelpers
         gridManager.WalkableGridIsDirty = true;
     }
 
+    public static bool IsDamageable(ref GridManager gridManager, Vector3 position)
+    {
+        GetXY(position, out var x, out var y);
+        return IsDamageable(ref gridManager, x, y);
+    }
+
+    public static bool IsDamageable(ref GridManager gridManager, int x, int y)
+    {
+        var i = GetIndex(gridManager, x, y);
+        return IsDamageable(ref gridManager, i);
+    }
+
+    public static bool IsDamageable(ref GridManager gridManager, int i)
+    {
+        return gridManager.DamageableGrid[i].Health > 0;
+    }
+
+    public static void AddDamage(ref GridManager gridManager, int i, float damage)
+    {
+        // Note: Remember to call SetComponent after this method
+        SetHealth(ref gridManager, i, gridManager.DamageableGrid[i].Health - damage);
+    }
+
+    public static void SetHealthToMax(ref GridManager gridManager, int i)
+    {
+        // Note: Remember to call SetComponent after this method
+        SetHealth(ref gridManager, i, gridManager.DamageableGrid[i].MaxHealth);
+    }
+
+    public static void SetHealth(ref GridManager gridManager, int i, float health)
+    {
+        // Note: Remember to call SetComponent after this method
+        var damageableCell = gridManager.DamageableGrid[i];
+        damageableCell.Health = health;
+        damageableCell.IsDirty = true;
+        gridManager.DamageableGrid[i] = damageableCell;
+        gridManager.DamageableGridIsDirty = true;
+    }
+
     public static int GetIndex(GridManager gridManager, Vector3 worldPosition)
     {
         GetXY(worldPosition, out var x, out var y);
@@ -91,18 +130,6 @@ public class GridHelpers
         y = math.clamp(y, 0, gridManager.Height - 1);
     }
 
-    public static void ValidateGridPosition_OLD(ref int x, ref int y)
-    {
-        x = math.clamp(x, 0, GridSetup.Instance.PathGrid.GetWidth() - 1);
-        y = math.clamp(y, 0, GridSetup.Instance.PathGrid.GetHeight() - 1);
-    }
-
-    public static bool IsPositionInsideGrid(GridManager gridManager, Vector3 worldPosition)
-    {
-        GetXY(worldPosition, out var x, out var y);
-        return IsPositionInsideGrid(gridManager, x, y);
-    }
-
     public static bool IsPositionInsideGrid(GridManager gridManager, int2 cell)
     {
         return IsPositionInsideGrid(gridManager, cell.x, cell.y);
@@ -117,52 +144,14 @@ public class GridHelpers
             y < gridManager.Height;
     }
 
-    public static bool IsPositionInsideGrid_OLD(int2 cell)
+    public static bool IsPositionOccupied_OLD(int2 cell)
     {
-        return
-            cell.x >= 0 &&
-            cell.y >= 0 &&
-            cell.x < GridSetup.Instance.PathGrid.GetWidth() &&
-            cell.y < GridSetup.Instance.PathGrid.GetHeight();
+        return IsPositionOccupied_OLD(cell.x, cell.y);
     }
 
-    public static bool IsPositionInsideGrid_OLD(int x, int y)
-    {
-        return
-            x >= 0 &&
-            y >= 0 &&
-            x < GridSetup.Instance.PathGrid.GetWidth() &&
-            y < GridSetup.Instance.PathGrid.GetHeight();
-    }
-
-    public static bool IsPositionWalkable_OLD(int2 cell)
-    {
-        return IsPositionWalkable_OLD(cell.x, cell.y);
-    }
-
-    public static bool IsPositionWalkable_OLD(int x, int y)
-    {
-        return GridSetup.Instance.PathGrid.GetGridObject(x, y).IsWalkable();
-    }
-
-    public static bool IsPositionOccupied(int2 cell)
-    {
-        return IsPositionOccupied(cell.x, cell.y);
-    }
-
-    public static bool IsPositionOccupied(int x, int y)
+    public static bool IsPositionOccupied_OLD(int x, int y)
     {
         return GridSetup.Instance.OccupationGrid.GetGridObject(x, y).IsOccupied();
-    }
-
-    public static bool IsPositionDamageable(int2 cell)
-    {
-        return IsPositionDamageable(cell.x, cell.y);
-    }
-
-    public static bool IsPositionDamageable(int x, int y)
-    {
-        return GridSetup.Instance.DamageableGrid.GetGridObject(x, y).IsDamageable();
     }
 
     public static List<int2> GetCellListAroundTargetCell(int2 firstPosition, int ringCount)
@@ -317,7 +306,7 @@ public class GridHelpers
     {
         var nearbyCells = GetCellListAroundTargetCell30Rings(currentTarget.x, currentTarget.y);
 
-        if (GridSetup.Instance.DamageableGrid.GetGridObject(currentTarget.x, currentTarget.y).IsDamageable() &&
+        if (IsDamageable(ref gridManager, currentTarget.x, currentTarget.y) &&
             TryGetValidNeighbourCell(gridManager, currentTarget.x, currentTarget.y, out var newPathTargetX, out var newPathTargetY))
         {
             newTarget = currentTarget;
@@ -342,59 +331,12 @@ public class GridHelpers
             var y = nearbyCells[cellIndex].y;
 
             if (!IsPositionInsideGrid(gridManager, x, y) ||
-                !GridSetup.Instance.DamageableGrid.GetGridObject(x, y).IsDamageable())
+                !IsDamageable(ref gridManager, x, y))
             {
                 continue;
             }
 
             if (TryGetValidNeighbourCell(gridManager, x, y, out newPathTargetX, out newPathTargetY))
-            {
-                newTarget = new int2(x, y);
-                newPathTarget = new int2(newPathTargetX, newPathTargetY);
-                return true;
-            }
-        }
-
-        newTarget = default;
-        newPathTarget = default;
-        return false;
-    }
-
-    public static bool TryGetNearbyChoppingCell_OLD(int2 currentTarget, out int2 newTarget, out int2 newPathTarget)
-    {
-        var nearbyCells = GetCellListAroundTargetCell30Rings(currentTarget.x, currentTarget.y);
-
-        if (GridSetup.Instance.DamageableGrid.GetGridObject(currentTarget.x, currentTarget.y).IsDamageable() &&
-            TryGetValidNeighbourCell_OLD(currentTarget.x, currentTarget.y, out var newPathTargetX, out var newPathTargetY))
-        {
-            newTarget = currentTarget;
-            newPathTarget = new int2(newPathTargetX, newPathTargetY);
-            return true;
-        }
-
-        var count = nearbyCells.Length;
-
-        var randomSelectionThreshold = math.min(50, count);
-        InitializeRandomNearbyCellIndexList(0, randomSelectionThreshold);
-
-        for (var i = 0; i < count; i++)
-        {
-            var cellIndex = i;
-            if (!RandomNearbyCellIndexListIsEmpty())
-            {
-                cellIndex = GetRandomNearbyCellIndex();
-            }
-
-            var x = nearbyCells[cellIndex].x;
-            var y = nearbyCells[cellIndex].y;
-
-            if (!IsPositionInsideGrid_OLD(x, y) ||
-                !GridSetup.Instance.DamageableGrid.GetGridObject(x, y).IsDamageable())
-            {
-                continue;
-            }
-
-            if (TryGetValidNeighbourCell_OLD(x, y, out newPathTargetX, out newPathTargetY))
             {
                 newTarget = new int2(x, y);
                 newPathTarget = new int2(newPathTargetX, newPathTargetY);
@@ -417,28 +359,7 @@ public class GridHelpers
 
             if (IsPositionInsideGrid(gridManager, neighbourX, neighbourY) &&
                 GetIsWalkable(gridManager, neighbourX, neighbourY) &&
-                !IsPositionOccupied(neighbourX, neighbourY))
-            {
-                return true;
-            }
-        }
-
-        neighbourX = -1;
-        neighbourY = -1;
-        return false;
-    }
-
-    private static bool TryGetValidNeighbourCell_OLD(int x, int y, out int neighbourX, out int neighbourY)
-    {
-        InitializeRandomNeighbourIndexList(8);
-        for (var j = 0; j < 8; j++)
-        {
-            var randomIndex = GetRandomNeighbourIndex();
-            GetNeighbourCell(randomIndex, x, y, out neighbourX, out neighbourY);
-
-            if (IsPositionInsideGrid_OLD(neighbourX, neighbourY) &&
-                IsPositionWalkable_OLD(neighbourX, neighbourY) &&
-                !IsPositionOccupied(neighbourX, neighbourY))
+                !IsPositionOccupied_OLD(neighbourX, neighbourY))
             {
                 return true;
             }

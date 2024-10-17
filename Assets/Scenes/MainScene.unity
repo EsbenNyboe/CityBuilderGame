@@ -191,10 +191,16 @@ MonoBehaviour:
       y: 50
   - StartCell:
       x: 10
-      y: 69
+      y: 60
     EndCell:
       x: 90
       y: 90
+  - StartCell:
+      x: 45
+      y: 50
+    EndCell:
+      x: 50
+      y: 60
 --- !u!1 &214506561
 GameObject:
   m_ObjectHideFlags: 0
@@ -1026,7 +1032,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _chopDuration: 2
-  _damagePerChop: 10
+  _damagePerChop: 17.1
   _chopAnimationSize: 0.4
   _chopAnimationIdleTime: 0.729
 --- !u!1 &614670184

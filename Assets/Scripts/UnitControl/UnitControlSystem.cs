@@ -148,7 +148,7 @@ public partial class UnitControlSystem : SystemBase
             {
                 MoveUnitsToWalkableArea(gridManager, movePositionList, entityCommandBuffer);
             }
-            else if (GridHelpers.IsPositionDamageable(targetGridCell))
+            else if (GridHelpers.IsDamageable(ref gridManager, targetGridCell.x, targetGridCell.y))
             {
                 MoveUnitsToHarvestableCell(gridManager, entityCommandBuffer, targetGridCell);
             }
