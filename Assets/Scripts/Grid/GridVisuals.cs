@@ -45,7 +45,7 @@ public class GridVisuals : MonoBehaviour
     private Vector3[] healthBarVertices;
     private Vector3[] occupationDebugVertices;
 
-    private SystemHandle _gridManagerEntity;
+    private SystemHandle _gridManagerSystemHandle;
 
     private void Awake()
     {
@@ -64,22 +64,22 @@ public class GridVisuals : MonoBehaviour
     private void LateUpdate()
     {
         // HACK: This is done in late-update to make sure, the GridManagerSystem has been created. Not sure, if it's necessary though...
-        if (_gridManagerEntity == default)
+        if (_gridManagerSystemHandle == default)
         {
-            _gridManagerEntity = World.DefaultGameObjectInjectionWorld.GetExistingSystem<GridManagerSystem>();
+            _gridManagerSystemHandle = World.DefaultGameObjectInjectionWorld.GetExistingSystem<GridManagerSystem>();
 
             MeshUtils.CreateEmptyMeshArrays(
-                World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerEntity).WalkableGrid.Length,
+                World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerSystemHandle).WalkableGrid.Length,
                 out pathVerticesTest, out pathUvTest, out pathMeshTrianglesTest);
         }
 
-        var gridManager = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerEntity);
+        var gridManager = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerSystemHandle);
         if (gridManager.WalkableGridIsDirty)
         {
             gridManager.WalkableGridIsDirty = false;
 
             UpdateGridManagerVisual(ref gridManager);
-            World.DefaultGameObjectInjectionWorld.EntityManager.SetComponentData(_gridManagerEntity, gridManager);
+            World.DefaultGameObjectInjectionWorld.EntityManager.SetComponentData(_gridManagerSystemHandle, gridManager);
         }
 
         if (_updatePathMesh)
