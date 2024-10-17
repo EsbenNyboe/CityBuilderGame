@@ -42,8 +42,10 @@ public partial class UnitSelectionSystem : SystemBase
         foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
         {
             var unitPosition = localTransform.ValueRO.Position;
-            PathingHelpers.GetXY(unitPosition, out var x, out var y);
-            PathingHelpers.SetIsWalkable(gridManager, x, y, true);
+            GridHelpers.GetXY(unitPosition, out var x, out var y);
+            GridHelpers.SetIsWalkable(ref gridManager, x, y, true);
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+
             if (GridSetup.Instance.OccupationGrid.GetGridObject(x, y).EntityIsOwner(entity))
             {
                 GridSetup.Instance.OccupationGrid.GetGridObject(x, y).SetOccupied(Entity.Null);

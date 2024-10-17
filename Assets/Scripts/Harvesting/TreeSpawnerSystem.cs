@@ -56,10 +56,10 @@ public partial class TreeSpawnerSystem : SystemBase
 
         if (Input.GetMouseButtonDown(1) && Input.GetKey(KeyCode.LeftControl))
         {
-            PathingHelpers.GetXY(mousePosition, out var x, out var y);
+            GridHelpers.GetXY(mousePosition, out var x, out var y);
             if (x > -1 && x < gridWidth && y > -1 && y < gridHeight)
             {
-                _shouldSpawnTreesOnMouseDown = walkableGrid[PathingHelpers.GetIndex(gridManager.Height, x, y)].IsWalkable;
+                _shouldSpawnTreesOnMouseDown = walkableGrid[GridHelpers.GetIndex(gridManager.Height, x, y)].IsWalkable;
             }
         }
 
@@ -71,8 +71,8 @@ public partial class TreeSpawnerSystem : SystemBase
         if (Input.GetMouseButton(1) && Input.GetKey(KeyCode.LeftControl))
         {
             var brushSize = Globals.BrushSize();
-            PathingHelpers.GetXY(mousePosition, out var x, out var y);
-            var cellList = PathingHelpers.GetCellListAroundTargetCell(new int2(x, y), brushSize);
+            GridHelpers.GetXY(mousePosition, out var x, out var y);
+            var cellList = GridHelpers.GetCellListAroundTargetCell(new int2(x, y), brushSize);
 
             for (var i = 0; i < cellList.Count; i++)
             {
@@ -100,7 +100,9 @@ public partial class TreeSpawnerSystem : SystemBase
 
     private void SpawnTreeWithoutEntity(GridManager gridManager, int gridIndex, GridDamageable gridDamageable)
     {
-        PathingHelpers.SetIsWalkable(gridManager, gridIndex, false);
+        GridHelpers.SetIsWalkable(ref gridManager, gridIndex, false);
+        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+        
         gridDamageable.SetHealth(MaxHealth);
     }
 }

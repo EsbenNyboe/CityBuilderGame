@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using Random = UnityEngine.Random;
 
-public class PathingHelpers
+public class GridHelpers
 {
     private static readonly List<int2> PositionList = new();
     private static readonly List<int> SimplePositionsX = new();
@@ -16,17 +16,42 @@ public class PathingHelpers
 
     private static int2[] PositionListWith30Rings;
 
-    public static void SetIsWalkable(GridManager gridManager, int x, int y, bool isWalkable)
+    public static bool GetIsWalkable(GridManager gridManager, int2 cell)
     {
-        var gridIndex = GetIndex(gridManager, x, y);
-        SetIsWalkable(gridManager, gridIndex, isWalkable);
+        return GetIsWalkable(gridManager, cell.x, cell.y);
     }
 
-    public static void SetIsWalkable(GridManager gridManager, int i, bool isWalkable)
+    public static bool GetIsWalkable(GridManager gridManager, int x, int y)
     {
+        return GetIsWalkable(gridManager, GetIndex(gridManager.Height, x, y));
+    }
+
+    public static bool GetIsWalkable(GridManager gridManager, int i)
+    {
+        return gridManager.WalkableGrid[i].IsWalkable;
+    }
+
+    public static void SetIsWalkable(ref GridManager gridManager, int x, int y, bool isWalkable)
+    {
+        // Note: Remember to call SetComponent after this method
+        var gridIndex = GetIndex(gridManager, x, y);
+        SetIsWalkable(ref gridManager, gridIndex, isWalkable);
+    }
+
+    public static void SetIsWalkable(ref GridManager gridManager, int i, bool isWalkable)
+    {
+        // Note: Remember to call SetComponent after this method
         var walkableCell = gridManager.WalkableGrid[i];
         walkableCell.IsWalkable = isWalkable;
+        walkableCell.IsDirty = true;
         gridManager.WalkableGrid[i] = walkableCell;
+        gridManager.WalkableGridIsDirty = true;
+    }
+
+    public static int GetIndex(GridManager gridManager, Vector3 worldPosition)
+    {
+        GetXY(worldPosition, out var x, out var y);
+        return GetIndex(gridManager.Height, x, y);
     }
 
     public static int GetIndex(GridManager gridManager, int x, int y)
@@ -46,6 +71,12 @@ public class PathingHelpers
         y = Mathf.FloorToInt(worldPosition.y);
     }
 
+    public static Vector3 GetWorldPosition(int x, int y)
+    {
+        // gridManager currently only supports default origin-position (Vector3.zero) and default cellSize (1f)
+        return new Vector3(x, y, 0);
+    }
+
     public static void ValidateGridPosition(GridManager gridManager, ref int x, ref int y)
     {
         x = math.clamp(x, 0, gridManager.Width - 1);
@@ -56,6 +87,12 @@ public class PathingHelpers
     {
         x = math.clamp(x, 0, GridSetup.Instance.PathGrid.GetWidth() - 1);
         y = math.clamp(y, 0, GridSetup.Instance.PathGrid.GetHeight() - 1);
+    }
+
+    public static bool IsPositionInsideGrid(GridManager gridManager, Vector3 worldPosition)
+    {
+        GetXY(worldPosition, out var x, out var y);
+        return IsPositionInsideGrid(gridManager, x, y);
     }
 
     public static bool IsPositionInsideGrid(GridManager gridManager, int2 cell)
@@ -88,16 +125,6 @@ public class PathingHelpers
             y >= 0 &&
             x < GridSetup.Instance.PathGrid.GetWidth() &&
             y < GridSetup.Instance.PathGrid.GetHeight();
-    }
-
-    public static bool IsPositionWalkable(GridManager gridManager, int2 cell)
-    {
-        return IsPositionWalkable(gridManager, cell.x, cell.y);
-    }
-
-    public static bool IsPositionWalkable(GridManager gridManager, int x, int y)
-    {
-        return gridManager.WalkableGrid[GetIndex(gridManager.Height, x, y)].IsWalkable;
     }
 
     public static bool IsPositionWalkable_OLD(int2 cell)
@@ -362,7 +389,7 @@ public class PathingHelpers
             GetNeighbourCell(randomIndex, x, y, out neighbourX, out neighbourY);
 
             if (IsPositionInsideGrid(gridManager, neighbourX, neighbourY) &&
-                IsPositionWalkable(gridManager, neighbourX, neighbourY) &&
+                GetIsWalkable(gridManager, neighbourX, neighbourY) &&
                 !IsPositionOccupied(neighbourX, neighbourY))
             {
                 return true;

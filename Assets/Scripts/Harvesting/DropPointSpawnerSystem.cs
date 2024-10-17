@@ -4,30 +4,41 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
+[UpdateAfter(typeof(GridManagerSystem))]
 public partial class DropPointSpawnerSystem : SystemBase
 {
+    private SystemHandle _gridManagerSystemHandle;
+
     protected override void OnCreate()
     {
         RequireForUpdate<DropPointSpawner>();
+        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
     }
 
     protected override void OnUpdate()
     {
+        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
         var dropPointSpawner = SystemAPI.GetSingleton<DropPointSpawner>();
-        var pathGrid = GridSetup.Instance.PathGrid;
-        var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * pathGrid.GetCellSize() * .5f;
+        var cellSize = 1f;
+        var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * cellSize * .5f;
 
         if (Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftControl))
         {
-            var gridNode = pathGrid.GetGridObject(mousePosition);
-            if (gridNode == null || !gridNode.IsWalkable())
+            GridHelpers.GetXY(mousePosition, out var x, out var y);
+
+            if (!GridHelpers.IsPositionInsideGrid(gridManager, x, y))
             {
                 return;
             }
 
-            gridNode.SetIsWalkable(false);
+            var gridIndex = GridHelpers.GetIndex(gridManager, x, y);
+            if (!GridHelpers.GetIsWalkable(gridManager, gridIndex))
+            {
+                return;
+            }
 
-            GridSetup.Instance.PathGrid.GetXY(mousePosition, out var x, out var y);
+            GridHelpers.SetIsWalkable(ref gridManager, gridIndex, false);
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
             var spawnedEntity = EntityManager.Instantiate(dropPointSpawner.ObjectToSpawn);
             EntityManager.SetComponentData(spawnedEntity, new LocalTransform

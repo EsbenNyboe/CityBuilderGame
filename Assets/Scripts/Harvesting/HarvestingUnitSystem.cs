@@ -3,11 +3,20 @@ using Unity.Mathematics;
 using Unity.Transforms;
 
 [UpdateAfter(typeof(OccupationSystem))]
+[UpdateAfter(typeof(GridManagerSystem))]
 public partial class HarvestingUnitSystem : SystemBase
 {
+    private SystemHandle _gridManagerSystemHandle;
+
+    protected override void OnCreate()
+    {
+        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
+    }
+
     protected override void OnUpdate()
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
         var chopDuration = ChopAnimationManager.ChopDuration();
         var chopSize = ChopAnimationManager.ChopAnimationSize();
         var chopIdleTime = ChopAnimationManager.ChopAnimationPostIdleTimeNormalized();
@@ -32,7 +41,7 @@ public partial class HarvestingUnitSystem : SystemBase
             var targetX = harvestingUnit.ValueRO.Target.x;
             var targetY = harvestingUnit.ValueRO.Target.y;
 
-            var tileHasNoTree = GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).IsWalkable();
+            var tileHasNoTree = gridManager.WalkableGrid[GridHelpers.GetIndex(gridManager, targetX, targetY)].IsWalkable;
             if (tileHasNoTree)
             {
                 // Tree was probably destroyed, so please stop chopping it!
@@ -40,7 +49,7 @@ public partial class HarvestingUnitSystem : SystemBase
 
                 // Seek new tree:
                 var currentTarget = harvestingUnit.ValueRO.Target;
-                if (PathingHelpers.TryGetNearbyChoppingCell_OLD(currentTarget, out var newTarget, out var newPathTarget))
+                if (GridHelpers.TryGetNearbyChoppingCell(gridManager, currentTarget, out var newTarget, out var newPathTarget))
                 {
                     // TODO: Replace with TryDeoccupy-component
                     var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
@@ -54,7 +63,7 @@ public partial class HarvestingUnitSystem : SystemBase
                     {
                         Target = newTarget
                     });
-                    SetupPathfinding(entityCommandBuffer, localTransform.ValueRO.Position, entity, newPathTarget);
+                    SetupPathfinding(gridManager, entityCommandBuffer, localTransform.ValueRO.Position, entity, newPathTarget);
                 }
                 else
                 {
@@ -82,7 +91,7 @@ public partial class HarvestingUnitSystem : SystemBase
                 var chopTarget = harvestingUnit.ValueRO.Target;
                 entityCommandBuffer.AddComponent(entity, new ChopAnimation
                 {
-                    TargetPosition = GridSetup.Instance.PathGrid.GetWorldPosition(chopTarget.x, chopTarget.y),
+                    TargetPosition = GridHelpers.GetWorldPosition(chopTarget.x, chopTarget.y),
                     ChopAnimationProgress = chopDuration,
                     ChopDuration = chopDuration,
                     ChopSize = chopSize,
@@ -94,7 +103,8 @@ public partial class HarvestingUnitSystem : SystemBase
             {
                 // DESTROY TREE:
                 SoundManager.Instance.PlayDestroyTreeSound(localTransform.ValueRO.Position);
-                GridSetup.Instance.PathGrid.GetGridObject(targetX, targetY).SetIsWalkable(true);
+                GridHelpers.SetIsWalkable(ref gridManager, targetX, targetY, true);
+                SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                 gridDamageableObject.SetHealth(0);
 
                 entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
@@ -122,7 +132,7 @@ public partial class HarvestingUnitSystem : SystemBase
 
                 if (closestDropPoint.x > -1)
                 {
-                    GridSetup.Instance.PathGrid.GetXY(closestDropPoint, out var x, out var y);
+                    GridHelpers.GetXY(closestDropPoint, out var x, out var y);
                     var dropPointCell = new int2(x, y);
                     EntityManager.SetComponentEnabled<DeliveringUnit>(entity, true);
                     EntityManager.SetComponentData(entity, new DeliveringUnit
@@ -132,11 +142,11 @@ public partial class HarvestingUnitSystem : SystemBase
 
                     var closestDropPointEntrance = new int2(-1, -1);
                     var shortestDropPointEntranceDistance = math.INFINITY;
-                    GridSetup.Instance.PathGrid.GetXY(position, out var posX, out var posY);
+                    GridHelpers.GetXY(position, out var posX, out var posY);
                     var cellPosition = new int2(posX, posY);
                     for (var i = 0; i < 8; i++)
                     {
-                        PathingHelpers.GetNeighbourCell(i, dropPointCell.x, dropPointCell.y, out var dropPointEntranceX, out var dropPointEntranceY);
+                        GridHelpers.GetNeighbourCell(i, dropPointCell.x, dropPointCell.y, out var dropPointEntranceX, out var dropPointEntranceY);
                         var dropPointEntrance = new int2(dropPointEntranceX, dropPointEntranceY);
                         var dropPointEntranceDistance = math.distance(cellPosition, dropPointEntrance);
                         if (dropPointEntranceDistance < shortestDropPointEntranceDistance)
@@ -146,7 +156,7 @@ public partial class HarvestingUnitSystem : SystemBase
                         }
                     }
 
-                    SetupPathfinding(entityCommandBuffer, localTransform.ValueRO.Position, entity, closestDropPointEntrance);
+                    SetupPathfinding(gridManager, entityCommandBuffer, localTransform.ValueRO.Position, entity, closestDropPointEntrance);
 
                     var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
                     if (occupationCell.EntityIsOwner(entity))
@@ -160,10 +170,11 @@ public partial class HarvestingUnitSystem : SystemBase
         entityCommandBuffer.Playback(EntityManager);
     }
 
-    private void SetupPathfinding(EntityCommandBuffer entityCommandBuffer, float3 position, Entity entity, int2 newEndPosition)
+    private void SetupPathfinding(GridManager gridManager, EntityCommandBuffer entityCommandBuffer, float3 position, Entity entity,
+        int2 newEndPosition)
     {
-        GridSetup.Instance.PathGrid.GetXY(position, out var startX, out var startY);
-        PathingHelpers.ValidateGridPosition_OLD(ref startX, ref startY);
+        GridHelpers.GetXY(position, out var startX, out var startY);
+        GridHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
 
         entityCommandBuffer.AddComponent(entity, new PathfindingParams
         {

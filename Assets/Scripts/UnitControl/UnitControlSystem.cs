@@ -115,9 +115,6 @@ public partial class UnitControlSystem : SystemBase
     private void OrderPathFindingForSelectedUnits()
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
-        var walkableGrid = gridManager.WalkableGrid;
-        var gridWidth = gridManager.Width;
-        var gridHeight = gridManager.Height;
 
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
@@ -126,12 +123,12 @@ public partial class UnitControlSystem : SystemBase
 
         var gridCenterModifier = new Vector3(1, 1) * cellSize * 0.5f;
         var targetGridPosition = mousePosition + gridCenterModifier;
-        PathingHelpers.GetXY(targetGridPosition, out var targetX, out var targetY);
+        GridHelpers.GetXY(targetGridPosition, out var targetX, out var targetY);
 
-        PathingHelpers.ValidateGridPosition(gridManager, ref targetX, ref targetY);
+        GridHelpers.ValidateGridPosition(gridManager, ref targetX, ref targetY);
         var targetGridCell = new int2(targetX, targetY);
 
-        var movePositionList = PathingHelpers.GetCellListAroundTargetCell30Rings(targetGridCell.x, targetGridCell.y);
+        var movePositionList = GridHelpers.GetCellListAroundTargetCell30Rings(targetGridCell.x, targetGridCell.y);
 
         // DEBUGGING:
         for (var i = 0; i < movePositionList.Length; i++)
@@ -145,13 +142,13 @@ public partial class UnitControlSystem : SystemBase
             }
         }
 
-        if (PathingHelpers.IsPositionInsideGrid(gridManager, targetGridCell))
+        if (GridHelpers.IsPositionInsideGrid(gridManager, targetGridCell))
         {
-            if (PathingHelpers.IsPositionWalkable(gridManager, targetGridCell))
+            if (GridHelpers.GetIsWalkable(gridManager, targetGridCell))
             {
                 MoveUnitsToWalkableArea(gridManager, movePositionList, entityCommandBuffer);
             }
-            else if (PathingHelpers.IsPositionDamageable(targetGridCell))
+            else if (GridHelpers.IsPositionDamageable(targetGridCell))
             {
                 MoveUnitsToHarvestableCell(gridManager, entityCommandBuffer, targetGridCell);
             }
@@ -174,7 +171,7 @@ public partial class UnitControlSystem : SystemBase
             var attempts = 0;
             while (!positionIsValid)
             {
-                if (PathingHelpers.IsPositionInsideGrid(gridManager, endPosition) && PathingHelpers.IsPositionWalkable(gridManager, endPosition))
+                if (GridHelpers.IsPositionInsideGrid(gridManager, endPosition) && GridHelpers.GetIsWalkable(gridManager, endPosition))
                 {
                     positionIsValid = true;
                 }
@@ -198,8 +195,8 @@ public partial class UnitControlSystem : SystemBase
                 continue;
             }
 
-            PathingHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            PathingHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
+            GridHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            GridHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
 
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
             {
@@ -241,8 +238,8 @@ public partial class UnitControlSystem : SystemBase
             var endPosition = walkableNeighbourCells[positionIndex];
             positionIndex = (positionIndex + 1) % walkableNeighbourCells.Count;
 
-            PathingHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            PathingHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
+            GridHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            GridHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
             {
                 StartPosition = new int2(startX, startY),
@@ -266,10 +263,10 @@ public partial class UnitControlSystem : SystemBase
         const int maxPossibleNeighbours = 8;
         for (var i = 0; i < maxPossibleNeighbours; i++)
         {
-            PathingHelpers.GetNeighbourCell(i, targetGridCell.x, targetGridCell.y, out var neighbourX, out var neighbourY);
+            GridHelpers.GetNeighbourCell(i, targetGridCell.x, targetGridCell.y, out var neighbourX, out var neighbourY);
 
-            if (PathingHelpers.IsPositionInsideGrid(gridManager, neighbourX, neighbourY) &&
-                gridManager.WalkableGrid[PathingHelpers.GetIndex(gridManager, neighbourX, neighbourY)].IsWalkable)
+            if (GridHelpers.IsPositionInsideGrid(gridManager, neighbourX, neighbourY) &&
+                gridManager.WalkableGrid[GridHelpers.GetIndex(gridManager, neighbourX, neighbourY)].IsWalkable)
             {
                 walkableNeighbourCells.Add(new int2(neighbourX, neighbourY));
             }

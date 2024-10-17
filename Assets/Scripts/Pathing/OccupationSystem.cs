@@ -70,7 +70,7 @@ public partial class OccupationSystem : SystemBase
             // Debug.Log("Unit cannot harvest, because cell is occupied: " + posX + " " + posY);
 
             var harvestTarget = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
-            if (PathingHelpers.TryGetNearbyChoppingCell(gridManager, harvestTarget, out var newTarget, out var newPathTarget))
+            if (GridHelpers.TryGetNearbyChoppingCell(gridManager, harvestTarget, out var newTarget, out var newPathTarget))
             {
                 SetHarvestingUnit(entity, newTarget);
                 SetupPathfinding(gridManager, entityCommandBuffer, localTransform, entity, newPathTarget);
@@ -80,7 +80,7 @@ public partial class OccupationSystem : SystemBase
             Debug.LogWarning("Could not find nearby chopping cell. Disabling harvesting-behaviour...");
         }
 
-        var nearbyCells = PathingHelpers.GetCellListAroundTargetCell30Rings(posX, posY);
+        var nearbyCells = GridHelpers.GetCellListAroundTargetCell30Rings(posX, posY);
         if (!TryGetNearbyVacantCell(gridManager, nearbyCells, out var vacantCell))
         {
             Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
@@ -130,8 +130,8 @@ public partial class OccupationSystem : SystemBase
         for (var i = 1; i < movePositionList.Length; i++)
         {
             nearbyCell = movePositionList[i];
-            if (PathingHelpers.IsPositionInsideGrid(gridManager, nearbyCell) && PathingHelpers.IsPositionWalkable(gridManager, nearbyCell)
-                                                                             && !PathingHelpers.IsPositionOccupied(nearbyCell)
+            if (GridHelpers.IsPositionInsideGrid(gridManager, nearbyCell) && GridHelpers.GetIsWalkable(gridManager, nearbyCell)
+                                                                          && !GridHelpers.IsPositionOccupied(nearbyCell)
                )
             {
                 return true;
@@ -145,8 +145,8 @@ public partial class OccupationSystem : SystemBase
     private void SetupPathfinding(GridManager gridManager, EntityCommandBuffer entityCommandBuffer, RefRO<LocalTransform> localTransform,
         Entity entity, int2 newEndPosition)
     {
-        PathingHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-        PathingHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
+        GridHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+        GridHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
 
         entityCommandBuffer.AddComponent(entity, new PathfindingParams
         {
