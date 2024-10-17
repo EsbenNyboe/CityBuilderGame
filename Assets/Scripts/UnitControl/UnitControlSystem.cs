@@ -10,9 +10,16 @@ public struct UnitSelection : IComponentData
 {
 }
 
+[UpdateAfter(typeof(GridManagerSystem))]
 public partial class UnitControlSystem : SystemBase
 {
     private float3 startPosition;
+    private SystemHandle _gridManagerSystemHandle;
+
+    protected override void OnCreate()
+    {
+        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
+    }
 
     protected override void OnUpdate()
     {
@@ -107,20 +114,23 @@ public partial class UnitControlSystem : SystemBase
 
     private void OrderPathFindingForSelectedUnits()
     {
+        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+        var walkableGrid = gridManager.WalkableGrid;
+        var gridWidth = gridManager.Width;
+        var gridHeight = gridManager.Height;
+
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
         var mousePosition = UtilsClass.GetMouseWorldPosition();
-        var cellSize = GridSetup.Instance.PathGrid.GetCellSize();
+        var cellSize = 1f; // gridManager currently only supports a cellSize of 1
 
         var gridCenterModifier = new Vector3(1, 1) * cellSize * 0.5f;
         var targetGridPosition = mousePosition + gridCenterModifier;
+        PathingHelpers.GetXY(targetGridPosition, out var targetX, out var targetY);
 
-        GridSetup.Instance.PathGrid.GetXY(targetGridPosition, out var targetX, out var targetY);
-        PathingHelpers.ValidateGridPosition(ref targetX, ref targetY);
+        PathingHelpers.ValidateGridPosition(gridManager, ref targetX, ref targetY);
         var targetGridCell = new int2(targetX, targetY);
 
-        // var movePositionList = PathingHelpers.GetCellListAroundTargetCell(targetGridCell, 20);
-        //var movePositionList = PathingHelpers.GetCellListAroundTargetCellAlternative(targetGridCell, 20);
         var movePositionList = PathingHelpers.GetCellListAroundTargetCell30Rings(targetGridCell.x, targetGridCell.y);
 
         // DEBUGGING:
@@ -135,22 +145,22 @@ public partial class UnitControlSystem : SystemBase
             }
         }
 
-        if (PathingHelpers.IsPositionInsideGrid(targetGridCell))
+        if (PathingHelpers.IsPositionInsideGrid(gridManager, targetGridCell))
         {
-            if (PathingHelpers.IsPositionWalkable(targetGridCell))
+            if (PathingHelpers.IsPositionWalkable(gridManager, targetGridCell))
             {
-                MoveUnitsToWalkableArea(movePositionList, entityCommandBuffer);
+                MoveUnitsToWalkableArea(gridManager, movePositionList, entityCommandBuffer);
             }
             else if (PathingHelpers.IsPositionDamageable(targetGridCell))
             {
-                MoveUnitsToHarvestableCell(movePositionList, entityCommandBuffer, targetGridCell);
+                MoveUnitsToHarvestableCell(gridManager, entityCommandBuffer, targetGridCell);
             }
         }
 
         entityCommandBuffer.Playback(EntityManager);
     }
 
-    private void MoveUnitsToWalkableArea(int2[] movePositionList, EntityCommandBuffer entityCommandBuffer)
+    private void MoveUnitsToWalkableArea(GridManager gridManager, int2[] movePositionList, EntityCommandBuffer entityCommandBuffer)
     {
         var positionIndex = 0;
         foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>()
@@ -164,7 +174,7 @@ public partial class UnitControlSystem : SystemBase
             var attempts = 0;
             while (!positionIsValid)
             {
-                if (PathingHelpers.IsPositionInsideGrid(endPosition) && PathingHelpers.IsPositionWalkable(endPosition))
+                if (PathingHelpers.IsPositionInsideGrid(gridManager, endPosition) && PathingHelpers.IsPositionWalkable(gridManager, endPosition))
                 {
                     positionIsValid = true;
                 }
@@ -188,8 +198,8 @@ public partial class UnitControlSystem : SystemBase
                 continue;
             }
 
-            GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            PathingHelpers.ValidateGridPosition(ref startX, ref startY);
+            PathingHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            PathingHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
 
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
             {
@@ -214,11 +224,11 @@ public partial class UnitControlSystem : SystemBase
         }
     }
 
-    private void MoveUnitsToHarvestableCell(int2[] movePositionList, EntityCommandBuffer entityCommandBuffer, int2 targetGridCell)
+    private void MoveUnitsToHarvestableCell(GridManager gridManager, EntityCommandBuffer entityCommandBuffer, int2 targetGridCell)
     {
         var walkableNeighbourCells = new List<int2>();
 
-        if (!TryGetWalkableNeighbourCells(targetGridCell, walkableNeighbourCells))
+        if (!TryGetWalkableNeighbourCells(gridManager, targetGridCell, walkableNeighbourCells))
         {
             Debug.Log("No walkable neighbour cell found. Please try again!");
             return;
@@ -231,8 +241,8 @@ public partial class UnitControlSystem : SystemBase
             var endPosition = walkableNeighbourCells[positionIndex];
             positionIndex = (positionIndex + 1) % walkableNeighbourCells.Count;
 
-            GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            PathingHelpers.ValidateGridPosition(ref startX, ref startY);
+            PathingHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
+            PathingHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
             {
                 StartPosition = new int2(startX, startY),
@@ -251,15 +261,15 @@ public partial class UnitControlSystem : SystemBase
         }
     }
 
-    private static bool TryGetWalkableNeighbourCells(int2 targetGridCell, List<int2> walkableNeighbourCells)
+    private static bool TryGetWalkableNeighbourCells(GridManager gridManager, int2 targetGridCell, List<int2> walkableNeighbourCells)
     {
         const int maxPossibleNeighbours = 8;
         for (var i = 0; i < maxPossibleNeighbours; i++)
         {
             PathingHelpers.GetNeighbourCell(i, targetGridCell.x, targetGridCell.y, out var neighbourX, out var neighbourY);
 
-            if (PathingHelpers.IsPositionInsideGrid(neighbourX, neighbourY) &&
-                GridSetup.Instance.PathGrid.GetGridObject(neighbourX, neighbourY).IsWalkable())
+            if (PathingHelpers.IsPositionInsideGrid(gridManager, neighbourX, neighbourY) &&
+                gridManager.WalkableGrid[PathingHelpers.GetIndex(gridManager, neighbourX, neighbourY)].IsWalkable)
             {
                 walkableNeighbourCells.Add(new int2(neighbourX, neighbourY));
             }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.Assertions;
 using Random = UnityEngine.Random;
 
@@ -15,13 +16,50 @@ public class PathingHelpers
 
     private static int2[] PositionListWith30Rings;
 
-    public static void ValidateGridPosition(ref int x, ref int y)
+    public static int GetIndex(GridManager gridManager, int x, int y)
+    {
+        return GetIndex(gridManager.Height, x, y);
+    }
+
+    public static int GetIndex(int gridHeight, int x, int y)
+    {
+        return x * gridHeight + y;
+    }
+
+    public static void GetXY(Vector3 worldPosition, out int x, out int y)
+    {
+        // gridManager currently only supports default origin-position (Vector3.zero) and default cellSize (1f)
+        x = Mathf.FloorToInt(worldPosition.x);
+        y = Mathf.FloorToInt(worldPosition.y);
+    }
+
+    public static void ValidateGridPosition(GridManager gridManager, ref int x, ref int y)
+    {
+        x = math.clamp(x, 0, gridManager.Width - 1);
+        y = math.clamp(y, 0, gridManager.Height - 1);
+    }
+
+    public static void ValidateGridPosition_OLD(ref int x, ref int y)
     {
         x = math.clamp(x, 0, GridSetup.Instance.PathGrid.GetWidth() - 1);
         y = math.clamp(y, 0, GridSetup.Instance.PathGrid.GetHeight() - 1);
     }
 
-    public static bool IsPositionInsideGrid(int2 cell)
+    public static bool IsPositionInsideGrid(GridManager gridManager, int2 cell)
+    {
+        return IsPositionInsideGrid(gridManager, cell.x, cell.y);
+    }
+
+    public static bool IsPositionInsideGrid(GridManager gridManager, int x, int y)
+    {
+        return
+            x >= 0 &&
+            y >= 0 &&
+            x < gridManager.Width &&
+            y < gridManager.Height;
+    }
+
+    public static bool IsPositionInsideGrid_OLD(int2 cell)
     {
         return
             cell.x >= 0 &&
@@ -30,7 +68,7 @@ public class PathingHelpers
             cell.y < GridSetup.Instance.PathGrid.GetHeight();
     }
 
-    public static bool IsPositionInsideGrid(int x, int y)
+    public static bool IsPositionInsideGrid_OLD(int x, int y)
     {
         return
             x >= 0 &&
@@ -39,12 +77,22 @@ public class PathingHelpers
             y < GridSetup.Instance.PathGrid.GetHeight();
     }
 
-    public static bool IsPositionWalkable(int2 cell)
+    public static bool IsPositionWalkable(GridManager gridManager, int2 cell)
     {
-        return IsPositionWalkable(cell.x, cell.y);
+        return IsPositionWalkable(gridManager, cell.x, cell.y);
     }
 
-    public static bool IsPositionWalkable(int x, int y)
+    public static bool IsPositionWalkable(GridManager gridManager, int x, int y)
+    {
+        return gridManager.WalkableGrid[GetIndex(gridManager.Height, x, y)].IsWalkable;
+    }
+
+    public static bool IsPositionWalkable_OLD(int2 cell)
+    {
+        return IsPositionWalkable_OLD(cell.x, cell.y);
+    }
+
+    public static bool IsPositionWalkable_OLD(int x, int y)
     {
         return GridSetup.Instance.PathGrid.GetGridObject(x, y).IsWalkable();
     }
@@ -226,7 +274,7 @@ public class PathingHelpers
             var x = nearbyCells[cellIndex].x;
             var y = nearbyCells[cellIndex].y;
 
-            if (!IsPositionInsideGrid(x, y) ||
+            if (!IsPositionInsideGrid_OLD(x, y) ||
                 !GridSetup.Instance.DamageableGrid.GetGridObject(x, y).IsDamageable())
             {
                 continue;
@@ -253,8 +301,8 @@ public class PathingHelpers
             var randomIndex = GetRandomNeighbourIndex();
             GetNeighbourCell(randomIndex, x, y, out neighbourX, out neighbourY);
 
-            if (IsPositionInsideGrid(neighbourX, neighbourY) &&
-                IsPositionWalkable(neighbourX, neighbourY) &&
+            if (IsPositionInsideGrid_OLD(neighbourX, neighbourY) &&
+                IsPositionWalkable_OLD(neighbourX, neighbourY) &&
                 !IsPositionOccupied(neighbourX, neighbourY))
             {
                 return true;

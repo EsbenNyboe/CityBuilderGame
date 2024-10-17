@@ -120,8 +120,8 @@ public partial class OccupationSystem : SystemBase
         for (var i = 1; i < movePositionList.Length; i++)
         {
             nearbyCell = movePositionList[i];
-            if (PathingHelpers.IsPositionInsideGrid(nearbyCell) && PathingHelpers.IsPositionWalkable(nearbyCell)
-                                                                && !PathingHelpers.IsPositionOccupied(nearbyCell)
+            if (PathingHelpers.IsPositionInsideGrid_OLD(nearbyCell) && PathingHelpers.IsPositionWalkable_OLD(nearbyCell)
+                                                                    && !PathingHelpers.IsPositionOccupied(nearbyCell)
                )
             {
                 return true;
@@ -135,7 +135,7 @@ public partial class OccupationSystem : SystemBase
     private void SetupPathfinding(EntityCommandBuffer entityCommandBuffer, RefRO<LocalTransform> localTransform, Entity entity, int2 newEndPosition)
     {
         GridSetup.Instance.PathGrid.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-        PathingHelpers.ValidateGridPosition(ref startX, ref startY);
+        PathingHelpers.ValidateGridPosition_OLD(ref startX, ref startY);
 
         entityCommandBuffer.AddComponent(entity, new PathfindingParams
         {

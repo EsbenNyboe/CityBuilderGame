@@ -163,7 +163,7 @@ public partial class HarvestingUnitSystem : SystemBase
     private void SetupPathfinding(EntityCommandBuffer entityCommandBuffer, float3 position, Entity entity, int2 newEndPosition)
     {
         GridSetup.Instance.PathGrid.GetXY(position, out var startX, out var startY);
-        PathingHelpers.ValidateGridPosition(ref startX, ref startY);
+        PathingHelpers.ValidateGridPosition_OLD(ref startX, ref startY);
 
         entityCommandBuffer.AddComponent(entity, new PathfindingParams
         {

@@ -59,11 +59,10 @@ public partial class TreeSpawnerSystem : SystemBase
 
         if (Input.GetMouseButtonDown(1) && Input.GetKey(KeyCode.LeftControl))
         {
-            var x = Mathf.FloorToInt(mousePosition.x);
-            var y = Mathf.FloorToInt(mousePosition.y);
+            PathingHelpers.GetXY(mousePosition, out var x, out var y);
             if (x > -1 && x < gridWidth && y > -1 && y < gridHeight)
             {
-                _shouldSpawnTreesOnMouseDown = walkableGrid[x * gridHeight + y].IsWalkable;
+                _shouldSpawnTreesOnMouseDown = walkableGrid[PathingHelpers.GetIndex(gridManager.Height, x, y)].IsWalkable;
             }
         }
 
