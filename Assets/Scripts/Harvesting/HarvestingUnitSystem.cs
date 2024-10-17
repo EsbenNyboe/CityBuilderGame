@@ -1,6 +1,7 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 [UpdateAfter(typeof(OccupationSystem))]
 [UpdateAfter(typeof(GridManagerSystem))]
@@ -35,6 +36,15 @@ public partial class HarvestingUnitSystem : SystemBase
             // TODO: Try replace with "WithNone"
             if (EntityManager.HasComponent<PathfindingParams>(entity))
             {
+                continue;
+            }
+
+            if (!GridHelpers.CellsAreNeighbours(localTransform.ValueRO.Position, harvestingUnit.ValueRO.Target))
+            {
+                GridHelpers.GetXY(localTransform.ValueRO.Position, out var x, out var y);
+                Debug.Log("Unit is trying to chop a tree that is too far away! Position: " + x + " " + y + " Target: " +
+                          harvestingUnit.ValueRO.Target.x + " " + harvestingUnit.ValueRO.Target.y);
+                SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
                 continue;
             }
 

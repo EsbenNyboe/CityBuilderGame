@@ -294,6 +294,26 @@ public class GridHelpers
         // Debug.Log("New position: x: " + nextCellX + " y: " + nextCellY);
     }
 
+    public static bool CellsAreNeighbours(Vector3 worldPosition, int2 targetCell)
+    {
+        GetXY(worldPosition, out var centerX, out var centerY);
+        return CellsAreNeighbours(centerX, centerY, targetCell.x, targetCell.y);
+    }
+
+    public static bool CellsAreNeighbours(int2 centerCell, int2 targetCell)
+    {
+        return CellsAreNeighbours(centerCell.x, centerCell.y, targetCell.x, targetCell.y);
+    }
+
+    public static bool CellsAreNeighbours(int centerX, int centerY, int targetX, int targetY)
+    {
+        var xDistance = Mathf.Abs(centerX - targetX);
+        var yDistance = Mathf.Abs(centerY - targetY);
+        var cellsAreCloseEnough = xDistance is > -1 and < 2 && yDistance is > -1 and < 2;
+        var cellsAreTooClose = centerX == targetX && centerY == targetY;
+        return cellsAreCloseEnough && !cellsAreTooClose;
+    }
+
     public static bool TryGetNearbyChoppingCell(GridManager gridManager, int2 currentTarget, out int2 newTarget, out int2 newPathTarget)
     {
         var nearbyCells = GetCellListAroundTargetCell30Rings(currentTarget.x, currentTarget.y);
