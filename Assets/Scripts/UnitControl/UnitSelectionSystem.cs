@@ -44,11 +44,10 @@ public partial class UnitSelectionSystem : SystemBase
             var unitPosition = localTransform.ValueRO.Position;
             GridHelpers.GetXY(unitPosition, out var x, out var y);
             GridHelpers.SetIsWalkable(ref gridManager, x, y, true);
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
-            if (GridSetup.Instance.OccupationGrid.GetGridObject(x, y).EntityIsOwner(entity))
+            if (GridHelpers.TryClearOccupant(ref gridManager, x, y, entity))
             {
-                GridSetup.Instance.OccupationGrid.GetGridObject(x, y).SetOccupied(Entity.Null);
+                SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
             }
 
             entityCommandBuffer.DestroyEntity(entity);

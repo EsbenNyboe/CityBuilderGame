@@ -62,10 +62,9 @@ public partial class HarvestingUnitSystem : SystemBase
                 if (GridHelpers.TryGetNearbyChoppingCell(gridManager, currentTarget, out var newTarget, out var newPathTarget))
                 {
                     // TODO: Replace with TryDeoccupy-component
-                    var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
-                    if (occupationCell.EntityIsOwner(entity))
+                    if (GridHelpers.TryClearOccupant(ref gridManager, localTransform.ValueRO.Position, entity))
                     {
-                        occupationCell.SetOccupied(Entity.Null);
+                        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                     }
 
                     // TODO: Investigate if this is what produces the error with long-range chopping. Is it maybe a bad idea to depend on PathFollow alone?
@@ -171,10 +170,9 @@ public partial class HarvestingUnitSystem : SystemBase
                     SetupPathfinding(gridManager, entityCommandBuffer, localTransform.ValueRO.Position, entity, closestDropPointEntrance);
 
                     // TODO: Should this be added to OccupationSystemSystem? If so, it would cause DeliveringUnit to break.
-                    var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
-                    if (occupationCell.EntityIsOwner(entity))
+                    if (GridHelpers.TryClearOccupant(ref gridManager, localTransform.ValueRO.Position, entity))
                     {
-                        occupationCell.SetOccupied(Entity.Null);
+                        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                     }
                 }
             }

@@ -7,8 +7,10 @@ public struct GridManager : IComponentData
     public int Height;
     public NativeArray<WalkableCell> WalkableGrid;
     public NativeArray<DamageableCell> DamageableGrid;
+    public NativeArray<OccupiableCell> OccupiableGrid;
     public bool WalkableGridIsDirty;
     public bool DamageableGridIsDirty;
+    public bool OccupiableGridIsDirty;
 }
 
 public struct WalkableCell
@@ -24,14 +26,20 @@ public struct DamageableCell
     public bool IsDirty;
 }
 
+public struct OccupiableCell
+{
+    public Entity Occupant;
+    public bool IsDirty;
+}
+
 public partial class GridManagerSystem : SystemBase
 {
     private const int MaxHealth = 100;
 
     protected override void OnCreate()
     {
-        var width = 100;
-        var height = 100;
+        var width = 105;
+        var height = 95;
 
         var walkableGrid = new NativeArray<WalkableCell>(width * height, Allocator.Persistent);
         for (var i = 0; i < walkableGrid.Length; i++)
@@ -52,6 +60,15 @@ public partial class GridManagerSystem : SystemBase
             damageableGrid[i] = cell;
         }
 
+        var occupiableGrid = new NativeArray<OccupiableCell>(width * height, Allocator.Persistent);
+        for (var i = 0; i < occupiableGrid.Length; i++)
+        {
+            var cell = occupiableGrid[i];
+            cell.Occupant = Entity.Null;
+            cell.IsDirty = true;
+            occupiableGrid[i] = cell;
+        }
+
         EntityManager.AddComponent<GridManager>(SystemHandle);
         SystemAPI.SetComponent(SystemHandle, new GridManager
         {
@@ -59,8 +76,10 @@ public partial class GridManagerSystem : SystemBase
             Height = height,
             WalkableGrid = walkableGrid,
             DamageableGrid = damageableGrid,
+            OccupiableGrid = occupiableGrid,
             WalkableGridIsDirty = true,
-            DamageableGridIsDirty = true
+            DamageableGridIsDirty = true,
+            OccupiableGridIsDirty = true
         });
     }
 
@@ -77,5 +96,7 @@ public partial class GridManagerSystem : SystemBase
         }
 
         gridManager.WalkableGrid.Dispose();
+        gridManager.DamageableGrid.Dispose();
+        gridManager.OccupiableGrid.Dispose();
     }
 }

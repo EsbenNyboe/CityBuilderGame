@@ -6,9 +6,12 @@ using UnityEngine;
 [UpdateAfter(typeof(GridManagerSystem))]
 public partial class SpawnUnitsSystem : SystemBase
 {
+    private SystemHandle _gridManagerSystemHandle;
+
     protected override void OnCreate()
     {
         RequireForUpdate<SpawnUnitsConfig>();
+        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
     }
 
     protected override void OnUpdate()
@@ -19,8 +22,7 @@ public partial class SpawnUnitsSystem : SystemBase
         }
 
         var spawnUnitsConfig = SystemAPI.GetSingleton<SpawnUnitsConfig>();
-        var gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
-        var gridManager = SystemAPI.GetComponent<GridManager>(gridManagerSystemHandle);
+        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
         var gridIndex = 0;
         for (var i = 0; i < spawnUnitsConfig.AmountToSpawn; i++)
@@ -43,7 +45,8 @@ public partial class SpawnUnitsSystem : SystemBase
                 Rotation = quaternion.identity
             });
 
-            GridSetup.Instance.OccupationGrid.GetGridObject(x, y).SetOccupied(spawnedEntity);
+            GridHelpers.SetOccupant(ref gridManager, x, y, spawnedEntity);
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
     }
 
@@ -64,7 +67,7 @@ public partial class SpawnUnitsSystem : SystemBase
                 return false;
             }
 
-            if (ValidateWalkableGridPosition(gridManager, gridIndex) && ValidateVacantGridPosition(x, y))
+            if (ValidateWalkableGridPosition(gridManager, gridIndex) && ValidateVacantGridPosition(gridManager, x, y))
             {
                 return true;
             }
@@ -95,8 +98,8 @@ public partial class SpawnUnitsSystem : SystemBase
         return gridManager.WalkableGrid[gridIndex].IsWalkable;
     }
 
-    private bool ValidateVacantGridPosition(int x, int y)
+    private bool ValidateVacantGridPosition(GridManager gridManager, int x, int y)
     {
-        return !GridSetup.Instance.OccupationGrid.GetGridObject(x, y).IsOccupied();
+        return !GridHelpers.IsOccupied(gridManager, x, y);
     }
 }

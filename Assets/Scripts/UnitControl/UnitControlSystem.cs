@@ -217,7 +217,7 @@ public partial class UnitControlSystem : SystemBase
             });
             EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
 
-            AbandonCellIfOccupying(startX, startY, entity);
+            AbandonCellIfOccupying(ref gridManager, startX, startY, entity);
         }
     }
 
@@ -254,7 +254,7 @@ public partial class UnitControlSystem : SystemBase
 
             EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
 
-            AbandonCellIfOccupying(startX, startY, entity);
+            AbandonCellIfOccupying(ref gridManager, startX, startY, entity);
         }
     }
 
@@ -275,12 +275,11 @@ public partial class UnitControlSystem : SystemBase
         return walkableNeighbourCells.Count > 0;
     }
 
-    private static void AbandonCellIfOccupying(int startX, int startY, Entity entity)
+    private void AbandonCellIfOccupying(ref GridManager gridManager, int startX, int startY, Entity entity)
     {
-        var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(startX, startY);
-        if (occupationCell.EntityIsOwner(entity))
+        if (GridHelpers.TryClearOccupant(ref gridManager, startX, startY, entity))
         {
-            occupationCell.SetOccupied(Entity.Null);
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
     }
 

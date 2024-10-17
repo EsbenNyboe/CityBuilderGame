@@ -41,10 +41,9 @@ public partial class OccupationSystem : SystemBase
     private void HandleCellDeoccupation(EntityCommandBuffer entityCommandBuffer, GridManager gridManager, RefRO<LocalTransform> localTransform,
         Entity entity, int2 newTarget)
     {
-        var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
-        if (occupationCell.EntityIsOwner(entity))
+        if (GridHelpers.TryClearOccupant(ref gridManager, localTransform.ValueRO.Position, entity))
         {
-            occupationCell.SetOccupied(Entity.Null);
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
         EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
@@ -55,13 +54,14 @@ public partial class OccupationSystem : SystemBase
     private void HandleCellOccupation(EntityCommandBuffer entityCommandBuffer, GridManager gridManager, RefRO<LocalTransform> localTransform,
         Entity entity)
     {
-        GridSetup.Instance.OccupationGrid.GetXY(localTransform.ValueRO.Position, out var posX, out var posY);
+        GridHelpers.GetXY(localTransform.ValueRO.Position, out var posX, out var posY);
 
         // TODO: Check if it's safe to assume the occupied cell owner is not this entity
-        if (!GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).IsOccupied())
+        if (!GridHelpers.IsOccupied(gridManager, posX, posY))
         {
             // Debug.Log("Set occupied: " + entity);
-            GridSetup.Instance.OccupationGrid.GetGridObject(posX, posY).SetOccupied(entity);
+            GridHelpers.SetOccupant(ref gridManager, posX, posY, entity);
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
             return;
         }
 
@@ -91,10 +91,9 @@ public partial class OccupationSystem : SystemBase
         DisableHarvestingUnit(entityCommandBuffer, entity);
 
         // TODO: Check if this is actually necessary.. This can be removed, right?
-        var occupationCell = GridSetup.Instance.OccupationGrid.GetGridObject(localTransform.ValueRO.Position);
-        if (occupationCell.EntityIsOwner(entity))
+        if (GridHelpers.TryClearOccupant(ref gridManager, localTransform.ValueRO.Position, entity))
         {
-            occupationCell.SetOccupied(Entity.Null);
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
     }
 
@@ -131,7 +130,7 @@ public partial class OccupationSystem : SystemBase
         {
             nearbyCell = movePositionList[i];
             if (GridHelpers.IsPositionInsideGrid(gridManager, nearbyCell) && GridHelpers.GetIsWalkable(gridManager, nearbyCell)
-                                                                          && !GridHelpers.IsPositionOccupied_OLD(nearbyCell)
+                                                                          && !GridHelpers.IsOccupied(gridManager, nearbyCell)
                )
             {
                 return true;

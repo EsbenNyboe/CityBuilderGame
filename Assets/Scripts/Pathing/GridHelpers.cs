@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -87,6 +88,54 @@ public class GridHelpers
         gridManager.DamageableGridIsDirty = true;
     }
 
+    public static bool TryClearOccupant(ref GridManager gridManager, Vector3 position, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        var i = GetIndex(gridManager, position);
+        return TryClearOccupant(ref gridManager, i, entity);
+    }
+
+    public static bool TryClearOccupant(ref GridManager gridManager, int x, int y, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        var i = GetIndex(gridManager, x, y);
+        return TryClearOccupant(ref gridManager, i, entity);
+    }
+
+    public static bool TryClearOccupant(ref GridManager gridManager, int i, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        if (EntityIsOccupant(gridManager, i, entity))
+        {
+            SetOccupant(ref gridManager, i, Entity.Null);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool EntityIsOccupant(GridManager gridManager, int i, Entity entity)
+    {
+        return gridManager.OccupiableGrid[i].Occupant == entity;
+    }
+
+    public static void SetOccupant(ref GridManager gridManager, int x, int y, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        var gridIndex = GetIndex(gridManager, x, y);
+        SetOccupant(ref gridManager, gridIndex, entity);
+    }
+
+    public static void SetOccupant(ref GridManager gridManager, int i, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        var occupiableCell = gridManager.OccupiableGrid[i];
+        occupiableCell.Occupant = entity;
+        occupiableCell.IsDirty = true;
+        gridManager.OccupiableGrid[i] = occupiableCell;
+        gridManager.OccupiableGridIsDirty = true;
+    }
+
     public static int GetIndex(GridManager gridManager, Vector3 worldPosition)
     {
         GetXY(worldPosition, out var x, out var y);
@@ -144,14 +193,21 @@ public class GridHelpers
             y < gridManager.Height;
     }
 
-    public static bool IsPositionOccupied_OLD(int2 cell)
+    public static bool IsOccupied(GridManager gridManager, int2 cell)
     {
-        return IsPositionOccupied_OLD(cell.x, cell.y);
+        return IsOccupied(gridManager, cell.x, cell.y);
     }
 
-    public static bool IsPositionOccupied_OLD(int x, int y)
+    public static bool IsOccupied(GridManager gridManager, int x, int y)
     {
-        return GridSetup.Instance.OccupationGrid.GetGridObject(x, y).IsOccupied();
+        var gridIndex = GetIndex(gridManager, x, y);
+        return IsOccupied(gridManager, gridIndex);
+    }
+
+    public static bool IsOccupied(GridManager gridManager, int gridIndex)
+    {
+        var occupant = gridManager.OccupiableGrid[gridIndex].Occupant;
+        return occupant != Entity.Null && World.DefaultGameObjectInjectionWorld.EntityManager.Exists(occupant);
     }
 
     public static List<int2> GetCellListAroundTargetCell(int2 firstPosition, int ringCount)
@@ -359,7 +415,7 @@ public class GridHelpers
 
             if (IsPositionInsideGrid(gridManager, neighbourX, neighbourY) &&
                 GetIsWalkable(gridManager, neighbourX, neighbourY) &&
-                !IsPositionOccupied_OLD(neighbourX, neighbourY))
+                !IsOccupied(gridManager, neighbourX, neighbourY))
             {
                 return true;
             }
