@@ -3,8 +3,16 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
+[UpdateAfter(typeof(GridManagerSystem))]
 public partial class UnitSelectionSystem : SystemBase
 {
+    private SystemHandle _gridManagerSystemHandle;
+
+    protected override void OnCreate()
+    {
+        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
+    }
+
     protected override void OnUpdate()
     {
         var material = SelectionAreaManager.Instance.UnitSelectedMaterial;
@@ -28,12 +36,14 @@ public partial class UnitSelectionSystem : SystemBase
     private void DeleteSelectedUnits()
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+
 
         foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
         {
             var unitPosition = localTransform.ValueRO.Position;
-            GridSetup.Instance.PathGrid.GetXY(unitPosition, out var x, out var y);
-            GridSetup.Instance.PathGrid.GetGridObject(x, y).SetIsWalkable(true);
+            PathingHelpers.GetXY(unitPosition, out var x, out var y);
+            PathingHelpers.SetIsWalkable(gridManager, x, y, true);
             if (GridSetup.Instance.OccupationGrid.GetGridObject(x, y).EntityIsOwner(entity))
             {
                 GridSetup.Instance.OccupationGrid.GetGridObject(x, y).SetOccupied(Entity.Null);

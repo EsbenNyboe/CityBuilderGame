@@ -16,6 +16,19 @@ public class PathingHelpers
 
     private static int2[] PositionListWith30Rings;
 
+    public static void SetIsWalkable(GridManager gridManager, int x, int y, bool isWalkable)
+    {
+        var gridIndex = GetIndex(gridManager, x, y);
+        SetIsWalkable(gridManager, gridIndex, isWalkable);
+    }
+
+    public static void SetIsWalkable(GridManager gridManager, int i, bool isWalkable)
+    {
+        var walkableCell = gridManager.WalkableGrid[i];
+        walkableCell.IsWalkable = isWalkable;
+        gridManager.WalkableGrid[i] = walkableCell;
+    }
+
     public static int GetIndex(GridManager gridManager, int x, int y)
     {
         return GetIndex(gridManager.Height, x, y);

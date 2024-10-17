@@ -19,7 +19,6 @@ public partial class TreeSpawnerSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        // var pathGrid = GridSetup.Instance.PathGrid;
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
         var walkableGrid = gridManager.WalkableGrid;
         var gridWidth = gridManager.Width;
@@ -48,10 +47,8 @@ public partial class TreeSpawnerSystem : SystemBase
 
                         var index = x * gridHeight + y;
 
-                        var walkableCell = walkableGrid[index];
                         var gridDamageable = damageableGrid.GetGridObject(x, y);
-                        TrySpawnTree(ref walkableCell, gridDamageable);
-                        walkableGrid[index] = walkableCell;
+                        TrySpawnTree(gridManager, index, gridDamageable);
                     }
                 }
             }
@@ -74,82 +71,36 @@ public partial class TreeSpawnerSystem : SystemBase
         if (Input.GetMouseButton(1) && Input.GetKey(KeyCode.LeftControl))
         {
             var brushSize = Globals.BrushSize();
-            GridSetup.Instance.PathGrid.GetXY(mousePosition, out var x, out var y);
+            PathingHelpers.GetXY(mousePosition, out var x, out var y);
             var cellList = PathingHelpers.GetCellListAroundTargetCell(new int2(x, y), brushSize);
 
             for (var i = 0; i < cellList.Count; i++)
             {
                 var index = cellList[i].x * gridHeight + cellList[i].y;
-                var walkableCell = walkableGrid[index];
                 var gridDamageable = damageableGrid.GetGridObject(cellList[i].x, cellList[i].y);
-                TrySpawnTree(ref walkableCell, gridDamageable);
-                walkableGrid[index] = walkableCell;
+                TrySpawnTree(gridManager, index, gridDamageable);
             }
         }
     }
 
-    private void TrySpawnTree(ref WalkableCell walkableCell, GridDamageable gridDamageable)
+    private void TrySpawnTree(GridManager gridManager, int gridIndex, GridDamageable gridDamageable)
     {
         if (gridDamageable == null)
         {
             return;
         }
 
-        if (!walkableCell.IsWalkable || gridDamageable.IsDamageable())
+        if (!gridManager.WalkableGrid[gridIndex].IsWalkable || gridDamageable.IsDamageable())
         {
             return;
         }
 
-        SpawnTreeWithoutEntity(ref walkableCell, gridDamageable);
+        SpawnTreeWithoutEntity(gridManager, gridIndex, gridDamageable);
     }
 
-    private void SpawnTreeWithoutEntity(ref WalkableCell walkableCell, GridDamageable gridDamageable)
+    private void SpawnTreeWithoutEntity(GridManager gridManager, int gridIndex, GridDamageable gridDamageable)
     {
-        walkableCell.IsWalkable = false;
+        PathingHelpers.SetIsWalkable(gridManager, gridIndex, false);
         gridDamageable.SetHealth(MaxHealth);
-    }
-
-    private bool GetNextValidGridPositionFromTop(ref int gridIndex, out int x, out int y)
-    {
-        var maxAttempts = 10;
-        var currentAttempt = 0;
-        x = 0;
-        y = 0;
-
-        while (currentAttempt < maxAttempts)
-        {
-            currentAttempt++;
-
-            if (!GetNextGridPosition(gridIndex, out x, out y))
-            {
-                Debug.Log("No valid grid position found: Outside range");
-                return false;
-            }
-
-            gridIndex++;
-            if (ValidateWalkableGridPosition(x, y))
-            {
-                return true;
-            }
-        }
-
-        Debug.Log("No valid grid position found: Not walkable");
-        return false;
-    }
-
-    private bool GetNextGridPosition(int gridIndex, out int x, out int y)
-    {
-        var width = GridSetup.Instance.PathGrid.GetWidth();
-        var maxY = GridSetup.Instance.PathGrid.GetHeight() - 1;
-
-        x = width - 1 - gridIndex % width;
-        y = maxY - gridIndex / width;
-
-        return y >= 0;
-    }
-
-    private bool ValidateWalkableGridPosition(int x, int y)
-    {
-        return GridSetup.Instance.PathGrid.GetGridObject(x, y).IsWalkable();
     }
 }
