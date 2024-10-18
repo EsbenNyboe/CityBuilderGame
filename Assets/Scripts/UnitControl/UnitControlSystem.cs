@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Text;
 using CodeMonkey.Utils;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 public struct UnitSelection : IComponentData
 {
@@ -128,20 +130,25 @@ public partial class UnitControlSystem : SystemBase
         gridManager.ValidateGridPosition(ref targetX, ref targetY);
         var targetGridCell = new int2(targetX, targetY);
 
-        var movePositionList = GridHelpers.GetCellListAroundTargetCell30Rings(targetGridCell.x, targetGridCell.y);
+        Profiler.BeginSample("Sample: Get list");
+        var movePositionList = gridManager.GetCachedCellListAroundTargetCell(targetGridCell.x, targetGridCell.y);
+        Profiler.EndSample();
 
+        Profiler.BeginSample("Sample: Debug");
         // DEBUGGING:
-        for (var i = 0; i < movePositionList.Length; i++)
-        {
-            for (var j = i + 1; j < movePositionList.Length; j++)
-            {
-                if (movePositionList[i].x == movePositionList[j].x && movePositionList[i].y == movePositionList[j].y)
-                {
-                    Debug.Log("Position list contains duplicate: " + movePositionList[i]);
-                }
-            }
-        }
+        // for (var i = 0; i < movePositionList.Length; i++)
+        // {
+        //     for (var j = i + 1; j < movePositionList.Length; j++)
+        //     {
+        //         if (movePositionList[i].x == movePositionList[j].x && movePositionList[i].y == movePositionList[j].y)
+        //         {
+        //             Debug.Log("Position list contains duplicate: " + movePositionList[i]);
+        //         }
+        //     }
+        // }
+        Profiler.EndSample();
 
+        Profiler.BeginSample("Sample: Move");
         if (gridManager.IsPositionInsideGrid(targetGridCell))
         {
             if (gridManager.IsWalkable(targetGridCell))
@@ -154,10 +161,12 @@ public partial class UnitControlSystem : SystemBase
             }
         }
 
+        Profiler.EndSample();
+
         entityCommandBuffer.Playback(EntityManager);
     }
 
-    private void MoveUnitsToWalkableArea(GridManager gridManager, int2[] movePositionList, EntityCommandBuffer entityCommandBuffer)
+    private void MoveUnitsToWalkableArea(GridManager gridManager, NativeArray<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
     {
         var positionIndex = 0;
         foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>()
@@ -263,7 +272,7 @@ public partial class UnitControlSystem : SystemBase
         const int maxPossibleNeighbours = 8;
         for (var i = 0; i < maxPossibleNeighbours; i++)
         {
-            GridHelpers.GetNeighbourCell(i, targetGridCell.x, targetGridCell.y, out var neighbourX, out var neighbourY);
+            gridManager.GetNeighbourCell(i, targetGridCell.x, targetGridCell.y, out var neighbourX, out var neighbourY);
 
             if (gridManager.IsPositionInsideGrid(neighbourX, neighbourY) &&
                 gridManager.WalkableGrid[gridManager.GetIndex(neighbourX, neighbourY)].IsWalkable)

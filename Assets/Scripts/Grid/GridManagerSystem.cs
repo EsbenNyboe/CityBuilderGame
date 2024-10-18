@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 public partial struct GridManager : IComponentData
 {
@@ -11,6 +12,12 @@ public partial struct GridManager : IComponentData
     public bool WalkableGridIsDirty;
     public bool DamageableGridIsDirty;
     public bool OccupiableGridIsDirty;
+
+    // GridSearchHelpers:
+    public NativeArray<int2> NeighbourDeltas;
+    public NativeList<int> RandomNeighbourIndexList;
+    public NativeList<int> RandomNearbyCellIndexList;
+    public NativeArray<int2> PositionListWith30Rings;
 }
 
 public struct WalkableCell
@@ -70,6 +77,14 @@ public partial class GridManagerSystem : SystemBase
         }
 
         EntityManager.AddComponent<GridManager>(SystemHandle);
+
+        var neighbourDeltas =
+            new NativeArray<int2>(new int2[] { new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1) },
+                Allocator.Persistent);
+        var randomNeighbourIndexList = new NativeList<int>(Allocator.Persistent);
+        var randomNearbyCellIndexList = new NativeList<int>(Allocator.Persistent);
+        var positionListWith30Rings = new NativeArray<int2>(GridHelpers.CalculatePositionListLength(30), Allocator.Persistent);
+
         SystemAPI.SetComponent(SystemHandle, new GridManager
         {
             Width = width,
@@ -79,7 +94,11 @@ public partial class GridManagerSystem : SystemBase
             OccupiableGrid = occupiableGrid,
             WalkableGridIsDirty = true,
             DamageableGridIsDirty = true,
-            OccupiableGridIsDirty = true
+            OccupiableGridIsDirty = true,
+            NeighbourDeltas = neighbourDeltas,
+            RandomNeighbourIndexList = randomNeighbourIndexList,
+            RandomNearbyCellIndexList = randomNearbyCellIndexList,
+            PositionListWith30Rings = positionListWith30Rings
         });
     }
 
@@ -98,5 +117,11 @@ public partial class GridManagerSystem : SystemBase
         gridManager.WalkableGrid.Dispose();
         gridManager.DamageableGrid.Dispose();
         gridManager.OccupiableGrid.Dispose();
+
+        // GridSearchHelpers:
+        gridManager.NeighbourDeltas.Dispose();
+        gridManager.RandomNeighbourIndexList.Dispose();
+        gridManager.RandomNearbyCellIndexList.Dispose();
+        gridManager.PositionListWith30Rings.Dispose();
     }
 }

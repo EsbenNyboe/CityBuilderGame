@@ -1,26 +1,37 @@
-﻿using Unity.Entities;
+﻿using Unity.Burst;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 [UpdateAfter(typeof(OccupationSystem))]
 [UpdateAfter(typeof(GridManagerSystem))]
-public partial class HarvestingUnitSystem : SystemBase
+[UpdateAfter(typeof(ChopAnimationManagerSystem))]
+// TODO: Consider running before sound-manager actually
+[UpdateAfter(typeof(DotsSoundManagerSystem))]
+[BurstCompile]
+public partial struct HarvestingUnitSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
+    private SystemHandle _chopAnimationManagerSystemHandle;
+    private SystemHandle _dotsSoundManagerSystemHandle;
 
-    protected override void OnCreate()
+    public void OnCreate(ref SystemState state)
     {
-        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
+        _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
+        _chopAnimationManagerSystemHandle = state.World.GetExistingSystem<ChopAnimationManagerSystem>();
+        _dotsSoundManagerSystemHandle = state.World.GetExistingSystem<DotsSoundManagerSystem>();
     }
 
-    protected override void OnUpdate()
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
     {
-        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+        var entityCommandBuffer = new EntityCommandBuffer(state.WorldUpdateAllocator);
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
-        var chopDuration = ChopAnimationManager.ChopDuration();
-        var chopSize = ChopAnimationManager.ChopAnimationSize();
-        var chopIdleTime = ChopAnimationManager.ChopAnimationPostIdleTimeNormalized();
+        var chopAnimationManager = SystemAPI.GetComponent<ChopAnimationManager>(_chopAnimationManagerSystemHandle);
+        var dotsSoundManager = SystemAPI.GetComponent<DotsSoundManager>(_dotsSoundManagerSystemHandle);
+        var chopDuration = chopAnimationManager.ChopDuration;
+        var chopSize = chopAnimationManager.ChopAnimationSize;
+        var chopIdleTime = chopAnimationManager.ChopAnimationIdleTime;
 
         foreach (var (localTransform, harvestingUnit, pathFollow, spriteTransform, entity) in SystemAPI
                      .Query<RefRO<LocalTransform>, RefRW<HarvestingUnit>, RefRO<PathFollow>, RefRW<SpriteTransform>>()
@@ -34,7 +45,7 @@ public partial class HarvestingUnitSystem : SystemBase
             }
 
             // TODO: Try replace with "WithNone"
-            if (EntityManager.HasComponent<PathfindingParams>(entity))
+            if (state.EntityManager.HasComponent<PathfindingParams>(entity))
             {
                 continue;
             }
@@ -43,8 +54,8 @@ public partial class HarvestingUnitSystem : SystemBase
             {
                 GridHelpers.GetXY(localTransform.ValueRO.Position, out var x, out var y);
                 SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
-                Debug.LogError("Unit is trying to chop a tree that is too far away! Position: " + x + " " + y + " Target: " +
-                               harvestingUnit.ValueRO.Target.x + " " + harvestingUnit.ValueRO.Target.y);
+                // Debug.LogError("Unit is trying to chop a tree that is too far away! Position: " + x + " " + y + " Target: " +
+                //                harvestingUnit.ValueRO.Target.x + " " + harvestingUnit.ValueRO.Target.y);
                 continue;
             }
 
@@ -59,7 +70,7 @@ public partial class HarvestingUnitSystem : SystemBase
 
                 // Seek new tree:
                 var currentTarget = harvestingUnit.ValueRO.Target;
-                if (GridHelpers.TryGetNearbyChoppingCell(gridManager, currentTarget, out var newTarget, out var newPathTarget))
+                if (gridManager.TryGetNearbyChoppingCell(currentTarget, out var newTarget, out var newPathTarget))
                 {
                     // TODO: Replace with TryDeoccupy-component
                     if (gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity))
@@ -68,7 +79,7 @@ public partial class HarvestingUnitSystem : SystemBase
                     }
 
                     // TODO: Investigate if this is what produces the error with long-range chopping. Is it maybe a bad idea to depend on PathFollow alone?
-                    EntityManager.SetComponentData(entity, new HarvestingUnit
+                    SystemAPI.SetComponent(entity, new HarvestingUnit
                     {
                         Target = newTarget
                     });
@@ -82,7 +93,7 @@ public partial class HarvestingUnitSystem : SystemBase
                         Position = float3.zero,
                         Rotation = quaternion.identity
                     });
-                    EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
+                    SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
                     //harvestingUnit.ValueRW.Target = new int2(-1, -1);
                 }
 
@@ -95,10 +106,10 @@ public partial class HarvestingUnitSystem : SystemBase
             {
                 harvestingUnit.ValueRW.TimeUntilNextChop = chopDuration;
 
-                gridManager.AddDamage(cellIndex, ChopAnimationManager.DamagePerChop());
+                gridManager.AddDamage(cellIndex, chopAnimationManager.DamagePerChop);
                 SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
-                SoundManager.Instance.PlayChopSound(localTransform.ValueRO.Position);
+                dotsSoundManager.ChopSoundRequests.Enqueue(localTransform.ValueRO.Position);
                 var chopTarget = harvestingUnit.ValueRO.Target;
                 entityCommandBuffer.AddComponent(entity, new ChopAnimation
                 {
@@ -113,7 +124,7 @@ public partial class HarvestingUnitSystem : SystemBase
             if (gridManager.DamageableGrid[cellIndex].Health <= 0)
             {
                 // DESTROY TREE:
-                SoundManager.Instance.PlayDestroyTreeSound(localTransform.ValueRO.Position);
+                dotsSoundManager.DestroyTreeSoundRequests.Enqueue(localTransform.ValueRO.Position);
                 gridManager.SetIsWalkable(targetX, targetY, true);
                 gridManager.SetHealth(cellIndex, 0);
                 SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
@@ -124,7 +135,7 @@ public partial class HarvestingUnitSystem : SystemBase
                     Position = float3.zero,
                     Rotation = quaternion.identity
                 });
-                EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
+                SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
 
                 var closestDropPoint = new float3(-1, -1, -1);
                 var shortestDropPointDistance = math.INFINITY;
@@ -145,8 +156,8 @@ public partial class HarvestingUnitSystem : SystemBase
                 {
                     GridHelpers.GetXY(closestDropPoint, out var x, out var y);
                     var dropPointCell = new int2(x, y);
-                    EntityManager.SetComponentEnabled<DeliveringUnit>(entity, true);
-                    EntityManager.SetComponentData(entity, new DeliveringUnit
+                    SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, true);
+                    SystemAPI.SetComponent(entity, new DeliveringUnit
                     {
                         Target = dropPointCell
                     });
@@ -157,7 +168,7 @@ public partial class HarvestingUnitSystem : SystemBase
                     var cellPosition = new int2(posX, posY);
                     for (var i = 0; i < 8; i++)
                     {
-                        GridHelpers.GetNeighbourCell(i, dropPointCell.x, dropPointCell.y, out var dropPointEntranceX, out var dropPointEntranceY);
+                        gridManager.GetNeighbourCell(i, dropPointCell.x, dropPointCell.y, out var dropPointEntranceX, out var dropPointEntranceY);
                         var dropPointEntrance = new int2(dropPointEntranceX, dropPointEntranceY);
                         var dropPointEntranceDistance = math.distance(cellPosition, dropPointEntrance);
                         if (dropPointEntranceDistance < shortestDropPointEntranceDistance)
@@ -178,7 +189,7 @@ public partial class HarvestingUnitSystem : SystemBase
             }
         }
 
-        entityCommandBuffer.Playback(EntityManager);
+        entityCommandBuffer.Playback(state.EntityManager);
     }
 
     private void SetupPathfinding(GridManager gridManager, EntityCommandBuffer entityCommandBuffer, float3 position, Entity entity,

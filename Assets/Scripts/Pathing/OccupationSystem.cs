@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -70,7 +71,7 @@ public partial class OccupationSystem : SystemBase
             // Debug.Log("Unit cannot harvest, because cell is occupied: " + posX + " " + posY);
 
             var harvestTarget = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
-            if (GridHelpers.TryGetNearbyChoppingCell(gridManager, harvestTarget, out var newTarget, out var newPathTarget))
+            if (gridManager.TryGetNearbyChoppingCell(harvestTarget, out var newTarget, out var newPathTarget))
             {
                 SetHarvestingUnit(entity, newTarget);
                 SetupPathfinding(gridManager, entityCommandBuffer, localTransform, entity, newPathTarget);
@@ -80,7 +81,7 @@ public partial class OccupationSystem : SystemBase
             Debug.LogWarning("Could not find nearby chopping cell. Disabling harvesting-behaviour...");
         }
 
-        var nearbyCells = GridHelpers.GetCellListAroundTargetCell30Rings(posX, posY);
+        var nearbyCells = gridManager.GetCachedCellListAroundTargetCell(posX, posY);
         if (!TryGetNearbyVacantCell(gridManager, nearbyCells, out var vacantCell))
         {
             Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
@@ -124,7 +125,7 @@ public partial class OccupationSystem : SystemBase
         EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
     }
 
-    private static bool TryGetNearbyVacantCell(GridManager gridManager, int2[] movePositionList, out int2 nearbyCell)
+    private static bool TryGetNearbyVacantCell(GridManager gridManager, NativeArray<int2> movePositionList, out int2 nearbyCell)
     {
         for (var i = 1; i < movePositionList.Length; i++)
         {

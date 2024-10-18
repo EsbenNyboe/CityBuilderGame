@@ -64,7 +64,7 @@ public partial class TreeSpawnerSystem : SystemBase
         {
             var brushSize = Globals.BrushSize();
             GridHelpers.GetXY(mousePosition, out var x, out var y);
-            var cellList = GridHelpers.GetCellListAroundTargetCell(new int2(x, y), brushSize);
+            var cellList = GridHelpersManaged.GetCellListAroundTargetCell(new int2(x, y), brushSize);
 
             for (var i = 0; i < cellList.Count; i++)
             {

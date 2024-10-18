@@ -49,10 +49,16 @@ public class SoundManager : MonoBehaviour
 
         InitializePoolItem(ref poolItem, _template);
         ApplySoundConfig(ref poolItem, sound);
+        ApplyDebugInfo(ref poolItem, sound);
 
         poolItem.transform.position = position;
         poolItem.Play();
         _pool.Enqueue(poolItem);
+    }
+
+    private void ApplyDebugInfo(ref AudioSource poolItem, SoundConfig sound)
+    {
+        poolItem.gameObject.name = Time.time + ": " + sound.Clip.name;
     }
 
     private static void ApplySoundConfig(ref AudioSource poolItem, SoundConfig sound)
