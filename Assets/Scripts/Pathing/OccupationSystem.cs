@@ -129,7 +129,7 @@ public partial class OccupationSystem : SystemBase
         for (var i = 1; i < movePositionList.Length; i++)
         {
             nearbyCell = movePositionList[i];
-            if (GridHelpers.IsPositionInsideGrid(gridManager, nearbyCell) && GridHelpers.GetIsWalkable(gridManager, nearbyCell)
+            if (GridHelpers.IsPositionInsideGrid(gridManager, nearbyCell) && GridHelpers.IsWalkable(gridManager, nearbyCell)
                                                                           && !GridHelpers.IsOccupied(gridManager, nearbyCell)
                )
             {

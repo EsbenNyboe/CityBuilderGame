@@ -5,136 +5,16 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using Random = UnityEngine.Random;
 
-public class GridHelpers
+public static class GridHelpers
 {
     private static readonly List<int2> PositionList = new();
-    private static readonly List<int> SimplePositionsX = new();
-    private static readonly List<int> SimplePositionsY = new();
     private static readonly List<int> NeighbourDeltasX = new() { 1, 1, 0, -1, -1, -1, 0, 1 };
     private static readonly List<int> NeighbourDeltasY = new() { 0, 1, 1, 1, 0, -1, -1, -1 };
     private static readonly List<int> RandomNeighbourIndexList = new();
     private static readonly List<int> RandomNearbyCellIndexList = new();
-
     private static int2[] PositionListWith30Rings;
 
-    public static bool GetIsWalkable(GridManager gridManager, int2 cell)
-    {
-        return GetIsWalkable(gridManager, cell.x, cell.y);
-    }
-
-    public static bool GetIsWalkable(GridManager gridManager, int x, int y)
-    {
-        return GetIsWalkable(gridManager, GetIndex(gridManager.Height, x, y));
-    }
-
-    public static bool GetIsWalkable(GridManager gridManager, int i)
-    {
-        return gridManager.WalkableGrid[i].IsWalkable;
-    }
-
-    public static void SetIsWalkable(ref GridManager gridManager, int x, int y, bool isWalkable)
-    {
-        // Note: Remember to call SetComponent after this method
-        var gridIndex = GetIndex(gridManager, x, y);
-        SetIsWalkable(ref gridManager, gridIndex, isWalkable);
-    }
-
-    public static void SetIsWalkable(ref GridManager gridManager, int i, bool isWalkable)
-    {
-        // Note: Remember to call SetComponent after this method
-        var walkableCell = gridManager.WalkableGrid[i];
-        walkableCell.IsWalkable = isWalkable;
-        walkableCell.IsDirty = true;
-        gridManager.WalkableGrid[i] = walkableCell;
-        gridManager.WalkableGridIsDirty = true;
-    }
-
-    public static bool IsDamageable(ref GridManager gridManager, Vector3 position)
-    {
-        GetXY(position, out var x, out var y);
-        return IsDamageable(ref gridManager, x, y);
-    }
-
-    public static bool IsDamageable(ref GridManager gridManager, int x, int y)
-    {
-        var i = GetIndex(gridManager, x, y);
-        return IsDamageable(ref gridManager, i);
-    }
-
-    public static bool IsDamageable(ref GridManager gridManager, int i)
-    {
-        return gridManager.DamageableGrid[i].Health > 0;
-    }
-
-    public static void AddDamage(ref GridManager gridManager, int i, float damage)
-    {
-        // Note: Remember to call SetComponent after this method
-        SetHealth(ref gridManager, i, gridManager.DamageableGrid[i].Health - damage);
-    }
-
-    public static void SetHealthToMax(ref GridManager gridManager, int i)
-    {
-        // Note: Remember to call SetComponent after this method
-        SetHealth(ref gridManager, i, gridManager.DamageableGrid[i].MaxHealth);
-    }
-
-    public static void SetHealth(ref GridManager gridManager, int i, float health)
-    {
-        // Note: Remember to call SetComponent after this method
-        var damageableCell = gridManager.DamageableGrid[i];
-        damageableCell.Health = health;
-        damageableCell.IsDirty = true;
-        gridManager.DamageableGrid[i] = damageableCell;
-        gridManager.DamageableGridIsDirty = true;
-    }
-
-    public static bool TryClearOccupant(ref GridManager gridManager, Vector3 position, Entity entity)
-    {
-        // Note: Remember to call SetComponent after this method
-        var i = GetIndex(gridManager, position);
-        return TryClearOccupant(ref gridManager, i, entity);
-    }
-
-    public static bool TryClearOccupant(ref GridManager gridManager, int x, int y, Entity entity)
-    {
-        // Note: Remember to call SetComponent after this method
-        var i = GetIndex(gridManager, x, y);
-        return TryClearOccupant(ref gridManager, i, entity);
-    }
-
-    public static bool TryClearOccupant(ref GridManager gridManager, int i, Entity entity)
-    {
-        // Note: Remember to call SetComponent after this method
-        if (EntityIsOccupant(gridManager, i, entity))
-        {
-            SetOccupant(ref gridManager, i, Entity.Null);
-            return true;
-        }
-
-        return false;
-    }
-
-    public static bool EntityIsOccupant(GridManager gridManager, int i, Entity entity)
-    {
-        return gridManager.OccupiableGrid[i].Occupant == entity;
-    }
-
-    public static void SetOccupant(ref GridManager gridManager, int x, int y, Entity entity)
-    {
-        // Note: Remember to call SetComponent after this method
-        var gridIndex = GetIndex(gridManager, x, y);
-        SetOccupant(ref gridManager, gridIndex, entity);
-    }
-
-    public static void SetOccupant(ref GridManager gridManager, int i, Entity entity)
-    {
-        // Note: Remember to call SetComponent after this method
-        var occupiableCell = gridManager.OccupiableGrid[i];
-        occupiableCell.Occupant = entity;
-        occupiableCell.IsDirty = true;
-        gridManager.OccupiableGrid[i] = occupiableCell;
-        gridManager.OccupiableGridIsDirty = true;
-    }
+    #region GenericGrid
 
     public static int GetIndex(GridManager gridManager, Vector3 worldPosition)
     {
@@ -193,22 +73,78 @@ public class GridHelpers
             y < gridManager.Height;
     }
 
-    public static bool IsOccupied(GridManager gridManager, int2 cell)
+    #endregion
+
+    #region GridSearch_Neighbours
+
+    public static bool CellsAreTouching(Vector3 worldPosition, int2 targetCell)
     {
-        return IsOccupied(gridManager, cell.x, cell.y);
+        GetXY(worldPosition, out var centerX, out var centerY);
+        return CellsAreTouching(centerX, centerY, targetCell.x, targetCell.y);
     }
 
-    public static bool IsOccupied(GridManager gridManager, int x, int y)
+    public static bool CellsAreTouching(int2 centerCell, int2 targetCell)
     {
-        var gridIndex = GetIndex(gridManager, x, y);
-        return IsOccupied(gridManager, gridIndex);
+        return CellsAreTouching(centerCell.x, centerCell.y, targetCell.x, targetCell.y);
     }
 
-    public static bool IsOccupied(GridManager gridManager, int gridIndex)
+    public static bool CellsAreTouching(int centerX, int centerY, int targetX, int targetY)
     {
-        var occupant = gridManager.OccupiableGrid[gridIndex].Occupant;
-        return occupant != Entity.Null && World.DefaultGameObjectInjectionWorld.EntityManager.Exists(occupant);
+        var xDistance = Mathf.Abs(centerX - targetX);
+        var yDistance = Mathf.Abs(centerY - targetY);
+        var cellsAreSameOrNeighbours = xDistance is > -1 and < 2 && yDistance is > -1 and < 2;
+        return cellsAreSameOrNeighbours;
     }
+
+    public static void GetNeighbourCell(int index, int x, int y, out int neighbourX, out int neighbourY)
+    {
+        Assert.IsTrue(index >= 0 && index < 8, "Index must be min 0 and max 8, because a cell can only have 8 neighbours!");
+
+        neighbourX = x + NeighbourDeltasX[index];
+        neighbourY = y + NeighbourDeltasY[index];
+    }
+
+    private static bool TryGetValidNeighbourCell(GridManager gridManager, int x, int y, out int neighbourX, out int neighbourY)
+    {
+        InitializeRandomNeighbourIndexList(8);
+        for (var j = 0; j < 8; j++)
+        {
+            var randomIndex = GetRandomNeighbourIndex();
+            GetNeighbourCell(randomIndex, x, y, out neighbourX, out neighbourY);
+
+            if (IsPositionInsideGrid(gridManager, neighbourX, neighbourY) &&
+                IsWalkable(gridManager, neighbourX, neighbourY) &&
+                !IsOccupied(gridManager, neighbourX, neighbourY))
+            {
+                return true;
+            }
+        }
+
+        neighbourX = -1;
+        neighbourY = -1;
+        return false;
+    }
+
+    private static void InitializeRandomNeighbourIndexList(int length)
+    {
+        RandomNeighbourIndexList.Clear();
+        for (var i = 0; i < length; i++)
+        {
+            RandomNeighbourIndexList.Add(i);
+        }
+    }
+
+    private static int GetRandomNeighbourIndex()
+    {
+        var indexListIndex = Random.Range(0, RandomNeighbourIndexList.Count);
+        var cellListIndex = RandomNeighbourIndexList[indexListIndex];
+        RandomNeighbourIndexList.RemoveAt(indexListIndex);
+        return cellListIndex;
+    }
+
+    #endregion
+
+    #region GridSearch_Other
 
     public static List<int2> GetCellListAroundTargetCell(int2 firstPosition, int ringCount)
     {
@@ -273,96 +209,11 @@ public class GridHelpers
         positionList.Add(firstPosition + new int2(a, -b));
     }
 
-    public static void GetNeighbourCell(int index, int x, int y, out int neighbourX, out int neighbourY)
-    {
-        Assert.IsTrue(index >= 0 && index < 8, "Index must be min 0 and max 8, because a cell can only have 8 neighbours!");
-
-        neighbourX = x + NeighbourDeltasX[index];
-        neighbourY = y + NeighbourDeltasY[index];
-    }
-
-    public static (List<int>, List<int>) GetCellListAroundTargetCell(int targetX, int targetY, int ringCount, bool includeTarget = true)
-    {
-        SimplePositionsX.Clear();
-        SimplePositionsY.Clear();
-
-        // include the target-cell
-        var nextCellX = targetX;
-        var nextCellY = targetY;
-        if (includeTarget)
-        {
-            AddPosition(nextCellX, nextCellY);
-        }
-
-        for (var ringSize = 1; ringSize < ringCount; ringSize++)
-        {
-            // start at max X & max Y
-            nextCellX = targetX + ringSize;
-            nextCellY = targetY + ringSize;
-
-            // go to min X
-            while (nextCellX > targetX - ringSize)
-            {
-                nextCellX--;
-                AddPosition(nextCellX, nextCellY);
-            }
-
-            // go to min Y
-            while (nextCellY > targetY - ringSize)
-            {
-                nextCellY--;
-                AddPosition(nextCellX, nextCellY);
-            }
-
-            // go to max X
-            while (nextCellX < targetX + ringSize)
-            {
-                nextCellX++;
-                AddPosition(nextCellX, nextCellY);
-            }
-
-            // go to max Y
-            while (nextCellY < targetY + ringSize)
-            {
-                nextCellY++;
-                AddPosition(nextCellX, nextCellY);
-            }
-        }
-
-        return (SimplePositionsX, SimplePositionsY);
-    }
-
-    private static void AddPosition(int nextCellX, int nextCellY)
-    {
-        SimplePositionsX.Add(nextCellX);
-        SimplePositionsY.Add(nextCellY);
-        // Debug.Log("New position: x: " + nextCellX + " y: " + nextCellY);
-    }
-
-    public static bool CellsAreTouching(Vector3 worldPosition, int2 targetCell)
-    {
-        GetXY(worldPosition, out var centerX, out var centerY);
-        return CellsAreTouching(centerX, centerY, targetCell.x, targetCell.y);
-    }
-
-    public static bool CellsAreTouching(int2 centerCell, int2 targetCell)
-    {
-        return CellsAreTouching(centerCell.x, centerCell.y, targetCell.x, targetCell.y);
-    }
-
-    public static bool CellsAreTouching(int centerX, int centerY, int targetX, int targetY)
-    {
-        var xDistance = Mathf.Abs(centerX - targetX);
-        var yDistance = Mathf.Abs(centerY - targetY);
-        var cellsAreSameOrNeighbours = xDistance is > -1 and < 2 && yDistance is > -1 and < 2;
-        return cellsAreSameOrNeighbours;
-    }
-
     public static bool TryGetNearbyChoppingCell(GridManager gridManager, int2 currentTarget, out int2 newTarget, out int2 newPathTarget)
     {
         var nearbyCells = GetCellListAroundTargetCell30Rings(currentTarget.x, currentTarget.y);
 
-        if (IsDamageable(ref gridManager, currentTarget.x, currentTarget.y) &&
+        if (IsDamageable(gridManager, currentTarget.x, currentTarget.y) &&
             TryGetValidNeighbourCell(gridManager, currentTarget.x, currentTarget.y, out var newPathTargetX, out var newPathTargetY))
         {
             newTarget = currentTarget;
@@ -387,7 +238,7 @@ public class GridHelpers
             var y = nearbyCells[cellIndex].y;
 
             if (!IsPositionInsideGrid(gridManager, x, y) ||
-                !IsDamageable(ref gridManager, x, y))
+                !IsDamageable(gridManager, x, y))
             {
                 continue;
             }
@@ -405,49 +256,6 @@ public class GridHelpers
         return false;
     }
 
-    private static bool TryGetValidNeighbourCell(GridManager gridManager, int x, int y, out int neighbourX, out int neighbourY)
-    {
-        InitializeRandomNeighbourIndexList(8);
-        for (var j = 0; j < 8; j++)
-        {
-            var randomIndex = GetRandomNeighbourIndex();
-            GetNeighbourCell(randomIndex, x, y, out neighbourX, out neighbourY);
-
-            if (IsPositionInsideGrid(gridManager, neighbourX, neighbourY) &&
-                GetIsWalkable(gridManager, neighbourX, neighbourY) &&
-                !IsOccupied(gridManager, neighbourX, neighbourY))
-            {
-                return true;
-            }
-        }
-
-        neighbourX = -1;
-        neighbourY = -1;
-        return false;
-    }
-
-    private static void InitializeRandomNeighbourIndexList(int length)
-    {
-        RandomNeighbourIndexList.Clear();
-        for (var i = 0; i < length; i++)
-        {
-            RandomNeighbourIndexList.Add(i);
-        }
-    }
-
-    private static int GetRandomNeighbourIndex()
-    {
-        var indexListIndex = Random.Range(0, RandomNeighbourIndexList.Count);
-        var cellListIndex = RandomNeighbourIndexList[indexListIndex];
-        RandomNeighbourIndexList.RemoveAt(indexListIndex);
-        return cellListIndex;
-    }
-
-    private static bool RandomNearbyCellIndexListIsEmpty()
-    {
-        return RandomNearbyCellIndexList.Count <= 0;
-    }
-
     private static void InitializeRandomNearbyCellIndexList(int min, int max)
     {
         RandomNearbyCellIndexList.Clear();
@@ -457,6 +265,11 @@ public class GridHelpers
         }
     }
 
+    private static bool RandomNearbyCellIndexListIsEmpty()
+    {
+        return RandomNearbyCellIndexList.Count <= 0;
+    }
+
     private static int GetRandomNearbyCellIndex()
     {
         var indexListIndex = Random.Range(0, RandomNearbyCellIndexList.Count);
@@ -464,7 +277,6 @@ public class GridHelpers
         RandomNearbyCellIndexList.RemoveAt(indexListIndex);
         return cellListIndex;
     }
-
 
     public static int2[] GetCellListAroundTargetCell30Rings(int targetX, int targetY)
     {
@@ -569,4 +381,190 @@ public class GridHelpers
 
         return length;
     }
+
+    #endregion
+
+    #region WalkableGrid
+
+    public static bool IsWalkable(GridManager gridManager, Vector3 position)
+    {
+        GetXY(position, out var x, out var y);
+        return IsWalkable(gridManager, x, y);
+    }
+
+    public static bool IsWalkable(GridManager gridManager, int2 cell)
+    {
+        return IsWalkable(gridManager, cell.x, cell.y);
+    }
+
+    public static bool IsWalkable(GridManager gridManager, int x, int y)
+    {
+        return IsWalkable(gridManager, GetIndex(gridManager.Height, x, y));
+    }
+
+    public static bool IsWalkable(GridManager gridManager, int i)
+    {
+        return gridManager.WalkableGrid[i].IsWalkable;
+    }
+
+    public static void SetIsWalkable(ref GridManager gridManager, Vector3 position, bool isWalkable)
+    {
+        // Note: Remember to call SetComponent after this method
+        GetXY(position, out var x, out var y);
+        SetIsWalkable(ref gridManager, x, y, isWalkable);
+    }
+
+    public static void SetIsWalkable(ref GridManager gridManager, int2 cell, bool isWalkable)
+    {
+        // Note: Remember to call SetComponent after this method
+        SetIsWalkable(ref gridManager, cell.x, cell.y, isWalkable);
+    }
+
+    public static void SetIsWalkable(ref GridManager gridManager, int x, int y, bool isWalkable)
+    {
+        // Note: Remember to call SetComponent after this method
+        var gridIndex = GetIndex(gridManager, x, y);
+        SetIsWalkable(ref gridManager, gridIndex, isWalkable);
+    }
+
+    public static void SetIsWalkable(ref GridManager gridManager, int i, bool isWalkable)
+    {
+        // Note: Remember to call SetComponent after this method
+        var walkableCell = gridManager.WalkableGrid[i];
+        walkableCell.IsWalkable = isWalkable;
+        walkableCell.IsDirty = true;
+        gridManager.WalkableGrid[i] = walkableCell;
+        gridManager.WalkableGridIsDirty = true;
+    }
+
+    #endregion
+
+    #region OccupiableGrid
+
+    public static bool IsOccupied(GridManager gridManager, Vector3 position)
+    {
+        GetXY(position, out var x, out var y);
+        return IsOccupied(gridManager, x, y);
+    }
+
+    public static bool IsOccupied(GridManager gridManager, int2 cell)
+    {
+        return IsOccupied(gridManager, cell.x, cell.y);
+    }
+
+    public static bool IsOccupied(GridManager gridManager, int x, int y)
+    {
+        var gridIndex = GetIndex(gridManager, x, y);
+        return IsOccupied(gridManager, gridIndex);
+    }
+
+    public static bool IsOccupied(GridManager gridManager, int gridIndex)
+    {
+        var occupant = gridManager.OccupiableGrid[gridIndex].Occupant;
+        return occupant != Entity.Null && World.DefaultGameObjectInjectionWorld.EntityManager.Exists(occupant);
+    }
+
+    public static bool EntityIsOccupant(GridManager gridManager, int i, Entity entity)
+    {
+        return gridManager.OccupiableGrid[i].Occupant == entity;
+    }
+
+    public static bool TryClearOccupant(ref GridManager gridManager, Vector3 position, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        GetXY(position, out var x, out var y);
+        return TryClearOccupant(ref gridManager, x, y, entity);
+    }
+
+    public static bool TryClearOccupant(ref GridManager gridManager, int2 cell, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        return TryClearOccupant(ref gridManager, cell.x, cell.y, entity);
+    }
+
+    public static bool TryClearOccupant(ref GridManager gridManager, int x, int y, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        var i = GetIndex(gridManager, x, y);
+        return TryClearOccupant(ref gridManager, i, entity);
+    }
+
+    public static bool TryClearOccupant(ref GridManager gridManager, int i, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        if (EntityIsOccupant(gridManager, i, entity))
+        {
+            SetOccupant(ref gridManager, i, Entity.Null);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static void SetOccupant(ref GridManager gridManager, int x, int y, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        var gridIndex = GetIndex(gridManager, x, y);
+        SetOccupant(ref gridManager, gridIndex, entity);
+    }
+
+    public static void SetOccupant(ref GridManager gridManager, int i, Entity entity)
+    {
+        // Note: Remember to call SetComponent after this method
+        var occupiableCell = gridManager.OccupiableGrid[i];
+        occupiableCell.Occupant = entity;
+        occupiableCell.IsDirty = true;
+        gridManager.OccupiableGrid[i] = occupiableCell;
+        gridManager.OccupiableGridIsDirty = true;
+    }
+
+    #endregion
+
+    #region DamageableGrid
+
+    public static bool IsDamageable(GridManager gridManager, Vector3 position)
+    {
+        GetXY(position, out var x, out var y);
+        return IsDamageable(gridManager, x, y);
+    }
+
+    public static bool IsDamageable(GridManager gridManager, int2 cell)
+    {
+        return IsDamageable(gridManager, cell.x, cell.y);
+    }
+
+    public static bool IsDamageable(GridManager gridManager, int x, int y)
+    {
+        var i = GetIndex(gridManager, x, y);
+        return IsDamageable(gridManager, i);
+    }
+
+    public static bool IsDamageable(GridManager gridManager, int i)
+    {
+        return gridManager.DamageableGrid[i].Health > 0;
+    }
+
+    public static void AddDamage(ref GridManager gridManager, int i, float damage)
+    {
+        // Note: Remember to call SetComponent after this method
+        SetHealth(ref gridManager, i, gridManager.DamageableGrid[i].Health - damage);
+    }
+
+    public static void SetHealthToMax(ref GridManager gridManager, int i)
+    {
+        // Note: Remember to call SetComponent after this method
+        SetHealth(ref gridManager, i, gridManager.DamageableGrid[i].MaxHealth);
+    }
+
+    public static void SetHealth(ref GridManager gridManager, int i, float health)
+    {
+        // Note: Remember to call SetComponent after this method
+        var damageableCell = gridManager.DamageableGrid[i];
+        damageableCell.Health = health;
+        damageableCell.IsDirty = true;
+        gridManager.DamageableGrid[i] = damageableCell;
+        gridManager.DamageableGridIsDirty = true;
+    }
+
+    #endregion
 }

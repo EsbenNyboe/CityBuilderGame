@@ -32,7 +32,7 @@ public partial class DropPointSpawnerSystem : SystemBase
             }
 
             var gridIndex = GridHelpers.GetIndex(gridManager, x, y);
-            if (!GridHelpers.GetIsWalkable(gridManager, gridIndex))
+            if (!GridHelpers.IsWalkable(gridManager, gridIndex))
             {
                 return;
             }

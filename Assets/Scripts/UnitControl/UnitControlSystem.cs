@@ -144,11 +144,11 @@ public partial class UnitControlSystem : SystemBase
 
         if (GridHelpers.IsPositionInsideGrid(gridManager, targetGridCell))
         {
-            if (GridHelpers.GetIsWalkable(gridManager, targetGridCell))
+            if (GridHelpers.IsWalkable(gridManager, targetGridCell))
             {
                 MoveUnitsToWalkableArea(gridManager, movePositionList, entityCommandBuffer);
             }
-            else if (GridHelpers.IsDamageable(ref gridManager, targetGridCell.x, targetGridCell.y))
+            else if (GridHelpers.IsDamageable(gridManager, targetGridCell.x, targetGridCell.y))
             {
                 MoveUnitsToHarvestableCell(gridManager, entityCommandBuffer, targetGridCell);
             }
@@ -171,7 +171,7 @@ public partial class UnitControlSystem : SystemBase
             var attempts = 0;
             while (!positionIsValid)
             {
-                if (GridHelpers.IsPositionInsideGrid(gridManager, endPosition) && GridHelpers.GetIsWalkable(gridManager, endPosition))
+                if (GridHelpers.IsPositionInsideGrid(gridManager, endPosition) && GridHelpers.IsWalkable(gridManager, endPosition))
                 {
                     positionIsValid = true;
                 }
