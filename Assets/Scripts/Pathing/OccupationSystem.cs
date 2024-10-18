@@ -1,23 +1,26 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 [UpdateAfter(typeof(PathFollowSystem))]
 [UpdateAfter(typeof(GridManagerSystem))]
-public partial class OccupationSystem : SystemBase
+[BurstCompile]
+public partial struct OccupationSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
 
-    protected override void OnCreate()
+    public void OnCreate(ref SystemState state)
     {
-        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
+        _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
 
-    protected override void OnUpdate()
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
     {
-        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+        var entityCommandBuffer = new EntityCommandBuffer(state.WorldUpdateAllocator);
+
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
         // TODO: Test if "WithAll" is necessary
@@ -26,20 +29,21 @@ public partial class OccupationSystem : SystemBase
                      .Query<RefRO<TryDeoccupy>, RefRO<LocalTransform>>().WithEntityAccess())
         {
             var newTarget = tryDeoccupy.ValueRO.NewTarget;
-            HandleCellDeoccupation(entityCommandBuffer, gridManager, localTransform, entity, newTarget);
+            HandleCellDeoccupation(ref state, entityCommandBuffer, gridManager, localTransform, entity, newTarget);
             entityCommandBuffer.RemoveComponent<TryDeoccupy>(entity);
         }
 
         foreach (var (tryOccupy, localTransform, entity) in SystemAPI.Query<RefRO<TryOccupy>, RefRO<LocalTransform>>().WithEntityAccess())
         {
-            HandleCellOccupation(entityCommandBuffer, gridManager, localTransform, entity);
+            HandleCellOccupation(ref state, entityCommandBuffer, gridManager, localTransform, entity);
             entityCommandBuffer.RemoveComponent<TryOccupy>(entity);
         }
 
-        entityCommandBuffer.Playback(EntityManager);
+        entityCommandBuffer.Playback(state.EntityManager);
     }
 
-    private void HandleCellDeoccupation(EntityCommandBuffer entityCommandBuffer, GridManager gridManager, RefRO<LocalTransform> localTransform,
+    private void HandleCellDeoccupation(ref SystemState state, EntityCommandBuffer entityCommandBuffer, GridManager gridManager,
+        RefRO<LocalTransform> localTransform,
         Entity entity, int2 newTarget)
     {
         if (gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity))
@@ -47,12 +51,13 @@ public partial class OccupationSystem : SystemBase
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
-        EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
-        EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
-        SetupPathfinding(gridManager, entityCommandBuffer, localTransform, entity, newTarget);
+        SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, true);
+        SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
+        SetupPathfinding(ref state, gridManager, entityCommandBuffer, localTransform, entity, newTarget);
     }
 
-    private void HandleCellOccupation(EntityCommandBuffer entityCommandBuffer, GridManager gridManager, RefRO<LocalTransform> localTransform,
+    private void HandleCellOccupation(ref SystemState state, EntityCommandBuffer entityCommandBuffer, GridManager gridManager,
+        RefRO<LocalTransform> localTransform,
         Entity entity)
     {
         GridHelpers.GetXY(localTransform.ValueRO.Position, out var posX, out var posY);
@@ -60,36 +65,36 @@ public partial class OccupationSystem : SystemBase
         // TODO: Check if it's safe to assume the occupied cell owner is not this entity
         if (!gridManager.IsOccupied(posX, posY))
         {
-            // Debug.Log("Set occupied: " + entity);
+            // BurstDebugHelpers.DebugLog("Set occupied: " + entity);
             gridManager.SetOccupant(posX, posY, entity);
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
             return;
         }
 
-        if (EntityManager.IsComponentEnabled<HarvestingUnit>(entity))
+        if (SystemAPI.IsComponentEnabled<HarvestingUnit>(entity))
         {
-            // Debug.Log("Unit cannot harvest, because cell is occupied: " + posX + " " + posY);
+            // BurstDebugHelpers.DebugLog("Unit cannot harvest, because cell is occupied: " + posX + " " + posY);
 
-            var harvestTarget = EntityManager.GetComponentData<HarvestingUnit>(entity).Target;
+            var harvestTarget = SystemAPI.GetComponent<HarvestingUnit>(entity).Target;
             if (gridManager.TryGetNearbyChoppingCell(harvestTarget, out var newTarget, out var newPathTarget))
             {
-                SetHarvestingUnit(entity, newTarget);
-                SetupPathfinding(gridManager, entityCommandBuffer, localTransform, entity, newPathTarget);
+                SystemAPI.SetComponent(entity, new HarvestingUnit { Target = newTarget });
+                SetupPathfinding(ref state, gridManager, entityCommandBuffer, localTransform, entity, newPathTarget);
                 return;
             }
 
-            Debug.LogWarning("Could not find nearby chopping cell. Disabling harvesting-behaviour...");
+            BurstDebugHelpers.DebugLogWarning("Could not find nearby chopping cell. Disabling harvesting-behaviour...");
         }
 
         var nearbyCells = gridManager.GetCachedCellListAroundTargetCell(posX, posY);
         if (!TryGetNearbyVacantCell(gridManager, nearbyCells, out var vacantCell))
         {
-            Debug.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: " + entity);
+            BurstDebugHelpers.DebugLogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
             return;
         }
 
-        SetupPathfinding(gridManager, entityCommandBuffer, localTransform, entity, vacantCell);
-        DisableHarvestingUnit(entityCommandBuffer, entity);
+        SetupPathfinding(ref state, gridManager, entityCommandBuffer, localTransform, entity, vacantCell);
+        DisableHarvestingUnit(ref state, entityCommandBuffer, entity);
 
         // TODO: Check if this is actually necessary.. This can be removed, right?
         if (gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity))
@@ -98,17 +103,8 @@ public partial class OccupationSystem : SystemBase
         }
     }
 
-    private void SetHarvestingUnit(Entity entity, int2 newTarget)
-    {
-        // EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
-        EntityManager.SetComponentData(entity, new HarvestingUnit
-        {
-            Target = newTarget
-        });
-    }
-
     // TODO: Fix race-condition with DeliveringUnitSystem
-    private void DisableHarvestingUnit(EntityCommandBuffer entityCommandBuffer, Entity entity)
+    private void DisableHarvestingUnit(ref SystemState state, EntityCommandBuffer entityCommandBuffer, Entity entity)
     {
         entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
         SystemAPI.SetComponent(entity, new SpriteTransform
@@ -116,13 +112,13 @@ public partial class OccupationSystem : SystemBase
             Position = float3.zero,
             Rotation = quaternion.identity
         });
-        EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
+        SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
         //EntityManager.SetComponentData(entity, new HarvestingUnit
         //{
         //    Target = new int2(-1, -1)
         //});
 
-        EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
+        SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
     }
 
     private static bool TryGetNearbyVacantCell(GridManager gridManager, NativeArray<int2> movePositionList, out int2 nearbyCell)
@@ -141,7 +137,8 @@ public partial class OccupationSystem : SystemBase
         return false;
     }
 
-    private void SetupPathfinding(GridManager gridManager, EntityCommandBuffer entityCommandBuffer, RefRO<LocalTransform> localTransform,
+    private void SetupPathfinding(ref SystemState state, GridManager gridManager, EntityCommandBuffer entityCommandBuffer,
+        RefRO<LocalTransform> localTransform,
         Entity entity, int2 newEndPosition)
     {
         GridHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
