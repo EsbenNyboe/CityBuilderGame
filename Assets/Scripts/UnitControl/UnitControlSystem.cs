@@ -6,7 +6,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 public struct UnitSelection : IComponentData
 {
@@ -130,11 +129,8 @@ public partial class UnitControlSystem : SystemBase
         gridManager.ValidateGridPosition(ref targetX, ref targetY);
         var targetGridCell = new int2(targetX, targetY);
 
-        Profiler.BeginSample("Sample: Get list");
         var movePositionList = gridManager.GetCachedCellListAroundTargetCell(targetGridCell.x, targetGridCell.y);
-        Profiler.EndSample();
 
-        Profiler.BeginSample("Sample: Debug");
         // DEBUGGING:
         // for (var i = 0; i < movePositionList.Length; i++)
         // {
@@ -146,9 +142,7 @@ public partial class UnitControlSystem : SystemBase
         //         }
         //     }
         // }
-        Profiler.EndSample();
 
-        Profiler.BeginSample("Sample: Move");
         if (gridManager.IsPositionInsideGrid(targetGridCell))
         {
             if (gridManager.IsWalkable(targetGridCell))
@@ -160,8 +154,6 @@ public partial class UnitControlSystem : SystemBase
                 MoveUnitsToHarvestableCell(gridManager, entityCommandBuffer, targetGridCell);
             }
         }
-
-        Profiler.EndSample();
 
         entityCommandBuffer.Playback(EntityManager);
     }
