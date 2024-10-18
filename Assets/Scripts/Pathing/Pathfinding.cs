@@ -5,7 +5,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
 
 [UpdateAfter(typeof(GridManagerSystem))]
 public partial class Pathfinding : SystemBase
@@ -27,6 +26,10 @@ public partial class Pathfinding : SystemBase
         var gridWidth = gridManager.Width;
         var gridHeight = gridManager.Height;
         var gridSize = new int2(gridWidth, gridHeight);
+        if (!PathNodeArrayTemplate.IsCreated)
+        {
+            PathNodeArrayTemplate = new NativeArray<PathNode>(gridWidth * gridHeight, Allocator.Persistent);
+        }
 
         var findPathJobList = new List<FindPathJob>();
         var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
@@ -35,13 +38,15 @@ public partial class Pathfinding : SystemBase
         var maxPathfindingSchedulesPerFrame = Globals.MaxPathfindingPerFrame();
         var currentAmountOfSchedules = 0;
 
+        var templateIsCreated = false;
+
         foreach (var (pathfindingParams, pathPositionBuffer, entity) in SystemAPI.Query<RefRO<PathfindingParams>, DynamicBuffer<PathPosition>>()
                      .WithEntityAccess())
         {
-            var templateIsCreated = PathNodeArrayTemplate.IsCreated;
             if (!templateIsCreated)
             {
-                PathNodeArrayTemplate = GetNewPathNodeArray(walkableGrid, gridSize);
+                templateIsCreated = true;
+                UpdatePathNodeArrayTemplate(walkableGrid, gridSize);
             }
 
             if (currentAmountOfSchedules > maxPathfindingSchedulesPerFrame)
@@ -83,12 +88,12 @@ public partial class Pathfinding : SystemBase
             }.Run();
         }
 
-        if (PathNodeArrayTemplate.IsCreated)
-        {
-            PathNodeArrayTemplate.Dispose();
-        }
-
         entityCommandBuffer.Playback(EntityManager);
+    }
+
+    protected override void OnDestroy()
+    {
+        PathNodeArrayTemplate.Dispose();
     }
 
     private NativeArray<PathNode> GetPathNodeArray(int2 gridSize)
@@ -99,16 +104,7 @@ public partial class Pathfinding : SystemBase
         return pathNodeArray;
     }
 
-    private NativeArray<PathNode> GetNewPathNodeArray(NativeArray<WalkableCell> grid, int2 gridSize)
-    {
-        var pathNodeArray = new NativeArray<PathNode>(gridSize.x * gridSize.y, Allocator.TempJob);
-
-        pathNodeArray = FillArray(grid, gridSize, pathNodeArray);
-
-        return pathNodeArray;
-    }
-
-    private static NativeArray<PathNode> FillArray(NativeArray<WalkableCell> grid, int2 gridSize, NativeArray<PathNode> pathNodeArray)
+    private void UpdatePathNodeArrayTemplate(NativeArray<WalkableCell> grid, int2 gridSize)
     {
         for (var x = 0; x < gridSize.x; x++)
         {
@@ -118,22 +114,13 @@ public partial class Pathfinding : SystemBase
                 pathNode.x = x;
                 pathNode.y = y;
                 pathNode.index = GridHelpers.GetIndex(gridSize.y, x, y);
-
                 pathNode.gCost = int.MaxValue;
-
                 pathNode.isWalkable = grid[pathNode.index].IsWalkable;
                 pathNode.cameFromNodeIndex = -1;
 
-                pathNodeArray[pathNode.index] = pathNode;
+                PathNodeArrayTemplate[pathNode.index] = pathNode;
             }
         }
-
-        return pathNodeArray;
-    }
-
-    private void DebugInfo(string message)
-    {
-        Debug.Log(message);
     }
 
     private static void CalculatePath(NativeArray<PathNode> pathNodeArray, PathNode endNode, DynamicBuffer<PathPosition> pathPositionBuffer)
