@@ -211,12 +211,12 @@ public partial class UnitControlSystem : SystemBase
                 Position = float3.zero,
                 Rotation = quaternion.identity
             });
-            EntityManager.SetComponentEnabled<HarvestingUnit>(entity, false);
-            EntityManager.SetComponentData(entity, new HarvestingUnit
+            SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
+            SystemAPI.SetComponent(entity, new HarvestingUnit
             {
                 Target = new int2(-1, -1)
             });
-            EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
+            SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
 
             AbandonCellIfOccupying(ref gridManager, startX, startY, entity);
         }
@@ -247,13 +247,13 @@ public partial class UnitControlSystem : SystemBase
                 EndPosition = endPosition
             });
 
-            EntityManager.SetComponentEnabled<HarvestingUnit>(entity, true);
-            EntityManager.SetComponentData(entity, new HarvestingUnit
+            SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, true);
+            SystemAPI.SetComponent(entity, new HarvestingUnit
             {
                 Target = targetGridCell
             });
 
-            EntityManager.SetComponentEnabled<DeliveringUnit>(entity, false);
+            SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
 
             AbandonCellIfOccupying(ref gridManager, startX, startY, entity);
         }

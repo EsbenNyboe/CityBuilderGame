@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -31,7 +30,7 @@ public partial class Pathfinding : SystemBase
             PathNodeArrayTemplate = new NativeArray<PathNode>(gridWidth * gridHeight, Allocator.Persistent);
         }
 
-        var findPathJobList = new List<FindPathJob>();
+        var findPathJobList = new NativeList<FindPathJob>(Allocator.Temp);
         var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
@@ -56,7 +55,6 @@ public partial class Pathfinding : SystemBase
 
             currentAmountOfSchedules++;
 
-            // Debug.Log("Find path");
             var findPathJob = new FindPathJob
             {
                 GridSize = gridSize,
@@ -68,7 +66,6 @@ public partial class Pathfinding : SystemBase
             };
             findPathJobList.Add(findPathJob);
             jobHandleList.Add(findPathJob.Schedule());
-            // findPathJob.Run();
 
             entityCommandBuffer.RemoveComponent<PathfindingParams>(entity);
         }
@@ -89,6 +86,8 @@ public partial class Pathfinding : SystemBase
         }
 
         entityCommandBuffer.Playback(EntityManager);
+        findPathJobList.Dispose();
+        jobHandleList.Dispose();
     }
 
     protected override void OnDestroy()
