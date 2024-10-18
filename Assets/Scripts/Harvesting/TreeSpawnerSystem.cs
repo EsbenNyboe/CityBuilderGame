@@ -40,7 +40,7 @@ public partial class TreeSpawnerSystem : SystemBase
                         continue;
                     }
 
-                    var index = GridHelpers.GetIndex(gridManager, x, y);
+                    var index = gridManager.GetIndex(x, y);
                     TrySpawnTree(gridManager, index);
                 }
             }
@@ -51,7 +51,7 @@ public partial class TreeSpawnerSystem : SystemBase
             GridHelpers.GetXY(mousePosition, out var x, out var y);
             if (x > -1 && x < gridWidth && y > -1 && y < gridHeight)
             {
-                _shouldSpawnTreesOnMouseDown = walkableGrid[GridHelpers.GetIndex(gridManager.Height, x, y)].IsWalkable;
+                _shouldSpawnTreesOnMouseDown = walkableGrid[gridManager.GetIndex(x, y)].IsWalkable;
             }
         }
 
@@ -100,8 +100,8 @@ public partial class TreeSpawnerSystem : SystemBase
 
     private void SpawnTreeWithoutEntity(GridManager gridManager, int gridIndex)
     {
-        GridHelpers.SetIsWalkable(ref gridManager, gridIndex, false);
-        GridHelpers.SetHealthToMax(ref gridManager, gridIndex);
+        gridManager.SetIsWalkable(gridIndex, false);
+        gridManager.SetHealthToMax(gridIndex);
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 }

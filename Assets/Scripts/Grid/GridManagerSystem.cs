@@ -1,7 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
 
-public struct GridManager : IComponentData
+public partial struct GridManager : IComponentData
 {
     public int Width;
     public int Height;

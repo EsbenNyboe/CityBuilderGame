@@ -26,18 +26,18 @@ public partial class DropPointSpawnerSystem : SystemBase
         {
             GridHelpers.GetXY(mousePosition, out var x, out var y);
 
-            if (!GridHelpers.IsPositionInsideGrid(gridManager, x, y))
+            if (!gridManager.IsPositionInsideGrid(x, y))
             {
                 return;
             }
 
-            var gridIndex = GridHelpers.GetIndex(gridManager, x, y);
-            if (!GridHelpers.IsWalkable(gridManager, gridIndex))
+            var gridIndex = gridManager.GetIndex(x, y);
+            if (!gridManager.IsWalkable(gridIndex))
             {
                 return;
             }
 
-            GridHelpers.SetIsWalkable(ref gridManager, gridIndex, false);
+            gridManager.SetIsWalkable(gridIndex, false);
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
             var spawnedEntity = EntityManager.Instantiate(dropPointSpawner.ObjectToSpawn);

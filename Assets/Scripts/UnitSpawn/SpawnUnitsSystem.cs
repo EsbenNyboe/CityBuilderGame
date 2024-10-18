@@ -45,7 +45,7 @@ public partial class SpawnUnitsSystem : SystemBase
                 Rotation = quaternion.identity
             });
 
-            GridHelpers.SetOccupant(ref gridManager, x, y, spawnedEntity);
+            gridManager.SetOccupant(x, y, spawnedEntity);
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
     }
@@ -88,8 +88,7 @@ public partial class SpawnUnitsSystem : SystemBase
             return false;
         }
 
-        GridHelpers.GetXY(gridManager, gridIndex, out x, out y);
-
+        gridManager.GetXY(gridIndex, out x, out y);
         return true;
     }
 
@@ -100,6 +99,6 @@ public partial class SpawnUnitsSystem : SystemBase
 
     private bool ValidateVacantGridPosition(GridManager gridManager, int x, int y)
     {
-        return !GridHelpers.IsOccupied(gridManager, x, y);
+        return !gridManager.IsOccupied(x, y);
     }
 }

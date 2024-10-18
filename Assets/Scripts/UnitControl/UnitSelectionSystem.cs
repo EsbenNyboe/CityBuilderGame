@@ -43,9 +43,9 @@ public partial class UnitSelectionSystem : SystemBase
         {
             var unitPosition = localTransform.ValueRO.Position;
             GridHelpers.GetXY(unitPosition, out var x, out var y);
-            GridHelpers.SetIsWalkable(ref gridManager, x, y, true);
+            gridManager.SetIsWalkable(x, y, true);
 
-            if (GridHelpers.TryClearOccupant(ref gridManager, x, y, entity))
+            if (gridManager.TryClearOccupant(x, y, entity))
             {
                 SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
             }

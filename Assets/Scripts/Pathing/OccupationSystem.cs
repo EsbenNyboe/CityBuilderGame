@@ -41,7 +41,7 @@ public partial class OccupationSystem : SystemBase
     private void HandleCellDeoccupation(EntityCommandBuffer entityCommandBuffer, GridManager gridManager, RefRO<LocalTransform> localTransform,
         Entity entity, int2 newTarget)
     {
-        if (GridHelpers.TryClearOccupant(ref gridManager, localTransform.ValueRO.Position, entity))
+        if (gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity))
         {
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
@@ -57,10 +57,10 @@ public partial class OccupationSystem : SystemBase
         GridHelpers.GetXY(localTransform.ValueRO.Position, out var posX, out var posY);
 
         // TODO: Check if it's safe to assume the occupied cell owner is not this entity
-        if (!GridHelpers.IsOccupied(gridManager, posX, posY))
+        if (!gridManager.IsOccupied(posX, posY))
         {
             // Debug.Log("Set occupied: " + entity);
-            GridHelpers.SetOccupant(ref gridManager, posX, posY, entity);
+            gridManager.SetOccupant(posX, posY, entity);
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
             return;
         }
@@ -91,7 +91,7 @@ public partial class OccupationSystem : SystemBase
         DisableHarvestingUnit(entityCommandBuffer, entity);
 
         // TODO: Check if this is actually necessary.. This can be removed, right?
-        if (GridHelpers.TryClearOccupant(ref gridManager, localTransform.ValueRO.Position, entity))
+        if (gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity))
         {
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
@@ -129,9 +129,8 @@ public partial class OccupationSystem : SystemBase
         for (var i = 1; i < movePositionList.Length; i++)
         {
             nearbyCell = movePositionList[i];
-            if (GridHelpers.IsPositionInsideGrid(gridManager, nearbyCell) && GridHelpers.IsWalkable(gridManager, nearbyCell)
-                                                                          && !GridHelpers.IsOccupied(gridManager, nearbyCell)
-               )
+            if (gridManager.IsPositionInsideGrid(nearbyCell) && gridManager.IsWalkable(nearbyCell) &&
+                !gridManager.IsOccupied(nearbyCell))
             {
                 return true;
             }
@@ -145,7 +144,7 @@ public partial class OccupationSystem : SystemBase
         Entity entity, int2 newEndPosition)
     {
         GridHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-        GridHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
+        gridManager.ValidateGridPosition(ref startX, ref startY);
 
         entityCommandBuffer.AddComponent(entity, new PathfindingParams
         {

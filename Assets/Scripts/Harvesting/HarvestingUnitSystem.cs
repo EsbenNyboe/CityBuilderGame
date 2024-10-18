@@ -51,7 +51,7 @@ public partial class HarvestingUnitSystem : SystemBase
             var targetX = harvestingUnit.ValueRO.Target.x;
             var targetY = harvestingUnit.ValueRO.Target.y;
 
-            var tileHasNoTree = gridManager.WalkableGrid[GridHelpers.GetIndex(gridManager, targetX, targetY)].IsWalkable;
+            var tileHasNoTree = gridManager.WalkableGrid[gridManager.GetIndex(targetX, targetY)].IsWalkable;
             if (tileHasNoTree)
             {
                 // Tree was probably destroyed, so please stop chopping it!
@@ -62,7 +62,7 @@ public partial class HarvestingUnitSystem : SystemBase
                 if (GridHelpers.TryGetNearbyChoppingCell(gridManager, currentTarget, out var newTarget, out var newPathTarget))
                 {
                     // TODO: Replace with TryDeoccupy-component
-                    if (GridHelpers.TryClearOccupant(ref gridManager, localTransform.ValueRO.Position, entity))
+                    if (gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity))
                     {
                         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                     }
@@ -89,13 +89,13 @@ public partial class HarvestingUnitSystem : SystemBase
                 continue;
             }
 
-            var cellIndex = GridHelpers.GetIndex(gridManager, targetX, targetY);
+            var cellIndex = gridManager.GetIndex(targetX, targetY);
             harvestingUnit.ValueRW.TimeUntilNextChop -= SystemAPI.Time.DeltaTime;
             if (harvestingUnit.ValueRO.TimeUntilNextChop < 0)
             {
                 harvestingUnit.ValueRW.TimeUntilNextChop = chopDuration;
 
-                GridHelpers.AddDamage(ref gridManager, cellIndex, ChopAnimationManager.DamagePerChop());
+                gridManager.AddDamage(cellIndex, ChopAnimationManager.DamagePerChop());
                 SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
                 SoundManager.Instance.PlayChopSound(localTransform.ValueRO.Position);
@@ -114,8 +114,8 @@ public partial class HarvestingUnitSystem : SystemBase
             {
                 // DESTROY TREE:
                 SoundManager.Instance.PlayDestroyTreeSound(localTransform.ValueRO.Position);
-                GridHelpers.SetIsWalkable(ref gridManager, targetX, targetY, true);
-                GridHelpers.SetHealth(ref gridManager, cellIndex, 0);
+                gridManager.SetIsWalkable(targetX, targetY, true);
+                gridManager.SetHealth(cellIndex, 0);
                 SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
                 entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
@@ -170,7 +170,7 @@ public partial class HarvestingUnitSystem : SystemBase
                     SetupPathfinding(gridManager, entityCommandBuffer, localTransform.ValueRO.Position, entity, closestDropPointEntrance);
 
                     // TODO: Should this be added to OccupationSystemSystem? If so, it would cause DeliveringUnit to break.
-                    if (GridHelpers.TryClearOccupant(ref gridManager, localTransform.ValueRO.Position, entity))
+                    if (gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity))
                     {
                         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                     }
@@ -185,7 +185,7 @@ public partial class HarvestingUnitSystem : SystemBase
         int2 newEndPosition)
     {
         GridHelpers.GetXY(position, out var startX, out var startY);
-        GridHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
+        gridManager.ValidateGridPosition(ref startX, ref startY);
 
         entityCommandBuffer.AddComponent(entity, new PathfindingParams
         {

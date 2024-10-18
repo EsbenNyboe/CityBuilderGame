@@ -125,7 +125,7 @@ public partial class UnitControlSystem : SystemBase
         var targetGridPosition = mousePosition + gridCenterModifier;
         GridHelpers.GetXY(targetGridPosition, out var targetX, out var targetY);
 
-        GridHelpers.ValidateGridPosition(gridManager, ref targetX, ref targetY);
+        gridManager.ValidateGridPosition(ref targetX, ref targetY);
         var targetGridCell = new int2(targetX, targetY);
 
         var movePositionList = GridHelpers.GetCellListAroundTargetCell30Rings(targetGridCell.x, targetGridCell.y);
@@ -142,13 +142,13 @@ public partial class UnitControlSystem : SystemBase
             }
         }
 
-        if (GridHelpers.IsPositionInsideGrid(gridManager, targetGridCell))
+        if (gridManager.IsPositionInsideGrid(targetGridCell))
         {
-            if (GridHelpers.IsWalkable(gridManager, targetGridCell))
+            if (gridManager.IsWalkable(targetGridCell))
             {
                 MoveUnitsToWalkableArea(gridManager, movePositionList, entityCommandBuffer);
             }
-            else if (GridHelpers.IsDamageable(gridManager, targetGridCell.x, targetGridCell.y))
+            else if (gridManager.IsDamageable(targetGridCell.x, targetGridCell.y))
             {
                 MoveUnitsToHarvestableCell(gridManager, entityCommandBuffer, targetGridCell);
             }
@@ -171,7 +171,7 @@ public partial class UnitControlSystem : SystemBase
             var attempts = 0;
             while (!positionIsValid)
             {
-                if (GridHelpers.IsPositionInsideGrid(gridManager, endPosition) && GridHelpers.IsWalkable(gridManager, endPosition))
+                if (gridManager.IsPositionInsideGrid(endPosition) && gridManager.IsWalkable(endPosition))
                 {
                     positionIsValid = true;
                 }
@@ -196,7 +196,7 @@ public partial class UnitControlSystem : SystemBase
             }
 
             GridHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            GridHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
+            gridManager.ValidateGridPosition(ref startX, ref startY);
 
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
             {
@@ -239,7 +239,7 @@ public partial class UnitControlSystem : SystemBase
             positionIndex = (positionIndex + 1) % walkableNeighbourCells.Count;
 
             GridHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            GridHelpers.ValidateGridPosition(gridManager, ref startX, ref startY);
+            gridManager.ValidateGridPosition(ref startX, ref startY);
             entityCommandBuffer.AddComponent(entity, new PathfindingParams
             {
                 StartPosition = new int2(startX, startY),
@@ -265,8 +265,8 @@ public partial class UnitControlSystem : SystemBase
         {
             GridHelpers.GetNeighbourCell(i, targetGridCell.x, targetGridCell.y, out var neighbourX, out var neighbourY);
 
-            if (GridHelpers.IsPositionInsideGrid(gridManager, neighbourX, neighbourY) &&
-                gridManager.WalkableGrid[GridHelpers.GetIndex(gridManager, neighbourX, neighbourY)].IsWalkable)
+            if (gridManager.IsPositionInsideGrid(neighbourX, neighbourY) &&
+                gridManager.WalkableGrid[gridManager.GetIndex(neighbourX, neighbourY)].IsWalkable)
             {
                 walkableNeighbourCells.Add(new int2(neighbourX, neighbourY));
             }
@@ -277,7 +277,7 @@ public partial class UnitControlSystem : SystemBase
 
     private void AbandonCellIfOccupying(ref GridManager gridManager, int startX, int startY, Entity entity)
     {
-        if (GridHelpers.TryClearOccupant(ref gridManager, startX, startY, entity))
+        if (gridManager.TryClearOccupant(startX, startY, entity))
         {
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
