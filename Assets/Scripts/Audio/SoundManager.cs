@@ -45,9 +45,9 @@ public class SoundManager : MonoBehaviour
         else
         {
             poolItem = CreatePoolItem();
+            InitializePoolItem(ref poolItem, _template);
         }
 
-        InitializePoolItem(ref poolItem, _template);
         ApplySoundConfig(ref poolItem, sound);
         ApplyDebugInfo(ref poolItem, sound);
 
@@ -58,7 +58,7 @@ public class SoundManager : MonoBehaviour
 
     private void ApplyDebugInfo(ref AudioSource poolItem, SoundConfig sound)
     {
-        poolItem.gameObject.name = Time.time + ": " + sound.Clip.name;
+        // poolItem.gameObject.name = Time.time + ": " + sound.Clip.name;
     }
 
     private static void ApplySoundConfig(ref AudioSource poolItem, SoundConfig sound)
