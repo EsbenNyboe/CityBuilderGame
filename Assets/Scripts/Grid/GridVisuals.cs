@@ -16,10 +16,6 @@ public class GridVisuals : MonoBehaviour
     private Mesh _occupationDebugMesh;
     private TextMesh[,] _debugTextArray;
 
-    private Grid<GridPath> _gridPath;
-    private Grid<GridDamageable> _gridDamageable;
-    private Grid<GridOccupation> _gridOccupation;
-
     private bool _updatePathMesh;
     private bool _updateTreeMesh;
     private bool _updateDamageableMeshes;
@@ -313,47 +309,6 @@ public class GridVisuals : MonoBehaviour
 
                 MeshUtils.AddToMeshArrays(occupationDebugVertices, occupationDebugUv, occupationDebugTriangles, index,
                     worldPosition + quadSize * .0f, 0, quadSize, uv00,
-                    uv11);
-            }
-        }
-
-        _occupationDebugMesh.vertices = occupationDebugVertices;
-        _occupationDebugMesh.uv = occupationDebugUv;
-        _occupationDebugMesh.triangles = occupationDebugTriangles;
-    }
-
-    private void UpdateOccupationDebugMesh_OLD()
-    {
-        return;
-        if (!DebugGlobals.ShowOccupationGrid())
-        {
-            _occupationDebugMesh = new Mesh();
-            _occupationDebugMeshFilter.mesh = _occupationDebugMesh;
-            return;
-        }
-
-        for (var x = 0; x < _gridOccupation.GetWidth(); x++)
-        {
-            for (var y = 0; y < _gridOccupation.GetHeight(); y++)
-            {
-                var index = x * _gridOccupation.GetHeight() + y;
-                var occupationCell = _gridOccupation.GetGridObject(x, y);
-
-                var quadWidth = 0.5f;
-                var quadHeight = 0.5f;
-                var quadSize = occupationCell.IsOccupied()
-                    ? new Vector3(quadWidth, quadHeight) * _gridOccupation.GetCellSize()
-                    : Vector3.zero;
-
-                var colorRed = 0.1f;
-                var uv00 = new Vector2(colorRed, 0f);
-                var uv11 = new Vector2(colorRed, 1f);
-
-                var position = _gridOccupation.GetWorldPosition(x, y);
-                // TODO: Make positioning cleaner? Not accounting for cell-size right now...
-
-                MeshUtils.AddToMeshArrays(occupationDebugVertices, occupationDebugUv, occupationDebugTriangles, index,
-                    position + quadSize * .0f, 0, quadSize, uv00,
                     uv11);
             }
         }
