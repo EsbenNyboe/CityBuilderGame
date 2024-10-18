@@ -278,11 +278,10 @@ public partial struct GridManager
 
     private bool TryGetValidNeighbourCell(int x, int y, out int neighbourX, out int neighbourY)
     {
-        InitializeRandomNeighbourIndexList();
+        RandomizeNeighbourSequenceIndex();
         for (var j = 0; j < 8; j++)
         {
-            var randomIndex = GetRandomNeighbourIndexNew();
-            GetNeighbourCell(randomIndex, x, y, out neighbourX, out neighbourY);
+            GetNeighbourCell(GetNextNeighbourSequenceIndex(), x, y, out neighbourX, out neighbourY);
 
             if (IsPositionInsideGrid(neighbourX, neighbourY) &&
                 IsWalkable(neighbourX, neighbourY) &&
@@ -357,6 +356,27 @@ public partial struct GridManager
         return PositionListWith30Rings;
     }
 
+    public void RandomizeNeighbourSequenceIndex()
+    {
+        NeighbourSequenceIndex = Random.Range(0, 8);
+    }
+
+    private int GetNextNeighbourSequenceIndex()
+    {
+        NeighbourSequenceIndex++;
+        if (NeighbourSequenceIndex >= 8)
+        {
+            NeighbourSequenceIndex = 0;
+        }
+
+        return NeighbourSequenceIndex;
+    }
+
+    public void GetSequencedNeighbourCell(int x, int y, out int neighbourX, out int neighbourY)
+    {
+        GetNeighbourCell(GetNextNeighbourSequenceIndex(), x, y, out neighbourX, out neighbourY);
+    }
+
     public void GetNeighbourCell(int index, int x, int y, out int neighbourX, out int neighbourY)
     {
         Assert.IsTrue(index >= 0 && index < 8, "Index must be min 0 and max 8, because a cell can only have 8 neighbours!");
@@ -384,23 +404,6 @@ public partial struct GridManager
         var indexListIndex = Random.Range(0, RandomNearbyCellIndexList.Length);
         var cellListIndex = RandomNearbyCellIndexList[indexListIndex];
         RandomNearbyCellIndexList.RemoveAt(indexListIndex);
-        return cellListIndex;
-    }
-
-    private void InitializeRandomNeighbourIndexList()
-    {
-        RandomNeighbourIndexList.Clear();
-        for (var i = 0; i < 8; i++)
-        {
-            RandomNeighbourIndexList.Add(i);
-        }
-    }
-
-    private int GetRandomNeighbourIndexNew()
-    {
-        var indexListIndex = Random.Range(0, RandomNeighbourIndexList.Length);
-        var cellListIndex = RandomNeighbourIndexList[indexListIndex];
-        RandomNeighbourIndexList.RemoveAtSwapBack(indexListIndex);
         return cellListIndex;
     }
 

@@ -166,9 +166,11 @@ public partial struct HarvestingUnitSystem : ISystem
                     var shortestDropPointEntranceDistance = math.INFINITY;
                     GridHelpers.GetXY(position, out var posX, out var posY);
                     var cellPosition = new int2(posX, posY);
+                    gridManager.RandomizeNeighbourSequenceIndex();
                     for (var i = 0; i < 8; i++)
                     {
-                        gridManager.GetNeighbourCell(i, dropPointCell.x, dropPointCell.y, out var dropPointEntranceX, out var dropPointEntranceY);
+                        gridManager.GetSequencedNeighbourCell(dropPointCell.x, dropPointCell.y, out var dropPointEntranceX,
+                            out var dropPointEntranceY);
                         var dropPointEntrance = new int2(dropPointEntranceX, dropPointEntranceY);
                         var dropPointEntranceDistance = math.distance(cellPosition, dropPointEntrance);
                         if (dropPointEntranceDistance < shortestDropPointEntranceDistance)
@@ -181,10 +183,8 @@ public partial struct HarvestingUnitSystem : ISystem
                     SetupPathfinding(gridManager, entityCommandBuffer, localTransform.ValueRO.Position, entity, closestDropPointEntrance);
 
                     // TODO: Should this be added to OccupationSystemSystem? If so, it would cause DeliveringUnit to break.
-                    if (gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity))
-                    {
-                        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-                    }
+                    gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity);
+                    SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                 }
             }
         }

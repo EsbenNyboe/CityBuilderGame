@@ -15,7 +15,7 @@ public partial struct GridManager : IComponentData
 
     // GridSearchHelpers:
     public NativeArray<int2> NeighbourDeltas;
-    public NativeList<int> RandomNeighbourIndexList;
+    public int NeighbourSequenceIndex;
     public NativeList<int> RandomNearbyCellIndexList;
     public NativeArray<int2> PositionListWith30Rings;
 }
@@ -81,7 +81,6 @@ public partial class GridManagerSystem : SystemBase
         var neighbourDeltas =
             new NativeArray<int2>(new int2[] { new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1) },
                 Allocator.Persistent);
-        var randomNeighbourIndexList = new NativeList<int>(Allocator.Persistent);
         var randomNearbyCellIndexList = new NativeList<int>(Allocator.Persistent);
         var positionListWith30Rings = new NativeArray<int2>(GridHelpers.CalculatePositionListLength(30), Allocator.Persistent);
 
@@ -96,7 +95,6 @@ public partial class GridManagerSystem : SystemBase
             DamageableGridIsDirty = true,
             OccupiableGridIsDirty = true,
             NeighbourDeltas = neighbourDeltas,
-            RandomNeighbourIndexList = randomNeighbourIndexList,
             RandomNearbyCellIndexList = randomNearbyCellIndexList,
             PositionListWith30Rings = positionListWith30Rings
         });
@@ -120,7 +118,6 @@ public partial class GridManagerSystem : SystemBase
 
         // GridSearchHelpers:
         gridManager.NeighbourDeltas.Dispose();
-        gridManager.RandomNeighbourIndexList.Dispose();
         gridManager.RandomNearbyCellIndexList.Dispose();
         gridManager.PositionListWith30Rings.Dispose();
     }

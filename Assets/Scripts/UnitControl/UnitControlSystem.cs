@@ -218,7 +218,8 @@ public partial class UnitControlSystem : SystemBase
             });
             SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
 
-            AbandonCellIfOccupying(ref gridManager, startX, startY, entity);
+            TryAbandonCell(ref gridManager, startX, startY, entity);
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
     }
 
@@ -226,7 +227,7 @@ public partial class UnitControlSystem : SystemBase
     {
         var walkableNeighbourCells = new List<int2>();
 
-        if (!TryGetWalkableNeighbourCells(gridManager, targetGridCell, walkableNeighbourCells))
+        if (!TryGetWalkableNeighbourCells(ref gridManager, targetGridCell, walkableNeighbourCells))
         {
             Debug.Log("No walkable neighbour cell found. Please try again!");
             return;
@@ -255,16 +256,19 @@ public partial class UnitControlSystem : SystemBase
 
             SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
 
-            AbandonCellIfOccupying(ref gridManager, startX, startY, entity);
+            TryAbandonCell(ref gridManager, startX, startY, entity);
         }
+
+        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 
-    private static bool TryGetWalkableNeighbourCells(GridManager gridManager, int2 targetGridCell, List<int2> walkableNeighbourCells)
+    private static bool TryGetWalkableNeighbourCells(ref GridManager gridManager, int2 targetGridCell, List<int2> walkableNeighbourCells)
     {
+        gridManager.RandomizeNeighbourSequenceIndex();
         const int maxPossibleNeighbours = 8;
         for (var i = 0; i < maxPossibleNeighbours; i++)
         {
-            gridManager.GetNeighbourCell(i, targetGridCell.x, targetGridCell.y, out var neighbourX, out var neighbourY);
+            gridManager.GetSequencedNeighbourCell(targetGridCell.x, targetGridCell.y, out var neighbourX, out var neighbourY);
 
             if (gridManager.IsPositionInsideGrid(neighbourX, neighbourY) &&
                 gridManager.WalkableGrid[gridManager.GetIndex(neighbourX, neighbourY)].IsWalkable)
@@ -276,12 +280,14 @@ public partial class UnitControlSystem : SystemBase
         return walkableNeighbourCells.Count > 0;
     }
 
-    private void AbandonCellIfOccupying(ref GridManager gridManager, int startX, int startY, Entity entity)
+    private bool TryAbandonCell(ref GridManager gridManager, int startX, int startY, Entity entity)
     {
         if (gridManager.TryClearOccupant(startX, startY, entity))
         {
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+            return true;
         }
+
+        return false;
     }
 
     private void SelectAllUnits()
