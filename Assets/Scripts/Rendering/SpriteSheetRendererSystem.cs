@@ -9,6 +9,7 @@ using Unity.Transforms;
 using UnityEngine;
 
 [UpdateAfter(typeof(SpriteSheetAnimationSystem))]
+[BurstCompile]
 public partial class SpriteSheetRendererSystem : SystemBase
 {
     private static readonly Vector4[] _uvInstancedArray = new Vector4[SliceCount];
@@ -32,18 +33,19 @@ public partial class SpriteSheetRendererSystem : SystemBase
     private void HandleMeshRendering(Mesh unitMesh, Material unitWalkingMaterial)
     {
         // Create sliced queues of the data, before sorting
-        CreateSlicedQueues(out var nativeQueue_1, out var nativeQueue_2);
+        CreateSlicedQueues(out var nativeQueue_1, out var nativeQueue_2, out var nativeQueue_3, out var nativeQueue_4);
 
-        var jobHandleArray = new NativeArray<JobHandle>(2, Allocator.TempJob);
+        var jobHandleArray = new NativeArray<JobHandle>(4, Allocator.TempJob);
 
         // Convert sliced queues into sliced arrays
-        ConvertQueuesToArrays(jobHandleArray, nativeQueue_1, nativeQueue_2, out var nativeArray_1, out var nativeArray_2);
+        ConvertQueuesToArrays(jobHandleArray, nativeQueue_1, nativeQueue_2, nativeQueue_3, nativeQueue_4, out var nativeArray_1,
+            out var nativeArray_2, out var nativeArray_3, out var nativeArray_4);
 
         // Sort the sliced arrays
-        SortSlicedArrays(jobHandleArray, nativeArray_1, nativeArray_2);
+        SortSlicedArrays(jobHandleArray, nativeArray_1, nativeArray_2, nativeArray_3, nativeArray_4);
 
         // Grab sliced arrays and merge them into one array per domain
-        MergeSlicedArrays(jobHandleArray, out var matrixArray, out var uvArray, nativeArray_1, nativeArray_2);
+        MergeSlicedArrays(jobHandleArray, out var matrixArray, out var uvArray, nativeArray_1, nativeArray_2, nativeArray_3, nativeArray_4);
 
         // Setup uv's to select sprite-frame, then draw mesh for all instances
         DrawMesh(unitMesh, unitWalkingMaterial, uvArray, matrixArray);
@@ -53,11 +55,16 @@ public partial class SpriteSheetRendererSystem : SystemBase
         uvArray.Dispose();
         nativeQueue_1.Dispose();
         nativeQueue_2.Dispose();
+        nativeQueue_3.Dispose();
+        nativeQueue_4.Dispose();
         nativeArray_1.Dispose();
         nativeArray_2.Dispose();
+        nativeArray_3.Dispose();
+        nativeArray_4.Dispose();
     }
 
-    private void CreateSlicedQueues(out NativeQueue<RenderData> nativeQueue_1, out NativeQueue<RenderData> nativeQueue_2)
+    private void CreateSlicedQueues(out NativeQueue<RenderData> nativeQueue_1, out NativeQueue<RenderData> nativeQueue_2,
+        out NativeQueue<RenderData> nativeQueue_3, out NativeQueue<RenderData> nativeQueue_4)
     {
         var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalToWorld));
 
@@ -70,6 +77,8 @@ public partial class SpriteSheetRendererSystem : SystemBase
 
         nativeQueue_1 = new NativeQueue<RenderData>(Allocator.TempJob);
         nativeQueue_2 = new NativeQueue<RenderData>(Allocator.TempJob);
+        nativeQueue_3 = new NativeQueue<RenderData>(Allocator.TempJob);
+        nativeQueue_4 = new NativeQueue<RenderData>(Allocator.TempJob);
 
         var cullBuffer = 1f; // We add some buffer, so culling is not noticable
         float3 cameraPosition = camera.transform.position;
@@ -80,29 +89,39 @@ public partial class SpriteSheetRendererSystem : SystemBase
         var xLeft = cameraPosition.x - cameraSizeX;
         var xRight = cameraPosition.x + cameraSizeX;
 
-        var yBottom = cameraPosition.y - cameraSizeY;
         var yTop_1 = cameraPosition.y + cameraSizeY;
-        var yTop_2 = cameraPosition.y + 0f;
+        var yTop_2 = cameraPosition.y + cameraSizeY * 0.5f;
+        var yTop_3 = cameraPosition.y;
+        var yTop_4 = cameraPosition.y - cameraSizeY * 0.5f;
+        var yBottom = cameraPosition.y - cameraSizeY;
 
         var cullAndSortJob = new CullAndSort
         {
             xLeft = xLeft,
             xRight = xRight,
+            yBottom = yBottom,
             yTop_1 = yTop_1,
             yTop_2 = yTop_2,
-            yBottom = yBottom,
+            yTop_3 = yTop_3,
+            yTop_4 = yTop_4,
             NativeQueue_1 = nativeQueue_1,
-            NativeQueue_2 = nativeQueue_2
+            NativeQueue_2 = nativeQueue_2,
+            NativeQueue_3 = nativeQueue_3,
+            NativeQueue_4 = nativeQueue_4
         };
         cullAndSortJob.Run(entityQuery);
     }
 
     private static void ConvertQueuesToArrays(NativeArray<JobHandle> jobHandleArray, NativeQueue<RenderData> nativeQueue_1,
-        NativeQueue<RenderData> nativeQueue_2,
-        out NativeArray<RenderData> nativeArray_1, out NativeArray<RenderData> nativeArray_2)
+        NativeQueue<RenderData> nativeQueue_2, NativeQueue<RenderData> nativeQueue_3, NativeQueue<RenderData> nativeQueue_4,
+        out NativeArray<RenderData> nativeArray_1, out NativeArray<RenderData> nativeArray_2, out NativeArray<RenderData> nativeArray_3,
+        out NativeArray<RenderData> nativeArray_4)
+
     {
         nativeArray_1 = new NativeArray<RenderData>(nativeQueue_1.Count, Allocator.TempJob);
         nativeArray_2 = new NativeArray<RenderData>(nativeQueue_2.Count, Allocator.TempJob);
+        nativeArray_3 = new NativeArray<RenderData>(nativeQueue_3.Count, Allocator.TempJob);
+        nativeArray_4 = new NativeArray<RenderData>(nativeQueue_4.Count, Allocator.TempJob);
 
         var nativeQueueToArrayJob_1 = new NativeQueueToArrayJob
         {
@@ -116,30 +135,53 @@ public partial class SpriteSheetRendererSystem : SystemBase
             NativeArray = nativeArray_2
         };
         jobHandleArray[1] = nativeQueueToArrayJob_2.Schedule();
+        var nativeQueueToArrayJob_3 = new NativeQueueToArrayJob
+        {
+            NativeQueue = nativeQueue_3,
+            NativeArray = nativeArray_3
+        };
+        jobHandleArray[2] = nativeQueueToArrayJob_3.Schedule();
+        var nativeQueueToArrayJob_4 = new NativeQueueToArrayJob
+        {
+            NativeQueue = nativeQueue_4,
+            NativeArray = nativeArray_4
+        };
+        jobHandleArray[3] = nativeQueueToArrayJob_4.Schedule();
         JobHandle.CompleteAll(jobHandleArray);
     }
 
     private static void SortSlicedArrays(NativeArray<JobHandle> jobHandleArray, NativeArray<RenderData> nativeArray_1,
-        NativeArray<RenderData> nativeArray_2)
+        NativeArray<RenderData> nativeArray_2, NativeArray<RenderData> nativeArray_3, NativeArray<RenderData> nativeArray_4)
     {
         var sortByPosition_1 = new SortByPositionJob
         {
             SortArray = nativeArray_1
         };
         jobHandleArray[0] = sortByPosition_1.Schedule();
-
         var sortByPositionJob_2 = new SortByPositionJob
         {
             SortArray = nativeArray_2
         };
         jobHandleArray[1] = sortByPositionJob_2.Schedule();
+        var sortByPosition_3 = new SortByPositionJob
+        {
+            SortArray = nativeArray_3
+        };
+        jobHandleArray[2] = sortByPosition_3.Schedule();
+
+        var sortByPositionJob_4 = new SortByPositionJob
+        {
+            SortArray = nativeArray_4
+        };
+        jobHandleArray[3] = sortByPositionJob_4.Schedule();
         JobHandle.CompleteAll(jobHandleArray);
     }
 
     private static void MergeSlicedArrays(NativeArray<JobHandle> jobHandleArray, out NativeArray<Matrix4x4> matrixArray,
-        out NativeArray<Vector4> uvArray, NativeArray<RenderData> nativeArray_1, NativeArray<RenderData> nativeArray_2)
+        out NativeArray<Vector4> uvArray, NativeArray<RenderData> nativeArray_1, NativeArray<RenderData> nativeArray_2,
+        NativeArray<RenderData> nativeArray_3, NativeArray<RenderData> nativeArray_4)
     {
-        var visibleEntityTotal = nativeArray_1.Length + nativeArray_2.Length;
+        var visibleEntityTotal = nativeArray_1.Length + nativeArray_2.Length + nativeArray_3.Length + nativeArray_4.Length;
         matrixArray = new NativeArray<Matrix4x4>(visibleEntityTotal, Allocator.TempJob);
         uvArray = new NativeArray<Vector4>(visibleEntityTotal, Allocator.TempJob);
 
@@ -160,6 +202,24 @@ public partial class SpriteSheetRendererSystem : SystemBase
             StartIndex = nativeArray_1.Length
         };
         jobHandleArray[1] = fillArraysParallelJob_2.Schedule(nativeArray_2.Length, 10);
+
+        var fillArraysParallelJob_3 = new FillArraysParallelJob
+        {
+            NativeArray = nativeArray_3,
+            MatrixArray = matrixArray,
+            UvArray = uvArray,
+            StartIndex = nativeArray_1.Length + nativeArray_2.Length
+        };
+        jobHandleArray[2] = fillArraysParallelJob_3.Schedule(nativeArray_3.Length, 10);
+
+        var fillArraysParallelJob_4 = new FillArraysParallelJob
+        {
+            NativeArray = nativeArray_4,
+            MatrixArray = matrixArray,
+            UvArray = uvArray,
+            StartIndex = nativeArray_1.Length + nativeArray_2.Length + nativeArray_3.Length
+        };
+        jobHandleArray[3] = fillArraysParallelJob_4.Schedule(nativeArray_4.Length, 10);
         JobHandle.CompleteAll(jobHandleArray);
     }
 
@@ -194,10 +254,14 @@ public partial class SpriteSheetRendererSystem : SystemBase
         public float xRight; // Right most cull position
         public float yTop_1; // Top most cull position
         public float yTop_2; // Second slice from top
+        public float yTop_3; // Third slice from top
+        public float yTop_4; // Fourth slice from top
         public float yBottom; // Bottom most cull position
 
         public NativeQueue<RenderData> NativeQueue_1;
         public NativeQueue<RenderData> NativeQueue_2;
+        public NativeQueue<RenderData> NativeQueue_3;
+        public NativeQueue<RenderData> NativeQueue_4;
 
         public void Execute(Entity entity, ref LocalToWorld localToWorld, ref SpriteSheetAnimation animationData)
         {
@@ -223,7 +287,15 @@ public partial class SpriteSheetRendererSystem : SystemBase
                 Uv = animationData.Uv
             };
 
-            if (positionY < yTop_2)
+            if (positionY < yTop_4)
+            {
+                NativeQueue_4.Enqueue(renderData);
+            }
+            else if (positionY < yTop_3)
+            {
+                NativeQueue_3.Enqueue(renderData);
+            }
+            else if (positionY < yTop_2)
             {
                 NativeQueue_2.Enqueue(renderData);
             }
