@@ -17,7 +17,8 @@ public partial struct GridManager : IComponentData
     public NativeArray<int2> NeighbourDeltas;
     public int NeighbourSequenceIndex;
     public NativeList<int> RandomNearbyCellIndexList;
-    public NativeArray<int2> PositionListWith30Rings;
+    public NativeArray<int2> PositionList;
+    public int PositionListLength;
 }
 
 public struct WalkableCell
@@ -82,7 +83,8 @@ public partial class GridManagerSystem : SystemBase
             new NativeArray<int2>(new int2[] { new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1) },
                 Allocator.Persistent);
         var randomNearbyCellIndexList = new NativeList<int>(Allocator.Persistent);
-        var positionListWith30Rings = new NativeArray<int2>(GridHelpers.CalculatePositionListLength(30), Allocator.Persistent);
+        var positionListLength = 50;
+        var positionList = new NativeArray<int2>(GridHelpers.CalculatePositionListLength(positionListLength), Allocator.Persistent);
 
         SystemAPI.SetComponent(SystemHandle, new GridManager
         {
@@ -96,7 +98,8 @@ public partial class GridManagerSystem : SystemBase
             OccupiableGridIsDirty = true,
             NeighbourDeltas = neighbourDeltas,
             RandomNearbyCellIndexList = randomNearbyCellIndexList,
-            PositionListWith30Rings = positionListWith30Rings
+            PositionList = positionList,
+            PositionListLength = positionListLength
         });
     }
 
@@ -119,6 +122,6 @@ public partial class GridManagerSystem : SystemBase
         // GridSearchHelpers:
         gridManager.NeighbourDeltas.Dispose();
         gridManager.RandomNearbyCellIndexList.Dispose();
-        gridManager.PositionListWith30Rings.Dispose();
+        gridManager.PositionList.Dispose();
     }
 }

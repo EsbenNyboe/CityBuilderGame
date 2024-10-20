@@ -4,38 +4,32 @@ using UnityEngine;
 public class GridVisuals : MonoBehaviour
 {
     [SerializeField] private MeshFilter _pathMeshFilter;
-    [SerializeField] private MeshFilter _pathMeshFilterTest;
     [SerializeField] private MeshFilter _treeMeshFilter;
     [SerializeField] private MeshFilter _healthBarMeshFilter;
     [SerializeField] private MeshFilter _occupationDebugMeshFilter;
 
     private Mesh _pathMesh;
-    private Mesh _pathMeshTest;
     private Mesh _treeMesh;
     private Mesh _healthBarMesh;
     private Mesh _occupationDebugMesh;
     private TextMesh[,] _debugTextArray;
 
-    private bool _updatePathMesh;
     private bool _updateTreeMesh;
     private bool _updateDamageableMeshes;
     private bool _updateOccupationDebugMesh;
     private bool _updateDamageableText;
 
     private int[] pathMeshTriangles;
-    private int[] pathMeshTrianglesTest;
     private int[] treeTriangles;
     private int[] healthBarTriangles;
     private int[] occupationDebugTriangles;
 
     private Vector2[] pathUv;
-    private Vector2[] pathUvTest;
     private Vector2[] treeUv;
     private Vector2[] healthBarUv;
     private Vector2[] occupationDebugUv;
 
     private Vector3[] pathVertices;
-    private Vector3[] pathVerticesTest;
     private Vector3[] treeVertices;
     private Vector3[] healthBarVertices;
     private Vector3[] occupationDebugVertices;
@@ -46,8 +40,6 @@ public class GridVisuals : MonoBehaviour
     {
         _pathMesh = new Mesh();
         _pathMeshFilter.mesh = _pathMesh;
-        _pathMeshTest = new Mesh();
-        _pathMeshFilterTest.mesh = _pathMeshTest;
         _treeMesh = new Mesh();
         _treeMeshFilter.mesh = _treeMesh;
         _healthBarMesh = new Mesh();
@@ -64,7 +56,7 @@ public class GridVisuals : MonoBehaviour
             _gridManagerSystemHandle = World.DefaultGameObjectInjectionWorld.GetExistingSystem<GridManagerSystem>();
             var gridManagerTemp = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerSystemHandle);
 
-            MeshUtils.CreateEmptyMeshArrays(gridManagerTemp.WalkableGrid.Length, out pathVerticesTest, out pathUvTest, out pathMeshTrianglesTest);
+            MeshUtils.CreateEmptyMeshArrays(gridManagerTemp.WalkableGrid.Length, out pathVertices, out pathUv, out pathMeshTriangles);
             MeshUtils.CreateEmptyMeshArrays(gridManagerTemp.DamageableGrid.Length, out treeVertices, out treeUv, out treeTriangles);
             MeshUtils.CreateEmptyMeshArrays(gridManagerTemp.DamageableGrid.Length, out healthBarVertices, out healthBarUv, out healthBarTriangles);
             MeshUtils.CreateEmptyMeshArrays(gridManagerTemp.OccupiableGrid.Length, out occupationDebugVertices, out occupationDebugUv,
@@ -133,14 +125,14 @@ public class GridVisuals : MonoBehaviour
 
                 var quadSize = Vector3.one; // GridManager currently only supports a cellSize of one
                 var worldPosition = new Vector3(x, y, 0f); // GridManager currently only supports a cellSize of one, and originPosition of zero
-                MeshUtils.AddToMeshArrays(pathVerticesTest, pathUvTest, pathMeshTrianglesTest, index, worldPosition + quadSize * .0f, 0, quadSize,
+                MeshUtils.AddToMeshArrays(pathVertices, pathUv, pathMeshTriangles, index, worldPosition + quadSize * .0f, 0, quadSize,
                     uv00, uv11);
             }
         }
 
-        _pathMeshTest.vertices = pathVerticesTest;
-        _pathMeshTest.uv = pathUvTest;
-        _pathMeshTest.triangles = pathMeshTrianglesTest;
+        _pathMesh.vertices = pathVertices;
+        _pathMesh.uv = pathUv;
+        _pathMesh.triangles = pathMeshTriangles;
     }
 
     private void UpdateGridManagerDamageableVisuals(ref GridManager gridManager)

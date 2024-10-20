@@ -298,13 +298,13 @@ public partial struct GridManager
 
     public NativeArray<int2> GetCachedCellListAroundTargetCell(int targetX, int targetY)
     {
-        var ringCount = 30;
+        var ringCount = PositionListLength;
         var index = 0;
         // include the target-cell
-        var cell = PositionListWith30Rings[index];
+        var cell = PositionList[index];
         cell.x = targetX;
         cell.y = targetY;
-        PositionListWith30Rings[index] = cell;
+        PositionList[index] = cell;
 
         for (var ringSize = 1; ringSize < ringCount; ringSize++)
         {
@@ -319,7 +319,7 @@ public partial struct GridManager
                 x--;
                 cell.x = x;
                 cell.y = y;
-                PositionListWith30Rings[index] = cell;
+                PositionList[index] = cell;
             }
 
             // go to min Y
@@ -329,7 +329,7 @@ public partial struct GridManager
                 y--;
                 cell.x = x;
                 cell.y = y;
-                PositionListWith30Rings[index] = cell;
+                PositionList[index] = cell;
             }
 
             // go to max X
@@ -339,7 +339,7 @@ public partial struct GridManager
                 x++;
                 cell.x = x;
                 cell.y = y;
-                PositionListWith30Rings[index] = cell;
+                PositionList[index] = cell;
             }
 
             // go to max Y
@@ -349,11 +349,11 @@ public partial struct GridManager
                 y++;
                 cell.x = x;
                 cell.y = y;
-                PositionListWith30Rings[index] = cell;
+                PositionList[index] = cell;
             }
         }
 
-        return PositionListWith30Rings;
+        return PositionList;
     }
 
     public void RandomizeNeighbourSequenceIndex()
