@@ -25,18 +25,19 @@ public partial struct OccupationSystem : ISystem
 
         // TODO: Test if "WithAll" is necessary
         // TODO: Test if "WithAll<TryDeoccupy>" is faster that RefRO
+
+        foreach (var (tryOccupy, localTransform, entity) in SystemAPI.Query<RefRO<TryOccupy>, RefRO<LocalTransform>>().WithEntityAccess())
+        {
+            HandleCellOccupation(ref state, entityCommandBuffer, gridManager, localTransform, entity);
+            entityCommandBuffer.RemoveComponent<TryOccupy>(entity);
+        }
+
         foreach (var (tryDeoccupy, localTransform, entity) in SystemAPI
                      .Query<RefRO<TryDeoccupy>, RefRO<LocalTransform>>().WithEntityAccess())
         {
             var newTarget = tryDeoccupy.ValueRO.NewTarget;
             HandleCellDeoccupation(ref state, entityCommandBuffer, gridManager, localTransform, entity, newTarget);
             entityCommandBuffer.RemoveComponent<TryDeoccupy>(entity);
-        }
-
-        foreach (var (tryOccupy, localTransform, entity) in SystemAPI.Query<RefRO<TryOccupy>, RefRO<LocalTransform>>().WithEntityAccess())
-        {
-            HandleCellOccupation(ref state, entityCommandBuffer, gridManager, localTransform, entity);
-            entityCommandBuffer.RemoveComponent<TryOccupy>(entity);
         }
 
         entityCommandBuffer.Playback(state.EntityManager);
@@ -51,8 +52,6 @@ public partial struct OccupationSystem : ISystem
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
-        SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, true);
-        SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
         SetupPathfinding(ref state, gridManager, entityCommandBuffer, localTransform, entity, newTarget);
     }
 
@@ -71,7 +70,7 @@ public partial struct OccupationSystem : ISystem
             return;
         }
 
-        if (SystemAPI.IsComponentEnabled<HarvestingUnit>(entity))
+        if (SystemAPI.HasComponent<HarvestingUnitTag>(entity))
         {
             // BurstDebugHelpers.DebugLog("Unit cannot harvest, because cell is occupied: " + posX + " " + posY);
 
@@ -112,12 +111,7 @@ public partial struct OccupationSystem : ISystem
             Position = float3.zero,
             Rotation = quaternion.identity
         });
-        SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
-        //EntityManager.SetComponentData(entity, new HarvestingUnit
-        //{
-        //    Target = new int2(-1, -1)
-        //});
-
+        entityCommandBuffer.RemoveComponent<HarvestingUnitTag>(entity);
         SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
     }
 

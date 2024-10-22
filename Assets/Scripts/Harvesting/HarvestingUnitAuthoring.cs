@@ -13,12 +13,11 @@ public class HarvestingUnitAuthoring : MonoBehaviour
             {
                 Target = new int2(-1, -1)
             });
-            SetComponentEnabled<HarvestingUnit>(entity, false);
         }
     }
 }
 
-public struct HarvestingUnit : IComponentData, IEnableableComponent
+public struct HarvestingUnit : IComponentData
 {
     public int2 Target;
     public float TimeUntilNextChop;

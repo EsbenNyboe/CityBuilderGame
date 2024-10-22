@@ -35,7 +35,7 @@ public partial struct HarvestingUnitSystem : ISystem
 
         foreach (var (localTransform, harvestingUnit, pathFollow, spriteTransform, entity) in SystemAPI
                      .Query<RefRO<LocalTransform>, RefRW<HarvestingUnit>, RefRO<PathFollow>, RefRW<SpriteTransform>>()
-                     .WithAll<HarvestingUnit>().WithEntityAccess())
+                     .WithPresent<HarvestingUnitTag>().WithEntityAccess())
         {
             // TODO: Replace with create/destroy component
             var unitIsTryingToHarvest = pathFollow.ValueRO.PathIndex < 0;
@@ -53,7 +53,7 @@ public partial struct HarvestingUnitSystem : ISystem
             if (!GridHelpers.CellsAreTouching(localTransform.ValueRO.Position, harvestingUnit.ValueRO.Target))
             {
                 GridHelpers.GetXY(localTransform.ValueRO.Position, out var x, out var y);
-                SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
+                entityCommandBuffer.RemoveComponent<HarvestingUnitTag>(entity);
                 // Debug.LogError("Unit is trying to chop a tree that is too far away! Position: " + x + " " + y + " Target: " +
                 //                harvestingUnit.ValueRO.Target.x + " " + harvestingUnit.ValueRO.Target.y);
                 continue;
@@ -72,18 +72,16 @@ public partial struct HarvestingUnitSystem : ISystem
                 var currentTarget = harvestingUnit.ValueRO.Target;
                 if (gridManager.TryGetNearbyChoppingCell(currentTarget, out var newTarget, out var newPathTarget))
                 {
-                    // TODO: Replace with TryDeoccupy-component
-                    if (gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity))
-                    {
-                        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-                    }
-
                     // TODO: Investigate if this is what produces the error with long-range chopping. Is it maybe a bad idea to depend on PathFollow alone?
                     SystemAPI.SetComponent(entity, new HarvestingUnit
                     {
                         Target = newTarget
                     });
-                    SetupPathfinding(gridManager, entityCommandBuffer, localTransform.ValueRO.Position, entity, newPathTarget);
+
+                    entityCommandBuffer.AddComponent(entity, new TryDeoccupy
+                    {
+                        NewTarget = newPathTarget
+                    });
                 }
                 else
                 {
@@ -93,8 +91,7 @@ public partial struct HarvestingUnitSystem : ISystem
                         Position = float3.zero,
                         Rotation = quaternion.identity
                     });
-                    SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
-                    //harvestingUnit.ValueRW.Target = new int2(-1, -1);
+                    entityCommandBuffer.RemoveComponent<HarvestingUnitTag>(entity);
                 }
 
                 continue;
@@ -135,7 +132,7 @@ public partial struct HarvestingUnitSystem : ISystem
                     Position = float3.zero,
                     Rotation = quaternion.identity
                 });
-                SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
+                entityCommandBuffer.RemoveComponent<HarvestingUnitTag>(entity);
 
                 var closestDropPoint = new float3(-1, -1, -1);
                 var shortestDropPointDistance = math.INFINITY;
@@ -156,12 +153,6 @@ public partial struct HarvestingUnitSystem : ISystem
                 {
                     GridHelpers.GetXY(closestDropPoint, out var x, out var y);
                     var dropPointCell = new int2(x, y);
-                    SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, true);
-                    SystemAPI.SetComponent(entity, new DeliveringUnit
-                    {
-                        Target = dropPointCell
-                    });
-
                     var closestDropPointEntrance = new int2(-1, -1);
                     var shortestDropPointEntranceDistance = math.INFINITY;
                     GridHelpers.GetXY(position, out var posX, out var posY);
@@ -180,29 +171,23 @@ public partial struct HarvestingUnitSystem : ISystem
                         }
                     }
 
-                    SetupPathfinding(gridManager, entityCommandBuffer, localTransform.ValueRO.Position, entity, closestDropPointEntrance);
+                    // TODO: Should HarvestingUnit be disabled here?
 
-                    // TODO: Should this be added to OccupationSystemSystem? If so, it would cause DeliveringUnit to break.
-                    gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity);
-                    SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+                    SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, true);
+                    SystemAPI.SetComponent(entity, new DeliveringUnit
+                    {
+                        Target = dropPointCell
+                    });
+
+                    entityCommandBuffer.AddComponent(entity, new TryDeoccupy
+                    {
+                        NewTarget = closestDropPointEntrance
+                    });
                 }
             }
         }
 
         entityCommandBuffer.Playback(state.EntityManager);
-    }
-
-    private void SetupPathfinding(GridManager gridManager, EntityCommandBuffer entityCommandBuffer, float3 position, Entity entity,
-        int2 newEndPosition)
-    {
-        GridHelpers.GetXY(position, out var startX, out var startY);
-        gridManager.ValidateGridPosition(ref startX, ref startY);
-
-        entityCommandBuffer.AddComponent(entity, new PathfindingParams
-        {
-            StartPosition = new int2(startX, startY),
-            EndPosition = newEndPosition
-        });
     }
 }
 

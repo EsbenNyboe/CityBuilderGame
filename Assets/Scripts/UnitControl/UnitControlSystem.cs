@@ -196,30 +196,19 @@ public partial class UnitControlSystem : SystemBase
                 continue;
             }
 
-            GridHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            gridManager.ValidateGridPosition(ref startX, ref startY);
-
-            entityCommandBuffer.AddComponent(entity, new PathfindingParams
-            {
-                StartPosition = new int2(startX, startY),
-                EndPosition = endPosition
-            });
-
             entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
             SystemAPI.SetComponent(entity, new SpriteTransform
             {
                 Position = float3.zero,
                 Rotation = quaternion.identity
             });
-            SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, false);
-            SystemAPI.SetComponent(entity, new HarvestingUnit
-            {
-                Target = new int2(-1, -1)
-            });
+            entityCommandBuffer.RemoveComponent<HarvestingUnitTag>(entity);
             SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
 
-            TryAbandonCell(ref gridManager, startX, startY, entity);
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+            entityCommandBuffer.AddComponent(entity, new TryDeoccupy
+            {
+                NewTarget = endPosition
+            });
         }
     }
 
@@ -240,23 +229,17 @@ public partial class UnitControlSystem : SystemBase
             var endPosition = walkableNeighbourCells[positionIndex];
             positionIndex = (positionIndex + 1) % walkableNeighbourCells.Count;
 
-            GridHelpers.GetXY(localTransform.ValueRO.Position, out var startX, out var startY);
-            gridManager.ValidateGridPosition(ref startX, ref startY);
-            entityCommandBuffer.AddComponent(entity, new PathfindingParams
-            {
-                StartPosition = new int2(startX, startY),
-                EndPosition = endPosition
-            });
-
-            SystemAPI.SetComponentEnabled<HarvestingUnit>(entity, true);
+            entityCommandBuffer.AddComponent<HarvestingUnitTag>(entity);
             SystemAPI.SetComponent(entity, new HarvestingUnit
             {
                 Target = targetGridCell
             });
-
             SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
 
-            TryAbandonCell(ref gridManager, startX, startY, entity);
+            entityCommandBuffer.AddComponent(entity, new TryDeoccupy
+            {
+                NewTarget = endPosition
+            });
         }
 
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);

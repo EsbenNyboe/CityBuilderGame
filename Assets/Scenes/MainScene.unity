@@ -990,7 +990,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6756d81dbd32014bbe35442b31baf53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _showOccupationGrid: 0
+  _showOccupationGrid: 1
 --- !u!114 &597997352
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1004,7 +1004,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _chopDuration: 2
-  _damagePerChop: 7.5
+  _damagePerChop: 38.02
   _chopAnimationSize: 0.4
   _chopAnimationIdleTime: 0.729
 --- !u!1 &614670184
