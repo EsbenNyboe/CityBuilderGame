@@ -35,7 +35,7 @@ public partial struct HarvestingUnitSystem : ISystem
 
         foreach (var (localTransform, harvestingUnit, pathFollow, spriteTransform, entity) in SystemAPI
                      .Query<RefRO<LocalTransform>, RefRW<HarvestingUnit>, RefRO<PathFollow>, RefRW<SpriteTransform>>()
-                     .WithPresent<HarvestingUnitTag>().WithDisabled<DeliveringUnit>().WithEntityAccess())
+                     .WithPresent<HarvestingUnitTag>().WithNone<DeliveringUnitTag>().WithEntityAccess())
         {
             // TODO: Replace with create/destroy component
             var unitIsTryingToHarvest = pathFollow.ValueRO.PathIndex < 0;
@@ -164,12 +164,7 @@ public partial struct HarvestingUnitSystem : ISystem
 
                     // TODO: Should HarvestingUnit be disabled here?
 
-                    SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, true);
-                    SystemAPI.SetComponent(entity, new DeliveringUnit
-                    {
-                        Target = dropPointCell
-                    });
-
+                    entityCommandBuffer.AddComponent<DeliveringUnitTag>(entity);
                     entityCommandBuffer.AddComponent(entity, new TryDeoccupy
                     {
                         NewTarget = closestDropPointEntrance

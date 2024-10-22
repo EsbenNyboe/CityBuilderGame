@@ -57,10 +57,12 @@ public partial struct PathFollowSystem : ISystem
                 {
                     localTransform.ValueRW.Position = targetPosition;
 
-                    if (state.EntityManager.IsComponentEnabled<DeliveringUnit>(entity))
+                    if (state.EntityManager.HasComponent<DeliveringUnitTag>(entity))
                     {
+                        // TODO: Maybe check if the unit actually reached the dropPoint? If it's needed...
+
                         entityCommandBuffer.AddComponent<HarvestingUnitTag>(entity);
-                        SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
+                        entityCommandBuffer.RemoveComponent<DeliveringUnitTag>(entity);
                         entityCommandBuffer.AddComponent(entity, new TryDeoccupy
                         {
                             NewTarget = state.EntityManager.GetComponentData<HarvestingUnit>(entity).Target

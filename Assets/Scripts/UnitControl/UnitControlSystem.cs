@@ -203,7 +203,7 @@ public partial class UnitControlSystem : SystemBase
                 Rotation = quaternion.identity
             });
             entityCommandBuffer.RemoveComponent<HarvestingUnitTag>(entity);
-            SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
+            entityCommandBuffer.RemoveComponent<DeliveringUnitTag>(entity);
 
             entityCommandBuffer.AddComponent(entity, new TryDeoccupy
             {
@@ -234,7 +234,7 @@ public partial class UnitControlSystem : SystemBase
             {
                 Target = targetGridCell
             });
-            SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
+            entityCommandBuffer.RemoveComponent<DeliveringUnitTag>(entity);
 
             entityCommandBuffer.AddComponent(entity, new TryDeoccupy
             {

@@ -112,7 +112,7 @@ public partial struct OccupationSystem : ISystem
             Rotation = quaternion.identity
         });
         entityCommandBuffer.RemoveComponent<HarvestingUnitTag>(entity);
-        SystemAPI.SetComponentEnabled<DeliveringUnit>(entity, false);
+        entityCommandBuffer.RemoveComponent<DeliveringUnitTag>(entity);
     }
 
     private static bool TryGetNearbyVacantCell(GridManager gridManager, NativeArray<int2> movePositionList, out int2 nearbyCell)
