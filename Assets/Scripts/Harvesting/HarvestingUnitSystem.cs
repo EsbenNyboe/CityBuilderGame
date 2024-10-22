@@ -85,7 +85,7 @@ public partial struct HarvestingUnitSystem : ISystem
                 }
                 else
                 {
-                    entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
+                    entityCommandBuffer.RemoveComponent<ChopAnimationTag>(entity);
                     SystemAPI.SetComponent(entity, new SpriteTransform
                     {
                         Position = float3.zero,
@@ -107,15 +107,7 @@ public partial struct HarvestingUnitSystem : ISystem
                 SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
                 dotsSoundManager.ChopSoundRequests.Enqueue(localTransform.ValueRO.Position);
-                var chopTarget = harvestingUnit.ValueRO.Target;
-                entityCommandBuffer.AddComponent(entity, new ChopAnimation
-                {
-                    TargetPosition = GridHelpers.GetWorldPosition(chopTarget.x, chopTarget.y),
-                    ChopAnimationProgress = chopDuration,
-                    ChopDuration = chopDuration,
-                    ChopSize = chopSize,
-                    ChopIdleTime = chopIdleTime
-                });
+                entityCommandBuffer.AddComponent<ChopAnimationTag>(entity);
             }
 
             if (gridManager.DamageableGrid[cellIndex].Health <= 0)
@@ -126,7 +118,7 @@ public partial struct HarvestingUnitSystem : ISystem
                 gridManager.SetHealth(cellIndex, 0);
                 SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
-                entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
+                entityCommandBuffer.RemoveComponent<ChopAnimationTag>(entity);
                 SystemAPI.SetComponent(entity, new SpriteTransform
                 {
                     Position = float3.zero,
@@ -190,12 +182,6 @@ public partial struct HarvestingUnitSystem : ISystem
     }
 }
 
-public struct ChopAnimation : IComponentData
+public struct ChopAnimationTag : IComponentData
 {
-    public float3 TargetPosition;
-    public float ChopAnimationProgress;
-
-    public float ChopDuration;
-    public float ChopSize;
-    public float ChopIdleTime;
 }

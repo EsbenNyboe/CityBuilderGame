@@ -196,7 +196,7 @@ public partial class UnitControlSystem : SystemBase
                 continue;
             }
 
-            entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
+            entityCommandBuffer.RemoveComponent<ChopAnimationTag>(entity);
             SystemAPI.SetComponent(entity, new SpriteTransform
             {
                 Position = float3.zero,

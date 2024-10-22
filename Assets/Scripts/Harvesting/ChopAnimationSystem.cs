@@ -7,21 +7,33 @@ using UnityEngine;
 [BurstCompile]
 public partial struct ChopAnimationSystem : ISystem
 {
+    private SystemHandle _chopAnimationManagerSystemHandle;
+
+    public void OnCreate(ref SystemState state)
+    {
+        _chopAnimationManagerSystemHandle = state.World.GetExistingSystem<ChopAnimationManagerSystem>();
+    }
+
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        foreach (var (chopAnimation, spriteTransform, localTransform) in SystemAPI
-                     .Query<RefRW<ChopAnimation>, RefRW<SpriteTransform>, RefRO<LocalTransform>>())
+        var chopAnimationManager = SystemAPI.GetComponent<ChopAnimationManager>(_chopAnimationManagerSystemHandle);
+        var chopDuration = chopAnimationManager.ChopDuration;
+        var chopSize = chopAnimationManager.ChopAnimationSize;
+        var chopIdleTime = chopAnimationManager.ChopAnimationIdleTime;
+
+        foreach (var (harvestingUnit, spriteTransform, localTransform) in SystemAPI
+                     .Query<RefRO<HarvestingUnit>, RefRW<SpriteTransform>, RefRO<LocalTransform>>().WithPresent<ChopAnimationTag>())
         {
-            DoChopAnimation(ref state, chopAnimation, spriteTransform, localTransform);
+            DoChopAnimation(ref state, harvestingUnit, spriteTransform, localTransform, chopDuration, chopSize, chopIdleTime);
         }
     }
 
-    private void DoChopAnimation(ref SystemState state, RefRW<ChopAnimation> chopAnimation, RefRW<SpriteTransform> spriteTransform,
-        RefRO<LocalTransform> localTransform)
+    private void DoChopAnimation(ref SystemState state, RefRO<HarvestingUnit> harvestingUnit, RefRW<SpriteTransform> spriteTransform,
+        RefRO<LocalTransform> localTransform, float chopDuration, float chopSize, float chopIdleTime)
     {
         // Manage animation state:
-        var timeLeft = chopAnimation.ValueRW.ChopAnimationProgress -= state.WorldUnmanaged.Time.DeltaTime;
+        var timeLeft = harvestingUnit.ValueRO.TimeUntilNextChop;
 
         if (timeLeft < 0)
         {
@@ -30,14 +42,15 @@ public partial struct ChopAnimationSystem : ISystem
         }
 
         // Calculate animation input:
-        var timeLeftNormalized = timeLeft / chopAnimation.ValueRO.ChopDuration;
-        var timeLeftBeforeIdling = timeLeftNormalized - chopAnimation.ValueRO.ChopIdleTime;
-        var timeLeftBeforeIdlingNormalized = math.max(0, timeLeftBeforeIdling) * (1 + chopAnimation.ValueRO.ChopIdleTime);
+        var timeLeftNormalized = timeLeft / chopDuration;
+        var timeLeftBeforeIdling = timeLeftNormalized - chopIdleTime;
+        var timeLeftBeforeIdlingNormalized = math.max(0, timeLeftBeforeIdling) * (1 + chopIdleTime);
 
         // Calculate animation output:
-        var positionDistanceFromOrigin = timeLeftBeforeIdlingNormalized * chopAnimation.ValueRO.ChopSize;
+        var positionDistanceFromOrigin = timeLeftBeforeIdlingNormalized * chopSize;
 
-        var chopTargetPosition = chopAnimation.ValueRO.TargetPosition;
+        var chopTargetCell = harvestingUnit.ValueRO.Target;
+        var chopTargetPosition = new float3(chopTargetCell.x, chopTargetCell.y, 0);
         var chopDirection = ((Vector3)(chopTargetPosition - localTransform.ValueRO.Position)).normalized;
 
         var spritePositionOffset = positionDistanceFromOrigin * chopDirection;

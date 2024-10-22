@@ -105,7 +105,7 @@ public partial struct OccupationSystem : ISystem
     // TODO: Fix race-condition with DeliveringUnitSystem
     private void DisableHarvestingUnit(ref SystemState state, EntityCommandBuffer entityCommandBuffer, Entity entity)
     {
-        entityCommandBuffer.RemoveComponent<ChopAnimation>(entity);
+        entityCommandBuffer.RemoveComponent<ChopAnimationTag>(entity);
         SystemAPI.SetComponent(entity, new SpriteTransform
         {
             Position = float3.zero,
