@@ -35,7 +35,7 @@ public partial struct HarvestingUnitSystem : ISystem
 
         foreach (var (localTransform, harvestingUnit, pathFollow, spriteTransform, entity) in SystemAPI
                      .Query<RefRO<LocalTransform>, RefRW<HarvestingUnit>, RefRO<PathFollow>, RefRW<SpriteTransform>>()
-                     .WithPresent<HarvestingUnitTag>().WithEntityAccess())
+                     .WithPresent<HarvestingUnitTag>().WithDisabled<DeliveringUnit>().WithEntityAccess())
         {
             // TODO: Replace with create/destroy component
             var unitIsTryingToHarvest = pathFollow.ValueRO.PathIndex < 0;
@@ -132,7 +132,6 @@ public partial struct HarvestingUnitSystem : ISystem
                     Position = float3.zero,
                     Rotation = quaternion.identity
                 });
-                entityCommandBuffer.RemoveComponent<HarvestingUnitTag>(entity);
 
                 var closestDropPoint = new float3(-1, -1, -1);
                 var shortestDropPointDistance = math.INFINITY;
