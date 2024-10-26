@@ -59,7 +59,8 @@ public partial struct HarvestingUnitSystem : ISystem
             var targetX = harvestingUnit.ValueRO.Target.x;
             var targetY = harvestingUnit.ValueRO.Target.y;
 
-            var tileHasNoTree = gridManager.WalkableGrid[gridManager.GetIndex(targetX, targetY)].IsWalkable;
+
+            var tileHasNoTree = gridManager.IsWalkable(targetX, targetY);
             if (tileHasNoTree)
             {
                 //Debug.Log("Tree was probably destroyed, so please stop chopping it!");
@@ -71,7 +72,7 @@ public partial struct HarvestingUnitSystem : ISystem
             ChopTreeProcess(ref state, ecb, dotsSoundManager, gridManager, chopAnimationManager, entity, harvestingUnit, localTransform, chopDuration,
                 cellIndex);
 
-            if (gridManager.DamageableGrid[cellIndex].Health <= 0)
+            if (!gridManager.IsDamageable(cellIndex))
             {
                 DestroyTree(ref state, ecb, dotsSoundManager, gridManager, entity, localTransform, targetX, targetY, cellIndex);
                 SeekClosestDropPoint(ref state, ecb, gridManager, entity, localTransform);

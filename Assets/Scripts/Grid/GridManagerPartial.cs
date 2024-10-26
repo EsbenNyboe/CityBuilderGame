@@ -65,29 +65,29 @@ public partial struct GridManager
         return WalkableGrid[i].IsWalkable;
     }
 
+    // Note: Remember to call SetComponent after this method
     public void SetIsWalkable(Vector3 position, bool isWalkable)
     {
-        // Note: Remember to call SetComponent after this method
         GridHelpers.GetXY(position, out var x, out var y);
         SetIsWalkable(x, y, isWalkable);
     }
 
+    // Note: Remember to call SetComponent after this method
     public void SetIsWalkable(int2 cell, bool isWalkable)
     {
-        // Note: Remember to call SetComponent after this method
         SetIsWalkable(cell.x, cell.y, isWalkable);
     }
 
+    // Note: Remember to call SetComponent after this method
     public void SetIsWalkable(int x, int y, bool isWalkable)
     {
-        // Note: Remember to call SetComponent after this method
         var gridIndex = GetIndex(x, y);
         SetIsWalkable(gridIndex, isWalkable);
     }
 
+    // Note: Remember to call SetComponent after this method
     public void SetIsWalkable(int i, bool isWalkable)
     {
-        // Note: Remember to call SetComponent after this method
         var walkableCell = WalkableGrid[i];
         walkableCell.IsWalkable = isWalkable;
         walkableCell.IsDirty = true;
@@ -128,29 +128,29 @@ public partial struct GridManager
         return OccupiableGrid[i].Occupant == entity;
     }
 
+    // Note: Remember to call SetComponent after this method
     public bool TryClearOccupant(Vector3 position, Entity entity)
     {
-        // Note: Remember to call SetComponent after this method
         GridHelpers.GetXY(position, out var x, out var y);
         return TryClearOccupant(x, y, entity);
     }
 
+    // Note: Remember to call SetComponent after this method
     public bool TryClearOccupant(int2 cell, Entity entity)
     {
-        // Note: Remember to call SetComponent after this method
         return TryClearOccupant(cell.x, cell.y, entity);
     }
 
+    // Note: Remember to call SetComponent after this method
     public bool TryClearOccupant(int x, int y, Entity entity)
     {
-        // Note: Remember to call SetComponent after this method
         var i = GetIndex(x, y);
         return TryClearOccupant(i, entity);
     }
 
+    // Note: Remember to call SetComponent after this method
     public bool TryClearOccupant(int i, Entity entity)
     {
-        // Note: Remember to call SetComponent after this method
         if (EntityIsOccupant(i, entity))
         {
             SetOccupant(i, Entity.Null);
@@ -160,16 +160,16 @@ public partial struct GridManager
         return false;
     }
 
+    // Note: Remember to call SetComponent after this method
     public void SetOccupant(int x, int y, Entity entity)
     {
-        // Note: Remember to call SetComponent after this method
         var gridIndex = GetIndex(x, y);
         SetOccupant(gridIndex, entity);
     }
 
+    // Note: Remember to call SetComponent after this method
     public void SetOccupant(int i, Entity entity)
     {
-        // Note: Remember to call SetComponent after this method
         var occupiableCell = OccupiableGrid[i];
         occupiableCell.Occupant = entity;
         occupiableCell.IsDirty = true;
@@ -203,21 +203,21 @@ public partial struct GridManager
         return DamageableGrid[i].Health > 0;
     }
 
+    // Note: Remember to call SetComponent after this method
     public void SetHealthToMax(int i)
     {
-        // Note: Remember to call SetComponent after this method
         SetHealth(i, DamageableGrid[i].MaxHealth);
     }
 
+    // Note: Remember to call SetComponent after this method
     public void AddDamage(int i, float damage)
     {
-        // Note: Remember to call SetComponent after this method
         SetHealth(i, DamageableGrid[i].Health - damage);
     }
 
+    // Note: Remember to call SetComponent after this method
     public void SetHealth(int i, float health)
     {
-        // Note: Remember to call SetComponent after this method
         var damageableCell = DamageableGrid[i];
         damageableCell.Health = health;
         damageableCell.IsDirty = true;

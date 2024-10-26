@@ -225,7 +225,7 @@ public partial class Pathfinding : SystemBase
             if (endNode.cameFromNodeIndex == -1)
             {
                 // Didn't find a path!
-                // DebugInfo("Didn't find a path!");
+                // Debug.LogError("Didn't find a path!");
                 PathFollowLookup[Entity] = new PathFollow
                 {
                     PathIndex = -1
