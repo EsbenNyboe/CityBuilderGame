@@ -194,7 +194,7 @@ GameObject:
   - component: {fileID: 347232407}
   - component: {fileID: 347232408}
   m_Layer: 0
-  m_Name: SpawnTest
+  m_Name: UnitSpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
