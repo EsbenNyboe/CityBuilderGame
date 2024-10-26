@@ -22,7 +22,7 @@ public partial struct DeliveringUnitSystem : ISystem
         foreach (var (child, entity) in SystemAPI.Query<DynamicBuffer<Child>>()
                      .WithAll<DeliveringUnitTag>().WithEntityAccess())
         {
-            state.EntityManager.SetComponentEnabled<MaterialMeshInfo>(child[0].Value, false);
+            state.EntityManager.SetComponentEnabled<MaterialMeshInfo>(child[0].Value, true);
         }
     }
 }
