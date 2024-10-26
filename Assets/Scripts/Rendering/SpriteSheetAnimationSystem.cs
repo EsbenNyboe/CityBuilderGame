@@ -19,7 +19,7 @@ public partial struct SpriteSheetAnimationSystem : ISystem
                 spriteSheetAnimationData.ValueRW.CurrentFrame =
                     (spriteSheetAnimationData.ValueRO.CurrentFrame + 1) % spriteSheetAnimationData.ValueRO.FrameCount;
 
-                var uvScaleX = 1f / spriteSheetAnimationData.ValueRO.FrameCount;
+                var uvScaleX = spriteSheetAnimationData.ValueRO.Uv.x;
                 var uvOffsetX = uvScaleX * spriteSheetAnimationData.ValueRO.CurrentFrame;
                 var uvScaleY = spriteSheetAnimationData.ValueRO.Uv.y;
                 var uvOffsetY = spriteSheetAnimationData.ValueRO.Uv.w;

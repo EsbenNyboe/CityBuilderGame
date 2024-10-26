@@ -12,14 +12,19 @@ public partial struct AnimationUnitSystem : ISystem
                      .Query<RefRW<SpriteSheetAnimation>, RefRO<AnimationUnitIdle>, RefRO<PathFollow>>().WithDisabled<AnimationUnitIdle>()
                      .WithEntityAccess())
         {
-            if (pathFollow.ValueRO.PathIndex < 0)
+            // TODO: FIIIIX
+            if (pathFollow.ValueRO.PathIndex < 0 && pathFollow.ValueRO.PathIndex > -10)
             {
                 state.EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, false);
+                state.EntityManager.SetComponentEnabled<AnimationUnitSleep>(entity, false);
 
                 state.EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, true);
                 spriteSheetAnimation.ValueRW.FrameCount = animationUnitIdle.ValueRO.FrameCount;
                 spriteSheetAnimation.ValueRW.FrameTimerMax = animationUnitIdle.ValueRO.FrameTimerMax;
-                spriteSheetAnimation.ValueRW.Uv = new Vector4(1f / animationUnitIdle.ValueRO.FrameCount, 0.5f, 0, animationUnitIdle.ValueRO.FrameRow);
+                var scaleX = 1f / animationUnitIdle.ValueRO.SpriteColumns;
+                var scaleY = 1f / animationUnitIdle.ValueRO.SpriteRows;
+                var offsetY = (float)animationUnitIdle.ValueRO.FrameRow / animationUnitIdle.ValueRO.SpriteRows;
+                spriteSheetAnimation.ValueRW.Uv = new Vector4(scaleX, scaleY, 0, offsetY);
             }
         }
 
@@ -30,13 +35,38 @@ public partial struct AnimationUnitSystem : ISystem
             if (pathFollow.ValueRO.PathIndex >= 0)
             {
                 state.EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, false);
+                state.EntityManager.SetComponentEnabled<AnimationUnitSleep>(entity, false);
 
                 state.EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, true);
                 spriteSheetAnimation.ValueRW.FrameCount = animationUnitWalk.ValueRO.FrameCount;
                 spriteSheetAnimation.ValueRW.FrameTimerMax = animationUnitWalk.ValueRO.FrameTimerMax;
-                spriteSheetAnimation.ValueRW.Uv = new Vector4(1f / animationUnitWalk.ValueRO.FrameCount, 0.5f, 0, animationUnitWalk.ValueRO.FrameRow);
+                var scaleX = 1f / animationUnitWalk.ValueRO.SpriteColumns;
+                var scaleY = 1f / animationUnitWalk.ValueRO.SpriteRows;
+                var offsetY = (float)animationUnitWalk.ValueRO.FrameRow / animationUnitWalk.ValueRO.SpriteRows;
+                spriteSheetAnimation.ValueRW.Uv = new Vector4(scaleX, scaleY, 0, offsetY);
             }
         }
+
+        foreach (var (spriteSheetAnimation, animationUnitSleep, pathFollow, entity) in SystemAPI
+                     .Query<RefRW<SpriteSheetAnimation>, RefRO<AnimationUnitSleep>, RefRO<PathFollow>>().WithDisabled<AnimationUnitSleep>()
+                     .WithEntityAccess())
+        {
+            // TODO: FIX
+            if (pathFollow.ValueRO.PathIndex < -100)
+            {
+                state.EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, false);
+                state.EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, false);
+
+                state.EntityManager.SetComponentEnabled<AnimationUnitSleep>(entity, true);
+                spriteSheetAnimation.ValueRW.FrameCount = animationUnitSleep.ValueRO.FrameCount;
+                spriteSheetAnimation.ValueRW.FrameTimerMax = animationUnitSleep.ValueRO.FrameTimerMax;
+                var scaleX = 1f / animationUnitSleep.ValueRO.SpriteColumns;
+                var scaleY = 1f / animationUnitSleep.ValueRO.SpriteRows;
+                var offsetY = (float)animationUnitSleep.ValueRO.FrameRow / animationUnitSleep.ValueRO.SpriteRows;
+                spriteSheetAnimation.ValueRW.Uv = new Vector4(scaleX, scaleY, 0, offsetY);
+            }
+        }
+
         // entityCommandBuffer.Playback(EntityManager);
     }
 }

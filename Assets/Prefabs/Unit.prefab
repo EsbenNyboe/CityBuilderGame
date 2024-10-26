@@ -210,12 +210,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _idleAnimationConfig:
     FrameCount: 2
-    FrameRow: 0.5
-    FrameTimerMax: 0.7
+    FrameRow: 2
+    SpriteColumns: 3
+    SpriteRows: 3
+    FrameInterval: 0.7
   _walkAnimationConfig:
     FrameCount: 2
+    FrameRow: 1
+    SpriteColumns: 3
+    SpriteRows: 3
+    FrameInterval: 0.1
+  _sleepAnimationConfig:
+    FrameCount: 3
     FrameRow: 0
-    FrameTimerMax: 0.1
+    SpriteColumns: 3
+    SpriteRows: 3
+    FrameInterval: 0.5
 --- !u!114 &7059706796060003576
 MonoBehaviour:
   m_ObjectHideFlags: 0
