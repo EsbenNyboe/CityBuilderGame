@@ -2068,7 +2068,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _chopDuration: 2
-  _damagePerChop: 38.02
+  _damagePerChop: 11
   _chopAnimationSize: 0.4
   _chopAnimationIdleTime: 0.729
 --- !u!114 &2042965570

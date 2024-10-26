@@ -4,6 +4,10 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
+public struct ChopAnimationTag : IComponentData
+{
+}
+
 [BurstCompile]
 public partial struct ChopAnimationSystem : ISystem
 {
