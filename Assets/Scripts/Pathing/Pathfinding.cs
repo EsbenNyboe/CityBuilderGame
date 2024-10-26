@@ -6,33 +6,42 @@ using Unity.Jobs;
 using Unity.Mathematics;
 
 [UpdateAfter(typeof(GridManagerSystem))]
-public partial class Pathfinding : SystemBase
+public partial struct Pathfinding : ISystem
 {
     private const int MoveStraightCost = 10;
     private const int MoveDiagonalCost = 14;
     private static NativeArray<PathNode> PathNodeArrayTemplate;
     private SystemHandle _gridManagerSystemHandle;
 
-    protected override void OnCreate()
+    private ComponentLookup<PathfindingParams> _pathfindingParamsComponentLookup;
+    private ComponentLookup<PathFollow> _pathFollowComponentLookup;
+    private BufferLookup<PathPosition> _pathPositionComponentLookup;
+
+    public void OnCreate(ref SystemState state)
     {
-        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
+        _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
+
+        _pathfindingParamsComponentLookup = state.GetComponentLookup<PathfindingParams>();
+        _pathFollowComponentLookup = state.GetComponentLookup<PathFollow>();
+        _pathPositionComponentLookup = state.GetBufferLookup<PathPosition>();
     }
 
-    protected override void OnUpdate()
+    public void OnUpdate(ref SystemState state)
     {
+        _pathfindingParamsComponentLookup.Update(ref state);
+        _pathFollowComponentLookup.Update(ref state);
+        _pathPositionComponentLookup.Update(ref state);
+
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
-        var walkableGrid = gridManager.WalkableGrid;
-        var gridWidth = gridManager.Width;
-        var gridHeight = gridManager.Height;
-        var gridSize = new int2(gridWidth, gridHeight);
+        var gridSize = new int2(gridManager.Width, gridManager.Height);
         if (!PathNodeArrayTemplate.IsCreated)
         {
-            PathNodeArrayTemplate = new NativeArray<PathNode>(gridWidth * gridHeight, Allocator.Persistent);
+            PathNodeArrayTemplate = new NativeArray<PathNode>(gridSize.x * gridSize.y, Allocator.Persistent);
         }
 
         var findPathJobList = new NativeList<FindPathJob>(Allocator.Temp);
         var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
-        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+        var entityCommandBuffer = new EntityCommandBuffer(state.WorldUpdateAllocator);
 
         var maxPathfindingSchedulesPerFrame = Globals.MaxPathfindingPerFrame();
         var currentAmountOfSchedules = 0;
@@ -45,7 +54,7 @@ public partial class Pathfinding : SystemBase
             if (!templateIsCreated)
             {
                 templateIsCreated = true;
-                UpdatePathNodeArrayTemplate(walkableGrid, gridSize);
+                UpdatePathNodeArrayTemplate(gridManager.WalkableGrid, gridSize);
             }
 
             if (currentAmountOfSchedules > maxPathfindingSchedulesPerFrame)
@@ -62,7 +71,7 @@ public partial class Pathfinding : SystemBase
                 StartPosition = pathfindingParams.ValueRO.StartPosition,
                 EndPosition = pathfindingParams.ValueRO.EndPosition,
                 Entity = entity,
-                PathFollowLookup = GetComponentLookup<PathFollow>()
+                PathFollowLookup = _pathFollowComponentLookup
             };
             findPathJobList.Add(findPathJob);
             jobHandleList.Add(findPathJob.Schedule());
@@ -79,18 +88,18 @@ public partial class Pathfinding : SystemBase
                 GridSize = findPathJob.GridSize,
                 PathNodeArray = findPathJob.PathNodeArray,
                 Entity = findPathJob.Entity,
-                PathFindingParamsLookup = GetComponentLookup<PathfindingParams>(),
-                PathFollowLookup = GetComponentLookup<PathFollow>(),
-                PathPositionBufferLookup = GetBufferLookup<PathPosition>()
+                PathFindingParamsLookup = _pathfindingParamsComponentLookup,
+                PathFollowLookup = _pathFollowComponentLookup,
+                PathPositionBufferLookup = _pathPositionComponentLookup
             }.Run();
         }
 
-        entityCommandBuffer.Playback(EntityManager);
+        entityCommandBuffer.Playback(state.EntityManager);
         findPathJobList.Dispose();
         jobHandleList.Dispose();
     }
 
-    protected override void OnDestroy()
+    public void OnDestroy(ref SystemState state)
     {
         PathNodeArrayTemplate.Dispose();
     }
