@@ -17,8 +17,8 @@ public partial struct GridManager : IComponentData
     public NativeArray<int2> NeighbourDeltas;
     public int NeighbourSequenceIndex;
     public NativeList<int> RandomNearbyCellIndexList;
-    public NativeArray<int2> PositionList;
     public int PositionListLength;
+    public NativeArray<int2> PositionList;
 }
 
 public struct WalkableCell
@@ -43,64 +43,20 @@ public struct OccupiableCell
 public partial class GridManagerSystem : SystemBase
 {
     private const int MaxHealth = 100;
+    private const int width = 105;
+    private const int height = 95;
 
     protected override void OnCreate()
     {
-        var width = 105;
-        var height = 95;
+        var gridManager = new GridManager();
+        gridManager.Width = width;
+        gridManager.Height = height;
 
-        var walkableGrid = new NativeArray<WalkableCell>(width * height, Allocator.Persistent);
-        for (var i = 0; i < walkableGrid.Length; i++)
-        {
-            var cell = walkableGrid[i];
-            cell.IsWalkable = true;
-            cell.IsDirty = true;
-            walkableGrid[i] = cell;
-        }
-
-        var damageableGrid = new NativeArray<DamageableCell>(width * height, Allocator.Persistent);
-        for (var i = 0; i < damageableGrid.Length; i++)
-        {
-            var cell = damageableGrid[i];
-            cell.Health = 0;
-            cell.MaxHealth = MaxHealth;
-            cell.IsDirty = true;
-            damageableGrid[i] = cell;
-        }
-
-        var occupiableGrid = new NativeArray<OccupiableCell>(width * height, Allocator.Persistent);
-        for (var i = 0; i < occupiableGrid.Length; i++)
-        {
-            var cell = occupiableGrid[i];
-            cell.Occupant = Entity.Null;
-            cell.IsDirty = true;
-            occupiableGrid[i] = cell;
-        }
+        CreateGrids(ref gridManager);
+        CreateGridSearchHelpers(ref gridManager);
 
         EntityManager.AddComponent<GridManager>(SystemHandle);
-
-        var neighbourDeltas =
-            new NativeArray<int2>(new int2[] { new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1) },
-                Allocator.Persistent);
-        var randomNearbyCellIndexList = new NativeList<int>(Allocator.Persistent);
-        var positionListLength = 50;
-        var positionList = new NativeArray<int2>(GridHelpers.CalculatePositionListLength(positionListLength), Allocator.Persistent);
-
-        SystemAPI.SetComponent(SystemHandle, new GridManager
-        {
-            Width = width,
-            Height = height,
-            WalkableGrid = walkableGrid,
-            DamageableGrid = damageableGrid,
-            OccupiableGrid = occupiableGrid,
-            WalkableGridIsDirty = true,
-            DamageableGridIsDirty = true,
-            OccupiableGridIsDirty = true,
-            NeighbourDeltas = neighbourDeltas,
-            RandomNearbyCellIndexList = randomNearbyCellIndexList,
-            PositionList = positionList,
-            PositionListLength = positionListLength
-        });
+        SystemAPI.SetComponent(SystemHandle, gridManager);
     }
 
     protected override void OnUpdate()
@@ -110,10 +66,6 @@ public partial class GridManagerSystem : SystemBase
     protected override void OnDestroy()
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(SystemHandle);
-        for (var i = 0; i < gridManager.WalkableGrid.Length; i++)
-        {
-            // Debug.Log("IsWalkable: " + gridManager.WalkableGrid[i].IsWalkable);
-        }
 
         gridManager.WalkableGrid.Dispose();
         gridManager.DamageableGrid.Dispose();
@@ -123,5 +75,50 @@ public partial class GridManagerSystem : SystemBase
         gridManager.NeighbourDeltas.Dispose();
         gridManager.RandomNearbyCellIndexList.Dispose();
         gridManager.PositionList.Dispose();
+    }
+
+    private static void CreateGrids(ref GridManager gridManager)
+    {
+        gridManager.WalkableGridIsDirty = true;
+        gridManager.WalkableGrid = new NativeArray<WalkableCell>(width * height, Allocator.Persistent);
+        for (var i = 0; i < gridManager.WalkableGrid.Length; i++)
+        {
+            var cell = gridManager.WalkableGrid[i];
+            cell.IsWalkable = true;
+            cell.IsDirty = true;
+            gridManager.WalkableGrid[i] = cell;
+        }
+
+        gridManager.DamageableGridIsDirty = true;
+        gridManager.DamageableGrid = new NativeArray<DamageableCell>(width * height, Allocator.Persistent);
+        for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
+        {
+            var cell = gridManager.DamageableGrid[i];
+            cell.Health = 0;
+            cell.MaxHealth = MaxHealth;
+            cell.IsDirty = true;
+            gridManager.DamageableGrid[i] = cell;
+        }
+
+        gridManager.OccupiableGridIsDirty = true;
+        gridManager.OccupiableGrid = new NativeArray<OccupiableCell>(width * height, Allocator.Persistent);
+        for (var i = 0; i < gridManager.OccupiableGrid.Length; i++)
+        {
+            var cell = gridManager.OccupiableGrid[i];
+            cell.Occupant = Entity.Null;
+            cell.IsDirty = true;
+            gridManager.OccupiableGrid[i] = cell;
+        }
+    }
+
+    private static void CreateGridSearchHelpers(ref GridManager gridManager)
+    {
+        gridManager.NeighbourDeltas =
+            new NativeArray<int2>(new int2[] { new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1) },
+                Allocator.Persistent);
+        gridManager.RandomNearbyCellIndexList = new NativeList<int>(Allocator.Persistent);
+        gridManager.PositionListLength = 50;
+        gridManager.PositionList =
+            new NativeArray<int2>(GridHelpers.CalculatePositionListLength(gridManager.PositionListLength), Allocator.Persistent);
     }
 }
