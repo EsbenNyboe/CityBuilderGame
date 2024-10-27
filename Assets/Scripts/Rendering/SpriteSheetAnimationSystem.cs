@@ -30,8 +30,6 @@ public partial struct SpriteSheetAnimationSystem : ISystem
 
             var position = localToWorld.ValueRO.Position + spriteTransform.ValueRO.Position;
             var rotation = spriteTransform.ValueRO.Rotation;
-            // sort sprites, by putting lower sprites in front of higher ones:
-            // positon.z = positon.y * 0.01f;
             spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
         }
     }

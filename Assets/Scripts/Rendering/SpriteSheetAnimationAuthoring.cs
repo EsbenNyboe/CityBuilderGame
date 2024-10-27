@@ -9,19 +9,15 @@ public class SpriteSheetAnimationAuthoring : MonoBehaviour
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
 
-            // Idle animation config
             AddComponent(entity, new AnimationUnitIdle());
             SetComponentEnabled<AnimationUnitIdle>(entity, false);
 
-            // Walk animation config
             AddComponent(entity, new AnimationUnitWalk());
             SetComponentEnabled<AnimationUnitWalk>(entity, false);
 
-            // Walk animation config
             AddComponent(entity, new AnimationUnitSleep());
             SetComponentEnabled<AnimationUnitSleep>(entity, false);
 
-            // Animation component: Set idle animation as default
             AddComponent(entity, new SpriteSheetAnimation());
         }
     }

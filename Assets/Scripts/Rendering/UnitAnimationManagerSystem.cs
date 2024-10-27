@@ -3,15 +3,15 @@ using Unity.Entities;
 
 public struct UnitAnimationManager : IComponentData
 {
-    public AnimationConfigz SleepAnimation;
-    public AnimationConfigz WalkAnimation;
-    public AnimationConfigz IdleAnimation;
+    public AnimationConfig SleepAnimation;
+    public AnimationConfig WalkAnimation;
+    public AnimationConfig IdleAnimation;
     public int SpriteColumns;
     public int SpriteRows;
 }
 
 [Serializable]
-public struct AnimationConfigz
+public struct AnimationConfig
 {
     public int SpriteRow;
     public int FrameCount;
@@ -24,19 +24,19 @@ public partial class UnitAnimationManagerSystem : SystemBase
     {
         var unitAnimationManager = new UnitAnimationManager
         {
-            SleepAnimation = new AnimationConfigz
+            SleepAnimation = new AnimationConfig
             {
                 SpriteRow = 0,
                 FrameCount = 3,
                 FrameInterval = 0.4f
             },
-            WalkAnimation = new AnimationConfigz
+            WalkAnimation = new AnimationConfig
             {
                 SpriteRow = 1,
                 FrameCount = 2,
                 FrameInterval = 0.11f
             },
-            IdleAnimation = new AnimationConfigz
+            IdleAnimation = new AnimationConfig
             {
                 SpriteRow = 2,
                 FrameCount = 2,

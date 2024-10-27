@@ -2,6 +2,7 @@ using Unity.Burst;
 using Unity.Entities;
 using UnityEngine;
 
+[UpdateAfter(typeof(UnitAnimationManagerSystem))]
 public partial struct AnimationUnitSystem : ISystem
 {
     private SystemHandle _unitAnimationManagerSystem;
@@ -22,7 +23,6 @@ public partial struct AnimationUnitSystem : ISystem
         var walkAnimation = unitAnimationManager.WalkAnimation;
         var sleepAnimation = unitAnimationManager.SleepAnimation;
 
-        // var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
         foreach (var (spriteSheetAnimation, animationUnitIdle, pathFollow, entity) in SystemAPI
                      .Query<RefRW<SpriteSheetAnimation>, RefRO<AnimationUnitIdle>, RefRO<PathFollow>>()
                      .WithDisabled<AnimationUnitIdle>()
@@ -35,10 +35,7 @@ public partial struct AnimationUnitSystem : ISystem
                 state.EntityManager.SetComponentEnabled<AnimationUnitSleep>(entity, false);
 
                 state.EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, true);
-                spriteSheetAnimation.ValueRW.FrameCount = idleAnimation.FrameCount;
-                spriteSheetAnimation.ValueRW.FrameTimerMax = idleAnimation.FrameInterval;
-                var offsetY = (float)idleAnimation.SpriteRow / spriteRows;
-                spriteSheetAnimation.ValueRW.Uv = new Vector4(scaleX, scaleY, 0, offsetY);
+                SelectAnimation(spriteSheetAnimation, idleAnimation, spriteRows, scaleX, scaleY);
             }
         }
 
@@ -55,10 +52,7 @@ public partial struct AnimationUnitSystem : ISystem
 
                 state.EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, true);
 
-                spriteSheetAnimation.ValueRW.FrameCount = walkAnimation.FrameCount;
-                spriteSheetAnimation.ValueRW.FrameTimerMax = walkAnimation.FrameInterval;
-                var offsetY = (float)walkAnimation.SpriteRow / spriteRows;
-                spriteSheetAnimation.ValueRW.Uv = new Vector4(scaleX, scaleY, 0, offsetY);
+                SelectAnimation(spriteSheetAnimation, walkAnimation, spriteRows, scaleX, scaleY);
             }
         }
 
@@ -72,12 +66,17 @@ public partial struct AnimationUnitSystem : ISystem
             state.EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, false);
 
             state.EntityManager.SetComponentEnabled<AnimationUnitSleep>(entity, true);
-            spriteSheetAnimation.ValueRW.FrameCount = sleepAnimation.FrameCount;
-            spriteSheetAnimation.ValueRW.FrameTimerMax = sleepAnimation.FrameInterval;
-            var offsetY = (float)sleepAnimation.SpriteRow / spriteRows;
-            spriteSheetAnimation.ValueRW.Uv = new Vector4(scaleX, scaleY, 0, offsetY);
-        }
 
-        // entityCommandBuffer.Playback(EntityManager);
+            SelectAnimation(spriteSheetAnimation, sleepAnimation, spriteRows, scaleX, scaleY);
+        }
+    }
+
+    private static void SelectAnimation(RefRW<SpriteSheetAnimation> spriteSheetAnimation, AnimationConfig idleAnimation, int spriteRows, float scaleX,
+        float scaleY)
+    {
+        spriteSheetAnimation.ValueRW.FrameCount = idleAnimation.FrameCount;
+        spriteSheetAnimation.ValueRW.FrameTimerMax = idleAnimation.FrameInterval;
+        var offsetY = (float)idleAnimation.SpriteRow / spriteRows;
+        spriteSheetAnimation.ValueRW.Uv = new Vector4(scaleX, scaleY, 0, offsetY);
     }
 }
