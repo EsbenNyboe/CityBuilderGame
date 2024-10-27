@@ -4,20 +4,25 @@ using UnityEngine;
 public class GridVisualsManager : MonoBehaviour
 {
     [SerializeField] private MeshFilter _pathMeshFilter;
+    [SerializeField] private MeshFilter _pathDebugMeshFilter;
     [SerializeField] private MeshFilter _treeMeshFilter;
     [SerializeField] private MeshFilter _healthBarMeshFilter;
     [SerializeField] private MeshFilter _occupationDebugMeshFilter;
 
     private readonly PathGridVisual _pathGridVisual = new();
+    private readonly PathGridDebugVisual _pathGridDebugVisual = new();
     private readonly TreeGridVisual _treeGridVisual = new();
     private readonly HealthbarGridVisual _healthbarGridVisual = new();
     private readonly OccupationDebugGridVisual _occupationDebugGridVisual = new();
+
+    private bool _hasUpdatedOnce;
 
     private SystemHandle _gridManagerSystemHandle;
 
     private void Awake()
     {
         _pathMeshFilter.mesh = _pathGridVisual.CreateMesh();
+        _pathDebugMeshFilter.mesh = _pathGridDebugVisual.CreateMesh();
         _treeMeshFilter.mesh = _treeGridVisual.CreateMesh();
         _healthBarMeshFilter.mesh = _healthbarGridVisual.CreateMesh();
         _occupationDebugMeshFilter.mesh = _occupationDebugGridVisual.CreateMesh();
@@ -33,6 +38,7 @@ public class GridVisualsManager : MonoBehaviour
 
             var gridSize = gridManagerTemp.WalkableGrid.Length;
             _pathGridVisual.InitializeMesh(gridSize);
+            _pathGridDebugVisual.InitializeMesh(gridSize);
             _treeGridVisual.InitializeMesh(gridSize);
             _healthbarGridVisual.InitializeMesh(gridSize);
             _occupationDebugGridVisual.InitializeMesh(gridSize);
@@ -49,6 +55,8 @@ public class GridVisualsManager : MonoBehaviour
         {
             World.DefaultGameObjectInjectionWorld.EntityManager.SetComponentData(_gridManagerSystemHandle, gridManager);
         }
+
+        _hasUpdatedOnce = true;
     }
 
     private void TryUpdateWalkableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
@@ -58,7 +66,19 @@ public class GridVisualsManager : MonoBehaviour
             gridManager.WalkableGridIsDirty = false;
             wasDirty = true;
 
-            _pathGridVisual.UpdateVisual(gridManager);
+            if (!_hasUpdatedOnce)
+            {
+                // This visual is a static background:
+                _pathGridVisual.UpdateVisual(gridManager);
+            }
+
+            var showDebug = DebugGlobals.ShowWalkableGrid();
+            _pathDebugMeshFilter.gameObject.SetActive(showDebug);
+            _pathMeshFilter.gameObject.SetActive(!showDebug);
+            if (showDebug)
+            {
+                _pathGridDebugVisual.UpdateVisual(gridManager);
+            }
         }
     }
 

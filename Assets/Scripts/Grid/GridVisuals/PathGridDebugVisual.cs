@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PathGridVisual : GridVisual
+public class PathGridDebugVisual : GridVisual
 {
     protected override bool TryGetUpdatedCellVisual(GridManager gridManager, int index, out Vector2 uv00, out Vector2 uv11,
         ref Vector3 quadSize, ref Vector3 worldPosition)
@@ -14,9 +14,8 @@ public class PathGridVisual : GridVisual
             return false;
         }
 
-        // Note: This shouldn't be set to dirty, because:
-        // A: It's a static background
-        // B: There's another grid-visual setting it to dirty (debug-grid)
+        walkableCell.IsDirty = false;
+        gridManager.WalkableGrid[index] = walkableCell;
 
         uv00 = new Vector2(0, 0);
         uv11 = new Vector2(.5f, .5f);

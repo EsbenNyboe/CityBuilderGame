@@ -4,7 +4,8 @@ public class DebugGlobals : MonoBehaviour
 {
     public static DebugGlobals Instance;
 
-    [SerializeField] private bool _showOccupationGrid;
+    [SerializeField] private bool _showOccupiableGrid;
+    [SerializeField] private bool _showWalkableGrid;
 
     private void Awake()
     {
@@ -13,6 +14,11 @@ public class DebugGlobals : MonoBehaviour
 
     public static bool ShowOccupationGrid()
     {
-        return Instance._showOccupationGrid;
+        return Instance._showOccupiableGrid;
+    }
+
+    public static bool ShowWalkableGrid()
+    {
+        return Instance._showWalkableGrid;
     }
 }
