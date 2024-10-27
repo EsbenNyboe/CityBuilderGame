@@ -1,4 +1,3 @@
-using System;
 using Unity.Entities;
 
 public struct UnitAnimationManager : IComponentData
@@ -10,7 +9,6 @@ public struct UnitAnimationManager : IComponentData
     public int SpriteRows;
 }
 
-[Serializable]
 public struct AnimationConfig
 {
     public int SpriteRow;

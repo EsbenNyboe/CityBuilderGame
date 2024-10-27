@@ -8,16 +8,6 @@ public class SpriteSheetAnimationAuthoring : MonoBehaviour
         public override void Bake(SpriteSheetAnimationAuthoring authoring)
         {
             var entity = GetEntity(TransformUsageFlags.Dynamic);
-
-            AddComponent(entity, new AnimationUnitIdle());
-            SetComponentEnabled<AnimationUnitIdle>(entity, false);
-
-            AddComponent(entity, new AnimationUnitWalk());
-            SetComponentEnabled<AnimationUnitWalk>(entity, false);
-
-            AddComponent(entity, new AnimationUnitSleep());
-            SetComponentEnabled<AnimationUnitSleep>(entity, false);
-
             AddComponent(entity, new SpriteSheetAnimation());
         }
     }
@@ -26,21 +16,7 @@ public class SpriteSheetAnimationAuthoring : MonoBehaviour
 public struct SpriteSheetAnimation : IComponentData
 {
     public int CurrentFrame;
-    public int FrameCount;
     public float FrameTimer;
-    public float FrameTimerMax;
     public Vector4 Uv;
     public Matrix4x4 Matrix;
-}
-
-public struct AnimationUnitIdle : IComponentData, IEnableableComponent
-{
-}
-
-public struct AnimationUnitWalk : IComponentData, IEnableableComponent
-{
-}
-
-public struct AnimationUnitSleep : IComponentData, IEnableableComponent
-{
 }
