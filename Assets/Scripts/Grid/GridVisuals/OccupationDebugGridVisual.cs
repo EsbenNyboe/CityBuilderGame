@@ -15,6 +15,8 @@ public class OccupationDebugGridVisual : GridVisual
         uv00 = new Vector2(colorRed, 0f);
         uv11 = new Vector2(colorRed, 1f);
 
+        worldPosition.x -= 0.25f;
+
         return true;
     }
 }
