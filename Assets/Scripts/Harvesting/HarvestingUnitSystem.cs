@@ -72,6 +72,7 @@ public partial struct HarvestingUnitSystem : ISystem
             ChopTreeProcess(ref state, ecb, dotsSoundManager, gridManager, chopAnimationManager, entity, harvestingUnit, localTransform, chopDuration,
                 cellIndex);
 
+            // TODO: Fix bug, where the unit insta-destroys a non-existing tree, at the spot where a bed is (or a droppoint was created)
             if (!gridManager.IsDamageable(cellIndex))
             {
                 DestroyTree(ref state, ecb, dotsSoundManager, gridManager, entity, localTransform, targetX, targetY, cellIndex);

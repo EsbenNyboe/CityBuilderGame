@@ -4,9 +4,24 @@ using UnityEngine;
 
 public partial struct AnimationUnitSystem : ISystem
 {
+    private SystemHandle _unitAnimationManagerSystem;
+
+    public void OnCreate(ref SystemState state)
+    {
+        _unitAnimationManagerSystem = state.World.GetExistingSystem(typeof(UnitAnimationManagerSystem));
+    }
+
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        var unitAnimationManager = SystemAPI.GetComponent<UnitAnimationManager>(_unitAnimationManagerSystem);
+        var spriteRows = unitAnimationManager.SpriteRows;
+        var scaleX = 1f / unitAnimationManager.SpriteColumns;
+        var scaleY = 1f / spriteRows;
+        var idleAnimation = unitAnimationManager.IdleAnimation;
+        var walkAnimation = unitAnimationManager.WalkAnimation;
+        var sleepAnimation = unitAnimationManager.SleepAnimation;
+
         // var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
         foreach (var (spriteSheetAnimation, animationUnitIdle, pathFollow, entity) in SystemAPI
                      .Query<RefRW<SpriteSheetAnimation>, RefRO<AnimationUnitIdle>, RefRO<PathFollow>>()
@@ -20,11 +35,9 @@ public partial struct AnimationUnitSystem : ISystem
                 state.EntityManager.SetComponentEnabled<AnimationUnitSleep>(entity, false);
 
                 state.EntityManager.SetComponentEnabled<AnimationUnitIdle>(entity, true);
-                spriteSheetAnimation.ValueRW.FrameCount = animationUnitIdle.ValueRO.FrameCount;
-                spriteSheetAnimation.ValueRW.FrameTimerMax = animationUnitIdle.ValueRO.FrameTimerMax;
-                var scaleX = 1f / animationUnitIdle.ValueRO.SpriteColumns;
-                var scaleY = 1f / animationUnitIdle.ValueRO.SpriteRows;
-                var offsetY = (float)animationUnitIdle.ValueRO.FrameRow / animationUnitIdle.ValueRO.SpriteRows;
+                spriteSheetAnimation.ValueRW.FrameCount = idleAnimation.FrameCount;
+                spriteSheetAnimation.ValueRW.FrameTimerMax = idleAnimation.FrameInterval;
+                var offsetY = (float)idleAnimation.SpriteRow / spriteRows;
                 spriteSheetAnimation.ValueRW.Uv = new Vector4(scaleX, scaleY, 0, offsetY);
             }
         }
@@ -41,11 +54,10 @@ public partial struct AnimationUnitSystem : ISystem
                 state.EntityManager.SetComponentEnabled<AnimationUnitSleep>(entity, false);
 
                 state.EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, true);
-                spriteSheetAnimation.ValueRW.FrameCount = animationUnitWalk.ValueRO.FrameCount;
-                spriteSheetAnimation.ValueRW.FrameTimerMax = animationUnitWalk.ValueRO.FrameTimerMax;
-                var scaleX = 1f / animationUnitWalk.ValueRO.SpriteColumns;
-                var scaleY = 1f / animationUnitWalk.ValueRO.SpriteRows;
-                var offsetY = (float)animationUnitWalk.ValueRO.FrameRow / animationUnitWalk.ValueRO.SpriteRows;
+
+                spriteSheetAnimation.ValueRW.FrameCount = walkAnimation.FrameCount;
+                spriteSheetAnimation.ValueRW.FrameTimerMax = walkAnimation.FrameInterval;
+                var offsetY = (float)walkAnimation.SpriteRow / spriteRows;
                 spriteSheetAnimation.ValueRW.Uv = new Vector4(scaleX, scaleY, 0, offsetY);
             }
         }
@@ -60,11 +72,9 @@ public partial struct AnimationUnitSystem : ISystem
             state.EntityManager.SetComponentEnabled<AnimationUnitWalk>(entity, false);
 
             state.EntityManager.SetComponentEnabled<AnimationUnitSleep>(entity, true);
-            spriteSheetAnimation.ValueRW.FrameCount = animationUnitSleep.ValueRO.FrameCount;
-            spriteSheetAnimation.ValueRW.FrameTimerMax = animationUnitSleep.ValueRO.FrameTimerMax;
-            var scaleX = 1f / animationUnitSleep.ValueRO.SpriteColumns;
-            var scaleY = 1f / animationUnitSleep.ValueRO.SpriteRows;
-            var offsetY = (float)animationUnitSleep.ValueRO.FrameRow / animationUnitSleep.ValueRO.SpriteRows;
+            spriteSheetAnimation.ValueRW.FrameCount = sleepAnimation.FrameCount;
+            spriteSheetAnimation.ValueRW.FrameTimerMax = sleepAnimation.FrameInterval;
+            var offsetY = (float)sleepAnimation.SpriteRow / spriteRows;
             spriteSheetAnimation.ValueRW.Uv = new Vector4(scaleX, scaleY, 0, offsetY);
         }
 
