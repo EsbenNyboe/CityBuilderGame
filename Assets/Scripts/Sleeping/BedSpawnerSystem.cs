@@ -21,7 +21,8 @@ public partial class BedSpawnerSystem : SystemBase
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            var mousePos = UtilsClass.GetMouseWorldPosition();
+            var cellSize = 1f; // gridManager currently only supports cellSize 1
+            var mousePos = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * cellSize * .5f;
             GridHelpers.GetXY(mousePos, out var x, out var y);
             gridManager.ValidateGridPosition(ref x, ref y);
             if (gridManager.IsWalkable(x, y))

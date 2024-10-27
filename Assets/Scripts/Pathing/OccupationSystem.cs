@@ -54,6 +54,8 @@ public partial struct OccupationSystem : ISystem
 
         if (gridManager.TryClearInteractor(localTransform.ValueRO.Position, entity))
         {
+            // TODO: Consider if it's fair to assume an interactableCell will always become walkable when clearing interactor
+            gridManager.SetIsWalkable(localTransform.ValueRO.Position, true);
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
             entityCommandBuffer.RemoveComponent<IsSleeping>(entity);
         }
@@ -75,6 +77,7 @@ public partial struct OccupationSystem : ISystem
 
             if (gridManager.IsInteractable(posX, posY))
             {
+                gridManager.SetIsWalkable(posX, posY, false);
                 gridManager.SetInteractor(posX, posY, entity);
                 entityCommandBuffer.AddComponent(entity, new IsSleeping());
             }
