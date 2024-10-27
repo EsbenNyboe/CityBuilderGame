@@ -56,7 +56,7 @@ public partial struct PathFollowSystem : ISystem
                 if (pathFollow.ValueRO.PathIndex < 0)
                 {
                     localTransform.ValueRW.Position = targetPosition;
-
+                    
                     if (state.EntityManager.HasComponent<DeliveringUnitTag>(entity))
                     {
                         // TODO: Maybe check if the unit actually reached the dropPoint? If it's needed...

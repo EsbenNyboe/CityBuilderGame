@@ -52,6 +52,12 @@ public partial struct OccupationSystem : ISystem
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
+        if (gridManager.TryClearInteractor(localTransform.ValueRO.Position, entity))
+        {
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+            entityCommandBuffer.RemoveComponent<IsSleeping>(entity);
+        }
+
         SetupPathfinding(ref state, gridManager, entityCommandBuffer, localTransform, entity, newTarget);
     }
 
@@ -66,6 +72,13 @@ public partial struct OccupationSystem : ISystem
         {
             // BurstDebugHelpers.DebugLog("Set occupied: " + entity);
             gridManager.SetOccupant(posX, posY, entity);
+
+            if (gridManager.IsInteractable(posX, posY))
+            {
+                gridManager.SetInteractor(posX, posY, entity);
+                entityCommandBuffer.AddComponent(entity, new IsSleeping());
+            }
+
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
             return;
         }

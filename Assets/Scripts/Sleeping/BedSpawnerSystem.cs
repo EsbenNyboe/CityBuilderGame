@@ -35,6 +35,9 @@ public partial class BedSpawnerSystem : SystemBase
                         Scale = 1,
                         Rotation = quaternion.identity
                     });
+
+                    gridManager.SetInteractable(x, y, entity);
+                    SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                 }
             }
         }

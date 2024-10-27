@@ -9,6 +9,7 @@ public partial struct GridManager : IComponentData
     public NativeArray<WalkableCell> WalkableGrid;
     public NativeArray<DamageableCell> DamageableGrid;
     public NativeArray<OccupiableCell> OccupiableGrid;
+    public NativeArray<InteractableCell> InteractableGrid;
     public bool WalkableGridIsDirty;
     public bool DamageableGridIsDirty;
     public bool OccupiableGridIsDirty;
@@ -38,6 +39,12 @@ public struct OccupiableCell
 {
     public Entity Occupant;
     public bool IsDirty;
+}
+
+public struct InteractableCell
+{
+    public Entity Interactable;
+    public Entity Interactor;
 }
 
 public partial class GridManagerSystem : SystemBase
@@ -70,6 +77,7 @@ public partial class GridManagerSystem : SystemBase
         gridManager.WalkableGrid.Dispose();
         gridManager.DamageableGrid.Dispose();
         gridManager.OccupiableGrid.Dispose();
+        gridManager.InteractableGrid.Dispose();
 
         // GridSearchHelpers:
         gridManager.NeighbourDeltas.Dispose();
@@ -108,6 +116,15 @@ public partial class GridManagerSystem : SystemBase
             cell.Occupant = Entity.Null;
             cell.IsDirty = true;
             gridManager.OccupiableGrid[i] = cell;
+        }
+
+        gridManager.InteractableGrid = new NativeArray<InteractableCell>(width * height, Allocator.Persistent);
+        for (var i = 0; i < gridManager.InteractableGrid.Length; i++)
+        {
+            var cell = gridManager.InteractableGrid[i];
+            cell.Interactable = Entity.Null;
+            cell.Interactor = Entity.Null;
+            gridManager.InteractableGrid[i] = cell;
         }
     }
 
