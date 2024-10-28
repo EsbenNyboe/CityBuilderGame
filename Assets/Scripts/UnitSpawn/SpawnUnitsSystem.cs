@@ -27,10 +27,8 @@ public partial class SpawnUnitsSystem : SystemBase
         var gridIndex = 0;
         for (var i = 0; i < spawnUnitsConfig.AmountToSpawn; i++)
         {
-            if (!GetNextValidGridPosition(gridManager, ref gridIndex, out var x, out var y))
-            {
-                return;
-            }
+            var x = 0;
+            var y = 0;
 
             var spawnedEntity = EntityManager.Instantiate(spawnUnitsConfig.ObjectToSpawn);
             EntityManager.SetComponentData(spawnedEntity, new LocalTransform

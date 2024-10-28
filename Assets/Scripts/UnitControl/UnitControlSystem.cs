@@ -277,7 +277,7 @@ public partial class UnitControlSystem : SystemBase
     {
         var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
-        foreach (var (_, entity) in SystemAPI.Query<RefRO<Selectable>>().WithEntityAccess())
+        foreach (var (_, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
         {
             entityCommandBuffer.AddComponent(entity, new UnitSelection());
         }

@@ -1858,11 +1858,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _areasToExclude:
   - StartCell:
-      x: 10
-      y: 10
+      x: 0
+      y: 0
     EndCell:
-      x: 90
-      y: 90
+      x: 100
+      y: 100
 --- !u!4 &1762969891
 Transform:
   m_ObjectHideFlags: 0
