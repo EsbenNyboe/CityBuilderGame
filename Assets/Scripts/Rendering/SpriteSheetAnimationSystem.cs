@@ -26,7 +26,7 @@ public partial struct SpriteSheetAnimationSystem : ISystem
         var sleepAnimation = unitAnimationManager.SleepAnimation;
         var walkAnimation = unitAnimationManager.WalkAnimation;
         var idleAnimation = unitAnimationManager.IdleAnimation;
-
+        
         foreach (var (spriteSheetAnimationData, localToWorld, spriteTransform, unitAnimator) in SystemAPI
                      .Query<RefRW<SpriteSheetAnimation>, RefRO<LocalToWorld>, RefRO<SpriteTransform>, RefRW<UnitAnimationSelection>>())
         {
