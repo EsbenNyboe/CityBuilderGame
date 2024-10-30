@@ -29,40 +29,92 @@ namespace UnitAgency
 
         private void DecideNextBehaviour(ref SystemState state, EntityCommandBuffer commands, Entity entity)
         {
+            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
+            GridHelpers.GetXY(unitPosition, out var x, out var y);
             var moodSleepiness = SystemAPI.GetComponent<MoodSleepiness>(entity);
             var isSleeping = SystemAPI.HasComponent<IsSleeping>(entity);
             var isSeekingBed = SystemAPI.HasComponent<IsSeekingBed>(entity);
             var isWellRested = moodSleepiness.Sleepiness <= 0;
             var isMortallyTired = moodSleepiness.Sleepiness >= 1f;
             var isTired = !isMortallyTired && moodSleepiness.Sleepiness > 0.1f;
+            var isStaying = true;
+            var isDead = false;
+            Debug.Log("Decision pos: " + x + " " + y);
 
-            if (isSleeping)
+            if (gridManager.IsOccupied(unitPosition, entity))
+            {
+                isStaying = false;
+
+                if (!gridManager.TryGetNearbyVacantCell(x, y, out var vacantCell))
+                {
+                    BurstDebugHelpers.DebugLogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
+                    isDead = true;
+                    commands.DestroyEntity(entity);
+                }
+
+                commands.AddComponent(entity, new PathfindingParams
+                {
+                    StartPosition = new int2(x, y),
+                    EndPosition = vacantCell
+                });
+            }
+            else if (isSleeping)
             {
                 if (isWellRested)
                 {
+                    isStaying = false;
                     WakeUp(ref state, commands, entity);
                 }
             }
-            else
+            else // if (!isSleeping)
             {
                 if (isTired)
                 {
                     if (isSeekingBed)
                     {
-                        Debug.Log("Try sleep");
-                        TryGoToSleep(ref state, commands, entity);
+                        if (!TryGoToSleep(ref state, commands, entity))
+                        {
+                            // WTF?? Where's the bed?? Gotta look for a new one then..
+                            isStaying = false;
+                            if (!SeekBed(ref state, commands, entity))
+                            {
+                                // We don't have any beds!!! I can't live in this world anymore! Goodbye!
+                                isDead = true;
+                                commands.DestroyEntity(entity);
+                            }
+                        }
                     }
                     else
                     {
-                        SeekBed(ref state, commands, entity);
+                        isStaying = false;
+                        if (!SeekBed(ref state, commands, entity))
+                        {
+                            // We don't have any beds!!! I can't live in this world anymore! Goodbye!
+                            isDead = true;
+                            commands.DestroyEntity(entity);
+                        }
                     }
                 }
                 else if (isMortallyTired)
                 {
                     // TOO TIRED! DEATH!
+                    isDead = true;
                     commands.DestroyEntity(entity);
                 }
             }
+
+            if (isStaying)
+            {
+                gridManager.SetOccupant(unitPosition, entity);
+            }
+            else
+            {
+                gridManager.TryClearOccupant(unitPosition, entity);
+                gridManager.TryClearInteractor(unitPosition, entity);
+            }
+
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
         private void WakeUp(ref SystemState state, EntityCommandBuffer commands, Entity entity)
@@ -74,6 +126,8 @@ namespace UnitAgency
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
             GridHelpers.GetXY(unitPosition, out var x, out var y);
+
+            // TODO: Make it search for distant cells too, in case all neighbours are non-walkable
             gridManager.GetSequencedNeighbourCell(x, y, out var neighbourX, out var neighbourY);
             commands.AddComponent(entity, new PathfindingParams
             {
@@ -82,24 +136,25 @@ namespace UnitAgency
             });
         }
 
-        private void TryGoToSleep(ref SystemState state, EntityCommandBuffer commands, Entity entity)
+        private bool TryGoToSleep(ref SystemState state, EntityCommandBuffer commands, Entity entity)
         {
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
-            if (gridManager.IsInteractable(unitPosition))
+
+            if (!gridManager.IsInteractable(unitPosition))
             {
-                // Ahhhh, now I can rest...
-                commands.RemoveComponent<IsSeekingBed>(entity);
-                commands.AddComponent<IsSleeping>(entity);
+                return false;
             }
-            else
-            {
-                // WTF?? Where's the bed?? Gotta look for a new one then..
-                SeekBed(ref state, commands, entity);
-            }
+
+            // Ahhhh, now I can rest...
+            commands.RemoveComponent<IsSeekingBed>(entity);
+            commands.AddComponent<IsSleeping>(entity);
+            gridManager.SetInteractor(unitPosition, entity);
+            gridManager.SetIsWalkable(unitPosition, false);
+            return true;
         }
 
-        private void SeekBed(ref SystemState state, EntityCommandBuffer commands, Entity entity)
+        private bool SeekBed(ref SystemState state, EntityCommandBuffer commands, Entity entity)
         {
             // Tired... must find bed...
             commands.AddComponent<IsSeekingBed>(entity);
@@ -121,20 +176,18 @@ namespace UnitAgency
 
             if (closestBed.x < 0)
             {
-                // We don't have any beds!!! I can't live in this world anymore! Goodbye!
-                commands.DestroyEntity(entity);
+                return false;
             }
-            else
+
+            // I found a bed!! I will go there! 
+            GridHelpers.GetXY(unitPosition, out var startX, out var startY);
+            GridHelpers.GetXY(closestBed, out var endX, out var endY);
+            commands.AddComponent(entity, new PathfindingParams
             {
-                // I found a bed!! I will go there! 
-                GridHelpers.GetXY(unitPosition, out var startX, out var startY);
-                GridHelpers.GetXY(closestBed, out var endX, out var endY);
-                commands.AddComponent(entity, new PathfindingParams
-                {
-                    StartPosition = new int2(startX, startY),
-                    EndPosition = new int2(endX, endY)
-                });
-            }
+                StartPosition = new int2(startX, startY),
+                EndPosition = new int2(endX, endY)
+            });
+            return true;
         }
     }
 }

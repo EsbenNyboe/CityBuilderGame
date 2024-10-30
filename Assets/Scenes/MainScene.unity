@@ -791,7 +791,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &669791292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1823,9 +1823,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6756d81dbd32014bbe35442b31baf53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _showOccupiableGrid: 0
+  _showOccupiableGrid: 1
   _showWalkableGrid: 1
-  _showInteractableGrid: 0
+  _showInteractableGrid: 1
 --- !u!114 &1762969889
 MonoBehaviour:
   m_ObjectHideFlags: 0

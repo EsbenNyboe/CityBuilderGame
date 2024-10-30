@@ -81,21 +81,21 @@ public partial struct GridManager
 
     #region OccupiableGrid Helpers
 
-    public bool IsOccupied(Vector3 position)
+    public bool IsOccupied(Vector3 position, Entity askingEntity = default)
     {
         GridHelpers.GetXY(position, out var x, out var y);
-        return IsOccupied(x, y);
+        return IsOccupied(x, y, askingEntity);
     }
 
-    public bool IsOccupied(int2 cell)
+    public bool IsOccupied(int2 cell, Entity askingEntity = default)
     {
-        return IsOccupied(cell.x, cell.y);
+        return IsOccupied(cell.x, cell.y, askingEntity);
     }
 
-    public bool IsOccupied(int x, int y)
+    public bool IsOccupied(int x, int y, Entity askingEntity = default)
     {
         var gridIndex = GetIndex(x, y);
-        return IsOccupied(gridIndex);
+        return IsOccupied(gridIndex, askingEntity);
     }
 
     // Note: Remember to call SetComponent after this method
@@ -116,6 +116,19 @@ public partial struct GridManager
     {
         var i = GetIndex(x, y);
         return TryClearOccupant(i, entity);
+    }
+
+    // Note: Remember to call SetComponent after this method
+    public void SetOccupant(Vector3 position, Entity entity)
+    {
+        GridHelpers.GetXY(position, out var x, out var y);
+        SetOccupant(x, y, entity);
+    }
+
+    // Note: Remember to call SetComponent after this method
+    public void SetOccupant(int2 cell, Entity entity)
+    {
+        SetOccupant(cell.x, cell.y, entity);
     }
 
     // Note: Remember to call SetComponent after this method

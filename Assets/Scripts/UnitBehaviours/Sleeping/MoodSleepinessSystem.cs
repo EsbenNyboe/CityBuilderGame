@@ -11,6 +11,7 @@ public partial struct MoodSleepinessSystem : ISystem
         var sleepinessPerSecWhenIdle = 0.02f * SystemAPI.Time.DeltaTime;
         var sleepinessPerSecWhenSleeping = -0.2f * SystemAPI.Time.DeltaTime;
 
+        // TEMPORARY:
         foreach (var (moodSleepiness, entity) in SystemAPI.Query<RefRO<MoodSleepiness>>().WithEntityAccess().WithNone<IsSleeping>()
                      .WithNone<IsSeekingBed>())
         {

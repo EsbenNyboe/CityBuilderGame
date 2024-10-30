@@ -1,17 +1,16 @@
 using UnitAgency;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-[BurstCompile]
+// [BurstCompile]
 public partial struct PathFollowSystem : ISystem
 {
     private const bool ShowDebug = true;
 
-    [BurstCompile]
+    // [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var entityCommandBuffer = new EntityCommandBuffer(Allocator.Temp);
@@ -25,6 +24,7 @@ public partial struct PathFollowSystem : ISystem
             }
 
             var pathPosition = pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position;
+            Debug.Log("PathPosition: " + pathPosition);
             var targetPosition = new float3(pathPosition.x, pathPosition.y, 0);
             var moveDirection = math.normalizesafe(targetPosition - localTransform.ValueRO.Position);
             var moveSpeed = 5f;
@@ -53,6 +53,7 @@ public partial struct PathFollowSystem : ISystem
             {
                 // next waypoint
                 pathFollow.ValueRW.PathIndex--;
+                Debug.Log("Move to: " + localTransform.ValueRO.Position);
 
                 if (pathFollow.ValueRO.PathIndex < 0)
                 {

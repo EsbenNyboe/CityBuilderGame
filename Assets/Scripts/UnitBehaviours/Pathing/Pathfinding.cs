@@ -4,6 +4,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine;
 
 [UpdateAfter(typeof(GridManagerSystem))]
 public partial class Pathfinding : SystemBase
@@ -56,20 +57,20 @@ public partial class Pathfinding : SystemBase
             currentAmountOfSchedules++;
 
             var startPosition = pathfindingParams.ValueRO.StartPosition;
+            var endPosition = pathfindingParams.ValueRO.EndPosition;
             var findPathJob = new FindPathJob
             {
                 GridSize = gridSize,
                 PathNodeArray = GetPathNodeArray(gridSize),
                 StartPosition = startPosition,
-                EndPosition = pathfindingParams.ValueRO.EndPosition,
+                EndPosition = endPosition,
                 Entity = entity,
                 PathFollowLookup = GetComponentLookup<PathFollow>()
             };
+            Debug.Log("Path start: " + startPosition + " Path end: " + endPosition);
             findPathJobList.Add(findPathJob);
             jobHandleList.Add(findPathJob.Schedule());
 
-            gridManager.TryClearOccupant(startPosition, entity);
-            gridManager.TryClearInteractor(startPosition, entity);
             entityCommandBuffer.RemoveComponent<PathfindingParams>(entity);
         }
 

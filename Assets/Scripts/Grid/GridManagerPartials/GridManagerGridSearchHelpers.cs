@@ -74,6 +74,23 @@ public partial struct GridManager
         return false;
     }
 
+    public bool TryGetNearbyVacantCell(int x, int y, out int2 nearbyCell)
+    {
+        var movePositionList = GetCachedCellListAroundTargetCell(x, y);
+        for (var i = 1; i < movePositionList.Length; i++)
+        {
+            nearbyCell = movePositionList[i];
+            if (IsPositionInsideGrid(nearbyCell) && IsWalkable(nearbyCell) &&
+                !IsOccupied(nearbyCell))
+            {
+                return true;
+            }
+        }
+
+        nearbyCell = default;
+        return false;
+    }
+
     public NativeArray<int2> GetCachedCellListAroundTargetCell(int targetX, int targetY)
     {
         var ringCount = PositionListLength;

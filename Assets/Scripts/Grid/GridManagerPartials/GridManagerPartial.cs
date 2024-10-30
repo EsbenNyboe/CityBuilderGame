@@ -23,11 +23,24 @@ public partial struct GridManager
 
     #region OccupiableGrid
 
-    public bool IsOccupied(int gridIndex)
+    public bool IsOccupied(int gridIndex, Entity askingEntity = default)
     {
         var occupant = OccupiableGrid[gridIndex].Occupant;
+        if (occupant == Entity.Null)
+        {
+            return false;
+        }
+
+        if (askingEntity != default && askingEntity == occupant)
+        {
+            // Ideally, this should probably never happen...
+            return false;
+        }
+
+        return true;
+
         // TODO: Find a way to check if entity exists, without using managed code (World)
-        return occupant != Entity.Null; // && World.DefaultGameObjectInjectionWorld.EntityManager.Exists(occupant);
+        // && World.DefaultGameObjectInjectionWorld.EntityManager.Exists(occupant);
     }
 
     public bool EntityIsOccupant(int i, Entity entity)
