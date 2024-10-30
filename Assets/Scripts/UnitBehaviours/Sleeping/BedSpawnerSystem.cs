@@ -25,7 +25,7 @@ public partial class BedSpawnerSystem : SystemBase
             var mousePos = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * cellSize * .5f;
             GridHelpers.GetXY(mousePos, out var x, out var y);
             gridManager.ValidateGridPosition(ref x, ref y);
-            if (gridManager.IsWalkable(x, y))
+            if (gridManager.IsWalkable(x, y) && !gridManager.IsInteractable(x, y))
             {
                 foreach (var bedSpawner in SystemAPI.Query<RefRO<BedSpawner>>())
                 {
@@ -40,6 +40,13 @@ public partial class BedSpawnerSystem : SystemBase
                     gridManager.SetInteractable(x, y, entity);
                     SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                 }
+            }
+            else if (gridManager.IsInteractable(x, y))
+            {
+                var bedEntity = gridManager.GetInteractable(x, y);
+                gridManager.SetInteractable(x, y, Entity.Null);
+                gridManager.SetInteractor(x, y, Entity.Null);
+                EntityManager.DestroyEntity(bedEntity);
             }
         }
     }

@@ -1,16 +1,25 @@
-using Unity.Burst;
+using UnitAgency;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using ISystem = Unity.Entities.ISystem;
+using SystemHandle = Unity.Entities.SystemHandle;
+using SystemState = Unity.Entities.SystemState;
 
-[BurstCompile]
+// [BurstCompile]
 public partial struct PathFollowSystem : ISystem
 {
+    private SystemHandle _gridManagerSystemHandle;
     private const bool ShowDebug = true;
 
-    [BurstCompile]
+    public void OnCreate(ref SystemState state)
+    {
+        _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
+    }
+
+    // [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var entityCommandBuffer = new EntityCommandBuffer(Allocator.Temp);
@@ -24,6 +33,7 @@ public partial struct PathFollowSystem : ISystem
             }
 
             var pathPosition = pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position;
+            Debug.Log("PathPosition: " + pathPosition);
             var targetPosition = new float3(pathPosition.x, pathPosition.y, 0);
             var moveDirection = math.normalizesafe(targetPosition - localTransform.ValueRO.Position);
             var moveSpeed = 5f;
@@ -52,29 +62,38 @@ public partial struct PathFollowSystem : ISystem
             {
                 // next waypoint
                 pathFollow.ValueRW.PathIndex--;
+                Debug.Log("Move to: " + localTransform.ValueRO.Position);
 
                 if (pathFollow.ValueRO.PathIndex < 0)
                 {
                     localTransform.ValueRW.Position = targetPosition;
-                    
-                    if (state.EntityManager.HasComponent<DeliveringUnitTag>(entity))
-                    {
-                        // TODO: Maybe check if the unit actually reached the dropPoint? If it's needed...
 
-                        entityCommandBuffer.AddComponent<HarvestingUnitTag>(entity);
-                        entityCommandBuffer.RemoveComponent<DeliveringUnitTag>(entity);
-                        entityCommandBuffer.AddComponent(entity, new TryDeoccupy
-                        {
-                            NewTarget = state.EntityManager.GetComponentData<HarvestingUnit>(entity).Target
-                        });
+                    var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+
+                    if (!gridManager.IsOccupied(targetPosition, entity))
+                    {
+                        gridManager.SetOccupant(targetPosition, entity);
+                        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+                        entityCommandBuffer.AddComponent<IsDeciding>(entity);
                     }
                     else
                     {
-                        entityCommandBuffer.AddComponent(entity, new TryOccupy());
+                        GridHelpers.GetXY(targetPosition, out var x, out var y);
+                        if (gridManager.TryGetNearbyVacantCell(x, y, out var vacantCell))
+                        {
+                            entityCommandBuffer.AddComponent(entity, new PathfindingParams
+                            {
+                                StartPosition = new int2(x, y),
+                                EndPosition = vacantCell
+                            });
+                        }
+                        else
+                        {
+                            BurstDebugHelpers.DebugLogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
+                        }
                     }
                 }
             }
-
 
             if (moveDirection.x != 0)
             {
