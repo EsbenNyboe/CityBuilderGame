@@ -7,6 +7,7 @@ using Unity.Transforms;
 [UpdateAfter(typeof(PathFollowSystem))]
 [UpdateAfter(typeof(GridManagerSystem))]
 [BurstCompile]
+[DisableAutoCreation]
 public partial struct OccupationSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;

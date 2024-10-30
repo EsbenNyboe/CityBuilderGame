@@ -150,6 +150,23 @@ public partial struct GridManager
 
     #region InteractableGrid Helpers
 
+    public Entity GetInteractable(Vector3 position)
+    {
+        GridHelpers.GetXY(position, out var x, out var y);
+        return GetInteractable(x, y);
+    }
+
+    public Entity GetInteractable(int2 cell)
+    {
+        return GetInteractable(cell.x, cell.y);
+    }
+
+    public Entity GetInteractable(int x, int y)
+    {
+        var i = GetIndex(x, y);
+        return GetInteractable(i);
+    }
+
     public bool IsInteractable(Vector3 position)
     {
         GridHelpers.GetXY(position, out var x, out var y);
@@ -166,7 +183,6 @@ public partial struct GridManager
         var i = GetIndex(x, y);
         return IsInteractable(i);
     }
-
 
     public bool IsInteractedWith(Vector3 position)
     {

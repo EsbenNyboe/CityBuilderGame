@@ -92,6 +92,11 @@ public partial struct GridManager
 
     #region InteractableGrid
 
+    public Entity GetInteractable(int i)
+    {
+        return InteractableGrid[i].Interactable;
+    }
+
     public bool IsInteractable(int i)
     {
         // TODO: Find a way to check if entity exists, without using managed code (World)

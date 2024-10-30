@@ -55,11 +55,12 @@ public partial class Pathfinding : SystemBase
 
             currentAmountOfSchedules++;
 
+            var startPosition = pathfindingParams.ValueRO.StartPosition;
             var findPathJob = new FindPathJob
             {
                 GridSize = gridSize,
                 PathNodeArray = GetPathNodeArray(gridSize),
-                StartPosition = pathfindingParams.ValueRO.StartPosition,
+                StartPosition = startPosition,
                 EndPosition = pathfindingParams.ValueRO.EndPosition,
                 Entity = entity,
                 PathFollowLookup = GetComponentLookup<PathFollow>()
@@ -67,6 +68,8 @@ public partial class Pathfinding : SystemBase
             findPathJobList.Add(findPathJob);
             jobHandleList.Add(findPathJob.Schedule());
 
+            gridManager.TryClearOccupant(startPosition, entity);
+            gridManager.TryClearInteractor(startPosition, entity);
             entityCommandBuffer.RemoveComponent<PathfindingParams>(entity);
         }
 

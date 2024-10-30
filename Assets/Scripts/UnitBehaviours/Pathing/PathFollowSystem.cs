@@ -1,3 +1,4 @@
+using UnitAgency;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -56,22 +57,8 @@ public partial struct PathFollowSystem : ISystem
                 if (pathFollow.ValueRO.PathIndex < 0)
                 {
                     localTransform.ValueRW.Position = targetPosition;
-                    
-                    if (state.EntityManager.HasComponent<DeliveringUnitTag>(entity))
-                    {
-                        // TODO: Maybe check if the unit actually reached the dropPoint? If it's needed...
 
-                        entityCommandBuffer.AddComponent<HarvestingUnitTag>(entity);
-                        entityCommandBuffer.RemoveComponent<DeliveringUnitTag>(entity);
-                        entityCommandBuffer.AddComponent(entity, new TryDeoccupy
-                        {
-                            NewTarget = state.EntityManager.GetComponentData<HarvestingUnit>(entity).Target
-                        });
-                    }
-                    else
-                    {
-                        entityCommandBuffer.AddComponent(entity, new TryOccupy());
-                    }
+                    entityCommandBuffer.AddComponent<IsDecidingTag>(entity);
                 }
             }
 
