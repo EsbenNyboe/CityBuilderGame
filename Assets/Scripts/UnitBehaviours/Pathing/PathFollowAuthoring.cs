@@ -18,7 +18,7 @@ public class PathFollowAuthoring : MonoBehaviour
     }
 }
 
-public struct PathFollow : IComponentData
+public partial struct PathFollow : IComponentData
 {
     public int PathIndex;
 }

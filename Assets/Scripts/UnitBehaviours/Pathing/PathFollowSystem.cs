@@ -4,11 +4,20 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using ISystem = Unity.Entities.ISystem;
+using SystemHandle = Unity.Entities.SystemHandle;
+using SystemState = Unity.Entities.SystemState;
 
 // [BurstCompile]
 public partial struct PathFollowSystem : ISystem
 {
+    private SystemHandle _gridManagerSystemHandle;
     private const bool ShowDebug = true;
+
+    public void OnCreate(ref SystemState state)
+    {
+        _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
+    }
 
     // [BurstCompile]
     public void OnUpdate(ref SystemState state)
@@ -59,10 +68,32 @@ public partial struct PathFollowSystem : ISystem
                 {
                     localTransform.ValueRW.Position = targetPosition;
 
-                    entityCommandBuffer.AddComponent<IsDecidingTag>(entity);
+                    var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+
+                    if (!gridManager.IsOccupied(targetPosition, entity))
+                    {
+                        gridManager.SetOccupant(targetPosition, entity);
+                        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+                        entityCommandBuffer.AddComponent<IsDeciding>(entity);
+                    }
+                    else
+                    {
+                        GridHelpers.GetXY(targetPosition, out var x, out var y);
+                        if (gridManager.TryGetNearbyVacantCell(x, y, out var vacantCell))
+                        {
+                            entityCommandBuffer.AddComponent(entity, new PathfindingParams
+                            {
+                                StartPosition = new int2(x, y),
+                                EndPosition = vacantCell
+                            });
+                        }
+                        else
+                        {
+                            BurstDebugHelpers.DebugLogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
+                        }
+                    }
                 }
             }
-
 
             if (moveDirection.x != 0)
             {

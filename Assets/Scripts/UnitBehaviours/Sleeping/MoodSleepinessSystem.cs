@@ -1,6 +1,8 @@
 using UnitAgency;
 using Unity.Burst;
 using Unity.Entities;
+using ISystem = Unity.Entities.ISystem;
+using SystemState = Unity.Entities.SystemState;
 
 public partial struct MoodSleepinessSystem : ISystem
 {
@@ -18,7 +20,7 @@ public partial struct MoodSleepinessSystem : ISystem
             if (moodSleepiness.ValueRO.Sleepiness > 0.1f)
             {
                 // Feel a bit tired... maybe I can go to bed soon?
-                ecb.AddComponent<IsDecidingTag>(entity);
+                ecb.AddComponent<IsDeciding>(entity);
             }
         }
 
@@ -28,17 +30,7 @@ public partial struct MoodSleepinessSystem : ISystem
             if (moodSleepiness.ValueRO.Sleepiness >= 1)
             {
                 // Time to die!
-                ecb.AddComponent<IsDecidingTag>(entity);
-            }
-        }
-
-        foreach (var (moodSleepiness, entity) in SystemAPI.Query<RefRW<MoodSleepiness>>().WithAll<IsSleeping>().WithEntityAccess())
-        {
-            moodSleepiness.ValueRW.Sleepiness += sleepinessPerSecWhenSleeping;
-            if (moodSleepiness.ValueRO.Sleepiness <= 0)
-            {
-                // Time to get up!
-                ecb.AddComponent<IsDecidingTag>(entity);
+                ecb.AddComponent<IsDeciding>(entity);
             }
         }
 

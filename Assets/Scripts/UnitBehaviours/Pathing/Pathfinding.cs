@@ -71,8 +71,12 @@ public partial class Pathfinding : SystemBase
             findPathJobList.Add(findPathJob);
             jobHandleList.Add(findPathJob.Schedule());
 
+            gridManager.TryClearOccupant(startPosition, entity);
+            gridManager.TryClearInteractor(startPosition, entity);
             entityCommandBuffer.RemoveComponent<PathfindingParams>(entity);
         }
+
+        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
         JobHandle.CompleteAll(jobHandleList.AsArray());
 
