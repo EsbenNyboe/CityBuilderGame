@@ -56,11 +56,11 @@ public partial struct IsSeekingBedSystem : ISystem
             // I found a bed!! I will go there! 
             GridHelpers.GetXY(unitPosition, out var startX, out var startY);
             GridHelpers.GetXY(closestBed, out var endX, out var endY);
-            ecb.AddComponent(entity, new PathfindingParams
+
+            if (!PathHelpers.TrySetPath(ecb, entity, startX, startY, endX, endY))
             {
-                StartPosition = new int2(startX, startY),
-                EndPosition = new int2(endX, endY)
-            });
+                Debug.Log("No need to set a path. Already at destination");
+            }
         }
 
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);

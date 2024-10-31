@@ -1,5 +1,4 @@
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
@@ -61,10 +60,9 @@ public partial struct IsSleepingSystem : ISystem
 
         // TODO: Make it search for distant cells too, in case all neighbours are non-walkable
         gridManager.GetSequencedNeighbourCell(x, y, out var neighbourX, out var neighbourY);
-        commands.AddComponent(entity, new PathfindingParams
+        if (!PathHelpers.TrySetPath(commands, entity, x, y, neighbourX, neighbourY))
         {
-            StartPosition = new int2(x, y),
-            EndPosition = new int2(neighbourX, neighbourY)
-        });
+            Debug.Log("Pathing not necessary. Already at destination.");
+        }
     }
 }

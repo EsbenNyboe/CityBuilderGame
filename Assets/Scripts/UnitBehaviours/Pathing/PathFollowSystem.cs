@@ -79,11 +79,10 @@ public partial struct PathFollowSystem : ISystem
                         GridHelpers.GetXY(targetPosition, out var x, out var y);
                         if (gridManager.TryGetNearbyVacantCell(x, y, out var vacantCell))
                         {
-                            entityCommandBuffer.AddComponent(entity, new PathfindingParams
+                            if (!PathHelpers.TrySetPath(entityCommandBuffer, entity, new int2(x, y), vacantCell))
                             {
-                                StartPosition = new int2(x, y),
-                                EndPosition = vacantCell
-                            });
+                                Debug.Log("No need to set a path. Already at destination");
+                            }
                         }
                         else
                         {

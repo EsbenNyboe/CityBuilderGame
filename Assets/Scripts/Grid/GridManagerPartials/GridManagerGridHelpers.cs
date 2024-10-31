@@ -12,6 +12,17 @@ public partial struct GridManager
         y = i % Height;
     }
 
+    public int GetIndex(Vector3 position)
+    {
+        GridHelpers.GetXY(position, out var x, out var y);
+        return GetIndex(x, y);
+    }
+
+    public int GetIndex(int2 cell)
+    {
+        return GetIndex(cell.x, cell.y);
+    }
+
     public int GetIndex(int x, int y)
     {
         return x * Height + y;
