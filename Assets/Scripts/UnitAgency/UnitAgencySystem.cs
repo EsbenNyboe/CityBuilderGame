@@ -47,8 +47,9 @@ namespace UnitAgency
                     commands.AddComponent(entity, new IsSeekingBed());
                 }
             }
-            else if (gridManager.GetInteractable(unitPosition) == entity)
+            else
             {
+                commands.AddComponent(entity, new IsIdle());
             }
 
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
