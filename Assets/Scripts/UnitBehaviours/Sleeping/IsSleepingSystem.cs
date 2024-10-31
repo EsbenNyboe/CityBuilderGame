@@ -1,7 +1,7 @@
-using UnitAgency;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 using SystemState = Unity.Entities.SystemState;
 
@@ -17,7 +17,6 @@ public partial struct IsSleepingSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
-        var sleepinessPerSecWhenIdle = 0.02f * SystemAPI.Time.DeltaTime;
         var sleepinessPerSecWhenSleeping = -0.2f * SystemAPI.Time.DeltaTime;
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
@@ -35,28 +34,28 @@ public partial struct IsSleepingSystem : ISystem
             }
             else
             {
-                if (gridManager.IsInteractedWith(localTransform.ValueRO.Position))
-                {
-                    GoAwayFromBed(ref state, ecb, entity);
-                }
-                else
-                {
-                    ecb.RemoveComponent<IsSleeping>(entity);
-                    ecb.AddComponent(entity, new IsDeciding());
-                }
+                ecb.RemoveComponent<IsSleeping>(entity);
+                GoAwayFromBed(ref state, ecb, ref gridManager, entity);
             }
         }
 
+        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         ecb.Playback(state.EntityManager);
     }
 
-    private void GoAwayFromBed(ref SystemState state, EntityCommandBuffer commands, Entity entity)
+    private void GoAwayFromBed(  ref SystemState state, EntityCommandBuffer commands, ref GridManager gridManager, Entity entity)
     {
         // I should leave the bed-area, so others can use the bed...
-        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
         var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
-        gridManager.SetIsWalkable(unitPosition, true);
-        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+
+        if (gridManager.EntityIsInteractor(unitPosition, entity))
+        {
+            gridManager.SetIsWalkable(unitPosition, true);
+        }
+        else
+        {
+            Debug.Log("Seems like someone else was spooning me, while I slept... They can keep the bed!");
+        }
 
         GridHelpers.GetXY(unitPosition, out var x, out var y);
 

@@ -214,6 +214,22 @@ public partial struct GridManager
         return IsInteractedWith(i);
     }
 
+    public bool EntityIsInteractor(Vector3 position, Entity entity)
+    {
+        GridHelpers.GetXY(position, out var x, out var y);
+        return EntityIsInteractor(x, y, entity);
+    }
+
+    public bool EntityIsInteractor(int2 cell, Entity entity)
+    {
+        return EntityIsInteractor(cell.x, cell.y, entity);
+    }
+
+    public bool EntityIsInteractor(int x, int y, Entity entity)
+    {
+        var i = GetIndex(x, y);
+        return EntityIsInteractor(i, entity);
+    }
 
     // Note: Remember to call SetComponent after this method
     public void SetInteractable(Vector3 position, Entity entity)

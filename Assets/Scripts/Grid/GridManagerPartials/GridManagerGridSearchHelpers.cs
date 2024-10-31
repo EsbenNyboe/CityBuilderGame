@@ -151,11 +151,13 @@ public partial struct GridManager
         return PositionList;
     }
 
+    // Note: Remember to call SetComponent after this method
     public void RandomizeNeighbourSequenceIndex()
     {
         NeighbourSequenceIndex = Random.Range(0, 8);
     }
 
+    // Note: Remember to call SetComponent after this method
     private int GetNextNeighbourSequenceIndex()
     {
         NeighbourSequenceIndex++;
@@ -167,6 +169,7 @@ public partial struct GridManager
         return NeighbourSequenceIndex;
     }
 
+    // Note: Remember to call SetComponent after this method
     public void GetSequencedNeighbourCell(int x, int y, out int neighbourX, out int neighbourY)
     {
         GetNeighbourCell(GetNextNeighbourSequenceIndex(), x, y, out neighbourX, out neighbourY);

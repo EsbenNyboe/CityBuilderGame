@@ -4,7 +4,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
 
 [UpdateAfter(typeof(GridManagerSystem))]
 public partial class Pathfinding : SystemBase
@@ -67,7 +66,6 @@ public partial class Pathfinding : SystemBase
                 Entity = entity,
                 PathFollowLookup = GetComponentLookup<PathFollow>()
             };
-            Debug.Log("Path start: " + startPosition + " Path end: " + endPosition);
             findPathJobList.Add(findPathJob);
             jobHandleList.Add(findPathJob.Schedule());
 
