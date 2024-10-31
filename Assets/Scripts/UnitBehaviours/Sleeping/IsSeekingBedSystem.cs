@@ -32,13 +32,10 @@ public partial struct IsSeekingBedSystem : ISystem
 
             // Am I on a bed?
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
-            if (gridManager.IsInteractable(unitPosition) && !gridManager.IsOccupied(unitPosition))
+            if (gridManager.IsInteractable(unitPosition) && !gridManager.IsInteractedWith(unitPosition))
             {
                 // Ahhhh, I found my bed! 
                 ecb.RemoveComponent<IsSeekingBed>(entity);
-                gridManager.SetInteractor(unitPosition, entity);
-                gridManager.SetIsWalkable(unitPosition, false);
-                // gridManager.SetOccupant(unitPosition, entity);
                 ecb.AddComponent<IsDeciding>(entity);
                 continue;
             }
@@ -75,7 +72,7 @@ public partial struct IsSeekingBedSystem : ISystem
         {
             var bedPosition = bedLocalTransform.ValueRO.Position;
             var distance = Vector3.Distance(unitPosition, bedPosition);
-            if (distance < shortestDistance && !gridManager.IsInteractedWith(bedPosition))
+            if (distance < shortestDistance && !gridManager.IsInteractedWith(bedPosition) && distance > Mathf.Epsilon)
             {
                 shortestDistance = distance;
                 closestBed = bedPosition;
