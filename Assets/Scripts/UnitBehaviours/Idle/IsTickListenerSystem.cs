@@ -1,11 +1,11 @@
 using UnitAgency;
 using Unity.Entities;
 
-public struct IsIdle : IComponentData
+public struct IsTickListener : IComponentData
 {
 }
 
-public partial struct IsIdleSystem : ISystem
+public partial struct IsTickListenerSystem : ISystem
 {
     private SystemHandle _tickManagerSystemHandle;
 
@@ -18,7 +18,7 @@ public partial struct IsIdleSystem : ISystem
     {
         var isTickingThisFrame = SystemAPI.GetComponent<TickManager>(_tickManagerSystemHandle).IsTicking;
         var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
-        foreach (var (pathFollow, entity) in SystemAPI.Query<RefRO<PathFollow>>().WithEntityAccess().WithAll<IsIdle>())
+        foreach (var (pathFollow, entity) in SystemAPI.Query<RefRO<PathFollow>>().WithEntityAccess().WithAll<IsTickListener>())
         {
             if (pathFollow.ValueRO.IsMoving())
             {
@@ -28,7 +28,7 @@ public partial struct IsIdleSystem : ISystem
             if (isTickingThisFrame)
             {
                 // Debug.Log("START IDLE");
-                ecb.RemoveComponent<IsIdle>(entity);
+                ecb.RemoveComponent<IsTickListener>(entity);
                 ecb.AddComponent(entity, new IsDeciding());
             }
         }
