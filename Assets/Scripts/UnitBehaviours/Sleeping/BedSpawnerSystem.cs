@@ -38,7 +38,6 @@ public partial class BedSpawnerSystem : SystemBase
                     });
 
                     gridManager.SetInteractable(x, y, entity);
-                    SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                 }
             }
             else if (gridManager.IsInteractable(x, y))
@@ -46,8 +45,11 @@ public partial class BedSpawnerSystem : SystemBase
                 var bedEntity = gridManager.GetInteractable(x, y);
                 gridManager.SetInteractable(x, y, Entity.Null);
                 gridManager.SetInteractor(x, y, Entity.Null);
+                gridManager.SetIsWalkable(x, y, true);
                 EntityManager.DestroyEntity(bedEntity);
             }
+
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
     }
 }
