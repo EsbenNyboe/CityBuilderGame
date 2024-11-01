@@ -1,4 +1,3 @@
-using UnitAgency;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -73,7 +72,6 @@ public partial struct PathFollowSystem : ISystem
                     {
                         gridManager.SetOccupant(targetPosition, entity);
                         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-                        entityCommandBuffer.AddComponent<IsDeciding>(entity);
                     }
                     else
                     {

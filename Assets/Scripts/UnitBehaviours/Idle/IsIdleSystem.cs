@@ -18,8 +18,13 @@ public partial struct IsIdleSystem : ISystem
     {
         var isTickingThisFrame = SystemAPI.GetComponent<TickManager>(_tickManagerSystemHandle).IsTicking;
         var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
-        foreach (var (isIdle, entity) in SystemAPI.Query<RefRO<IsIdle>>().WithEntityAccess())
+        foreach (var (pathFollow, entity) in SystemAPI.Query<RefRO<PathFollow>>().WithEntityAccess().WithAll<IsIdle>())
         {
+            if (pathFollow.ValueRO.IsMoving())
+            {
+                continue;
+            }
+
             if (isTickingThisFrame)
             {
                 // Debug.Log("START IDLE");

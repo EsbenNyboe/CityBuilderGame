@@ -1,3 +1,4 @@
+using UnitAgency;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -26,6 +27,8 @@ public partial struct IsSleepingSystem : ISystem
         {
             if (pathFollow.ValueRO.IsMoving())
             {
+                ecb.RemoveComponent<IsSleeping>(entity);
+                ecb.AddComponent<IsDeciding>(entity);
                 continue;
             }
 
@@ -35,7 +38,6 @@ public partial struct IsSleepingSystem : ISystem
             }
             else
             {
-                ecb.RemoveComponent<IsSleeping>(entity);
                 GoAwayFromBed(ref state, ecb, ref gridManager, entity);
             }
         }
