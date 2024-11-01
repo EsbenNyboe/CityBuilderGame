@@ -6,7 +6,8 @@ using Unity.Jobs;
 using Unity.Mathematics;
 
 [UpdateAfter(typeof(GridManagerSystem))]
-public partial class Pathfinding : SystemBase
+[UpdateAfter(typeof(PathFollowSystem))]
+public partial class PathfindingSystem : SystemBase
 {
     private const int MoveStraightCost = 10;
     private const int MoveDiagonalCost = 14;

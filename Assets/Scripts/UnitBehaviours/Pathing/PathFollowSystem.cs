@@ -8,6 +8,7 @@ using ISystem = Unity.Entities.ISystem;
 using SystemHandle = Unity.Entities.SystemHandle;
 using SystemState = Unity.Entities.SystemState;
 
+[UpdateAfter(typeof(GridManagerSystem))]
 // [BurstCompile]
 public partial struct PathFollowSystem : ISystem
 {
@@ -79,10 +80,7 @@ public partial struct PathFollowSystem : ISystem
                         GridHelpers.GetXY(targetPosition, out var x, out var y);
                         if (gridManager.TryGetNearbyVacantCell(x, y, out var vacantCell))
                         {
-                            if (!PathHelpers.TrySetPath(entityCommandBuffer, entity, new int2(x, y), vacantCell))
-                            {
-                                Debug.Log("No need to set a path. Already at destination");
-                            }
+                            PathHelpers.TrySetPath(entityCommandBuffer, entity, new int2(x, y), vacantCell);
                         }
                         else
                         {

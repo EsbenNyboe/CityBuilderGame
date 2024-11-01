@@ -8,6 +8,8 @@ using SystemAPI = Unity.Entities.SystemAPI;
 using SystemHandle = Unity.Entities.SystemHandle;
 using SystemState = Unity.Entities.SystemState;
 
+[UpdateAfter(typeof(PathfindingSystem))]
+[UpdateAfter(typeof(GridManagerSystem))]
 public partial struct IsSeekingBedSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
@@ -54,10 +56,7 @@ public partial struct IsSeekingBedSystem : ISystem
             GridHelpers.GetXY(unitPosition, out var startX, out var startY);
             GridHelpers.GetXY(closestBed, out var endX, out var endY);
 
-            if (!PathHelpers.TrySetPath(ecb, entity, startX, startY, endX, endY))
-            {
-                Debug.Log("No need to set a path. Already at destination");
-            }
+            PathHelpers.TrySetPath(ecb, entity, startX, startY, endX, endY);
         }
 
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);

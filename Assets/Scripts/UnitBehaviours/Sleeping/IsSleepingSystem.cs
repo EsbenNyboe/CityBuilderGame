@@ -4,6 +4,8 @@ using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 using SystemState = Unity.Entities.SystemState;
 
+[UpdateAfter(typeof(PathfindingSystem))]
+[UpdateAfter(typeof(GridManagerSystem))]
 public partial struct IsSleepingSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
@@ -60,9 +62,6 @@ public partial struct IsSleepingSystem : ISystem
 
         // TODO: Make it search for distant cells too, in case all neighbours are non-walkable
         gridManager.GetSequencedNeighbourCell(x, y, out var neighbourX, out var neighbourY);
-        if (!PathHelpers.TrySetPath(commands, entity, x, y, neighbourX, neighbourY))
-        {
-            Debug.Log("Pathing not necessary. Already at destination.");
-        }
+        PathHelpers.TrySetPath(commands, entity, x, y, neighbourX, neighbourY);
     }
 }
