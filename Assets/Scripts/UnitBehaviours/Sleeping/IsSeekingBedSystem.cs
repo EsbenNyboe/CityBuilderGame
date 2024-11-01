@@ -1,4 +1,5 @@
 using UnitAgency;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 using ISystem = Unity.Entities.ISystem;
@@ -8,6 +9,7 @@ using SystemState = Unity.Entities.SystemState;
 
 [UpdateAfter(typeof(PathfindingSystem))]
 [UpdateAfter(typeof(GridManagerSystem))]
+[BurstCompile]
 public partial struct IsSeekingBedSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
@@ -17,6 +19,7 @@ public partial struct IsSeekingBedSystem : ISystem
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
 
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
