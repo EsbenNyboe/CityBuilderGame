@@ -76,7 +76,7 @@ public partial struct PathFollowSystem : ISystem
                     else
                     {
                         GridHelpers.GetXY(targetPosition, out var x, out var y);
-                        if (gridManager.TryGetNearbyVacantCell(x, y, out var vacantCell))
+                        if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell))
                         {
                             PathHelpers.TrySetPath(entityCommandBuffer, entity, new int2(x, y), vacantCell);
                         }

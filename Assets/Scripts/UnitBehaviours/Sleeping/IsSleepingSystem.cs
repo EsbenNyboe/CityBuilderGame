@@ -61,7 +61,9 @@ public partial struct IsSleepingSystem : ISystem
         }
 
         var currentCell = GridHelpers.GetXY(unitPosition);
-        var nearbyCell = gridManager.GetNearbyEmptyCell(currentCell);
-        PathHelpers.TrySetPath(commands, entity, currentCell, nearbyCell);
+        if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out var nearbyCell))
+        {
+            PathHelpers.TrySetPath(commands, entity, currentCell, nearbyCell);
+        }
     }
 }

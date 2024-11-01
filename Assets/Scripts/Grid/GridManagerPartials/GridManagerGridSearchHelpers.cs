@@ -180,21 +180,41 @@ public partial struct GridManager
         return new int2(-1, -1);
     }
 
-    private bool IsEmptyCell(int2 cell)
+    public bool TryGetNearbyEmptyCellSemiRandom(int2 center, out int2 nearbyCell)
     {
-        return IsWalkable(cell) && !IsOccupied(cell) && !IsInteractable(cell);
+        for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
+        {
+            var ringStart = RelativePositionRingInfoList[ring].x;
+            var ringEnd = RelativePositionRingInfoList[ring].y;
+            var randomStartIndex = Random.Range(ringStart, ringEnd);
+            var currentIndex = randomStartIndex + 1;
+
+            while (currentIndex != randomStartIndex)
+            {
+                currentIndex++;
+                if (currentIndex >= ringEnd)
+                {
+                    currentIndex = ringStart;
+                }
+
+                if (IsEmptyCell(center + RelativePositionList[currentIndex]))
+                {
+                    nearbyCell = center + RelativePositionList[currentIndex];
+                    return true;
+                }
+            }
+        }
+
+        Debug.LogError("No nearby empty cell was found");
+        nearbyCell = new int2(-1, -1);
+        return false;
     }
 
-    private bool IsVacantCell(int2 cell)
-    {
-        return IsWalkable(cell) && !IsOccupied(cell);
-    }
-
-    public void PopulateRelativePositionList()
+    public void PopulateRelativePositionList(int relativePositionListRadius)
     {
         // TODO: Refactor and combine with PositionList-logic (or select one or the other)
 
-        var ringCount = RelativePositionListRadius;
+        var ringCount = relativePositionListRadius;
         var index = 0;
         // the first index is the center position
         var cell = RelativePositionList[index];
@@ -247,6 +267,10 @@ public partial struct GridManager
                 cell.y = y;
                 RelativePositionList[index] = cell;
             }
+
+            var ringEndExclusive = index + 1;
+            var ringStartInclusive = ringEndExclusive - ringSize * 8;
+            RelativePositionRingInfoList[ringSize] = new int2(ringStartInclusive, ringEndExclusive);
         }
     }
 
