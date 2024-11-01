@@ -25,31 +25,6 @@ public partial struct GridManager : IComponentData
     public NativeArray<int2> RelativePositionRingInfoList;
 }
 
-public struct WalkableCell
-{
-    public bool IsWalkable;
-    public bool IsDirty;
-}
-
-public struct DamageableCell
-{
-    public float Health;
-    public float MaxHealth;
-    public bool IsDirty;
-}
-
-public struct OccupiableCell
-{
-    public Entity Occupant;
-    public bool IsDirty;
-}
-
-public struct InteractableCell
-{
-    public Entity Interactable;
-    public Entity Interactor;
-}
-
 public partial class GridManagerSystem : SystemBase
 {
     private const int MaxHealth = 100;
