@@ -18,8 +18,10 @@ public partial struct GridManager : IComponentData
     public NativeArray<int2> NeighbourDeltas;
     public int NeighbourSequenceIndex;
     public NativeList<int> RandomNearbyCellIndexList;
-    public int PositionListLength;
+    public int PositionListRadius;
     public NativeArray<int2> PositionList;
+    public int RelativePositionListRadius;
+    public NativeArray<int2> RelativePositionList;
 }
 
 public struct WalkableCell
@@ -83,6 +85,7 @@ public partial class GridManagerSystem : SystemBase
         gridManager.NeighbourDeltas.Dispose();
         gridManager.RandomNearbyCellIndexList.Dispose();
         gridManager.PositionList.Dispose();
+        gridManager.RelativePositionList.Dispose();
     }
 
     private static void CreateGrids(ref GridManager gridManager)
@@ -134,8 +137,13 @@ public partial class GridManagerSystem : SystemBase
             new NativeArray<int2>(new int2[] { new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1) },
                 Allocator.Persistent);
         gridManager.RandomNearbyCellIndexList = new NativeList<int>(Allocator.Persistent);
-        gridManager.PositionListLength = 50;
+        gridManager.PositionListRadius = 50;
         gridManager.PositionList =
-            new NativeArray<int2>(GridHelpers.CalculatePositionListLength(gridManager.PositionListLength), Allocator.Persistent);
+            new NativeArray<int2>(GridHelpers.CalculatePositionListLength(gridManager.PositionListRadius), Allocator.Persistent);
+
+        gridManager.RelativePositionListRadius = 50;
+        gridManager.RelativePositionList =
+            new NativeArray<int2>(GridHelpers.CalculatePositionListLength(gridManager.RelativePositionListRadius), Allocator.Persistent);
+        gridManager.PopulateRelativePositionList();
     }
 }

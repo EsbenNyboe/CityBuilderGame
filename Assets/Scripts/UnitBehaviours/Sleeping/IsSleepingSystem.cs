@@ -60,10 +60,8 @@ public partial struct IsSleepingSystem : ISystem
             Debug.Log("Seems like someone else was spooning me, while I slept... They can keep the bed!");
         }
 
-        GridHelpers.GetXY(unitPosition, out var x, out var y);
-
-        // TODO: Make it search for distant cells too, in case all neighbours are non-walkable
-        gridManager.GetSequencedNeighbourCell(x, y, out var neighbourX, out var neighbourY);
-        PathHelpers.TrySetPath(commands, entity, x, y, neighbourX, neighbourY);
+        var currentCell = GridHelpers.GetXY(unitPosition);
+        var nearbyCell = gridManager.GetNearbyEmptyCell(currentCell);
+        PathHelpers.TrySetPath(commands, entity, currentCell, nearbyCell);
     }
 }

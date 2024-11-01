@@ -1,6 +1,7 @@
 using Unity.Assertions;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 public partial struct GridManager
@@ -93,7 +94,7 @@ public partial struct GridManager
 
     public NativeArray<int2> GetCachedCellListAroundTargetCell(int targetX, int targetY)
     {
-        var ringCount = PositionListLength;
+        var ringCount = PositionListRadius;
         var index = 0;
         // include the target-cell
         var cell = PositionList[index];
@@ -149,6 +150,104 @@ public partial struct GridManager
         }
 
         return PositionList;
+    }
+
+    public int2 GetNearbyEmptyCell(int2 center)
+    {
+        for (var i = 1; i < RelativePositionList.Length; i++)
+        {
+            if (IsEmptyCell(center + RelativePositionList[i]))
+            {
+                return center + RelativePositionList[i];
+            }
+        }
+
+        Debug.LogError("No position found");
+        return new int2(-1, -1);
+    }
+
+    public int2 GetNearbyVacantCell(int2 center)
+    {
+        for (var i = 1; i < RelativePositionList.Length; i++)
+        {
+            if (IsVacantCell(center + RelativePositionList[i]))
+            {
+                return center + RelativePositionList[i];
+            }
+        }
+
+        Debug.LogError("No position found");
+        return new int2(-1, -1);
+    }
+
+    private bool IsEmptyCell(int2 cell)
+    {
+        return IsWalkable(cell) && !IsOccupied(cell) && !IsInteractable(cell);
+    }
+
+    private bool IsVacantCell(int2 cell)
+    {
+        return IsWalkable(cell) && !IsOccupied(cell);
+    }
+
+    public void PopulateRelativePositionList()
+    {
+        // TODO: Refactor and combine with PositionList-logic (or select one or the other)
+
+        var ringCount = RelativePositionListRadius;
+        var index = 0;
+        // the first index is the center position
+        var cell = RelativePositionList[index];
+        cell.x = 0;
+        cell.y = 0;
+        RelativePositionList[index] = cell;
+
+        for (var ringSize = 1; ringSize < ringCount; ringSize++)
+        {
+            // start at max X & max Y
+            var x = ringSize;
+            var y = ringSize;
+
+            // go to min X
+            while (x > -ringSize)
+            {
+                index++;
+                x--;
+                cell.x = x;
+                cell.y = y;
+                RelativePositionList[index] = cell;
+            }
+
+            // go to min Y
+            while (y > -ringSize)
+            {
+                index++;
+                y--;
+                cell.x = x;
+                cell.y = y;
+                RelativePositionList[index] = cell;
+            }
+
+            // go to max X
+            while (x < ringSize)
+            {
+                index++;
+                x++;
+                cell.x = x;
+                cell.y = y;
+                RelativePositionList[index] = cell;
+            }
+
+            // go to max Y
+            while (y < ringSize)
+            {
+                index++;
+                y++;
+                cell.x = x;
+                cell.y = y;
+                RelativePositionList[index] = cell;
+            }
+        }
     }
 
     // Note: Remember to call SetComponent after this method

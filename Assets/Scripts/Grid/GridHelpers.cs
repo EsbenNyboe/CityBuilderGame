@@ -63,6 +63,13 @@ public class GridHelpers
         y = Mathf.FloorToInt(worldPosition.y);
     }
 
+    public static int2 GetXY(Vector3 worldPosition)
+    {
+        // gridManager currently only supports default origin-position (Vector3.zero) and default cellSize (1f)
+        GetXY(worldPosition, out var x, out var y);
+        return new int2(x, y);
+    }
+
     public static Vector3 GetWorldPosition(int x, int y)
     {
         // gridManager currently only supports default origin-position (Vector3.zero) and default cellSize (1f)
