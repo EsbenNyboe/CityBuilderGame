@@ -180,6 +180,37 @@ public partial struct GridManager
         return new int2(-1, -1);
     }
 
+    public bool TryGetClosestBedSemiRandom(int2 center, out int2 availableBed)
+    {
+        // TODO: Can this be refactored, so it doesn't duplicate so much code for every variant of this search-pattern?
+        for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
+        {
+            var ringStart = RelativePositionRingInfoList[ring].x;
+            var ringEnd = RelativePositionRingInfoList[ring].y;
+            var randomStartIndex = Random.Range(ringStart, ringEnd);
+            var currentIndex = randomStartIndex + 1;
+
+            while (currentIndex != randomStartIndex)
+            {
+                currentIndex++;
+                if (currentIndex >= ringEnd)
+                {
+                    currentIndex = ringStart;
+                }
+
+                if (IsAvailableBed(center + RelativePositionList[currentIndex]))
+                {
+                    availableBed = center + RelativePositionList[currentIndex];
+                    return true;
+                }
+            }
+        }
+
+        // Debug.Log("No available bed was found within the search-range");
+        availableBed = new int2(-1, -1);
+        return false;
+    }
+
     public bool TryGetNearbyEmptyCellSemiRandom(int2 center, out int2 nearbyCell)
     {
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)

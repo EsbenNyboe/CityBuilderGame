@@ -22,7 +22,7 @@ public partial struct GridManager
 
         if (askingEntity != default && askingEntity == occupant)
         {
-            // Ideally, this should probably never happen...
+            // It is occupied by the asking entity. Therefore, we will consider this "not occupied".
             return false;
         }
 
@@ -79,6 +79,24 @@ public partial struct GridManager
         var gridIndex = GetIndex(x, y);
         return IsOccupied(gridIndex, askingEntity);
     }
+
+    public bool EntityIsOccupant(Vector3 position, Entity entity)
+    {
+        GridHelpers.GetXY(position, out var x, out var y);
+        return EntityIsOccupant(x, y, entity);
+    }
+
+    public bool EntityIsOccupant(int2 cell, Entity entity)
+    {
+        return EntityIsOccupant(cell.x, cell.y, entity);
+    }
+
+    public bool EntityIsOccupant(int x, int y, Entity entity)
+    {
+        var gridIndex = GetIndex(x, y);
+        return EntityIsOccupant(gridIndex, entity);
+    }
+
 
     // Note: Remember to call SetComponent after this method
     public bool TryClearOccupant(Vector3 position, Entity entity)

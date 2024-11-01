@@ -1,8 +1,6 @@
 using UnitAgency;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 using SystemAPI = Unity.Entities.SystemAPI;
 using SystemHandle = Unity.Entities.SystemHandle;
@@ -34,7 +32,7 @@ public partial struct IsSeekingBedSystem : ISystem
 
             // Am I on a bed?
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
-            if (gridManager.IsInteractable(unitPosition) && !gridManager.IsInteractedWith(unitPosition))
+            if (gridManager.IsBed(unitPosition) && !gridManager.IsOccupied(unitPosition, entity))
             {
                 // Ahhhh, I found my bed! 
                 ecb.RemoveComponent<IsSeekingBed>(entity);
@@ -43,15 +41,13 @@ public partial struct IsSeekingBedSystem : ISystem
             }
 
             // I'm not on a bed... I should find the closest bed.
-            var closestAvailableBed = GetClosestAvailableBed(ref state, gridManager, unitPosition);
-
-            if (closestAvailableBed.x < 0)
+            var currentCell = GridHelpers.GetXY(unitPosition);
+            if (!gridManager.TryGetClosestBedSemiRandom(currentCell, out var closestAvailableBed))
             {
                 // There is no available bed anywhere!
                 if (gridManager.IsInteractable(unitPosition))
                 {
                     // Whoops, I'm standing on a bed.. I should move..
-                    var currentCell = GridHelpers.GetXY(unitPosition);
                     if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out var nearbyCell))
                     {
                         PathHelpers.TrySetPath(ecb, entity, currentCell, nearbyCell);
@@ -64,31 +60,10 @@ public partial struct IsSeekingBedSystem : ISystem
             }
 
             // I found a bed!! I will go there! 
-            GridHelpers.GetXY(unitPosition, out var startX, out var startY);
-            GridHelpers.GetXY(closestAvailableBed, out var endX, out var endY);
-
-            PathHelpers.TrySetPath(ecb, entity, startX, startY, endX, endY);
+            PathHelpers.TrySetPath(ecb, entity, currentCell, closestAvailableBed);
         }
 
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         ecb.Playback(state.EntityManager);
-    }
-
-    private float3 GetClosestAvailableBed(ref SystemState state, GridManager gridManager, float3 unitPosition)
-    {
-        var closestBed = new float3(-1, -1, -1);
-        var shortestDistance = Mathf.Infinity;
-        foreach (var (bed, bedLocalTransform) in SystemAPI.Query<RefRO<Bed>, RefRO<LocalTransform>>())
-        {
-            var bedPosition = bedLocalTransform.ValueRO.Position;
-            var distance = Vector3.Distance(unitPosition, bedPosition);
-            if (distance < shortestDistance && !gridManager.IsInteractedWith(bedPosition) && distance > Mathf.Epsilon)
-            {
-                shortestDistance = distance;
-                closestBed = bedPosition;
-            }
-        }
-
-        return closestBed;
     }
 }

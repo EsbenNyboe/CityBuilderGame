@@ -46,7 +46,6 @@ public partial class UnitSelectionSystem : SystemBase
             gridManager.SetIsWalkable(x, y, true);
 
             gridManager.TryClearOccupant(x, y, entity);
-            gridManager.TryClearInteractor(x, y, entity);
             entityCommandBuffer.DestroyEntity(entity);
         }
 

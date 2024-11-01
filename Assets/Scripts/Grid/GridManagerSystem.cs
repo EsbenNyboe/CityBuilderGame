@@ -13,6 +13,7 @@ public partial struct GridManager : IComponentData
     public bool WalkableGridIsDirty;
     public bool DamageableGridIsDirty;
     public bool OccupiableGridIsDirty;
+    public bool InteractableGridIsDirty;
 
     // GridSearchHelpers:
     public NativeArray<int2> NeighbourDeltas;
@@ -98,12 +99,13 @@ public partial class GridManagerSystem : SystemBase
             gridManager.OccupiableGrid[i] = cell;
         }
 
+        gridManager.InteractableGridIsDirty = true;
         gridManager.InteractableGrid = new NativeArray<InteractableCell>(width * height, Allocator.Persistent);
         for (var i = 0; i < gridManager.InteractableGrid.Length; i++)
         {
             var cell = gridManager.InteractableGrid[i];
-            cell.Interactable = Entity.Null;
-            cell.Interactor = Entity.Null;
+            cell.InteractableCellType = InteractableCellType.None;
+            cell.IsDirty = true;
             gridManager.InteractableGrid[i] = cell;
         }
     }

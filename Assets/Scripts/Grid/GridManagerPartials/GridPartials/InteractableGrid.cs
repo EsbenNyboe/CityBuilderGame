@@ -1,89 +1,59 @@
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
 public struct InteractableCell
 {
-    public Entity Interactable;
-    public Entity Interactor;
+    public InteractableCellType InteractableCellType;
+    public bool IsDirty;
+}
+
+public enum InteractableCellType
+{
+    None,
+    Bed
 }
 
 public partial struct GridManager
 {
     #region InteractableGrid Core
 
-    public Entity GetInteractable(int i)
-    {
-        return InteractableGrid[i].Interactable;
-    }
-
     public bool IsInteractable(int i)
     {
-        // TODO: Find a way to check if entity exists, without using managed code (World)
-        var interactable = InteractableGrid[i].Interactable;
-        return interactable != Entity.Null; // && World.DefaultGameObjectInjectionWorld.EntityManager.Exists(interactable);
+        return GetInteractableCellType(i) != InteractableCellType.None;
     }
 
-    public bool IsInteractedWith(int i)
+    public bool IsBed(int i)
     {
-        // TODO: Find a way to check if entity exists, without using managed code (World)
-        var interactor = InteractableGrid[i].Interactor;
-        return interactor != Entity.Null; // && World.DefaultGameObjectInjectionWorld.EntityManager.Exists(interactable);
+        return GetInteractableCellType(i) == InteractableCellType.Bed;
     }
 
-    // Note: Remember to call SetComponent after this method
-    public void SetInteractable(int i, Entity entity)
+    private InteractableCellType GetInteractableCellType(int i)
+    {
+        return InteractableGrid[i].InteractableCellType;
+    }
+
+    public void SetInteractableNone(int i)
+    {
+        SetInteractableCellType(i, InteractableCellType.None);
+    }
+
+    public void SetInteractableBed(int i)
+    {
+        SetInteractableCellType(i, InteractableCellType.Bed);
+    }
+
+    public void SetInteractableCellType(int i, InteractableCellType type)
     {
         var interactableCell = InteractableGrid[i];
-        interactableCell.Interactable = entity;
+        interactableCell.InteractableCellType = type;
+        interactableCell.IsDirty = true;
         InteractableGrid[i] = interactableCell;
-    }
-
-    // Note: Remember to call SetComponent after this method
-    public void SetInteractor(int i, Entity entity)
-    {
-        var interactableCell = InteractableGrid[i];
-        interactableCell.Interactor = entity;
-        InteractableGrid[i] = interactableCell;
-    }
-
-    public bool EntityIsInteractor(int i, Entity entity)
-    {
-        return InteractableGrid[i].Interactor == entity;
-    }
-
-    // Note: Remember to call SetComponent after this method
-    public bool TryClearInteractor(int i, Entity entity)
-    {
-        if (EntityIsInteractor(i, entity))
-        {
-            SetInteractor(i, Entity.Null);
-            return true;
-        }
-
-        return false;
+        InteractableGridIsDirty = true;
     }
 
     #endregion
 
     #region InteractableGrid Variants
-
-    public Entity GetInteractable(Vector3 position)
-    {
-        GridHelpers.GetXY(position, out var x, out var y);
-        return GetInteractable(x, y);
-    }
-
-    public Entity GetInteractable(int2 cell)
-    {
-        return GetInteractable(cell.x, cell.y);
-    }
-
-    public Entity GetInteractable(int x, int y)
-    {
-        var i = GetIndex(x, y);
-        return GetInteractable(i);
-    }
 
     public bool IsInteractable(Vector3 position)
     {
@@ -98,102 +68,57 @@ public partial struct GridManager
 
     public bool IsInteractable(int x, int y)
     {
-        var i = GetIndex(x, y);
-        return IsInteractable(i);
+        return IsInteractable(GetIndex(x, y));
     }
 
-    public bool IsInteractedWith(Vector3 position)
+    public bool IsBed(Vector3 position)
     {
         GridHelpers.GetXY(position, out var x, out var y);
-        return IsInteractedWith(x, y);
+        return IsBed(x, y);
     }
 
-    public bool IsInteractedWith(int2 cell)
+    public bool IsBed(int2 cell)
     {
-        return IsInteractedWith(cell.x, cell.y);
+        return IsBed(cell.x, cell.y);
     }
 
-    public bool IsInteractedWith(int x, int y)
+    public bool IsBed(int x, int y)
     {
-        var i = GetIndex(x, y);
-        return IsInteractedWith(i);
+        return IsBed(GetIndex(x, y));
     }
 
-    public bool EntityIsInteractor(Vector3 position, Entity entity)
-    {
-        GridHelpers.GetXY(position, out var x, out var y);
-        return EntityIsInteractor(x, y, entity);
-    }
-
-    public bool EntityIsInteractor(int2 cell, Entity entity)
-    {
-        return EntityIsInteractor(cell.x, cell.y, entity);
-    }
-
-    public bool EntityIsInteractor(int x, int y, Entity entity)
-    {
-        var i = GetIndex(x, y);
-        return EntityIsInteractor(i, entity);
-    }
-
-    // Note: Remember to call SetComponent after this method
-    public void SetInteractable(Vector3 position, Entity entity)
+    public void SetInteractableBed(Vector3 position)
     {
         GridHelpers.GetXY(position, out var x, out var y);
-        SetInteractable(x, y, entity);
+        SetInteractableBed(x, y);
     }
 
-    // Note: Remember to call SetComponent after this method
-    public void SetInteractable(int2 cell, Entity entity)
+    public void SetInteractableBed(int2 cell)
     {
-        SetInteractable(cell.x, cell.y, entity);
+        SetInteractableBed(cell.x, cell.y);
     }
 
-    // Note: Remember to call SetComponent after this method
-    public void SetInteractable(int x, int y, Entity entity)
+    public void SetInteractableBed(int x, int y)
     {
         var gridIndex = GetIndex(x, y);
-        SetInteractable(gridIndex, entity);
+        SetInteractableBed(gridIndex);
     }
 
-    // Note: Remember to call SetComponent after this method
-    public void SetInteractor(Vector3 position, Entity entity)
+    public void SetInteractableNone(Vector3 position)
     {
         GridHelpers.GetXY(position, out var x, out var y);
-        SetInteractor(x, y, entity);
+        SetInteractableNone(x, y);
     }
 
-    // Note: Remember to call SetComponent after this method
-    public void SetInteractor(int2 cell, Entity entity)
+    public void SetInteractableNone(int2 cell)
     {
-        SetInteractor(cell.x, cell.y, entity);
+        SetInteractableNone(cell.x, cell.y);
     }
 
-    // Note: Remember to call SetComponent after this method
-    public void SetInteractor(int x, int y, Entity entity)
+    public void SetInteractableNone(int x, int y)
     {
         var gridIndex = GetIndex(x, y);
-        SetInteractor(gridIndex, entity);
-    }
-
-    // Note: Remember to call SetComponent after this method
-    public bool TryClearInteractor(Vector3 position, Entity entity)
-    {
-        GridHelpers.GetXY(position, out var x, out var y);
-        return TryClearInteractor(x, y, entity);
-    }
-
-    // Note: Remember to call SetComponent after this method
-    public bool TryClearInteractor(int2 cell, Entity entity)
-    {
-        return TryClearInteractor(cell.x, cell.y, entity);
-    }
-
-    // Note: Remember to call SetComponent after this method
-    public bool TryClearInteractor(int x, int y, Entity entity)
-    {
-        var i = GetIndex(x, y);
-        return TryClearInteractor(i, entity);
+        SetInteractableNone(gridIndex);
     }
 
     #endregion

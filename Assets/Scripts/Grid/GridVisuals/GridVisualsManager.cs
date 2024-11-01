@@ -6,14 +6,14 @@ public class GridVisualsManager : MonoBehaviour
     [SerializeField] private MeshFilter _pathMeshFilter;
     [SerializeField] private MeshFilter _pathDebugMeshFilter;
     [SerializeField] private MeshFilter _treeMeshFilter;
-    [SerializeField] private MeshFilter _interactableDebugMeshFilter;
+    [SerializeField] private MeshFilter _interactableMeshFilter;
     [SerializeField] private MeshFilter _healthBarMeshFilter;
     [SerializeField] private MeshFilter _occupationDebugMeshFilter;
 
     private readonly PathGridVisual _pathGridVisual = new();
     private readonly PathGridDebugVisual _pathGridDebugVisual = new();
     private readonly TreeGridVisual _treeGridVisual = new();
-    private readonly InteractableGridDebugVisual _interactableGridDebugVisual = new();
+    private readonly InteractableGridDebugVisual _interactableGridVisual = new();
     private readonly HealthbarGridVisual _healthbarGridVisual = new();
     private readonly OccupationDebugGridVisual _occupationDebugGridVisual = new();
 
@@ -26,7 +26,7 @@ public class GridVisualsManager : MonoBehaviour
         _pathMeshFilter.mesh = _pathGridVisual.CreateMesh();
         _pathDebugMeshFilter.mesh = _pathGridDebugVisual.CreateMesh();
         _treeMeshFilter.mesh = _treeGridVisual.CreateMesh();
-        _interactableDebugMeshFilter.mesh = _interactableGridDebugVisual.CreateMesh();
+        _interactableMeshFilter.mesh = _interactableGridVisual.CreateMesh();
         _healthBarMeshFilter.mesh = _healthbarGridVisual.CreateMesh();
         _occupationDebugMeshFilter.mesh = _occupationDebugGridVisual.CreateMesh();
     }
@@ -43,7 +43,7 @@ public class GridVisualsManager : MonoBehaviour
             _pathGridVisual.InitializeMesh(gridSize);
             _pathGridDebugVisual.InitializeMesh(gridSize);
             _treeGridVisual.InitializeMesh(gridSize);
-            _interactableGridDebugVisual.InitializeMesh(gridSize);
+            _interactableGridVisual.InitializeMesh(gridSize);
             _healthbarGridVisual.InitializeMesh(gridSize);
             _occupationDebugGridVisual.InitializeMesh(gridSize);
         }
@@ -121,11 +121,11 @@ public class GridVisualsManager : MonoBehaviour
 
     private void TryUpdateInteractableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
     {
-        var showDebug = DebugGlobals.ShowInteractableGrid();
-        _interactableDebugMeshFilter.gameObject.SetActive(showDebug);
-        if (showDebug)
+        if (gridManager.InteractableGridIsDirty)
         {
-            _interactableGridDebugVisual.UpdateVisual(gridManager);
+            gridManager.InteractableGridIsDirty = false;
+            wasDirty = true;
+            _interactableGridVisual.UpdateVisual(gridManager);
         }
     }
 }

@@ -48,12 +48,13 @@ public partial struct OccupationSystem : ISystem
         RefRO<LocalTransform> localTransform,
         Entity entity, int2 newTarget)
     {
-        if (gridManager.TryClearOccupant(localTransform.ValueRO.Position, entity))
+        var position = localTransform.ValueRO.Position;
+        if (gridManager.TryClearOccupant(position, entity))
         {
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
-        if (gridManager.TryClearInteractor(localTransform.ValueRO.Position, entity))
+        if (gridManager.IsBed(position))
         {
             // TODO: Consider if it's fair to assume an interactableCell will always become walkable when clearing interactor
             gridManager.SetIsWalkable(localTransform.ValueRO.Position, true);
@@ -79,7 +80,7 @@ public partial struct OccupationSystem : ISystem
             if (gridManager.IsInteractable(posX, posY))
             {
                 gridManager.SetIsWalkable(posX, posY, false);
-                gridManager.SetInteractor(posX, posY, entity);
+                // gridManager.SetInteractor(posX, posY, entity);
                 entityCommandBuffer.AddComponent(entity, new IsSleeping());
             }
 

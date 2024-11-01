@@ -36,10 +36,9 @@ namespace UnitAgency
 
             if (isSleepy)
             {
-                if (gridManager.IsInteractable(unitPosition) && !gridManager.IsInteractedWith(unitPosition))
+                if (gridManager.IsBed(unitPosition) && !gridManager.IsOccupied(unitPosition, entity))
                 {
                     commands.AddComponent(entity, new IsSleeping());
-                    gridManager.SetInteractor(unitPosition, entity);
                     gridManager.SetIsWalkable(unitPosition, false);
                 }
                 else

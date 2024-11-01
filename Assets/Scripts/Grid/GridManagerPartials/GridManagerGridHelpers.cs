@@ -51,14 +51,19 @@ public partial struct GridManager
 
     #region Combined Grid Helpers
 
+    private bool IsAvailableBed(int2 cell)
+    {
+        return IsPositionInsideGrid(cell) && IsBed(cell) && !IsOccupied(cell) && IsWalkable(cell);
+    }
+
     private bool IsEmptyCell(int2 cell)
     {
-        return IsWalkable(cell) && !IsOccupied(cell) && !IsInteractable(cell);
+        return IsPositionInsideGrid(cell) && IsWalkable(cell) && !IsOccupied(cell) && !IsInteractable(cell);
     }
 
     private bool IsVacantCell(int2 cell)
     {
-        return IsWalkable(cell) && !IsOccupied(cell);
+        return IsPositionInsideGrid(cell) && IsWalkable(cell) && !IsOccupied(cell);
     }
 
     #endregion

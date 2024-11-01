@@ -1,7 +1,5 @@
 using CodeMonkey.Utils;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine;
 
 [UpdateAfter(typeof(GridManagerSystem))]
@@ -11,7 +9,6 @@ public partial class BedSpawnerSystem : SystemBase
 
     protected override void OnCreate()
     {
-        RequireForUpdate<BedSpawner>();
         _gridManagerSystemHandle = EntityManager.World.GetExistingSystem(typeof(GridManagerSystem));
     }
 
@@ -27,26 +24,12 @@ public partial class BedSpawnerSystem : SystemBase
             gridManager.ValidateGridPosition(ref x, ref y);
             if (gridManager.IsWalkable(x, y) && !gridManager.IsInteractable(x, y))
             {
-                foreach (var bedSpawner in SystemAPI.Query<RefRO<BedSpawner>>())
-                {
-                    var entity = EntityManager.Instantiate(bedSpawner.ValueRO.Prefab);
-                    SystemAPI.SetComponent(entity, new LocalTransform
-                    {
-                        Position = new float3(x, y, 0),
-                        Scale = 1,
-                        Rotation = quaternion.identity
-                    });
-
-                    gridManager.SetInteractable(x, y, entity);
-                }
+                gridManager.SetInteractableBed(x, y);
             }
             else if (gridManager.IsInteractable(x, y))
             {
-                var bedEntity = gridManager.GetInteractable(x, y);
-                gridManager.SetInteractable(x, y, Entity.Null);
-                gridManager.SetInteractor(x, y, Entity.Null);
+                gridManager.SetInteractableNone(x, y);
                 gridManager.SetIsWalkable(x, y, true);
-                EntityManager.DestroyEntity(bedEntity);
             }
 
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);

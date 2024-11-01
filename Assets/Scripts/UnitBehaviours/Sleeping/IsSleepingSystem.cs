@@ -51,7 +51,7 @@ public partial struct IsSleepingSystem : ISystem
         // I should leave the bed-area, so others can use the bed...
         var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
 
-        if (gridManager.EntityIsInteractor(unitPosition, entity))
+        if (gridManager.EntityIsOccupant(unitPosition, entity))
         {
             gridManager.SetIsWalkable(unitPosition, true);
         }
