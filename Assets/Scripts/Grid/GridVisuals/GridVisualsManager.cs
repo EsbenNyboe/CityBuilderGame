@@ -106,15 +106,16 @@ public class GridVisualsManager : MonoBehaviour
         var showDebug = DebugGlobals.ShowOccupationGrid();
         _occupationDebugMeshFilter.gameObject.SetActive(showDebug);
 
+        if (!showDebug)
+        {
+            return;
+        }
+
         if (gridManager.OccupiableGridIsDirty)
         {
             gridManager.OccupiableGridIsDirty = false;
             wasDirty = true;
-
-            if (showDebug)
-            {
-                _occupationDebugGridVisual.UpdateVisual(gridManager);
-            }
+            _occupationDebugGridVisual.UpdateVisual(gridManager);
         }
     }
 

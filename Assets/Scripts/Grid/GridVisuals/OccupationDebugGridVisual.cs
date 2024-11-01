@@ -5,6 +5,18 @@ public class OccupationDebugGridVisual : GridVisual
     protected override bool TryGetUpdatedCellVisual(GridManager gridManager, int index, out Vector2 uv00, out Vector2 uv11, ref Vector3 quadSize,
         ref Vector3 worldPosition)
     {
+        var occupiableCell = gridManager.OccupiableGrid[index];
+        if (!occupiableCell.IsDirty)
+        {
+            uv00 = default;
+            uv11 = default;
+            quadSize = default;
+            return false;
+        }
+
+        occupiableCell.IsDirty = false;
+        gridManager.OccupiableGrid[index] = occupiableCell;
+
         var cellSize = 1f; // GridManager currently only supports a cellSize of one
 
         var quadWidth = 0.5f;
