@@ -49,7 +49,8 @@ namespace UnitAgency
             }
             else
             {
-                commands.AddComponent(entity, new IsTickListener());
+                commands.AddComponent(entity, new IsIdle());
+                // commands.AddComponent(entity, new IsTickListener());
             }
 
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);

@@ -5,6 +5,8 @@ public struct IsTickListener : IComponentData
 {
 }
 
+[UpdateAfter(typeof(PathfindingSystem))]
+[UpdateAfter(typeof(TickManagerSystem))]
 public partial struct IsTickListenerSystem : ISystem
 {
     private SystemHandle _tickManagerSystemHandle;
@@ -27,7 +29,6 @@ public partial struct IsTickListenerSystem : ISystem
 
             if (isTickingThisFrame)
             {
-                // Debug.Log("START IDLE");
                 ecb.RemoveComponent<IsTickListener>(entity);
                 ecb.AddComponent(entity, new IsDeciding());
             }
