@@ -43,18 +43,29 @@ public partial struct IsSeekingBedSystem : ISystem
             }
 
             // I'm not on a bed... I should find the closest bed.
-            var closestBed = GetClosestBed(ref state, gridManager, unitPosition);
+            var closestAvailableBed = GetClosestAvailableBed(ref state, gridManager, unitPosition);
 
-            if (closestBed.x < 0)
+            if (closestAvailableBed.x < 0)
             {
-                // There is no bed! 
-                // TODO: At least make sure, I'm not on an occupied spot..
+                // There is no available bed anywhere!
+                if (gridManager.IsInteractable(unitPosition))
+                {
+                    // Whoops, I'm standing on a bed.. I should move..
+                    var currentCell = GridHelpers.GetXY(unitPosition);
+                    if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out var nearbyCell))
+                    {
+                        PathHelpers.TrySetPath(ecb, entity, currentCell, nearbyCell);
+                    }
+                }
+
+                // I guess I have to wait for a bed to be available...
+                // I'll keep checking all beds every frame, until I succeed!!!!
                 continue;
             }
 
             // I found a bed!! I will go there! 
             GridHelpers.GetXY(unitPosition, out var startX, out var startY);
-            GridHelpers.GetXY(closestBed, out var endX, out var endY);
+            GridHelpers.GetXY(closestAvailableBed, out var endX, out var endY);
 
             PathHelpers.TrySetPath(ecb, entity, startX, startY, endX, endY);
         }
@@ -63,7 +74,7 @@ public partial struct IsSeekingBedSystem : ISystem
         ecb.Playback(state.EntityManager);
     }
 
-    private float3 GetClosestBed(ref SystemState state, GridManager gridManager, float3 unitPosition)
+    private float3 GetClosestAvailableBed(ref SystemState state, GridManager gridManager, float3 unitPosition)
     {
         var closestBed = new float3(-1, -1, -1);
         var shortestDistance = Mathf.Infinity;

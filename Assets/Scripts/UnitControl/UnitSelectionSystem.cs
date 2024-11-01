@@ -45,14 +45,12 @@ public partial class UnitSelectionSystem : SystemBase
             GridHelpers.GetXY(unitPosition, out var x, out var y);
             gridManager.SetIsWalkable(x, y, true);
 
-            if (gridManager.TryClearOccupant(x, y, entity))
-            {
-                SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-            }
-
+            gridManager.TryClearOccupant(x, y, entity);
+            gridManager.TryClearInteractor(x, y, entity);
             entityCommandBuffer.DestroyEntity(entity);
         }
 
         entityCommandBuffer.Playback(EntityManager);
+        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 }
