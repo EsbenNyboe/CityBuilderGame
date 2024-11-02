@@ -236,6 +236,7 @@ GameObject:
   - component: {fileID: 2216377779495098396}
   - component: {fileID: 4679913403493430987}
   - component: {fileID: 3574886273892422386}
+  - component: {fileID: 4625272027225886321}
   m_Layer: 5
   m_Name: SpawnSelectionButton
   m_TagString: Untagged
@@ -311,7 +312,19 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 4625272027225886321}
+        m_TargetAssemblyTypeName: SpawnSelector, Assembly-CSharp
+        m_MethodName: SelectSpawnItem
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 0
 --- !u!222 &3574886273892422386
 CanvasRenderer:
@@ -321,3 +334,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9031266249403772227}
   m_CullTransparentMesh: 1
+--- !u!114 &4625272027225886321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9031266249403772227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ec276f55bd65c94485b84a3652a3aff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _icon: {fileID: 809884877025723431}
+  _spawnMenuManager: {fileID: 0}
