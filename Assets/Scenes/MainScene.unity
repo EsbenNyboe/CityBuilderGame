@@ -298,6 +298,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4625272027225886321, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
+      propertyPath: _spawnItemType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4625272027225886321, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: _spawnMenuManager
       value: 
       objectReference: {fileID: 1747052052}
@@ -410,6 +414,10 @@ PrefabInstance:
     - target: {fileID: 2216377779495098396, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4625272027225886321, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
+      propertyPath: _spawnItemType
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4625272027225886321, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: _spawnMenuManager
@@ -1230,7 +1238,7 @@ GameObject:
   - component: {fileID: 760614732}
   - component: {fileID: 760614731}
   m_Layer: 5
-  m_Name: Image
+  m_Name: SpawnSelectionGraphic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1269,7 +1277,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2094,6 +2102,7 @@ GameObject:
   - component: {fileID: 1484785672}
   - component: {fileID: 1484785673}
   - component: {fileID: 1484785676}
+  - component: {fileID: 1484785677}
   m_Layer: 5
   m_Name: SpawnMenu
   m_TagString: Untagged
@@ -2156,6 +2165,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1484785671}
   m_CullTransparentMesh: 1
+--- !u!114 &1484785677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1484785671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 0
+  m_VerticalFit: 0
 --- !u!1 &1743140789
 GameObject:
   m_ObjectHideFlags: 0
@@ -2336,6 +2359,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _selectionGraphic: {fileID: 760614731}
+  _selectorUI: {fileID: 1484785672}
 --- !u!1 &1762969887
 GameObject:
   m_ObjectHideFlags: 0
@@ -2522,8 +2546,8 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 760614730}
   - {fileID: 1484785672}
+  - {fileID: 760614730}
   m_Father: {fileID: 1747052051}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2781,6 +2805,10 @@ PrefabInstance:
     - target: {fileID: 2216377779495098396, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4625272027225886321, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
+      propertyPath: _spawnItemType
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 4625272027225886321, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: _spawnMenuManager
@@ -3338,6 +3366,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4625272027225886321, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
+      propertyPath: _spawnItemType
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4625272027225886321, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: _spawnMenuManager
       value: 
       objectReference: {fileID: 1747052052}
@@ -3388,6 +3420,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2057903961725860886}
   - component: {fileID: 9158214612149700938}
+  - component: {fileID: 9158214612149700939}
   m_Layer: 5
   m_Name: OpenSpawnMenu
   m_TagString: Untagged
@@ -3466,7 +3499,64 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1747052052}
+        m_TargetAssemblyTypeName: SpawnMenuManager, Assembly-CSharp
+        m_MethodName: ResetSpawnSelection
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 1
+--- !u!114 &9158214612149700939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9158214612149700937}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1747052052}
+          m_TargetAssemblyTypeName: SpawnMenuManager, Assembly-CSharp
+          m_MethodName: BlockMouseFromSpawning
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 1
+          m_CallState: 2
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 1747052052}
+          m_TargetAssemblyTypeName: SpawnMenuManager, Assembly-CSharp
+          m_MethodName: BlockMouseFromSpawning
+          m_Mode: 6
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
