@@ -34,7 +34,7 @@ public partial struct IsSeekingBedSystem : ISystem
             // I reacted my destination / I'm standing still: I should find a bed!
 
             // Am I on a bed?
-            var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
+            var unitPosition = localTransform.ValueRO.Position;
             if (gridManager.IsBed(unitPosition) && !gridManager.IsOccupied(unitPosition, entity))
             {
                 // Ahhhh, I found my bed! 
