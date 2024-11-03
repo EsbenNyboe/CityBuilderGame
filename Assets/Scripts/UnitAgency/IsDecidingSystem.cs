@@ -1,5 +1,8 @@
+using UnitBehaviours.AutonomousHarvesting;
+using UnitState;
 using Unity.Burst;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace UnitAgency
@@ -18,29 +21,37 @@ namespace UnitAgency
         public void OnUpdate(ref SystemState state)
         {
             // Following the example at: https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/systems-entity-command-buffer-automatic-playback.html
+            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var commands = new EntityCommandBuffer(state.WorldUpdateAllocator);
-            foreach (var (_, entity) in SystemAPI.Query<RefRO<IsDeciding>>().WithEntityAccess())
+            foreach (var (_, inventory, moodSleepiness, entity)
+                     in SystemAPI.Query<RefRO<IsDeciding>, RefRO<Inventory>, RefRO<MoodSleepiness>>().WithEntityAccess())
             {
                 commands.RemoveComponent<IsDeciding>(entity);
-                DecideNextBehaviour(ref state, commands, entity);
+                DecideNextBehaviour(ref state, ref gridManager, commands, inventory, moodSleepiness, entity);
             }
 
             commands.Playback(state.EntityManager);
         }
 
-        private void DecideNextBehaviour(ref SystemState state, EntityCommandBuffer commands, Entity entity)
+        private void DecideNextBehaviour(ref SystemState state,
+            ref GridManager gridManager,
+            EntityCommandBuffer commands,
+            RefRO<Inventory> inventory,
+            RefRO<MoodSleepiness> moodSleepiness,
+            Entity entity
+        )
         {
-            // TODO: Pass gridManager as argument
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
 
-            // TODO: Move to Query
-            var moodSleepiness = SystemAPI.GetComponent<MoodSleepiness>(entity);
-            var isSleepy = moodSleepiness.Sleepiness > 0.2f;
+            var isSleepy = moodSleepiness.ValueRO.Sleepiness > 0.2f;
 
-            if (isSleepy)
+            if (HasLogOfWood(inventory.ValueRO))
             {
-                if (gridManager.IsBed(unitPosition) && !gridManager.IsOccupied(unitPosition, entity))
+                commands.AddComponent(entity, new IsSeekingDropPoint());
+            }
+            else if (isSleepy)
+            {
+                if (gridManager.IsAvailableBed(unitPosition))
                 {
                     commands.AddComponent(entity, new IsSleeping());
                     gridManager.SetIsWalkable(unitPosition, false);
@@ -50,13 +61,27 @@ namespace UnitAgency
                     commands.AddComponent(entity, new IsSeekingBed());
                 }
             }
+            else if (IsAdjacentToTree(ref state, gridManager, unitPosition, out var tree))
+            {
+                commands.AddComponent(entity, new IsHarvesting(tree));
+                commands.AddComponent<ChopAnimationTag>(entity);
+            }
             else
             {
-                commands.AddComponent(entity, new IsIdle());
-                // commands.AddComponent(entity, new IsTickListener());
+                commands.AddComponent(entity, new IsSeekingTree());
             }
 
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+        }
+
+        private bool HasLogOfWood(Inventory inventory) => inventory.CurrentItem == InventoryItem.LogOfWood;
+
+        private bool IsAdjacentToTree(ref SystemState state, GridManager gridManager, float3 unitPosition, out int2 tree)
+        {
+            GridHelpers.GetXY(unitPosition, out var x, out var y);
+            var foundTree = gridManager.TryGetNeighbouringTreeCell(x, y, out var treeX, out var treeY);
+            tree = new int2(treeX, treeY);
+            return foundTree;
         }
     }
 }

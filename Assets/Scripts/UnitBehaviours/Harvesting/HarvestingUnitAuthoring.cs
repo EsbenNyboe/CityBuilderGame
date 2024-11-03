@@ -1,4 +1,7 @@
-﻿using Unity.Entities;
+﻿using System;
+using System.Runtime.CompilerServices;
+using UnitBehaviours.AutonomousHarvesting;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -17,6 +20,7 @@ public class HarvestingUnitAuthoring : MonoBehaviour
     }
 }
 
+[Obsolete(nameof(IsHarvesting))]
 public struct HarvestingUnit : IComponentData
 {
     public int2 Target;

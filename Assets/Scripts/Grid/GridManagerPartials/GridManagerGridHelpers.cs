@@ -1,3 +1,4 @@
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -5,6 +6,12 @@ public partial struct GridManager
 {
     #region Generic Grid Helpers
 
+    public int2 GetXY(int i)
+    {
+        GetXY(i, out int x, out int y);
+        return new int2(x, y);
+    }
+    
     public void GetXY(int i, out int x, out int y)
     {
         x = i / Height;
@@ -50,6 +57,11 @@ public partial struct GridManager
     #endregion
 
     #region Combined Grid Helpers
+
+    public bool IsAvailableBed(float3 unitPosition)
+    {
+        return IsAvailableBed(GridHelpers.GetXY(unitPosition));
+    }
 
     private bool IsAvailableBed(int2 cell)
     {

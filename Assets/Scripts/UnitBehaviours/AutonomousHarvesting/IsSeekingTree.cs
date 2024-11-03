@@ -1,6 +1,9 @@
 using Unity.Entities;
 
-public struct IsSeekingTree : IComponentData
+namespace UnitBehaviours.AutonomousHarvesting
 {
+    public struct IsSeekingTree : IComponentData
+    {
     
+    }
 }

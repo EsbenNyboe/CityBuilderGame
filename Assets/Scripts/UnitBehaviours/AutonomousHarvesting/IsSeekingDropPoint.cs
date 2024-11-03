@@ -1,6 +1,9 @@
 using Unity.Entities;
 
-public struct IsSeekingDropPoint : IComponentData
+namespace UnitBehaviours.AutonomousHarvesting
 {
+    public struct IsSeekingDropPoint : IComponentData
+    {
     
+    }
 }

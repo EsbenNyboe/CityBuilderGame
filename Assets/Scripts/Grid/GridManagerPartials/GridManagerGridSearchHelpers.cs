@@ -55,6 +55,25 @@ public partial struct GridManager
         return false;
     }
 
+    public bool TryGetNeighbouringTreeCell(int x, int y, out int treeX, out int treeY)
+    {
+        RandomizeNeighbourSequenceIndex();
+        for (var j = 0; j < 8; j++)
+        {
+            GetNeighbourCell(GetNextNeighbourSequenceIndex(), x, y, out treeX, out treeY);
+
+            if (IsPositionInsideGrid(treeX, treeY) &&
+                IsDamageable(treeX, treeY))
+            {
+                return true;
+            }
+        }
+
+        treeX = -1;
+        treeY = -1;
+        return false;
+    }
+
     private bool TryGetValidNeighbourCell(int x, int y, out int neighbourX, out int neighbourY)
     {
         RandomizeNeighbourSequenceIndex();

@@ -1,3 +1,4 @@
+using UnitBehaviours.AutonomousHarvesting;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -26,18 +27,18 @@ public partial struct ChopAnimationSystem : ISystem
         var chopSize = chopAnimationManager.ChopAnimationSize;
         var chopIdleTime = chopAnimationManager.ChopAnimationIdleTime;
 
-        foreach (var (harvestingUnit, spriteTransform, localTransform) in SystemAPI
-                     .Query<RefRO<HarvestingUnit>, RefRW<SpriteTransform>, RefRO<LocalTransform>>().WithPresent<ChopAnimationTag>())
+        foreach (var (isHarvesting, spriteTransform, localTransform) in SystemAPI
+                     .Query<RefRO<IsHarvesting>, RefRW<SpriteTransform>, RefRO<LocalTransform>>().WithPresent<ChopAnimationTag>())
         {
-            DoChopAnimation(ref state, harvestingUnit, spriteTransform, localTransform, chopDuration, chopSize, chopIdleTime);
+            DoChopAnimation(ref state, isHarvesting, spriteTransform, localTransform, chopDuration, chopSize, chopIdleTime);
         }
     }
 
-    private void DoChopAnimation(ref SystemState state, RefRO<HarvestingUnit> harvestingUnit, RefRW<SpriteTransform> spriteTransform,
+    private void DoChopAnimation(ref SystemState state, RefRO<IsHarvesting> isHarvesting, RefRW<SpriteTransform> spriteTransform,
         RefRO<LocalTransform> localTransform, float chopDuration, float chopSize, float chopIdleTime)
     {
         // Manage animation state:
-        var timeLeft = harvestingUnit.ValueRO.TimeUntilNextChop;
+        var timeLeft = isHarvesting.ValueRO.TimeUntilNextChop;
 
         if (timeLeft < 0)
         {
@@ -53,7 +54,7 @@ public partial struct ChopAnimationSystem : ISystem
         // Calculate animation output:
         var positionDistanceFromOrigin = timeLeftBeforeIdlingNormalized * chopSize;
 
-        var chopTargetCell = harvestingUnit.ValueRO.Target;
+        var chopTargetCell = isHarvesting.ValueRO.Tree;
         var chopTargetPosition = new float3(chopTargetCell.x, chopTargetCell.y, 0);
         var chopDirection = ((Vector3)(chopTargetPosition - localTransform.ValueRO.Position)).normalized;
 
