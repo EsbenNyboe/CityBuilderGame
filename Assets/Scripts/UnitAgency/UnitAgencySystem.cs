@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 
@@ -13,6 +14,7 @@ namespace UnitAgency
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             // Following the example at: https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/systems-entity-command-buffer-automatic-playback.html
