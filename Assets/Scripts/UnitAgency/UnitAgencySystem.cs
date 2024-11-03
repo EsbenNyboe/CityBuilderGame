@@ -18,21 +18,23 @@ namespace UnitAgency
         public void OnUpdate(ref SystemState state)
         {
             // Following the example at: https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/systems-entity-command-buffer-automatic-playback.html
-            var ecbSystemSingleton = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>();
-            var commands = ecbSystemSingleton.CreateCommandBuffer(state.WorldUnmanaged);
+            var commands = new EntityCommandBuffer(state.WorldUpdateAllocator);
             foreach (var (_, entity) in SystemAPI.Query<RefRO<IsDeciding>>().WithEntityAccess())
             {
                 commands.RemoveComponent<IsDeciding>(entity);
                 DecideNextBehaviour(ref state, commands, entity);
             }
+
+            commands.Playback(state.EntityManager);
         }
 
         private void DecideNextBehaviour(ref SystemState state, EntityCommandBuffer commands, Entity entity)
         {
+            // TODO: Pass gridManager as argument
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
-            GridHelpers.GetXY(unitPosition, out var x, out var y);
 
+            // TODO: Move to Query
             var moodSleepiness = SystemAPI.GetComponent<MoodSleepiness>(entity);
             var isSleepy = moodSleepiness.Sleepiness > 0.2f;
 
@@ -55,14 +57,6 @@ namespace UnitAgency
             }
 
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-        }
-
-
-        private bool SeekBed(ref SystemState state, EntityCommandBuffer commands, Entity entity)
-        {
-            // Tired... must find bed...
-            commands.AddComponent<IsSeekingBed>(entity);
-            return true;
         }
     }
 }
