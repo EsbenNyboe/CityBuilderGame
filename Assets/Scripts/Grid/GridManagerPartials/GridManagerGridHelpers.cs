@@ -58,9 +58,10 @@ public partial struct GridManager
 
     #region Combined Grid Helpers
 
-    public bool IsAvailableBed(float3 unitPosition)
+    public bool IsBedAvailableToUnit(float3 unitPosition, Entity unit)
     {
-        return IsAvailableBed(GridHelpers.GetXY(unitPosition));
+        var cell = GridHelpers.GetXY(unitPosition);
+        return IsPositionInsideGrid(cell) && IsBed(cell) && !IsOccupied(cell, unit) && IsWalkable(cell);
     }
 
     private bool IsAvailableBed(int2 cell)
