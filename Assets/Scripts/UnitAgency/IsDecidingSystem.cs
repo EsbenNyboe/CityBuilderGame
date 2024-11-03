@@ -4,7 +4,7 @@ using Unity.Transforms;
 
 namespace UnitAgency
 {
-    internal partial struct UnitAgencySystem : ISystem
+    internal partial struct IsDecidingSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
 
