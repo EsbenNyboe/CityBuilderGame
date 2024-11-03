@@ -60,5 +60,22 @@ public partial struct GridManager
         return IsDamageable(i);
     }
 
+    public void SetHealthToMax(Vector3 position)
+    {
+        GridHelpers.GetXY(position, out var x, out var y);
+        SetHealthToMax(x, y);
+    }
+
+    public void SetHealthToMax(int2 cell)
+    {
+        SetHealthToMax(cell.x, cell.y);
+    }
+
+    public void SetHealthToMax(int x, int y)
+    {
+        var i = GetIndex(x, y);
+        SetHealthToMax(i);
+    }
+
     #endregion
 }
