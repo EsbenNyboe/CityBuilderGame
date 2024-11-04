@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +9,7 @@ public class SpawnMenuManager : MonoBehaviour
     [SerializeField] private RectTransform _selectorUI;
     [SerializeField] private float _minimumTimeBetweenSpawns;
     [SerializeField] private float _minimumTimeBetweenDeletes;
+    [SerializeField] private TextMeshProUGUI _brushSizeText;
     private Material _selectionMaterial;
     private SpawnItemType _spawnItemType;
     private bool _spawningIsDisallowed;
@@ -105,6 +107,12 @@ public class SpawnMenuManager : MonoBehaviour
     public void SetBrushSize(float brushSize)
     {
         _brushSize = Mathf.FloorToInt(brushSize);
+        _brushSizeText.text = _brushSize.ToString();
+    }
+
+    public int GetBrushSize()
+    {
+        return _brushSize;
     }
 
     public void SetAutoSpawn(bool autoSpawn)

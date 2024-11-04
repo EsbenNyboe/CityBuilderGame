@@ -3616,6 +3616,7 @@ MonoBehaviour:
   _selectorUI: {fileID: 1484785672}
   _minimumTimeBetweenSpawns: 0.01
   _minimumTimeBetweenDeletes: 0.01
+  _brushSizeText: {fileID: 1067867705}
 --- !u!1 &1762969887
 GameObject:
   m_ObjectHideFlags: 0

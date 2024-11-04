@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CodeMonkey.Utils;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -22,6 +23,7 @@ public partial class SpawnManagerSystem : SystemBase
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
         var itemToSpawn = SpawnMenuManager.Instance.ItemToSpawn;
         var itemToDelete = SpawnMenuManager.Instance.ItemToDelete;
+        var brushSize = SpawnMenuManager.Instance.GetBrushSize();
 
         var cellSize = 1f;
         var mousePosition =
@@ -33,59 +35,101 @@ public partial class SpawnManagerSystem : SystemBase
             return;
         }
 
+        var cellList = GridHelpersManaged.GetCellListAroundTargetCell(cellPosition, brushSize);
         var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
         // TODO: Make SpawnManager into a Singleton instead
         foreach (var spawnManager in SystemAPI.Query<RefRO<SpawnManager>>())
         {
-            switch (itemToSpawn)
-            {
-                case SpawnItemType.None:
-                    break;
-                case SpawnItemType.Unit:
-                    TrySpawnUnit(ref gridManager, cellPosition, spawnManager.ValueRO.UnitPrefab);
-                    break;
-                case SpawnItemType.Tree:
-                    TrySpawnTree(ref gridManager, cellPosition);
-                    break;
-                case SpawnItemType.Bed:
-                    TrySpawnBed(ref gridManager, cellPosition);
-                    break;
-                case SpawnItemType.House:
-                    TrySpawnDropPoint(ref gridManager, cellPosition, spawnManager.ValueRO.DropPointPrefab);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            switch (itemToDelete)
-            {
-                case SpawnItemType.None:
-                    break;
-                case SpawnItemType.Unit:
-                    TryDeleteUnit(ecb, ref gridManager, cellPosition);
-                    break;
-                case SpawnItemType.Tree:
-                    TryDeleteTree(ref gridManager, cellPosition);
-                    break;
-                case SpawnItemType.Bed:
-                    TryDeleteBed(ref gridManager, cellPosition);
-                    break;
-                case SpawnItemType.House:
-                    TryDeleteDropPoint(ecb, ref gridManager, cellPosition);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            SpawnProcess(ref gridManager, cellList, spawnManager.ValueRO, itemToSpawn);
+            DeleteProcess(ecb, ref gridManager, cellList, itemToDelete);
         }
 
         ecb.Playback(EntityManager);
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 
+    private void SpawnProcess(ref GridManager gridManager, List<int2> cellList, SpawnManager spawnManager, SpawnItemType itemToSpawn)
+    {
+        switch (itemToSpawn)
+        {
+            case SpawnItemType.None:
+                break;
+            case SpawnItemType.Unit:
+                foreach (var cell in cellList)
+                {
+                    TrySpawnUnit(ref gridManager, cell, spawnManager.UnitPrefab);
+                }
+
+                break;
+            case SpawnItemType.Tree:
+                foreach (var cell in cellList)
+                {
+                    TrySpawnTree(ref gridManager, cell);
+                }
+
+                break;
+            case SpawnItemType.Bed:
+                foreach (var cell in cellList)
+                {
+                    TrySpawnBed(ref gridManager, cell);
+                }
+
+                break;
+            case SpawnItemType.House:
+                foreach (var cell in cellList)
+                {
+                    TrySpawnDropPoint(ref gridManager, cell, spawnManager.DropPointPrefab);
+                }
+
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private void DeleteProcess(EntityCommandBuffer ecb, ref GridManager gridManager, List<int2> cellList, SpawnItemType itemToDelete)
+    {
+        switch (itemToDelete)
+        {
+            case SpawnItemType.None:
+                break;
+            case SpawnItemType.Unit:
+                foreach (var cell in cellList)
+                {
+                    TryDeleteUnit(ecb, ref gridManager, cell);
+                }
+
+                break;
+            case SpawnItemType.Tree:
+                foreach (var cell in cellList)
+                {
+                    TryDeleteTree(ref gridManager, cell);
+                }
+
+                break;
+            case SpawnItemType.Bed:
+                foreach (var cell in cellList)
+                {
+                    TryDeleteBed(ref gridManager, cell);
+                }
+
+                break;
+            case SpawnItemType.House:
+                foreach (var cell in cellList)
+                {
+                    TryDeleteDropPoint(ecb, ref gridManager, cell);
+                }
+
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
 
     private void TrySpawnUnit(ref GridManager gridManager, int2 position, Entity prefab)
     {
-        if (gridManager.IsWalkable(position) && !gridManager.IsOccupied(position))
+        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) && !gridManager.IsOccupied(position))
         {
             var unitEntity = InstantiateAtPosition(prefab, position);
             gridManager.SetOccupant(position, unitEntity);
@@ -94,7 +138,7 @@ public partial class SpawnManagerSystem : SystemBase
 
     private void TryDeleteUnit(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
     {
-        if (gridManager.TryGetOccupant(position, out var unitEntity))
+        if (gridManager.IsPositionInsideGrid(position) && gridManager.TryGetOccupant(position, out var unitEntity))
         {
             ecb.DestroyEntity(unitEntity);
             gridManager.SetOccupant(position, Entity.Null);
@@ -103,7 +147,7 @@ public partial class SpawnManagerSystem : SystemBase
 
     private void TrySpawnTree(ref GridManager gridManager, int2 position)
     {
-        if (gridManager.IsWalkable(position) && !gridManager.IsDamageable(position))
+        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) && !gridManager.IsDamageable(position))
         {
             gridManager.SetIsWalkable(position, false);
             gridManager.SetHealthToMax(position);
@@ -112,7 +156,7 @@ public partial class SpawnManagerSystem : SystemBase
 
     private void TryDeleteTree(ref GridManager gridManager, int2 position)
     {
-        if (!gridManager.IsWalkable(position) && gridManager.IsDamageable(position))
+        if (gridManager.IsPositionInsideGrid(position) && !gridManager.IsWalkable(position) && gridManager.IsDamageable(position))
         {
             gridManager.SetIsWalkable(position, true);
             gridManager.SetHealthToZero(position);
@@ -121,7 +165,7 @@ public partial class SpawnManagerSystem : SystemBase
 
     private void TrySpawnBed(ref GridManager gridManager, int2 position)
     {
-        if (gridManager.IsWalkable(position) && !gridManager.IsInteractable(position))
+        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) && !gridManager.IsInteractable(position))
         {
             gridManager.SetInteractableBed(position);
         }
@@ -129,7 +173,7 @@ public partial class SpawnManagerSystem : SystemBase
 
     private void TryDeleteBed(ref GridManager gridManager, int2 position)
     {
-        if (gridManager.IsBed(position))
+        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsBed(position))
         {
             gridManager.SetIsWalkable(position, true);
             gridManager.SetInteractableNone(position);
@@ -138,7 +182,7 @@ public partial class SpawnManagerSystem : SystemBase
 
     private void TrySpawnDropPoint(ref GridManager gridManager, int2 position, Entity prefab)
     {
-        if (gridManager.IsWalkable(position))
+        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position))
         {
             gridManager.SetIsWalkable(position, false);
             InstantiateAtPosition(prefab, position);
