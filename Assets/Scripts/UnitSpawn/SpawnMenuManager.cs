@@ -8,14 +8,13 @@ public class SpawnMenuManager : MonoBehaviour
     [SerializeField] private RectTransform _selectorUI;
     [SerializeField] private float _minimumTimeBetweenSpawns;
     [SerializeField] private float _minimumTimeBetweenDeletes;
-    [SerializeField] private float _doubleClickTiming;
     private Material _selectionMaterial;
     private SpawnItemType _spawnItemType;
     private bool _spawningIsDisallowed;
     private float _timeSinceLastSpawn;
-    private float _timeSinceLastClick;
     private float _timeSinceLastDelete;
-    private bool _isSpawnSpamming;
+    private bool _autoSpawn;
+    private int _brushSize;
 
     public SpawnItemType ItemToSpawn { get; private set; }
     public SpawnItemType ItemToDelete { get; private set; }
@@ -41,25 +40,21 @@ public class SpawnMenuManager : MonoBehaviour
             return;
         }
 
-        _timeSinceLastClick += Time.deltaTime;
         _timeSinceLastSpawn += Time.deltaTime;
         _timeSinceLastDelete += Time.deltaTime;
 
-        if (Input.GetMouseButtonDown(0))
+        if (!_spawningIsDisallowed)
         {
-            _isSpawnSpamming = _timeSinceLastClick < _doubleClickTiming;
-            _timeSinceLastClick = 0;
-            TrySpawn();
-        }
+            if ((!_autoSpawn && Input.GetMouseButtonDown(0)) ||
+                (_autoSpawn && Input.GetMouseButton(0)))
+            {
+                TrySpawn();
+            }
 
-        if (Input.GetMouseButton(0) && _isSpawnSpamming && !_spawningIsDisallowed)
-        {
-            TrySpawn();
-        }
-
-        if (Input.GetMouseButton(1))
-        {
-            TryDelete();
+            if ((!_autoSpawn && Input.GetMouseButtonDown(1)) || (_autoSpawn && Input.GetMouseButton(1)))
+            {
+                TryDelete();
+            }
         }
 
         _selectionGraphic.material = _selectionMaterial;
@@ -105,6 +100,16 @@ public class SpawnMenuManager : MonoBehaviour
     {
         _selectionMaterial = itemMaterial;
         _spawnItemType = itemType;
+    }
+
+    public void SetBrushSize(float brushSize)
+    {
+        _brushSize = Mathf.FloorToInt(brushSize);
+    }
+
+    public void SetAutoSpawn(bool autoSpawn)
+    {
+        _autoSpawn = autoSpawn;
     }
 }
 
