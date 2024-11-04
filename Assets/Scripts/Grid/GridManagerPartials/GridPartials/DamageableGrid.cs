@@ -24,6 +24,12 @@ public partial struct GridManager
     }
 
     // Note: Remember to call SetComponent after this method
+    public void SetHealthToZero(int i)
+    {
+        SetHealth(i, 0);
+    }
+
+    // Note: Remember to call SetComponent after this method
     public void AddDamage(int i, float damage)
     {
         SetHealth(i, DamageableGrid[i].Health - damage);
@@ -75,6 +81,23 @@ public partial struct GridManager
     {
         var i = GetIndex(x, y);
         SetHealthToMax(i);
+    }
+
+    public void SetHealthToZero(Vector3 position)
+    {
+        GridHelpers.GetXY(position, out var x, out var y);
+        SetHealthToZero(x, y);
+    }
+
+    public void SetHealthToZero(int2 cell)
+    {
+        SetHealthToZero(cell.x, cell.y);
+    }
+
+    public void SetHealthToZero(int x, int y)
+    {
+        var i = GetIndex(x, y);
+        SetHealthToZero(i);
     }
 
     #endregion

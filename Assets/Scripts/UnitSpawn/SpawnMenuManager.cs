@@ -7,15 +7,18 @@ public class SpawnMenuManager : MonoBehaviour
     [SerializeField] private Image _selectionGraphic;
     [SerializeField] private RectTransform _selectorUI;
     [SerializeField] private float _minimumTimeBetweenSpawns;
+    [SerializeField] private float _minimumTimeBetweenDeletes;
     [SerializeField] private float _doubleClickTiming;
     private Material _selectionMaterial;
     private SpawnItemType _spawnItemType;
     private bool _spawningIsDisallowed;
     private float _timeSinceLastSpawn;
     private float _timeSinceLastClick;
+    private float _timeSinceLastDelete;
     private bool _isSpawnSpamming;
 
     public SpawnItemType ItemToSpawn { get; private set; }
+    public SpawnItemType ItemToDelete { get; private set; }
 
     private void Awake()
     {
@@ -25,6 +28,7 @@ public class SpawnMenuManager : MonoBehaviour
     private void LateUpdate()
     {
         ItemToSpawn = SpawnItemType.None;
+        ItemToDelete = SpawnItemType.None;
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -39,6 +43,7 @@ public class SpawnMenuManager : MonoBehaviour
 
         _timeSinceLastClick += Time.deltaTime;
         _timeSinceLastSpawn += Time.deltaTime;
+        _timeSinceLastDelete += Time.deltaTime;
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -52,6 +57,11 @@ public class SpawnMenuManager : MonoBehaviour
             TrySpawn();
         }
 
+        if (Input.GetMouseButton(1))
+        {
+            TryDelete();
+        }
+
         _selectionGraphic.material = _selectionMaterial;
         _selectionGraphic.transform.position = Input.mousePosition;
         _selectionGraphic.enabled = true;
@@ -63,6 +73,15 @@ public class SpawnMenuManager : MonoBehaviour
         {
             _timeSinceLastSpawn = 0;
             ItemToSpawn = _spawnItemType;
+        }
+    }
+
+    private void TryDelete()
+    {
+        if (_timeSinceLastDelete > _minimumTimeBetweenDeletes)
+        {
+            _timeSinceLastDelete = 0;
+            ItemToDelete = _spawnItemType;
         }
     }
 

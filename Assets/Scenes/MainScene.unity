@@ -2361,6 +2361,7 @@ MonoBehaviour:
   _selectionGraphic: {fileID: 760614731}
   _selectorUI: {fileID: 1484785672}
   _minimumTimeBetweenSpawns: 0.01
+  _minimumTimeBetweenDeletes: 0.01
   _doubleClickTiming: 0.3
 --- !u!1 &1762969887
 GameObject:

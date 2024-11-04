@@ -14,8 +14,7 @@ public partial struct GridManager
 
     public bool IsOccupied(int gridIndex, Entity askingEntity = default)
     {
-        var occupant = OccupiableGrid[gridIndex].Occupant;
-        if (occupant == Entity.Null)
+        if (!TryGetOccupant(gridIndex, out var occupant))
         {
             return false;
         }
@@ -30,6 +29,17 @@ public partial struct GridManager
 
         // TODO: Find a way to check if entity exists, without using managed code (World)
         // && World.DefaultGameObjectInjectionWorld.EntityManager.Exists(occupant);
+    }
+
+    public bool TryGetOccupant(int i, out Entity occupant)
+    {
+        occupant = GetOccupant(i);
+        return occupant != Entity.Null;
+    }
+
+    private Entity GetOccupant(int i)
+    {
+        return OccupiableGrid[i].Occupant;
     }
 
     public bool EntityIsOccupant(int i, Entity entity)
@@ -78,6 +88,18 @@ public partial struct GridManager
     {
         var gridIndex = GetIndex(x, y);
         return IsOccupied(gridIndex, askingEntity);
+    }
+
+    public bool TryGetOccupant(Vector3 position, out Entity occupant)
+    {
+        var gridIndex = GetIndex(position);
+        return TryGetOccupant(gridIndex, out occupant);
+    }
+
+    public bool TryGetOccupant(int2 cellPosition, out Entity occupant)
+    {
+        var gridIndex = GetIndex(cellPosition);
+        return TryGetOccupant(gridIndex, out occupant);
     }
 
     public bool EntityIsOccupant(Vector3 position, Entity entity)
