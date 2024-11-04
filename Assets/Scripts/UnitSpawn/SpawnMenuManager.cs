@@ -6,9 +6,14 @@ public class SpawnMenuManager : MonoBehaviour
     public static SpawnMenuManager Instance;
     [SerializeField] private Image _selectionGraphic;
     [SerializeField] private RectTransform _selectorUI;
+    [SerializeField] private float _minimumTimeBetweenSpawns;
+    [SerializeField] private float _doubleClickTiming;
     private Material _selectionMaterial;
     private SpawnItemType _spawnItemType;
     private bool _spawningIsDisallowed;
+    private float _timeSinceLastSpawn;
+    private float _timeSinceLastClick;
+    private bool _isSpawnSpamming;
 
     public SpawnItemType ItemToSpawn { get; private set; }
 
@@ -26,20 +31,39 @@ public class SpawnMenuManager : MonoBehaviour
             GetComponentInChildren<ToggleGroup>().SetAllTogglesOff();
         }
 
-        var hasSelection = HasSelection();
-
-        if (hasSelection)
+        if (!HasSelection())
         {
-            _selectionGraphic.material = _selectionMaterial;
-            _selectionGraphic.transform.position = Input.mousePosition;
-
-            if (Input.GetMouseButtonDown(0) && !_spawningIsDisallowed)
-            {
-                ItemToSpawn = _spawnItemType;
-            }
+            _selectionGraphic.enabled = false;
+            return;
         }
 
-        _selectionGraphic.enabled = hasSelection;
+        _timeSinceLastClick += Time.deltaTime;
+        _timeSinceLastSpawn += Time.deltaTime;
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            _isSpawnSpamming = _timeSinceLastClick < _doubleClickTiming;
+            _timeSinceLastClick = 0;
+            TrySpawn();
+        }
+
+        if (Input.GetMouseButton(0) && _isSpawnSpamming && !_spawningIsDisallowed)
+        {
+            TrySpawn();
+        }
+
+        _selectionGraphic.material = _selectionMaterial;
+        _selectionGraphic.transform.position = Input.mousePosition;
+        _selectionGraphic.enabled = true;
+    }
+
+    private void TrySpawn()
+    {
+        if (_timeSinceLastSpawn >= _minimumTimeBetweenSpawns)
+        {
+            _timeSinceLastSpawn = 0;
+            ItemToSpawn = _spawnItemType;
+        }
     }
 
     public bool HasSelection()
