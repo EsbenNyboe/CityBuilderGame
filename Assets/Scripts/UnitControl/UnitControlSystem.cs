@@ -24,6 +24,13 @@ public partial class UnitControlSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        var isHoldingSpawnItem = SpawnMenuManager.Instance.HasSelection();
+
+        if (isHoldingSpawnItem)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.A) && Input.GetKey(KeyCode.LeftControl))
         {
             SelectAllUnits();
@@ -63,20 +70,9 @@ public partial class UnitControlSystem : SystemBase
                 selectOnlyOneEntity = true;
             }
 
-
             var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
 
-            foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
-            {
-                var currentName = EntityManager.GetName(entity);
-                if (currentName.Contains("SelectedUnit"))
-                {
-                    currentName = currentName.Replace("SelectedUnit", "");
-                    EntityManager.SetName(entity, currentName);
-                }
-
-                entityCommandBuffer.RemoveComponent(entity, typeof(UnitSelection));
-            }
+            TryRemoveAllUnitSelections(entityCommandBuffer);
 
             var selectedEntityCount = 0;
             foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<Selectable>, RefRO<LocalTransform>>().WithEntityAccess())
@@ -110,6 +106,21 @@ public partial class UnitControlSystem : SystemBase
         {
             // Right mouse button down
             OrderPathFindingForSelectedUnits();
+        }
+    }
+
+    private void TryRemoveAllUnitSelections(EntityCommandBuffer entityCommandBuffer)
+    {
+        foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
+        {
+            var currentName = EntityManager.GetName(entity);
+            if (currentName.Contains("SelectedUnit"))
+            {
+                currentName = currentName.Replace("SelectedUnit", "");
+                EntityManager.SetName(entity, currentName);
+            }
+
+            entityCommandBuffer.RemoveComponent(entity, typeof(UnitSelection));
         }
     }
 

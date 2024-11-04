@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,7 +26,7 @@ public class SpawnMenuManager : MonoBehaviour
             GetComponentInChildren<ToggleGroup>().SetAllTogglesOff();
         }
 
-        var hasSelection = _selectionMaterial != null;
+        var hasSelection = HasSelection();
 
         if (hasSelection)
         {
@@ -41,6 +40,11 @@ public class SpawnMenuManager : MonoBehaviour
         }
 
         _selectionGraphic.enabled = hasSelection;
+    }
+
+    public bool HasSelection()
+    {
+        return _selectionMaterial != null;
     }
 
     public void BlockMouseFromSpawning(bool isBlocked)
@@ -58,29 +62,6 @@ public class SpawnMenuManager : MonoBehaviour
     {
         _selectionMaterial = itemMaterial;
         _spawnItemType = itemType;
-    }
-
-    private void TrySpawnSelectedItem()
-    {
-        switch (_spawnItemType)
-        {
-            case SpawnItemType.None:
-                break;
-            case SpawnItemType.Unit:
-                Debug.Log("Spawn unit");
-                break;
-            case SpawnItemType.Tree:
-                Debug.Log("Spawn tree");
-                break;
-            case SpawnItemType.Bed:
-                Debug.Log("Spawn bed");
-                break;
-            case SpawnItemType.House:
-                Debug.Log("Spawn house");
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
     }
 }
 
