@@ -1,7 +1,4 @@
-﻿using CodeMonkey.Utils;
-using Unity.Entities;
-using Unity.Mathematics;
-using UnityEngine;
+﻿using Unity.Entities;
 
 [UpdateAfter(typeof(GridManagerSystem))]
 public partial class TreeSpawnerSystem : SystemBase
@@ -19,56 +16,28 @@ public partial class TreeSpawnerSystem : SystemBase
     protected override void OnUpdate()
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
-        var walkableGrid = gridManager.WalkableGrid;
         var gridWidth = gridManager.Width;
         var gridHeight = gridManager.Height;
-        var cellSize = 1f; // gridManager currently only supports cellSize 1
-        var mousePosition = UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * cellSize * .5f;
 
-        if (!_isInitialized)
-        {
-            _isInitialized = true;
-
-            var areasToExclude = TreeGridSetup.AreasToExclude();
-
-            for (var x = 0; x < gridWidth; x++)
-            {
-                for (var y = 0; y < gridHeight; y++)
-                {
-                    if (ExcludeCell(areasToExclude, x, y))
-                    {
-                        continue;
-                    }
-
-                    var index = gridManager.GetIndex(x, y);
-                    TrySpawnTree(gridManager, index);
-                }
-            }
-        }
-
-        if (Input.GetMouseButtonDown(1) && Input.GetKey(KeyCode.LeftControl))
-        {
-            GridHelpers.GetXY(mousePosition, out var x, out var y);
-            if (x > -1 && x < gridWidth && y > -1 && y < gridHeight)
-            {
-                _shouldSpawnTreesOnMouseDown = walkableGrid[gridManager.GetIndex(x, y)].IsWalkable;
-            }
-        }
-
-        if (!_shouldSpawnTreesOnMouseDown)
+        if (_isInitialized)
         {
             return;
         }
 
-        if (Input.GetMouseButton(1) && Input.GetKey(KeyCode.LeftControl))
-        {
-            var brushSize = Globals.BrushSize();
-            GridHelpers.GetXY(mousePosition, out var x, out var y);
-            var cellList = GridHelpersManaged.GetCellListAroundTargetCell(new int2(x, y), brushSize);
+        _isInitialized = true;
 
-            for (var i = 0; i < cellList.Count; i++)
+        var areasToExclude = TreeGridSetup.AreasToExclude();
+
+        for (var x = 0; x < gridWidth; x++)
+        {
+            for (var y = 0; y < gridHeight; y++)
             {
-                var index = cellList[i].x * gridHeight + cellList[i].y;
+                if (ExcludeCell(areasToExclude, x, y))
+                {
+                    continue;
+                }
+
+                var index = gridManager.GetIndex(x, y);
                 TrySpawnTree(gridManager, index);
             }
         }
@@ -95,10 +64,10 @@ public partial class TreeSpawnerSystem : SystemBase
             return;
         }
 
-        SpawnTreeWithoutEntity(gridManager, gridIndex);
+        SpawnTree(gridManager, gridIndex);
     }
 
-    private void SpawnTreeWithoutEntity(GridManager gridManager, int gridIndex)
+    private void SpawnTree(GridManager gridManager, int gridIndex)
     {
         gridManager.SetIsWalkable(gridIndex, false);
         gridManager.SetHealthToMax(gridIndex);
