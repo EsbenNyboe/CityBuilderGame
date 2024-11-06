@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Rendering;
 using Unity.Transforms;
 
+[UpdateInGroup(typeof(RenderingSystemGroup))]
 [BurstCompile]
 public partial struct IsSeekingDropPointSystem : ISystem
 {

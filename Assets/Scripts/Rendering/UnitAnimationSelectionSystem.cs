@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Entities;
 
+[UpdateInGroup(typeof(AnimationSystemGroup))]
 [UpdateAfter(typeof(UnitAnimationManagerSystem))]
 public partial struct UnitAnimationSelectionSystem : ISystem
 {

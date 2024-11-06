@@ -26,6 +26,7 @@ public partial struct GridManager : IComponentData
     public NativeArray<int2> RelativePositionRingInfoList;
 }
 
+[UpdateInGroup(typeof(GridSystemGroup), OrderFirst = true)]
 public partial class GridManagerSystem : SystemBase
 {
     private const int MaxHealth = 100;

@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-[UpdateAfter(typeof(PathfindingSystem))]
+[UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
 public partial struct MoodRestlessnessSystem : ISystem
 {
     public void OnUpdate(ref SystemState state)

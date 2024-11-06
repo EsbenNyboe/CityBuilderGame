@@ -8,7 +8,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateAfter(typeof(SpriteSheetAnimationSystem))]
+[UpdateInGroup(typeof(RenderingSystemGroup))]
 [BurstCompile]
 public partial class SpriteSheetRendererSystem : SystemBase
 {

@@ -7,8 +7,7 @@ using SystemAPI = Unity.Entities.SystemAPI;
 using SystemHandle = Unity.Entities.SystemHandle;
 using SystemState = Unity.Entities.SystemState;
 
-[UpdateAfter(typeof(PathfindingSystem))]
-[UpdateAfter(typeof(GridManagerSystem))]
+[UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
 [BurstCompile]
 public partial struct IsSeekingBedSystem : ISystem
 {

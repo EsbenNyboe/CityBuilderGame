@@ -12,8 +12,7 @@ public struct UnitSelection : IComponentData
 {
 }
 
-[UpdateAfter(typeof(GridManagerSystem))]
-[UpdateAfter(typeof(PathfindingSystem))]
+[UpdateInGroup(typeof(MovementSystemGroup))]
 public partial class UnitControlSystem : SystemBase
 {
     private float3 _mouseStartPosition;

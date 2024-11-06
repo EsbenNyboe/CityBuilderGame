@@ -3,7 +3,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateAfter(typeof(GridManagerSystem))]
+[UpdateInGroup(typeof(SpawningSystemGroup))]
 public partial class SpawnUnitsSystem : SystemBase
 {
     private SystemHandle _gridManagerSystemHandle;

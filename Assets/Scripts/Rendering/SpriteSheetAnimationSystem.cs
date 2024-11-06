@@ -4,6 +4,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
+[UpdateInGroup(typeof(AnimationSystemGroup))]
 [UpdateAfter(typeof(UnitAnimationSelectionSystem))]
 public partial struct SpriteSheetAnimationSystem : ISystem
 {

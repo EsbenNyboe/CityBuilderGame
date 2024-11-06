@@ -5,8 +5,7 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
-    [UpdateAfter(typeof(PathfindingSystem))]
-    [UpdateAfter(typeof(GridManagerSystem))]
+    [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     [BurstCompile]
     public partial struct IsSeekingTreeSystem : ISystem
     {

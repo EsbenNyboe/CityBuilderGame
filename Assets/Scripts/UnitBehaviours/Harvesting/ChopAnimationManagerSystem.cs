@@ -8,6 +8,7 @@ public struct ChopAnimationManager : IComponentData
     public float ChopAnimationIdleTime;
 }
 
+[UpdateInGroup(typeof(AnimationSystemGroup))]
 public partial class ChopAnimationManagerSystem : SystemBase
 {
     protected override void OnCreate()

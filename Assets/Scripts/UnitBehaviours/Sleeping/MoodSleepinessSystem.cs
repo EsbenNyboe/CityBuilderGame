@@ -3,6 +3,7 @@ using Unity.Entities;
 using ISystem = Unity.Entities.ISystem;
 using SystemState = Unity.Entities.SystemState;
 
+[UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
 public partial struct MoodSleepinessSystem : ISystem
 {
     [BurstCompile]

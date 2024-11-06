@@ -3,7 +3,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateAfter(typeof(GridManagerSystem))]
+[UpdateInGroup(typeof(MovementSystemGroup))]
 public partial class UnitSelectionSystem : SystemBase
 {
     private SystemHandle _gridManagerSystemHandle;

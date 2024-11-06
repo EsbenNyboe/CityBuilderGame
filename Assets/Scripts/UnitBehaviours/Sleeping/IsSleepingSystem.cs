@@ -5,8 +5,7 @@ using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 using SystemState = Unity.Entities.SystemState;
 
-[UpdateAfter(typeof(PathfindingSystem))]
-[UpdateAfter(typeof(GridManagerSystem))]
+[UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
 public partial struct IsSleepingSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;

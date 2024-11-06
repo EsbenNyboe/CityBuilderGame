@@ -6,7 +6,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateInGroup(typeof(LateSimulationSystemGroup))]
+[UpdateInGroup(typeof(SpawningSystemGroup))]
 public partial class SpawnManagerSystem : SystemBase
 {
     private SystemHandle _gridManagerSystemHandle;

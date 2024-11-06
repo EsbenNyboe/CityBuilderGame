@@ -7,7 +7,7 @@ using ISystem = Unity.Entities.ISystem;
 using SystemHandle = Unity.Entities.SystemHandle;
 using SystemState = Unity.Entities.SystemState;
 
-[UpdateAfter(typeof(GridManagerSystem))]
+[UpdateInGroup(typeof(MovementSystemGroup))]
 // [BurstCompile]
 public partial struct PathFollowSystem : ISystem
 {

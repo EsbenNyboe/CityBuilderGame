@@ -16,6 +16,7 @@ public struct AnimationConfig
     public float FrameInterval;
 }
 
+[UpdateInGroup(typeof(AnimationSystemGroup))]
 public partial class UnitAnimationManagerSystem : SystemBase
 {
     protected override void OnCreate()

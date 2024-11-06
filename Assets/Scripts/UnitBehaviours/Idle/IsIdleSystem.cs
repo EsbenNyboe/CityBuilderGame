@@ -5,7 +5,8 @@ public struct IsIdle : IComponentData
 {
 }
 
-[UpdateAfter(typeof(PathfindingSystem))]
+
+[UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
 public partial struct IsIdleSystem : ISystem
 {
     private const float MaxIdleTime = 1f;

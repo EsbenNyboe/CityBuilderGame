@@ -7,6 +7,7 @@ using Unity.Transforms;
 
 namespace UnitAgency
 {
+    [UpdateInGroup(typeof(UnitBehaviourSystemGroup), OrderLast = true)]
     internal partial struct IsDecidingSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
@@ -74,7 +75,10 @@ namespace UnitAgency
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
-        private bool HasLogOfWood(Inventory inventory) => inventory.CurrentItem == InventoryItem.LogOfWood;
+        private bool HasLogOfWood(Inventory inventory)
+        {
+            return inventory.CurrentItem == InventoryItem.LogOfWood;
+        }
 
         private bool IsAdjacentToTree(ref SystemState state, GridManager gridManager, float3 unitPosition, out int2 tree)
         {

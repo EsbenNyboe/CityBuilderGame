@@ -2,6 +2,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
+[UpdateInGroup(typeof(LateSimulationSystemGroup))]
 public partial class DotsSoundManagerSystem : SystemBase
 {
     protected override void OnCreate()

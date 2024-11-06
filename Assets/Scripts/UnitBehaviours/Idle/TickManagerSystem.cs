@@ -6,6 +6,7 @@ public struct TickManager : IComponentData
     public bool IsTicking;
 }
 
+[UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
 public partial class TickManagerSystem : SystemBase
 {
     private const float TimeBetweenTicks = 1f;

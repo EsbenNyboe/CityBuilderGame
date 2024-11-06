@@ -10,6 +10,8 @@ public struct ChopAnimationTag : IComponentData
 }
 
 [BurstCompile]
+[UpdateAfter(typeof(ChopAnimationManagerSystem))]
+[UpdateInGroup(typeof(AnimationSystemGroup))]
 public partial struct ChopAnimationSystem : ISystem
 {
     private SystemHandle _chopAnimationManagerSystemHandle;

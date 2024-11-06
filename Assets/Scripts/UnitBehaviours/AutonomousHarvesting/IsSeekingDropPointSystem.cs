@@ -7,8 +7,7 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
-    [UpdateAfter(typeof(PathfindingSystem))]
-    [UpdateAfter(typeof(GridManagerSystem))]
+    [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     [BurstCompile]
     public partial struct IsSeekingDropPointSystem : ISystem
     {
@@ -25,7 +24,8 @@ namespace UnitBehaviours.AutonomousHarvesting
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
             foreach (var (localTransform, pathFollow, inventory, entity)
-                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<Inventory>>().WithAll<IsSeekingDropPoint>().WithEntityAccess())
+                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<Inventory>>().WithAll<IsSeekingDropPoint>()
+                         .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
                 {

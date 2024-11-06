@@ -5,7 +5,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-[UpdateAfter(typeof(GridManagerSystem))]
+[UpdateInGroup(typeof(MovementSystemGroup))]
 [UpdateAfter(typeof(PathFollowSystem))]
 public partial class PathfindingSystem : SystemBase
 {

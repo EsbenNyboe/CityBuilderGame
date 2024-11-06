@@ -7,6 +7,7 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
+    [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsHarvestingSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;

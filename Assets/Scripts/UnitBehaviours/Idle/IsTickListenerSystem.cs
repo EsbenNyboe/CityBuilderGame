@@ -5,7 +5,7 @@ public struct IsTickListener : IComponentData
 {
 }
 
-[UpdateAfter(typeof(PathfindingSystem))]
+[UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
 [UpdateAfter(typeof(TickManagerSystem))]
 public partial struct IsTickListenerSystem : ISystem
 {

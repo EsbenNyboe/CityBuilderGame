@@ -1,5 +1,6 @@
 ﻿using Unity.Entities;
 
+[UpdateInGroup(typeof(GridSystemGroup))]
 [UpdateAfter(typeof(GridManagerSystem))]
 public partial class TreeSpawnerSystem : SystemBase
 {
