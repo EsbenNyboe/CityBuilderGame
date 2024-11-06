@@ -4,12 +4,8 @@ using Unity.Entities;
 using Unity.Rendering;
 using Unity.Transforms;
 
-public struct DeliveringUnitTag : IComponentData
-{
-}
-
 [BurstCompile]
-public partial struct DeliveringUnitSystem : ISystem
+public partial struct IsSeekingDropPointSystem : ISystem
 {
     [BurstCompile]
     public void OnUpdate(ref SystemState state)

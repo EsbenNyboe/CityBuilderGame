@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CodeMonkey.Utils;
+using UnitBehaviours.AutonomousHarvesting;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -12,9 +13,10 @@ public struct UnitSelection : IComponentData
 }
 
 [UpdateAfter(typeof(GridManagerSystem))]
+[UpdateAfter(typeof(PathfindingSystem))]
 public partial class UnitControlSystem : SystemBase
 {
-    private float3 startPosition;
+    private float3 _mouseStartPosition;
     private SystemHandle _gridManagerSystemHandle;
 
     protected override void OnCreate()
@@ -39,26 +41,28 @@ public partial class UnitControlSystem : SystemBase
         if (Input.GetMouseButtonDown(0))
         {
             // Mouse pressed
-            startPosition = UtilsClass.GetMouseWorldPosition();
+            _mouseStartPosition = UtilsClass.GetMouseWorldPosition();
             SelectionAreaManager.Instance.SelectionArea.gameObject.SetActive(true);
-            SelectionAreaManager.Instance.SelectionArea.position = startPosition;
+            SelectionAreaManager.Instance.SelectionArea.position = _mouseStartPosition;
         }
 
         if (Input.GetMouseButton(0))
         {
             // Mouse held down
-            var selectionAreaSize = (float3)UtilsClass.GetMouseWorldPosition() - startPosition;
+            var selectionAreaSize = (float3)UtilsClass.GetMouseWorldPosition() - _mouseStartPosition;
             SelectionAreaManager.Instance.SelectionArea.localScale = selectionAreaSize;
         }
 
         if (Input.GetMouseButtonUp(0))
         {
             // Mouse released
-            float3 endPosition = UtilsClass.GetMouseWorldPosition();
+            float3 mouseEndPosition = UtilsClass.GetMouseWorldPosition();
             SelectionAreaManager.Instance.SelectionArea.gameObject.SetActive(false);
 
-            var lowerLeftPosition = new float3(math.min(startPosition.x, endPosition.x), math.min(startPosition.y, endPosition.y), 0);
-            var upperRightPosition = new float3(math.max(startPosition.x, endPosition.x), math.max(startPosition.y, endPosition.y), 0);
+            var lowerLeftPosition = new float3(math.min(_mouseStartPosition.x, mouseEndPosition.x),
+                math.min(_mouseStartPosition.y, mouseEndPosition.y), 0);
+            var upperRightPosition = new float3(math.max(_mouseStartPosition.x, mouseEndPosition.x),
+                math.max(_mouseStartPosition.y, mouseEndPosition.y), 0);
 
             var selectOnlyOneEntity = false;
             var selectionAreaSize = math.distance(lowerLeftPosition, upperRightPosition);
@@ -70,12 +74,13 @@ public partial class UnitControlSystem : SystemBase
                 selectOnlyOneEntity = true;
             }
 
-            var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+            var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
 
-            TryRemoveAllUnitSelections(entityCommandBuffer);
+            DeselectAllUnits(ecb);
 
             var selectedEntityCount = 0;
-            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<Selectable>, RefRO<LocalTransform>>().WithEntityAccess())
+            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<Selectable>, RefRO<LocalTransform>>()
+                         .WithEntityAccess())
             {
                 if (selectOnlyOneEntity && selectedEntityCount > 0)
                 {
@@ -94,12 +99,12 @@ public partial class UnitControlSystem : SystemBase
                         EntityManager.SetName(entity, new StringBuilder().Append(currentName).Append("SelectedUnit").ToString());
                     }
 
-                    entityCommandBuffer.AddComponent(entity, new UnitSelection());
+                    ecb.AddComponent(entity, new UnitSelection());
                     selectedEntityCount++;
                 }
             }
 
-            entityCommandBuffer.Playback(EntityManager);
+            ecb.Playback(EntityManager);
         }
 
         if (Input.GetMouseButtonDown(1) && !Input.GetKey(KeyCode.LeftControl))
@@ -109,7 +114,19 @@ public partial class UnitControlSystem : SystemBase
         }
     }
 
-    private void TryRemoveAllUnitSelections(EntityCommandBuffer entityCommandBuffer)
+    private void SelectAllUnits()
+    {
+        var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
+
+        foreach (var (_, entity) in SystemAPI.Query<RefRO<Selectable>>().WithEntityAccess())
+        {
+            ecb.AddComponent(entity, new UnitSelection());
+        }
+
+        ecb.Playback(EntityManager);
+    }
+
+    private void DeselectAllUnits(EntityCommandBuffer ecb)
     {
         foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
         {
@@ -120,7 +137,7 @@ public partial class UnitControlSystem : SystemBase
                 EntityManager.SetName(entity, currentName);
             }
 
-            entityCommandBuffer.RemoveComponent(entity, typeof(UnitSelection));
+            ecb.RemoveComponent(entity, typeof(UnitSelection));
         }
     }
 
@@ -128,7 +145,7 @@ public partial class UnitControlSystem : SystemBase
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
-        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+        var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
 
         var mousePosition = UtilsClass.GetMouseWorldPosition();
         var cellSize = 1f; // gridManager currently only supports a cellSize of 1
@@ -142,38 +159,27 @@ public partial class UnitControlSystem : SystemBase
 
         var movePositionList = gridManager.GetCachedCellListAroundTargetCell(targetGridCell.x, targetGridCell.y);
 
-        // DEBUGGING:
-        // for (var i = 0; i < movePositionList.Length; i++)
-        // {
-        //     for (var j = i + 1; j < movePositionList.Length; j++)
-        //     {
-        //         if (movePositionList[i].x == movePositionList[j].x && movePositionList[i].y == movePositionList[j].y)
-        //         {
-        //             Debug.Log("Position list contains duplicate: " + movePositionList[i]);
-        //         }
-        //     }
-        // }
-
         if (gridManager.IsPositionInsideGrid(targetGridCell))
         {
             if (gridManager.IsWalkable(targetGridCell))
             {
-                MoveUnitsToWalkableArea(gridManager, movePositionList, entityCommandBuffer);
+                MoveUnitsToWalkableArea(ref gridManager, movePositionList, ecb);
             }
             else if (gridManager.IsDamageable(targetGridCell.x, targetGridCell.y))
             {
-                MoveUnitsToHarvestableCell(gridManager, entityCommandBuffer, targetGridCell);
+                MoveUnitsToHarvestableCell(ref gridManager, ecb, targetGridCell);
             }
         }
 
-        entityCommandBuffer.Playback(EntityManager);
+        ecb.Playback(EntityManager);
+        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 
-    private void MoveUnitsToWalkableArea(GridManager gridManager, NativeArray<int2> movePositionList, EntityCommandBuffer entityCommandBuffer)
+    private void MoveUnitsToWalkableArea(ref GridManager gridManager, NativeArray<int2> movePositionList, EntityCommandBuffer ecb)
     {
         var positionIndex = 0;
-        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>()
-                     .WithPresent<HarvestingUnit>().WithEntityAccess())
+        foreach (var (unitSelection, localTransform, entity) in SystemAPI
+                     .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
         {
             var endPosition = movePositionList[positionIndex];
             positionIndex = (positionIndex + 1) % movePositionList.Length;
@@ -207,23 +213,12 @@ public partial class UnitControlSystem : SystemBase
                 continue;
             }
 
-            entityCommandBuffer.RemoveComponent<ChopAnimationTag>(entity);
-            SystemAPI.SetComponent(entity, new SpriteTransform
-            {
-                Position = float3.zero,
-                Rotation = quaternion.identity
-            });
-            entityCommandBuffer.RemoveComponent<HarvestingUnitTag>(entity);
-            entityCommandBuffer.RemoveComponent<DeliveringUnitTag>(entity);
-
-            entityCommandBuffer.AddComponent(entity, new TryDeoccupy
-            {
-                NewTarget = endPosition
-            });
+            ForceUnitToSelectPath(ecb, ref gridManager, entity, GridHelpers.GetXY(localTransform.ValueRO.Position), endPosition);
+            ecb.AddComponent<IsIdle>(entity);
         }
     }
 
-    private void MoveUnitsToHarvestableCell(GridManager gridManager, EntityCommandBuffer entityCommandBuffer, int2 targetGridCell)
+    private void MoveUnitsToHarvestableCell(ref GridManager gridManager, EntityCommandBuffer ecb, int2 targetGridCell)
     {
         var walkableNeighbourCells = new List<int2>();
 
@@ -235,25 +230,15 @@ public partial class UnitControlSystem : SystemBase
 
         var positionIndex = 0;
         foreach (var (unitSelection, localTransform, entity) in SystemAPI
-                     .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithPresent<HarvestingUnit>().WithEntityAccess())
+                     .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>()
+                     .WithEntityAccess())
         {
             var endPosition = walkableNeighbourCells[positionIndex];
             positionIndex = (positionIndex + 1) % walkableNeighbourCells.Count;
 
-            entityCommandBuffer.AddComponent<HarvestingUnitTag>(entity);
-            SystemAPI.SetComponent(entity, new HarvestingUnit
-            {
-                Target = targetGridCell
-            });
-            entityCommandBuffer.RemoveComponent<DeliveringUnitTag>(entity);
-
-            entityCommandBuffer.AddComponent(entity, new TryDeoccupy
-            {
-                NewTarget = endPosition
-            });
+            ForceUnitToSelectPath(ecb, ref gridManager, entity, GridHelpers.GetXY(localTransform.ValueRO.Position), endPosition);
+            ecb.AddComponent<IsSeekingTree>(entity);
         }
-
-        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 
     private static bool TryGetWalkableNeighbourCells(ref GridManager gridManager, int2 targetGridCell, List<int2> walkableNeighbourCells)
@@ -274,25 +259,43 @@ public partial class UnitControlSystem : SystemBase
         return walkableNeighbourCells.Count > 0;
     }
 
-    private bool TryAbandonCell(ref GridManager gridManager, int startX, int startY, Entity entity)
+    private void ForceUnitToSelectPath(EntityCommandBuffer ecb, ref GridManager gridManager, Entity entity, int2 startPosition, int2 endPosition)
     {
-        if (gridManager.TryClearOccupant(startX, startY, entity))
+        SystemAPI.SetComponent(entity, new SpriteTransform
         {
-            return true;
+            Position = float3.zero,
+            Rotation = quaternion.identity
+        });
+
+        if (PathHelpers.TrySetPath(ecb, entity, startPosition, endPosition))
+        {
+            TryResetGridCell(ref gridManager, startPosition, entity);
         }
 
-        return false;
+        RemoveAllBehaviours(ecb, entity);
     }
 
-    private void SelectAllUnits()
+    private static void RemoveAllBehaviours(EntityCommandBuffer ecb, Entity entity)
     {
-        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+        ecb.RemoveComponent<ChopAnimationTag>(entity);
+        ecb.RemoveComponent<IsHarvesting>(entity);
+        ecb.RemoveComponent<IsSeekingTree>(entity);
+        ecb.RemoveComponent<IsSeekingDropPoint>(entity);
 
-        foreach (var (_, entity) in SystemAPI.Query<RefRO<Selectable>>().WithEntityAccess())
+        ecb.RemoveComponent<IsSeekingBed>(entity);
+        ecb.RemoveComponent<IsSleeping>(entity);
+
+        ecb.RemoveComponent<IsIdle>(entity);
+        ecb.RemoveComponent<IsTickListener>(entity);
+    }
+
+
+    private void TryResetGridCell(ref GridManager gridManager, int2 position, Entity entity)
+    {
+        var isOccupant = gridManager.TryClearOccupant(position, entity);
+        if (isOccupant && gridManager.IsBed(position) && !gridManager.IsWalkable(position))
         {
-            entityCommandBuffer.AddComponent(entity, new UnitSelection());
+            gridManager.SetIsWalkable(position, true);
         }
-
-        entityCommandBuffer.Playback(EntityManager);
     }
 }
