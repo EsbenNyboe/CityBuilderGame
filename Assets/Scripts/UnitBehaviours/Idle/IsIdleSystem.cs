@@ -15,8 +15,14 @@ public partial struct IsIdleSystem : ISystem
     {
         var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
 
-        foreach (var (moodRestlessness, entity) in SystemAPI.Query<RefRW<MoodRestlessness>>().WithEntityAccess().WithAll<IsIdle>())
+        foreach (var (pathFollow, moodRestlessness, entity) in SystemAPI.Query<RefRO<PathFollow>, RefRW<MoodRestlessness>>().WithEntityAccess()
+                     .WithAll<IsIdle>())
         {
+            if (pathFollow.ValueRO.IsMoving())
+            {
+                continue;
+            }
+
             if (moodRestlessness.ValueRO.TimeSpentDoingNothing >= MaxIdleTime)
             {
                 moodRestlessness.ValueRW.TimeSpentDoingNothing = 0;

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using CodeMonkey.Utils;
+using UnitAgency;
 using UnitBehaviours.AutonomousHarvesting;
 using Unity.Collections;
 using Unity.Entities;
@@ -12,6 +13,8 @@ public struct UnitSelection : IComponentData
 {
 }
 
+[UpdateBefore(typeof(PathfindingSystem))]
+[UpdateAfter(typeof(PathFollowSystem))]
 [UpdateInGroup(typeof(MovementSystemGroup))]
 public partial class UnitControlSystem : SystemBase
 {
