@@ -4406,7 +4406,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gameSpeed: 1
-  _maxPathfindingPerFrame: 200
+  _maxPathfindingPerFrame: 1000
   _brushSize: 5
 --- !u!4 &2042965571
 Transform:
