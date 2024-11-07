@@ -18,6 +18,10 @@ namespace Statistics
             var isDecidingCount = isDecidingQuery.CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfDecidingUnits(isDecidingCount);
 
+            var isPathfindingQuery = GetEntityQuery(typeof(PathfindingParams));
+            var isPathfindingCount = isPathfindingQuery.CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfPathfindingUnits(isPathfindingCount);
+
             var isSeekingBedQuery = GetEntityQuery(typeof(IsSeekingBed));
             var isSeekingBedCount = isSeekingBedQuery.CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfBedSeekingUnits(isSeekingBedCount);
@@ -25,6 +29,22 @@ namespace Statistics
             var isSeekingTreeQuery = GetEntityQuery(typeof(IsSeekingTree));
             var isSeekingTreeCount = isSeekingTreeQuery.CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfTreeSeekingUnits(isSeekingTreeCount);
+
+            var isSeekingDropPointQuery = GetEntityQuery(typeof(IsSeekingDropPoint));
+            var isSeekingDropPointCount = isSeekingDropPointQuery.CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfDropPointSeekingUnits(isSeekingDropPointCount);
+
+            var isSleepingQuery = GetEntityQuery(typeof(IsSleeping));
+            var isSleepingCount = isSleepingQuery.CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfSleepingUnits(isSleepingCount);
+
+            var isHarvestingQuery = GetEntityQuery(typeof(IsHarvesting));
+            var isHarvestingCount = isHarvestingQuery.CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfHarvestingUnits(isHarvestingCount);
+
+            var isIdleQuery = GetEntityQuery(typeof(IsIdle));
+            var isIdleCount = isIdleQuery.CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfIdleUnits(isIdleCount);
         }
     }
 }
