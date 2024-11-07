@@ -1,4 +1,3 @@
-using System.Text;
 using TMPro;
 using UnityEngine;
 
@@ -10,9 +9,9 @@ public class UnitStatsDisplay : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI _numberOfUnitsTextMeshProUGUI;
     [SerializeField] private TextMeshProUGUI _numberOfDecisionsTextMeshProUGUI;
-    [SerializeField] private string _numberOfUnitsPrependText;
-    [SerializeField] private string _numberOfDecisionsPrependText;
-    private readonly StringBuilder _sb = new ();
+
+    [SerializeField] private GameObject _numberOfUnitsDisplay;
+    [SerializeField] private GameObject _numberOfDecisionsDisplay;
 
     private float _numberOfDecisionsDuringLastSecond;
 
@@ -23,27 +22,26 @@ public class UnitStatsDisplay : MonoBehaviour
 
     private void Update()
     {
-        _numberOfUnitsTextMeshProUGUI.gameObject.SetActive(_showNumberOfUnits);
+        _numberOfUnitsDisplay.SetActive(_showNumberOfUnits);
+        _numberOfDecisionsDisplay.SetActive(_showNumberOfDecisions);
 
         _numberOfDecisionsDuringLastSecond *= 1 - Time.deltaTime;
     }
 
     public void SetNumberOfUnits(int numberOfUnits)
     {
-        SetStringValue(_numberOfUnitsTextMeshProUGUI, _numberOfUnitsPrependText, numberOfUnits);
+        SetStringValue(_numberOfUnitsTextMeshProUGUI, numberOfUnits);
     }
 
     public void SetNumberOfDecidingUnits(int isDecidingCount)
     {
         _numberOfDecisionsDuringLastSecond += isDecidingCount;
         var numberOfDecisions = Mathf.FloorToInt(_numberOfDecisionsDuringLastSecond);
-        SetStringValue(_numberOfDecisionsTextMeshProUGUI, _numberOfDecisionsPrependText, numberOfDecisions);
+        SetStringValue(_numberOfDecisionsTextMeshProUGUI, numberOfDecisions);
     }
 
-    private void SetStringValue(TextMeshProUGUI textMeshProUGUI, string prependText, int numberOfUnits)
+    private void SetStringValue(TextMeshProUGUI textMeshProUGUI, int count)
     {
-        _sb.Clear();
-        var text = _sb.Append(prependText).Append(numberOfUnits.ToString()).ToString();
-        textMeshProUGUI.text = text;
+        textMeshProUGUI.text = count.ToString();
     }
 }
