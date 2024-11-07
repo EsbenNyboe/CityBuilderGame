@@ -12,15 +12,22 @@ public partial struct PathfindingSystem : ISystem
     private const int MoveStraightCost = 10;
     private const int MoveDiagonalCost = 14;
     private SystemHandle _gridManagerSystemHandle;
+    private ComponentLookup<PathFollow> _pathFollowLookup;
+    private BufferLookup<PathPosition> _pathPositionLookup;
 
     public void OnCreate(ref SystemState state)
     {
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
+        _pathFollowLookup = state.GetComponentLookup<PathFollow>();
+        _pathPositionLookup = state.GetBufferLookup<PathPosition>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        _pathFollowLookup.Update(ref state);
+        _pathPositionLookup.Update(ref state);
+
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
         var walkableGrid = gridManager.WalkableGrid;
         var gridWidth = gridManager.Width;
@@ -55,8 +62,8 @@ public partial struct PathfindingSystem : ISystem
                 StartPosition = startPosition,
                 EndPosition = endPosition,
                 Entity = entity,
-                PathFollowLookup = state.GetComponentLookup<PathFollow>(),
-                PathPositionLookup = state.GetBufferLookup<PathPosition>()
+                PathFollowLookup = _pathFollowLookup,
+                PathPositionLookup = _pathPositionLookup
             };
             findPathJobList.Add(findPathJob);
             jobHandleList.Add(findPathJob.Schedule());
