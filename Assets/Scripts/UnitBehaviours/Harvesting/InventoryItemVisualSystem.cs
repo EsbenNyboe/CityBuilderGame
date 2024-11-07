@@ -6,7 +6,7 @@ using Unity.Transforms;
 
 [UpdateInGroup(typeof(RenderingSystemGroup))]
 [BurstCompile]
-public partial struct IsSeekingDropPointSystem : ISystem
+public partial struct InventoryItemVisualSystem : ISystem
 {
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
