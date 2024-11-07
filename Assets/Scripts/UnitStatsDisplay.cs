@@ -6,12 +6,18 @@ public class UnitStatsDisplay : MonoBehaviour
     public static UnitStatsDisplay Instance;
     [SerializeField] private bool _showNumberOfUnits;
     [SerializeField] private bool _showNumberOfDecisions;
+    [SerializeField] private bool _showNumberOfBedSeekers;
+    [SerializeField] private bool _showNumberOfTreeSeekers;
 
     [SerializeField] private TextMeshProUGUI _numberOfUnitsTextMeshProUGUI;
     [SerializeField] private TextMeshProUGUI _numberOfDecisionsTextMeshProUGUI;
+    [SerializeField] private TextMeshProUGUI _numberOfBedSeekersTextMeshProUGUI;
+    [SerializeField] private TextMeshProUGUI _numberOfTreeSeekersTextMeshProUGUI;
 
     [SerializeField] private GameObject _numberOfUnitsDisplay;
     [SerializeField] private GameObject _numberOfDecisionsDisplay;
+    [SerializeField] private GameObject _numberOfBedSeekersDisplay;
+    [SerializeField] private GameObject _numberOfTreeSeekersDisplay;
 
     private float _numberOfDecisionsDuringLastSecond;
 
@@ -24,6 +30,8 @@ public class UnitStatsDisplay : MonoBehaviour
     {
         _numberOfUnitsDisplay.SetActive(_showNumberOfUnits);
         _numberOfDecisionsDisplay.SetActive(_showNumberOfDecisions);
+        _numberOfBedSeekersDisplay.SetActive(_showNumberOfBedSeekers);
+        _numberOfTreeSeekersDisplay.SetActive(_showNumberOfTreeSeekers);
 
         _numberOfDecisionsDuringLastSecond *= 1 - Time.deltaTime;
     }
@@ -38,6 +46,16 @@ public class UnitStatsDisplay : MonoBehaviour
         _numberOfDecisionsDuringLastSecond += isDecidingCount;
         var numberOfDecisions = Mathf.FloorToInt(_numberOfDecisionsDuringLastSecond);
         SetStringValue(_numberOfDecisionsTextMeshProUGUI, numberOfDecisions);
+    }
+
+    public void SetNumberOfBedSeekingUnits(int isSeekingBedCount)
+    {
+        SetStringValue(_numberOfBedSeekersTextMeshProUGUI, isSeekingBedCount);
+    }
+
+    public void SetNumberOfTreeSeekingUnits(int isSeekingTreeCount)
+    {
+        SetStringValue(_numberOfTreeSeekersTextMeshProUGUI, isSeekingTreeCount);
     }
 
     private void SetStringValue(TextMeshProUGUI textMeshProUGUI, int count)
