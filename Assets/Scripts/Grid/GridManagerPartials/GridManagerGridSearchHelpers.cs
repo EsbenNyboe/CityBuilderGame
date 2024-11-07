@@ -225,7 +225,7 @@ public partial struct GridManager
             }
         }
 
-        // Debug.Log("No available bed was found within the search-range");
+        Debug.LogWarning("No available bed was found within the search-range");
         availableBed = new int2(-1, -1);
         return false;
     }

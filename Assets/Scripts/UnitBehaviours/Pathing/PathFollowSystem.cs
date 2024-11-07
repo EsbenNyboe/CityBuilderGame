@@ -1,14 +1,13 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
-using SystemHandle = Unity.Entities.SystemHandle;
-using SystemState = Unity.Entities.SystemState;
 
 [UpdateInGroup(typeof(MovementSystemGroup))]
-// [BurstCompile]
+[BurstCompile]
 public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
@@ -19,7 +18,7 @@ public partial struct PathFollowSystem : ISystem
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
 
-    // [BurstCompile]
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var entityCommandBuffer = new EntityCommandBuffer(Allocator.Temp);
@@ -82,7 +81,7 @@ public partial struct PathFollowSystem : ISystem
                         }
                         else
                         {
-                            BurstDebugHelpers.DebugLogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
+                            DebugLogHelper.DebugLogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
                         }
                     }
                 }
