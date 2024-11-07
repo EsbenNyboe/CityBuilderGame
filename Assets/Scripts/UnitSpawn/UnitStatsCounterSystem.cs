@@ -10,5 +10,9 @@ public partial class UnitStatsCounterSystem : SystemBase
         var unitQuery = GetEntityQuery(typeof(UnitAnimationSelection));
         var unitCount = unitQuery.CalculateEntityCount();
         UnitStatsDisplay.Instance.SetNumberOfUnits(unitCount);
+
+        var isDecidingQuery = GetEntityQuery(typeof(IsDeciding));
+        var isDecidingCount = isDecidingQuery.CalculateEntityCount();
+        UnitStatsDisplay.Instance.SetNumberOfDecidingUnits(isDecidingCount);
     }
 }
