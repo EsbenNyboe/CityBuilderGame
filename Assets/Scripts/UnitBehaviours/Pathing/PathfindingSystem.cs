@@ -11,6 +11,7 @@ public partial struct PathfindingSystem : ISystem
 {
     private const int MoveStraightCost = 10;
     private const int MoveDiagonalCost = 14;
+    private const int MaxPathfindingSchedulesPerFrame = 200;
     private SystemHandle _gridManagerSystemHandle;
     private ComponentLookup<PathFollow> _pathFollowLookup;
     private BufferLookup<PathPosition> _pathPositionLookup;
@@ -38,15 +39,13 @@ public partial struct PathfindingSystem : ISystem
         var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
         var entityCommandBuffer = new EntityCommandBuffer(state.WorldUpdateAllocator);
 
-        // var maxPathfindingSchedulesPerFrame = Globals.MaxPathfindingPerFrame();
-        var maxPathfindingSchedulesPerFrame = 1000;
         var currentAmountOfSchedules = 0;
 
         foreach (var (pathfindingParams, pathPosition, pathFollow, entity) in SystemAPI
                      .Query<RefRO<PathfindingParams>, DynamicBuffer<PathPosition>, RefRW<PathFollow>>()
                      .WithEntityAccess())
         {
-            if (currentAmountOfSchedules > maxPathfindingSchedulesPerFrame)
+            if (currentAmountOfSchedules > MaxPathfindingSchedulesPerFrame)
             {
                 continue;
             }
