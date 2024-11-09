@@ -1,5 +1,6 @@
 using UnitAgency;
 using UnitBehaviours.AutonomousHarvesting;
+using Unity.Collections;
 using Unity.Entities;
 
 namespace Statistics
@@ -10,40 +11,41 @@ namespace Statistics
     {
         protected override void OnUpdate()
         {
-            var unitQuery = GetEntityQuery(typeof(UnitAnimationSelection));
-            var unitCount = unitQuery.CalculateEntityCount();
+            var unitCount = new EntityQueryBuilder(Allocator.Temp).WithAll<UnitAnimationSelection>().Build(this)
+                .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfUnits(unitCount);
 
-            var isDecidingQuery = GetEntityQuery(typeof(IsDeciding));
-            var isDecidingCount = isDecidingQuery.CalculateEntityCount();
+            var isDecidingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsDeciding>().Build(this)
+                .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfDecidingUnits(isDecidingCount);
 
-            var isPathfindingQuery = GetEntityQuery(typeof(PathfindingParams));
-            var isPathfindingCount = isPathfindingQuery.CalculateEntityCount();
+            var isPathfindingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<PathfindingParams>().Build(this)
+                .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfPathfindingUnits(isPathfindingCount);
 
-            var isSeekingBedQuery = GetEntityQuery(typeof(IsSeekingBed));
-            var isSeekingBedCount = isSeekingBedQuery.CalculateEntityCount();
+            var isSeekingBedCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingBed>().Build(this)
+                .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfBedSeekingUnits(isSeekingBedCount);
 
-            var isSeekingTreeQuery = GetEntityQuery(typeof(IsSeekingTree));
-            var isSeekingTreeCount = isSeekingTreeQuery.CalculateEntityCount();
+            var isSeekingTreeCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingTree>().Build(this)
+                .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfTreeSeekingUnits(isSeekingTreeCount);
 
-            var isSeekingDropPointQuery = GetEntityQuery(typeof(IsSeekingDropPoint));
-            var isSeekingDropPointCount = isSeekingDropPointQuery.CalculateEntityCount();
+            var isSeekingDropPointCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingDropPoint>()
+                .Build(this)
+                .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfDropPointSeekingUnits(isSeekingDropPointCount);
 
-            var isSleepingQuery = GetEntityQuery(typeof(IsSleeping));
-            var isSleepingCount = isSleepingQuery.CalculateEntityCount();
+            var isSleepingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSleeping>().Build(this)
+                .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfSleepingUnits(isSleepingCount);
 
-            var isHarvestingQuery = GetEntityQuery(typeof(IsHarvesting));
-            var isHarvestingCount = isHarvestingQuery.CalculateEntityCount();
+            var isHarvestingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsHarvesting>().Build(this)
+                .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfHarvestingUnits(isHarvestingCount);
 
-            var isIdleQuery = GetEntityQuery(typeof(IsIdle));
-            var isIdleCount = isIdleQuery.CalculateEntityCount();
+            var isIdleCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsIdle>().Build(this)
+                .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfIdleUnits(isIdleCount);
         }
     }

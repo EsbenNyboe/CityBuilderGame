@@ -4,4 +4,8 @@ public class UnitStatsDisplayCurrentTotal : UnitStatsDisplay
     {
         return rawValue;
     }
+
+    protected override void OnUpdate()
+    {
+    }
 }
