@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
 using CodeMonkey.Utils;
-using UnitAgency;
 using UnitBehaviours.AutonomousHarvesting;
 using Unity.Collections;
 using Unity.Entities;
@@ -98,7 +97,8 @@ public partial class UnitControlSystem : SystemBase
                     var currentName = EntityManager.GetName(entity);
                     if (!currentName.Contains("SelectedUnit"))
                     {
-                        EntityManager.SetName(entity, new StringBuilder().Append(currentName).Append("SelectedUnit").ToString());
+                        EntityManager.SetName(entity,
+                            new StringBuilder().Append(currentName).Append("SelectedUnit").ToString());
                     }
 
                     ecb.AddComponent(entity, new UnitSelection());
@@ -177,7 +177,8 @@ public partial class UnitControlSystem : SystemBase
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 
-    private void MoveUnitsToWalkableArea(ref GridManager gridManager, NativeArray<int2> movePositionList, EntityCommandBuffer ecb)
+    private void MoveUnitsToWalkableArea(ref GridManager gridManager, NativeArray<int2> movePositionList,
+        EntityCommandBuffer ecb)
     {
         var positionIndex = 0;
         foreach (var (unitSelection, localTransform, entity) in SystemAPI
@@ -215,7 +216,8 @@ public partial class UnitControlSystem : SystemBase
                 continue;
             }
 
-            ForceUnitToSelectPath(ecb, ref gridManager, entity, GridHelpers.GetXY(localTransform.ValueRO.Position), endPosition);
+            ForceUnitToSelectPath(ecb, ref gridManager, entity, GridHelpers.GetXY(localTransform.ValueRO.Position),
+                endPosition);
             ecb.AddComponent<IsIdle>(entity);
         }
     }
@@ -238,30 +240,32 @@ public partial class UnitControlSystem : SystemBase
             var endPosition = walkableNeighbourCells[positionIndex];
             positionIndex = (positionIndex + 1) % walkableNeighbourCells.Count;
 
-            ForceUnitToSelectPath(ecb, ref gridManager, entity, GridHelpers.GetXY(localTransform.ValueRO.Position), endPosition);
+            ForceUnitToSelectPath(ecb, ref gridManager, entity, GridHelpers.GetXY(localTransform.ValueRO.Position),
+                endPosition);
             ecb.AddComponent<IsSeekingTree>(entity);
         }
     }
 
-    private static bool TryGetWalkableNeighbourCells(ref GridManager gridManager, int2 targetGridCell, List<int2> walkableNeighbourCells)
+    private static bool TryGetWalkableNeighbourCells(ref GridManager gridManager, int2 targetGridCell,
+        List<int2> walkableNeighbourCells)
     {
-        gridManager.RandomizeNeighbourSequenceIndex();
         const int maxPossibleNeighbours = 8;
         for (var i = 0; i < maxPossibleNeighbours; i++)
         {
-            gridManager.GetSequencedNeighbourCell(targetGridCell.x, targetGridCell.y, out var neighbourX, out var neighbourY);
+            var neighbourCell = gridManager.GetNeighbourCell(i, targetGridCell);
 
-            if (gridManager.IsPositionInsideGrid(neighbourX, neighbourY) &&
-                gridManager.WalkableGrid[gridManager.GetIndex(neighbourX, neighbourY)].IsWalkable)
+            if (gridManager.IsPositionInsideGrid(neighbourCell) &&
+                gridManager.WalkableGrid[gridManager.GetIndex(neighbourCell)].IsWalkable)
             {
-                walkableNeighbourCells.Add(new int2(neighbourX, neighbourY));
+                walkableNeighbourCells.Add(new int2(neighbourCell));
             }
         }
 
         return walkableNeighbourCells.Count > 0;
     }
 
-    private void ForceUnitToSelectPath(EntityCommandBuffer ecb, ref GridManager gridManager, Entity entity, int2 startPosition, int2 endPosition)
+    private void ForceUnitToSelectPath(EntityCommandBuffer ecb, ref GridManager gridManager, Entity entity,
+        int2 startPosition, int2 endPosition)
     {
         SystemAPI.SetComponent(entity, new SpriteTransform
         {

@@ -1,5 +1,6 @@
 using Unity.Assertions;
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -8,107 +9,57 @@ public partial struct GridManager
 {
     #region GridSearchHelpers
 
-    public bool TryGetNearbyChoppingCell(int2 currentTarget, out int2 newTarget, out int2 newPathTarget)
+    public bool TryGetNeighbouringTreeCell(int2 center, out int2 neighbouringTreeCell)
     {
-        var nearbyCells = GetCachedCellListAroundTargetCell(currentTarget.x, currentTarget.y);
+        var randomSeed = (uint)(center.x + center.y);
+        var randomGenerator = new Unity.Mathematics.Random(randomSeed);
+        var randomStartIndex = randomGenerator.NextInt(0, 8);
+        var currentIndex = randomStartIndex + 1;
 
-        if (IsDamageable(currentTarget.x, currentTarget.y) &&
-            TryGetValidNeighbourCell(currentTarget.x, currentTarget.y, out var newPathTargetX, out var newPathTargetY))
+        while (currentIndex != randomStartIndex)
         {
-            newTarget = currentTarget;
-            newPathTarget = new int2(newPathTargetX, newPathTargetY);
-            return true;
-        }
-
-        var count = nearbyCells.Length;
-
-        var randomSelectionThreshold = math.min(50, count);
-        InitializeRandomNearbyCellIndexList(0, randomSelectionThreshold);
-
-        for (var i = 0; i < count; i++)
-        {
-            var cellIndex = i;
-            if (!RandomNearbyCellIndexListIsEmpty())
+            currentIndex++;
+            if (currentIndex >= 8)
             {
-                cellIndex = GetRandomNearbyCellIndex();
+                currentIndex = 0;
             }
 
-            var x = nearbyCells[cellIndex].x;
-            var y = nearbyCells[cellIndex].y;
+            var neighbourCell = GetNeighbourCell(currentIndex, center);
 
-            if (!IsPositionInsideGrid(x, y) ||
-                !IsDamageable(x, y))
+            if (IsPositionInsideGrid(neighbourCell) &&
+                IsDamageable(neighbourCell))
+            {
+                neighbouringTreeCell = neighbourCell;
+                return true;
+            }
+        }
+
+        neighbouringTreeCell = -1;
+        return false;
+    }
+
+    public bool TryGetClosestValidNeighbourOfTarget(int2 selfCell, Entity selfEntity, int2 targetCell,
+        out int2 closestNeighbourCell)
+    {
+        var shortestDistance = float.MaxValue;
+        closestNeighbourCell = -1;
+        for (var j = 0; j < 8; j++)
+        {
+            var neighbourCell = GetNeighbourCell(j, targetCell);
+            if (!IsVacantCell(neighbourCell, selfEntity))
             {
                 continue;
             }
 
-            if (TryGetValidNeighbourCell(x, y, out newPathTargetX, out newPathTargetY))
+            var distance = math.distance(selfCell, neighbourCell);
+            if (distance < shortestDistance)
             {
-                newTarget = new int2(x, y);
-                newPathTarget = new int2(newPathTargetX, newPathTargetY);
-                return true;
+                shortestDistance = distance;
+                closestNeighbourCell = neighbourCell;
             }
         }
 
-        newTarget = default;
-        newPathTarget = default;
-        return false;
-    }
-
-    public bool TryGetNeighbouringTreeCell(int x, int y, out int treeX, out int treeY)
-    {
-        RandomizeNeighbourSequenceIndex();
-        for (var j = 0; j < 8; j++)
-        {
-            GetNeighbourCell(GetNextNeighbourSequenceIndex(), x, y, out treeX, out treeY);
-
-            if (IsPositionInsideGrid(treeX, treeY) &&
-                IsDamageable(treeX, treeY))
-            {
-                return true;
-            }
-        }
-
-        treeX = -1;
-        treeY = -1;
-        return false;
-    }
-
-    private bool TryGetValidNeighbourCell(int x, int y, out int neighbourX, out int neighbourY)
-    {
-        RandomizeNeighbourSequenceIndex();
-        for (var j = 0; j < 8; j++)
-        {
-            GetNeighbourCell(GetNextNeighbourSequenceIndex(), x, y, out neighbourX, out neighbourY);
-
-            if (IsPositionInsideGrid(neighbourX, neighbourY) &&
-                IsWalkable(neighbourX, neighbourY) &&
-                !IsOccupied(neighbourX, neighbourY))
-            {
-                return true;
-            }
-        }
-
-        neighbourX = -1;
-        neighbourY = -1;
-        return false;
-    }
-
-    public bool TryGetNearbyVacantCell(int x, int y, out int2 nearbyCell)
-    {
-        var movePositionList = GetCachedCellListAroundTargetCell(x, y);
-        for (var i = 1; i < movePositionList.Length; i++)
-        {
-            nearbyCell = movePositionList[i];
-            if (IsPositionInsideGrid(nearbyCell) && IsWalkable(nearbyCell) &&
-                !IsOccupied(nearbyCell))
-            {
-                return true;
-            }
-        }
-
-        nearbyCell = default;
-        return false;
+        return closestNeighbourCell.x > -1;
     }
 
     public NativeArray<int2> GetCachedCellListAroundTargetCell(int targetX, int targetY)
@@ -171,32 +122,42 @@ public partial struct GridManager
         return PositionList;
     }
 
-    public int2 GetNearbyEmptyCell(int2 center)
+    public bool TryGetClosestChoppingCellSemiRandom(int2 selfCell, Entity selfEntity, out int2 availableChoppingCell)
     {
-        for (var i = 1; i < RelativePositionList.Length; i++)
+        // TODO: Can this be refactored, so it doesn't duplicate so much code for every variant of this search-pattern?
+
+        // TODO: Test how well this random-seed works
+        var randomSeed = (uint)(selfCell.x + selfCell.y);
+        var randomGenerator = new Unity.Mathematics.Random(randomSeed);
+        for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
-            if (IsEmptyCell(center + RelativePositionList[i]))
+            var ringStart = RelativePositionRingInfoList[ring].x;
+            var ringEnd = RelativePositionRingInfoList[ring].y;
+            var randomStartIndex = randomGenerator.NextInt(ringStart, ringEnd);
+
+            var currentIndex = randomStartIndex + 1;
+
+            while (currentIndex != randomStartIndex)
             {
-                return center + RelativePositionList[i];
+                currentIndex++;
+                if (currentIndex >= ringEnd)
+                {
+                    currentIndex = ringStart;
+                }
+
+                var treeCell = selfCell + RelativePositionList[currentIndex];
+                if (IsTree(treeCell) &&
+                    TryGetClosestValidNeighbourOfTarget(selfCell, selfEntity, treeCell, out var treeNeighbour))
+                {
+                    availableChoppingCell = treeNeighbour;
+                    return true;
+                }
             }
         }
 
-        Debug.LogError("No position found");
-        return new int2(-1, -1);
-    }
-
-    public int2 GetNearbyVacantCell(int2 center)
-    {
-        for (var i = 1; i < RelativePositionList.Length; i++)
-        {
-            if (IsVacantCell(center + RelativePositionList[i]))
-            {
-                return center + RelativePositionList[i];
-            }
-        }
-
-        Debug.LogError("No position found");
-        return new int2(-1, -1);
+        Debug.LogWarning("No available chopping cell was found within the search-range");
+        availableChoppingCell = -1;
+        return false;
     }
 
     public bool TryGetClosestBedSemiRandom(int2 center, out int2 availableBed)
@@ -324,58 +285,19 @@ public partial struct GridManager
         }
     }
 
-    // Note: Remember to call SetComponent after this method
-    public void RandomizeNeighbourSequenceIndex()
+    public int2 GetNeighbourCell(int index, int2 cell)
     {
-        NeighbourSequenceIndex = Random.Range(0, 8);
-    }
-
-    // Note: Remember to call SetComponent after this method
-    private int GetNextNeighbourSequenceIndex()
-    {
-        NeighbourSequenceIndex++;
-        if (NeighbourSequenceIndex >= 8)
-        {
-            NeighbourSequenceIndex = 0;
-        }
-
-        return NeighbourSequenceIndex;
-    }
-
-    // Note: Remember to call SetComponent after this method
-    public void GetSequencedNeighbourCell(int x, int y, out int neighbourX, out int neighbourY)
-    {
-        GetNeighbourCell(GetNextNeighbourSequenceIndex(), x, y, out neighbourX, out neighbourY);
+        GetNeighbourCell(index, cell.x, cell.y, out var neighbourX, out var neighbourY);
+        return new int2(neighbourX, neighbourY);
     }
 
     public void GetNeighbourCell(int index, int x, int y, out int neighbourX, out int neighbourY)
     {
-        Assert.IsTrue(index >= 0 && index < 8, "Index must be min 0 and max 8, because a cell can only have 8 neighbours!");
+        Assert.IsTrue(index >= 0 && index < 8,
+            "Index must be min 0 and max 8, because a cell can only have 8 neighbours!");
 
         neighbourX = x + NeighbourDeltas[index].x;
         neighbourY = y + NeighbourDeltas[index].y;
-    }
-
-    private void InitializeRandomNearbyCellIndexList(int min, int max)
-    {
-        RandomNearbyCellIndexList.Clear();
-        for (var i = min; i < max; i++)
-        {
-            RandomNearbyCellIndexList.Add(i);
-        }
-    }
-
-    private bool RandomNearbyCellIndexListIsEmpty()
-    {
-        return RandomNearbyCellIndexList.Length <= 0;
-    }
-
-    private int GetRandomNearbyCellIndex()
-    {
-        var indexListIndex = Random.Range(0, RandomNearbyCellIndexList.Length);
-        var cellListIndex = RandomNearbyCellIndexList[indexListIndex];
-        RandomNearbyCellIndexList.RemoveAt(indexListIndex);
-        return cellListIndex;
     }
 
     #endregion

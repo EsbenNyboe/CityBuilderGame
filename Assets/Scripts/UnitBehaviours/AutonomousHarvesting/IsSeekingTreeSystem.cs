@@ -22,7 +22,8 @@ namespace UnitBehaviours.AutonomousHarvesting
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
             foreach (var (localTransform, pathFollow, entity)
-                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>>().WithAll<IsSeekingTree>().WithEntityAccess())
+                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>>().WithAll<IsSeekingTree>()
+                         .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
                 {
@@ -31,10 +32,9 @@ namespace UnitBehaviours.AutonomousHarvesting
                 // I reacted my destination / I'm standing still: I should find a bed!
 
                 // Am I adjacent to a tree?
-                var unitPosition = localTransform.ValueRO.Position;
-                GridHelpers.GetXY(unitPosition, out var x, out var y);
 
-                if (gridManager.TryGetNeighbouringTreeCell(x, y, out _, out _))
+                var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+                if (gridManager.TryGetNeighbouringTreeCell(currentCell, out _))
                 {
                     // I found my adjacent tree! 
                     ecb.RemoveComponent<IsSeekingTree>(entity);
@@ -43,8 +43,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 }
 
                 // I'm not next to a tree... I should find the closest tree.
-                var currentCell = GridHelpers.GetXY(unitPosition);
-                if (!gridManager.TryGetNearbyChoppingCell(currentCell, out _, out var choppingCell))
+                if (!gridManager.TryGetClosestChoppingCellSemiRandom(currentCell, entity, out var choppingCell))
                 {
                     // I can't see any nearby trees
                     ecb.RemoveComponent<IsSeekingTree>(entity);

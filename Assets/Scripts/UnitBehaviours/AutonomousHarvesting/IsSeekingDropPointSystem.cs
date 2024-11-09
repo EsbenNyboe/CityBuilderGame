@@ -24,7 +24,8 @@ namespace UnitBehaviours.AutonomousHarvesting
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
             foreach (var (localTransform, pathFollow, inventory, entity)
-                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<Inventory>>().WithAll<IsSeekingDropPoint>()
+                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<Inventory>>()
+                         .WithAll<IsSeekingDropPoint>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
@@ -34,7 +35,8 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 var unitWorldPosition = localTransform.ValueRO.Position;
                 var unitGridPosition = GridHelpers.GetXY(unitWorldPosition);
-                var closestDropPointEntrance = FindClosestDropPoint(ref state, ref gridManager, unitWorldPosition);
+                var closestDropPointEntrance =
+                    FindClosestDropPoint(ref state, ref gridManager, unitWorldPosition, entity);
                 if (unitGridPosition.Equals(closestDropPointEntrance))
                 {
                     inventory.ValueRW.CurrentItem = InventoryItem.None;
@@ -53,11 +55,9 @@ namespace UnitBehaviours.AutonomousHarvesting
             ecb.Playback(state.EntityManager);
         }
 
-        private int2 FindClosestDropPoint(
-            ref SystemState state,
+        private int2 FindClosestDropPoint(ref SystemState state,
             ref GridManager gridManager,
-            float3 position
-        )
+            float3 position, Entity selfEntity)
         {
             var closestDropPoint = new float3(-1);
             var shortestDropPointDistance = math.INFINITY;
@@ -78,27 +78,12 @@ namespace UnitBehaviours.AutonomousHarvesting
                 return -1;
             }
 
-            GridHelpers.GetXY(closestDropPoint, out var x, out var y);
-            var dropPointCell = new int2(x, y);
-            var closestDropPointEntrance = new int2(-1, -1);
-            var shortestDropPointEntranceDistance = math.INFINITY;
-            GridHelpers.GetXY(position, out var posX, out var posY);
-            var cellPosition = new int2(posX, posY);
-            gridManager.RandomizeNeighbourSequenceIndex();
-            for (var i = 0; i < 8; i++)
-            {
-                gridManager.GetSequencedNeighbourCell(dropPointCell.x, dropPointCell.y, out var dropPointEntranceX,
-                    out var dropPointEntranceY);
-                var dropPointEntrance = new int2(dropPointEntranceX, dropPointEntranceY);
-                var dropPointEntranceDistance = math.distance(cellPosition, dropPointEntrance);
-                if (dropPointEntranceDistance < shortestDropPointEntranceDistance)
-                {
-                    closestDropPointEntrance = dropPointEntrance;
-                    shortestDropPointEntranceDistance = dropPointEntranceDistance;
-                }
-            }
+            var dropPointCell = GridHelpers.GetXY(closestDropPoint);
+            var cellPosition = GridHelpers.GetXY(position);
+            gridManager.TryGetClosestValidNeighbourOfTarget(cellPosition, selfEntity, dropPointCell,
+                out var dropPointEntrance);
 
-            return closestDropPointEntrance;
+            return dropPointEntrance;
         }
     }
 }

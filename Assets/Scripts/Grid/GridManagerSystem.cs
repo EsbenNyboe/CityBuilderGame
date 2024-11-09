@@ -17,7 +17,6 @@ public partial struct GridManager : IComponentData
 
     // GridSearchHelpers:
     public NativeArray<int2> NeighbourDeltas;
-    public int NeighbourSequenceIndex;
     public NativeList<int> RandomNearbyCellIndexList;
     public int PositionListRadius;
     public NativeArray<int2> PositionList;
@@ -114,17 +113,24 @@ public partial class GridManagerSystem : SystemBase
     private static void CreateGridSearchHelpers(ref GridManager gridManager)
     {
         gridManager.NeighbourDeltas =
-            new NativeArray<int2>(new int2[] { new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1) },
+            new NativeArray<int2>(
+                new int2[]
+                {
+                    new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1)
+                },
                 Allocator.Persistent);
         gridManager.RandomNearbyCellIndexList = new NativeList<int>(Allocator.Persistent);
         gridManager.PositionListRadius = 50;
         gridManager.PositionList =
-            new NativeArray<int2>(GridHelpers.CalculatePositionListLength(gridManager.PositionListRadius), Allocator.Persistent);
+            new NativeArray<int2>(GridHelpers.CalculatePositionListLength(gridManager.PositionListRadius),
+                Allocator.Persistent);
 
         var relativePositionListRadius = 50;
         gridManager.RelativePositionList =
-            new NativeArray<int2>(GridHelpers.CalculatePositionListLength(relativePositionListRadius), Allocator.Persistent);
-        gridManager.RelativePositionRingInfoList = new NativeArray<int2>(relativePositionListRadius, Allocator.Persistent);
+            new NativeArray<int2>(GridHelpers.CalculatePositionListLength(relativePositionListRadius),
+                Allocator.Persistent);
+        gridManager.RelativePositionRingInfoList =
+            new NativeArray<int2>(relativePositionListRadius, Allocator.Persistent);
         gridManager.PopulateRelativePositionList(relativePositionListRadius);
     }
 }

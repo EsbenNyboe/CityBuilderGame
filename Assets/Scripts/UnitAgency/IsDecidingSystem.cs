@@ -25,7 +25,8 @@ namespace UnitAgency
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var commands = new EntityCommandBuffer(state.WorldUpdateAllocator);
             foreach (var (_, inventory, moodSleepiness, entity)
-                     in SystemAPI.Query<RefRO<IsDeciding>, RefRO<Inventory>, RefRO<MoodSleepiness>>().WithEntityAccess())
+                     in SystemAPI.Query<RefRO<IsDeciding>, RefRO<Inventory>, RefRO<MoodSleepiness>>()
+                         .WithEntityAccess())
             {
                 commands.RemoveComponent<IsDeciding>(entity);
                 DecideNextBehaviour(ref state, ref gridManager, commands, inventory, moodSleepiness, entity);
@@ -80,11 +81,11 @@ namespace UnitAgency
             return inventory.CurrentItem == InventoryItem.LogOfWood;
         }
 
-        private bool IsAdjacentToTree(ref SystemState state, GridManager gridManager, float3 unitPosition, out int2 tree)
+        private bool IsAdjacentToTree(ref SystemState state, GridManager gridManager, float3 unitPosition,
+            out int2 tree)
         {
-            GridHelpers.GetXY(unitPosition, out var x, out var y);
-            var foundTree = gridManager.TryGetNeighbouringTreeCell(x, y, out var treeX, out var treeY);
-            tree = new int2(treeX, treeY);
+            var cell = GridHelpers.GetXY(unitPosition);
+            var foundTree = gridManager.TryGetNeighbouringTreeCell(cell, out tree);
             return foundTree;
         }
     }

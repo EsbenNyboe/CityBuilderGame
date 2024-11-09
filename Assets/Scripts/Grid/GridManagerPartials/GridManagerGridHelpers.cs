@@ -8,10 +8,10 @@ public partial struct GridManager
 
     public int2 GetXY(int i)
     {
-        GetXY(i, out int x, out int y);
+        GetXY(i, out var x, out var y);
         return new int2(x, y);
     }
-    
+
     public void GetXY(int i, out int x, out int y)
     {
         x = i / Height;
@@ -64,6 +64,11 @@ public partial struct GridManager
         return IsPositionInsideGrid(cell) && IsBed(cell) && !IsOccupied(cell, unit) && IsWalkable(cell);
     }
 
+    public bool IsTree(int2 cell)
+    {
+        return IsPositionInsideGrid(cell) && IsDamageable(cell);
+    }
+
     private bool IsAvailableBed(int2 cell)
     {
         return IsPositionInsideGrid(cell) && IsBed(cell) && !IsOccupied(cell) && IsWalkable(cell);
@@ -74,9 +79,9 @@ public partial struct GridManager
         return IsPositionInsideGrid(cell) && IsWalkable(cell) && !IsOccupied(cell) && !IsInteractable(cell);
     }
 
-    private bool IsVacantCell(int2 cell)
+    private bool IsVacantCell(int2 cell, Entity askingEntity)
     {
-        return IsPositionInsideGrid(cell) && IsWalkable(cell) && !IsOccupied(cell);
+        return IsPositionInsideGrid(cell) && IsWalkable(cell) && !IsOccupied(cell, askingEntity);
     }
 
     #endregion
