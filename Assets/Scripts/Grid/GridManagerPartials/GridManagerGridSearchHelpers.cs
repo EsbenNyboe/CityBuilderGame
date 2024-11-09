@@ -2,7 +2,6 @@ using Unity.Assertions;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Random = UnityEngine.Random;
 
 public partial struct GridManager
 {
@@ -189,11 +188,12 @@ public partial struct GridManager
 
     public bool TryGetNearbyEmptyCellSemiRandom(int2 center, out int2 nearbyCell)
     {
+        var randomGenerator = GetRandom(center);
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
             var ringStart = RelativePositionRingInfoList[ring].x;
             var ringEnd = RelativePositionRingInfoList[ring].y;
-            var randomStartIndex = Random.Range(ringStart, ringEnd);
+            var randomStartIndex = randomGenerator.NextInt(ringStart, ringEnd);
             var currentIndex = randomStartIndex + 1;
 
             while (currentIndex != randomStartIndex)
@@ -295,11 +295,11 @@ public partial struct GridManager
         neighbourY = y + NeighbourDeltas[index].y;
     }
 
-    private static Unity.Mathematics.Random GetRandom(int2 seedFromCell)
+    private static Random GetRandom(int2 seedFromCell)
     {
         var randomSeed = (uint)(seedFromCell.x + seedFromCell.y);
         // Add 1, because a seed must be more than zero.
-        var randomGenerator = new Unity.Mathematics.Random(randomSeed + 1);
+        var randomGenerator = new Random(randomSeed + 1);
         return randomGenerator;
     }
 
