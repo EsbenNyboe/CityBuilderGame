@@ -1,12 +1,11 @@
 using Unity.Entities;
 
-[UpdateInGroup(typeof(SimulationSystemGroup))]
+[UpdateInGroup(typeof(InitializationSystemGroup))]
 public partial class GridSystemGroup : ComponentSystemGroup
 {
 }
 
 [UpdateInGroup(typeof(SimulationSystemGroup))]
-[UpdateAfter(typeof(GridSystemGroup))]
 public partial class SpawningSystemGroup : ComponentSystemGroup
 {
 }
@@ -19,12 +18,6 @@ public partial class UnitBehaviourSystemGroup : ComponentSystemGroup
 
 [UpdateInGroup(typeof(SimulationSystemGroup))]
 [UpdateAfter(typeof(UnitBehaviourSystemGroup))]
-public partial class MovementSystemGroup : ComponentSystemGroup
-{
-}
-
-[UpdateInGroup(typeof(SimulationSystemGroup))]
-[UpdateAfter(typeof(MovementSystemGroup))]
 public partial class AnimationSystemGroup : ComponentSystemGroup
 {
 }
@@ -32,5 +25,10 @@ public partial class AnimationSystemGroup : ComponentSystemGroup
 [UpdateInGroup(typeof(SimulationSystemGroup))]
 [UpdateAfter(typeof(AnimationSystemGroup))]
 public partial class RenderingSystemGroup : ComponentSystemGroup
+{
+}
+
+[UpdateInGroup(typeof(PresentationSystemGroup), OrderFirst = true)]
+public partial class UnitStateSystemGroup : ComponentSystemGroup
 {
 }

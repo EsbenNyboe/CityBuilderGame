@@ -9,6 +9,8 @@ public partial struct GridManager
 {
     #region GridSearchHelpers
 
+    private const bool PrintDebug = false;
+
     public bool TryGetNeighbouringTreeCell(int2 center, out int2 neighbouringTreeCell)
     {
         var randomSeed = (uint)(center.x + center.y);
@@ -155,19 +157,26 @@ public partial struct GridManager
             }
         }
 
-        Debug.LogWarning("No available chopping cell was found within the search-range");
+        if (PrintDebug)
+        {
+            Debug.LogWarning("No available chopping cell was found within the search-range");
+        }
+
         availableChoppingCell = -1;
         return false;
     }
 
     public bool TryGetClosestBedSemiRandom(int2 center, out int2 availableBed)
     {
+        var randomSeed = (uint)(center.x + center.y);
+        var randomGenerator = new Unity.Mathematics.Random(randomSeed);
+
         // TODO: Can this be refactored, so it doesn't duplicate so much code for every variant of this search-pattern?
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
             var ringStart = RelativePositionRingInfoList[ring].x;
             var ringEnd = RelativePositionRingInfoList[ring].y;
-            var randomStartIndex = Random.Range(ringStart, ringEnd);
+            var randomStartIndex = randomGenerator.NextInt(ringStart, ringEnd);
             var currentIndex = randomStartIndex + 1;
 
             while (currentIndex != randomStartIndex)
@@ -186,7 +195,11 @@ public partial struct GridManager
             }
         }
 
-        Debug.LogWarning("No available bed was found within the search-range");
+        if (PrintDebug)
+        {
+            Debug.LogWarning("No available bed was found within the search-range");
+        }
+
         availableBed = new int2(-1, -1);
         return false;
     }
@@ -216,7 +229,11 @@ public partial struct GridManager
             }
         }
 
-        Debug.LogError("No nearby empty cell was found");
+        if (PrintDebug)
+        {
+            Debug.LogError("No nearby empty cell was found");
+        }
+
         nearbyCell = new int2(-1, -1);
         return false;
     }

@@ -6,7 +6,7 @@ using Unity.Transforms;
 using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 
-[UpdateInGroup(typeof(MovementSystemGroup))]
+[UpdateInGroup(typeof(UnitStateSystemGroup))]
 [BurstCompile]
 public partial struct PathFollowSystem : ISystem
 {
@@ -24,7 +24,8 @@ public partial struct PathFollowSystem : ISystem
         var entityCommandBuffer = new EntityCommandBuffer(Allocator.Temp);
 
         foreach (var (localTransform, pathPositionBuffer, pathFollow, spriteTransform, entity) in SystemAPI
-                     .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>, RefRW<SpriteTransform>>().WithEntityAccess())
+                     .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>,
+                         RefRW<SpriteTransform>>().WithEntityAccess())
         {
             if (pathFollow.ValueRO.PathIndex < 0)
             {
@@ -37,13 +38,15 @@ public partial struct PathFollowSystem : ISystem
             var moveSpeed = 5f;
 
             var distanceBeforeMoving = math.distance(localTransform.ValueRO.Position, targetPosition);
-            localTransform.ValueRW.Position += moveDirection * moveSpeed * SystemAPI.Time.DeltaTime; // * Globals.GameSpeed();
+            localTransform.ValueRW.Position +=
+                moveDirection * moveSpeed * SystemAPI.Time.DeltaTime; // * Globals.GameSpeed();
             var distanceAfterMoving = math.distance(localTransform.ValueRO.Position, targetPosition);
 
             if (ShowDebug)
             {
                 var pathEndPosition = pathPositionBuffer[0].Position;
-                Debug.DrawLine(localTransform.ValueRO.Position, new Vector3(pathEndPosition.x, pathEndPosition.y), Color.red);
+                Debug.DrawLine(localTransform.ValueRO.Position, new Vector3(pathEndPosition.x, pathEndPosition.y),
+                    Color.red);
             }
 
             var unitIsOnNextPathPosition = distanceAfterMoving < 0.1f;
