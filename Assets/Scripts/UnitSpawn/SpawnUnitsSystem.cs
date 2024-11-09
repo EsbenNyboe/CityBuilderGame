@@ -63,7 +63,7 @@ public partial class SpawnUnitsSystem : SystemBase
 
             if (!GetNextGridPosition(gridManager, gridIndex, out x, out y))
             {
-                Debug.Log("No valid grid position found: Outside range");
+                DebugHelper.Log("No valid grid position found: Outside range");
                 return false;
             }
 
@@ -75,7 +75,7 @@ public partial class SpawnUnitsSystem : SystemBase
             gridIndex++;
         }
 
-        Debug.Log("No valid grid position found: Not walkable");
+        DebugHelper.Log("No valid grid position found: Not walkable");
         return false;
     }
 

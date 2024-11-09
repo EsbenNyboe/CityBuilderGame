@@ -191,7 +191,7 @@ public partial struct PathfindingSystem : ISystem
             if (endNode.cameFromNodeIndex == -1)
             {
                 // Didn't find a path!
-                // Debug.LogError("Didn't find a path!");
+                DebugHelper.LogError("Didn't find a path!");
                 PathFollowLookup[Entity] = new PathFollow
                 {
                     PathIndex = -1

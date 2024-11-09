@@ -84,7 +84,7 @@ public partial struct PathFollowSystem : ISystem
                         }
                         else
                         {
-                            DebugLogHelper.DebugLogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
+                            DebugHelper.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
                         }
                     }
                 }

@@ -212,7 +212,7 @@ public partial class UnitControlSystem : SystemBase
 
             if (attempts > maxAttempts)
             {
-                Debug.Log("Could not find valid position target... canceling move order");
+                DebugHelper.Log("Could not find valid position target... canceling move order");
                 continue;
             }
 
@@ -228,7 +228,7 @@ public partial class UnitControlSystem : SystemBase
 
         if (!TryGetWalkableNeighbourCells(ref gridManager, targetGridCell, walkableNeighbourCells))
         {
-            Debug.Log("No walkable neighbour cell found. Please try again!");
+            DebugHelper.Log("No walkable neighbour cell found. Please try again!");
             return;
         }
 

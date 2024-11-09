@@ -1,6 +1,5 @@
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 
 public static class PathHelpers
 {
@@ -39,7 +38,7 @@ public static class PathHelpers
     {
         if (startCell.x == endCell.x && startCell.y == endCell.y)
         {
-            Debug.Log("No need to set a path. Already at destination");
+            DebugHelper.Log("No need to set a path. Already at destination");
             return true;
         }
 

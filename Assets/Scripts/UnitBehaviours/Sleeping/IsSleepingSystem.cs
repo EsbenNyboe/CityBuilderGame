@@ -1,7 +1,6 @@
 using UnitAgency;
 using Unity.Entities;
 using Unity.Transforms;
-using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 using SystemState = Unity.Entities.SystemState;
 
@@ -22,7 +21,8 @@ public partial struct IsSleepingSystem : ISystem
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
         foreach (var (localTransform, pathFollow, moodSleepiness, entity) in SystemAPI
-                     .Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodSleepiness>>().WithAll<IsSleeping>().WithEntityAccess())
+                     .Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodSleepiness>>().WithAll<IsSleeping>()
+                     .WithEntityAccess())
         {
             if (pathFollow.ValueRO.IsMoving())
             {
@@ -45,7 +45,8 @@ public partial struct IsSleepingSystem : ISystem
         ecb.Playback(state.EntityManager);
     }
 
-    private void GoAwayFromBed(  ref SystemState state, EntityCommandBuffer commands, ref GridManager gridManager, Entity entity)
+    private void GoAwayFromBed(  ref SystemState state, EntityCommandBuffer commands, ref GridManager gridManager,
+        Entity entity)
     {
         // I should leave the bed-area, so others can use the bed...
         var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
@@ -56,7 +57,7 @@ public partial struct IsSleepingSystem : ISystem
         }
         else
         {
-            Debug.Log("Seems like someone else was spooning me, while I slept... They can keep the bed!");
+            DebugHelper.Log("Seems like someone else was spooning me, while I slept... They can keep the bed!");
         }
 
         var currentCell = GridHelpers.GetXY(unitPosition);
