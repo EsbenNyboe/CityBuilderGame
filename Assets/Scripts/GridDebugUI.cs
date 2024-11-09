@@ -42,7 +42,9 @@ public class GridDebugUI : MonoBehaviour
         if (_gridManagerSystemHandle == default)
         {
             _gridManagerSystemHandle = World.DefaultGameObjectInjectionWorld.GetExistingSystem<GridManagerSystem>();
-            var gridManager = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerSystemHandle);
+            var gridManager =
+                World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(
+                    _gridManagerSystemHandle);
 
             _debugTextArrayX = new Text[gridManager.Width];
             _debugTextArrayY = new Text[gridManager.Height];
@@ -51,12 +53,14 @@ public class GridDebugUI : MonoBehaviour
             {
                 var uiPosition = camera.WorldToScreenPoint(new Vector2(x, yTop));
                 _debugTextArrayX[x] = UtilsClass.DrawTextUI(x.ToString(), _uiParent, uiPosition, 20, _font);
+                _debugTextArrayX[x].alignment = TextAnchor.MiddleCenter;
             }
 
             for (var y = 0; y < _debugTextArrayY.Length; y++)
             {
                 var uiPosition = camera.WorldToScreenPoint(new Vector2(xLeft, y));
                 _debugTextArrayY[y] = UtilsClass.DrawTextUI(y.ToString(), _uiParent, uiPosition, 20, _font);
+                _debugTextArrayX[y].alignment = TextAnchor.MiddleCenter;
             }
 
             return;
