@@ -9,6 +9,8 @@ public partial struct GridManager
 {
     #region GridSearchHelpers
 
+    private const bool PrintDebug = false;
+
     public bool TryGetNeighbouringTreeCell(int2 center, out int2 neighbouringTreeCell)
     {
         var randomSeed = (uint)(center.x + center.y);
@@ -155,7 +157,11 @@ public partial struct GridManager
             }
         }
 
-        Debug.LogWarning("No available chopping cell was found within the search-range");
+        if (PrintDebug)
+        {
+            Debug.LogWarning("No available chopping cell was found within the search-range");
+        }
+
         availableChoppingCell = -1;
         return false;
     }
@@ -186,7 +192,11 @@ public partial struct GridManager
             }
         }
 
-        Debug.LogWarning("No available bed was found within the search-range");
+        if (PrintDebug)
+        {
+            Debug.LogWarning("No available bed was found within the search-range");
+        }
+
         availableBed = new int2(-1, -1);
         return false;
     }
@@ -216,7 +226,11 @@ public partial struct GridManager
             }
         }
 
-        Debug.LogError("No nearby empty cell was found");
+        if (PrintDebug)
+        {
+            Debug.LogError("No nearby empty cell was found");
+        }
+
         nearbyCell = new int2(-1, -1);
         return false;
     }
