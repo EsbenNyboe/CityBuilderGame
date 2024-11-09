@@ -34,21 +34,18 @@ namespace UnitBehaviours.AutonomousHarvesting
                 {
                     continue;
                 }
-                // I reacted my destination / I'm standing still: I should find a tree!
 
-                var job = new SeekTreeJob
+                // I reacted my destination / I'm standing still: I should find a tree!
+                jobHandleList.Add(new SeekTreeJob
                 {
                     CurrentCell = GridHelpers.GetXY(localTransform.ValueRO.Position),
                     Entity = entity,
                     GridManager = gridManager,
                     Ecb = GetEntityCommandBuffer(ref state)
-                };
-                jobHandleList.Add(job.Schedule());
+                }.Schedule());
             }
 
             JobHandle.CompleteAll(jobHandleList.AsArray());
-
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
             jobHandleList.Dispose();
         }
 
