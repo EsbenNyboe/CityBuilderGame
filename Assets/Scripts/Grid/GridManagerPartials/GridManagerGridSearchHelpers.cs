@@ -13,8 +13,7 @@ public partial struct GridManager
 
     public bool TryGetNeighbouringTreeCell(int2 center, out int2 neighbouringTreeCell)
     {
-        var randomSeed = (uint)(center.x + center.y);
-        var randomGenerator = new Unity.Mathematics.Random(randomSeed);
+        var randomGenerator = GetRandom(center);
         var randomStartIndex = randomGenerator.NextInt(0, 8);
         var currentIndex = randomStartIndex + 1;
 
@@ -126,11 +125,7 @@ public partial struct GridManager
 
     public bool TryGetClosestChoppingCellSemiRandom(int2 selfCell, Entity selfEntity, out int2 availableChoppingCell)
     {
-        // TODO: Can this be refactored, so it doesn't duplicate so much code for every variant of this search-pattern?
-
-        // TODO: Test how well this random-seed works
-        var randomSeed = (uint)(selfCell.x + selfCell.y);
-        var randomGenerator = new Unity.Mathematics.Random(randomSeed);
+        var randomGenerator = GetRandom(selfCell);
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
             var ringStart = RelativePositionRingInfoList[ring].x;
@@ -168,10 +163,7 @@ public partial struct GridManager
 
     public bool TryGetClosestBedSemiRandom(int2 center, out int2 availableBed)
     {
-        var randomSeed = (uint)(center.x + center.y);
-        var randomGenerator = new Unity.Mathematics.Random(randomSeed);
-
-        // TODO: Can this be refactored, so it doesn't duplicate so much code for every variant of this search-pattern?
+        var randomGenerator = GetRandom(center);
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
             var ringStart = RelativePositionRingInfoList[ring].x;
@@ -240,8 +232,6 @@ public partial struct GridManager
 
     public void PopulateRelativePositionList(int relativePositionListRadius)
     {
-        // TODO: Refactor and combine with PositionList-logic (or select one or the other)
-
         var ringCount = relativePositionListRadius;
         var index = 0;
         // the first index is the center position
@@ -315,6 +305,14 @@ public partial struct GridManager
 
         neighbourX = x + NeighbourDeltas[index].x;
         neighbourY = y + NeighbourDeltas[index].y;
+    }
+
+    private static Unity.Mathematics.Random GetRandom(int2 seedFromCell)
+    {
+        var randomSeed = (uint)(seedFromCell.x + seedFromCell.y);
+        // Add 1, because a seed must be more than zero.
+        var randomGenerator = new Unity.Mathematics.Random(randomSeed + 1);
+        return randomGenerator;
     }
 
     #endregion
