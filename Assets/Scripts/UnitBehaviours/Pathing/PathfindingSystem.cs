@@ -5,7 +5,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-[UpdateInGroup(typeof(MovementSystemGroup))]
+[UpdateInGroup(typeof(UnitStateSystemGroup))]
 [UpdateAfter(typeof(PathFollowSystem))]
 public partial struct PathfindingSystem : ISystem
 {
@@ -81,7 +81,8 @@ public partial struct PathfindingSystem : ISystem
         return pathNodeArray;
     }
 
-    private static void PopulatePathNodeArray(ref NativeArray<PathNode> pathNodeArray, NativeArray<WalkableCell> grid, int2 gridSize)
+    private static void PopulatePathNodeArray(ref NativeArray<PathNode> pathNodeArray, NativeArray<WalkableCell> grid,
+        int2 gridSize)
     {
         for (var x = 0; x < gridSize.x; x++)
         {
@@ -102,7 +103,8 @@ public partial struct PathfindingSystem : ISystem
         }
     }
 
-    private static void CalculatePath(NativeArray<PathNode> pathNodeArray, PathNode endNode, DynamicBuffer<PathPosition> pathPositionBuffer)
+    private static void CalculatePath(NativeArray<PathNode> pathNodeArray, PathNode endNode,
+        DynamicBuffer<PathPosition> pathPositionBuffer)
     {
         if (endNode.cameFromNodeIndex == -1)
         {
@@ -298,7 +300,9 @@ public partial struct PathfindingSystem : ISystem
                         continue;
                     }
 
-                    var tentativeGCost = currentNode.gCost + CalculateDistanceCost(currentNode.x, currentNode.y, neighbourPosX, neighbourPosY);
+                    var tentativeGCost = currentNode.gCost +
+                                         CalculateDistanceCost(currentNode.x, currentNode.y, neighbourPosX,
+                                             neighbourPosY);
                     if (tentativeGCost < neighbourNode.gCost)
                     {
                         neighbourNode.cameFromNodeIndex = currentNodeIndex;

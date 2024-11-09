@@ -3,7 +3,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateInGroup(typeof(MovementSystemGroup))]
+[UpdateInGroup(typeof(UnitStateSystemGroup))]
 public partial class UnitSelectionSystem : SystemBase
 {
     private SystemHandle _gridManagerSystemHandle;
@@ -39,7 +39,8 @@ public partial class UnitSelectionSystem : SystemBase
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
 
-        foreach (var (unitSelection, localTransform, entity) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
+        foreach (var (unitSelection, localTransform, entity) in SystemAPI
+                     .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
         {
             var unitPosition = localTransform.ValueRO.Position;
             GridHelpers.GetXY(unitPosition, out var x, out var y);
