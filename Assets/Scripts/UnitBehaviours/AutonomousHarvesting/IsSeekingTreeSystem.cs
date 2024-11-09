@@ -9,16 +9,19 @@ using Unity.Transforms;
 namespace UnitBehaviours.AutonomousHarvesting
 {
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
-    public partial class IsSeekingTreeSystem : SystemBase
+    [BurstCompile]
+    public partial struct IsSeekingTreeSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
-            _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
         }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
@@ -31,18 +34,14 @@ namespace UnitBehaviours.AutonomousHarvesting
                 {
                     continue;
                 }
-                // I reacted my destination / I'm standing still: I should find a bed!
+                // I reacted my destination / I'm standing still: I should find a tree!
 
-                // Am I adjacent to a tree?
-
-                var ecb = GetEntityCommandBuffer();
-                var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
                 var job = new SeekTreeJob
                 {
-                    currentCell = currentCell,
-                    entity = entity,
-                    gridManager = gridManager,
-                    ecb = ecb
+                    CurrentCell = GridHelpers.GetXY(localTransform.ValueRO.Position),
+                    Entity = entity,
+                    GridManager = gridManager,
+                    Ecb = GetEntityCommandBuffer(ref state)
                 };
                 jobHandleList.Add(job.Schedule());
             }
@@ -53,42 +52,44 @@ namespace UnitBehaviours.AutonomousHarvesting
             jobHandleList.Dispose();
         }
 
-        private EntityCommandBuffer GetEntityCommandBuffer()
+        [BurstCompile]
+        private EntityCommandBuffer GetEntityCommandBuffer(ref SystemState state)
         {
             var ecbTest = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
-            return ecbTest.CreateCommandBuffer(World.Unmanaged);
+            return ecbTest.CreateCommandBuffer(state.WorldUnmanaged);
         }
     }
 
     [BurstCompile]
     public struct SeekTreeJob : IJob
     {
-        [ReadOnly] public int2 currentCell;
-        [ReadOnly] public Entity entity;
-        [ReadOnly] public GridManager gridManager;
-        public EntityCommandBuffer ecb;
+        [ReadOnly] public int2 CurrentCell;
+        [ReadOnly] public Entity Entity;
+        [ReadOnly] public GridManager GridManager;
+        public EntityCommandBuffer Ecb;
 
         public void Execute()
         {
-            if (gridManager.TryGetNeighbouringTreeCell(currentCell, out _))
+            // Am I adjacent to a tree?
+            if (GridManager.TryGetNeighbouringTreeCell(CurrentCell, out _))
             {
                 // I found my adjacent tree! 
-                ecb.RemoveComponent<IsSeekingTree>(entity);
-                ecb.AddComponent<IsDeciding>(entity);
+                Ecb.RemoveComponent<IsSeekingTree>(Entity);
+                Ecb.AddComponent<IsDeciding>(Entity);
                 return;
             }
 
             // I'm not next to a tree... I should find the closest tree.
-            if (!gridManager.TryGetClosestChoppingCellSemiRandom(currentCell, entity, out var choppingCell))
+            if (!GridManager.TryGetClosestChoppingCellSemiRandom(CurrentCell, Entity, out var choppingCell))
             {
                 // I can't see any nearby trees
-                ecb.RemoveComponent<IsSeekingTree>(entity);
-                ecb.AddComponent<IsDeciding>(entity);
+                Ecb.RemoveComponent<IsSeekingTree>(Entity);
+                Ecb.AddComponent<IsDeciding>(Entity);
                 return;
             }
 
             // I found a tree!! I will go there! 
-            PathHelpers.TrySetPath(ecb, entity, currentCell, choppingCell);
+            PathHelpers.TrySetPath(Ecb, Entity, CurrentCell, choppingCell);
         }
     }
 }
