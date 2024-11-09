@@ -39,8 +39,8 @@ namespace UnitBehaviours.Sleeping
                 {
                     continue;
                 }
-                // I reacted my destination / I'm standing still: I should find a bed!
 
+                // I reacted my destination / I'm standing still: I should find a bed!
                 jobHandleList.Add(new SeekBedJob
                 {
                     currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position),
@@ -52,7 +52,6 @@ namespace UnitBehaviours.Sleeping
 
             JobHandle.CompleteAll(jobHandleList.AsArray());
             jobHandleList.Dispose();
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
         [BurstCompile]
