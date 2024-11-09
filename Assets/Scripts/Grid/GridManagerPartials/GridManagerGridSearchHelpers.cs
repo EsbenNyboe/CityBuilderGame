@@ -168,12 +168,15 @@ public partial struct GridManager
 
     public bool TryGetClosestBedSemiRandom(int2 center, out int2 availableBed)
     {
+        var randomSeed = (uint)(center.x + center.y);
+        var randomGenerator = new Unity.Mathematics.Random(randomSeed);
+
         // TODO: Can this be refactored, so it doesn't duplicate so much code for every variant of this search-pattern?
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
             var ringStart = RelativePositionRingInfoList[ring].x;
             var ringEnd = RelativePositionRingInfoList[ring].y;
-            var randomStartIndex = Random.Range(ringStart, ringEnd);
+            var randomStartIndex = randomGenerator.NextInt(ringStart, ringEnd);
             var currentIndex = randomStartIndex + 1;
 
             while (currentIndex != randomStartIndex)
