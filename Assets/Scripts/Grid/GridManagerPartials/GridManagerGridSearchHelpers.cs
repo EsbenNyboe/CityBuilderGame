@@ -9,8 +9,7 @@ public partial struct GridManager
 
     public bool TryGetNeighbouringTreeCell(int2 center, out int2 neighbouringTreeCell)
     {
-        var randomGenerator = GetRandom(center);
-        var randomStartIndex = randomGenerator.NextInt(0, 8);
+        var randomStartIndex = GetSemiRandomIndex(0, 8);
         var currentIndex = randomStartIndex + 1;
 
         while (currentIndex != randomStartIndex)
@@ -121,13 +120,11 @@ public partial struct GridManager
 
     public bool TryGetClosestChoppingCellSemiRandom(int2 selfCell, Entity selfEntity, out int2 availableChoppingCell)
     {
-        var randomGenerator = GetRandom(selfCell);
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
             var ringStart = RelativePositionRingInfoList[ring].x;
             var ringEnd = RelativePositionRingInfoList[ring].y;
-            var randomStartIndex = randomGenerator.NextInt(ringStart, ringEnd);
-
+            var randomStartIndex = GetSemiRandomIndex(ringStart, ringEnd);
             var currentIndex = randomStartIndex + 1;
 
             while (currentIndex != randomStartIndex)
@@ -156,12 +153,11 @@ public partial struct GridManager
 
     public bool TryGetClosestBedSemiRandom(int2 center, out int2 availableBed)
     {
-        var randomGenerator = GetRandom(center);
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
             var ringStart = RelativePositionRingInfoList[ring].x;
             var ringEnd = RelativePositionRingInfoList[ring].y;
-            var randomStartIndex = randomGenerator.NextInt(ringStart, ringEnd);
+            var randomStartIndex = GetSemiRandomIndex(ringStart, ringEnd);
             var currentIndex = randomStartIndex + 1;
 
             while (currentIndex != randomStartIndex)
@@ -188,12 +184,11 @@ public partial struct GridManager
 
     public bool TryGetNearbyEmptyCellSemiRandom(int2 center, out int2 nearbyCell)
     {
-        var randomGenerator = GetRandom(center);
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
             var ringStart = RelativePositionRingInfoList[ring].x;
             var ringEnd = RelativePositionRingInfoList[ring].y;
-            var randomStartIndex = randomGenerator.NextInt(ringStart, ringEnd);
+            var randomStartIndex = GetSemiRandomIndex(ringStart, ringEnd);
             var currentIndex = randomStartIndex + 1;
 
             while (currentIndex != randomStartIndex)
@@ -217,6 +212,7 @@ public partial struct GridManager
         nearbyCell = new int2(-1, -1);
         return false;
     }
+
 
     public void PopulateRelativePositionList(int relativePositionListRadius)
     {
@@ -295,12 +291,9 @@ public partial struct GridManager
         neighbourY = y + NeighbourDeltas[index].y;
     }
 
-    private static Random GetRandom(int2 seedFromCell)
+    private int GetSemiRandomIndex(int minInclusive, int maxExclusive)
     {
-        var randomSeed = (uint)(seedFromCell.x + seedFromCell.y);
-        // Add 1, because a seed must be more than zero.
-        var randomGenerator = new Random(randomSeed + 1);
-        return randomGenerator;
+        return Random.NextInt(minInclusive, maxExclusive);
     }
 
     #endregion

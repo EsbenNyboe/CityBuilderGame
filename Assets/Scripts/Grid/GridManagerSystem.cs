@@ -22,6 +22,9 @@ public partial struct GridManager : IComponentData
 
     public NativeArray<int2> RelativePositionList;
     public NativeArray<int2> RelativePositionRingInfoList;
+
+    public Random Random;
+    public uint RandomSeed;
 }
 
 [UpdateInGroup(typeof(GridSystemGroup), OrderFirst = true)]
@@ -46,6 +49,10 @@ public partial class GridManagerSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        var gridManager = SystemAPI.GetComponent<GridManager>(SystemHandle);
+        gridManager.RandomSeed++;
+        gridManager.Random = Random.CreateFromIndex(gridManager.RandomSeed);
+        SystemAPI.SetComponent(SystemHandle, gridManager);
     }
 
     protected override void OnDestroy()
