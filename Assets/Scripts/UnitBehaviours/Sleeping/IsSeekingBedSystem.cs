@@ -43,10 +43,10 @@ namespace UnitBehaviours.Sleeping
                 // I reacted my destination / I'm standing still: I should find a bed!
                 jobHandleList.Add(new SeekBedJob
                 {
-                    currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position),
-                    entity = entity,
-                    gridManager = gridManager,
-                    ecb = GetEntityCommandBuffer(ref state)
+                    CurrentCell = GridHelpers.GetXY(localTransform.ValueRO.Position),
+                    Entity = entity,
+                    GridManager = gridManager,
+                    ECB = GetEntityCommandBuffer(ref state)
                 }.Schedule());
             }
 
@@ -65,32 +65,32 @@ namespace UnitBehaviours.Sleeping
     [BurstCompile]
     public struct SeekBedJob : IJob
     {
-        [ReadOnly] public int2 currentCell;
-        [ReadOnly] public Entity entity;
-        [ReadOnly] public GridManager gridManager;
-        public EntityCommandBuffer ecb;
+        [ReadOnly] public int2 CurrentCell;
+        [ReadOnly] public Entity Entity;
+        [ReadOnly] public GridManager GridManager;
+        public EntityCommandBuffer ECB;
 
         public void Execute()
         {
             // Am I on a bed?
-            if (gridManager.IsBed(currentCell) && !gridManager.IsOccupied(currentCell, entity))
+            if (GridManager.IsBed(CurrentCell) && !GridManager.IsOccupied(CurrentCell, Entity))
             {
                 // Ahhhh, I found my bed! 
-                ecb.RemoveComponent<IsSeekingBed>(entity);
-                ecb.AddComponent<IsDeciding>(entity);
+                ECB.RemoveComponent<IsSeekingBed>(Entity);
+                ECB.AddComponent<IsDeciding>(Entity);
                 return;
             }
 
             // I'm not on a bed... I should find the closest bed.
-            if (!gridManager.TryGetClosestBedSemiRandom(currentCell, out var closestAvailableBed))
+            if (!GridManager.TryGetClosestBedSemiRandom(CurrentCell, out var closestAvailableBed))
             {
                 // There is no available bed anywhere!
-                if (gridManager.IsInteractable(currentCell))
+                if (GridManager.IsInteractable(CurrentCell))
                 {
                     // Whoops, I'm standing on a bed.. I should move..
-                    if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out var nearbyCell))
+                    if (GridManager.TryGetNearbyEmptyCellSemiRandom(CurrentCell, out var nearbyCell))
                     {
-                        PathHelpers.TrySetPath(ecb, entity, currentCell, nearbyCell);
+                        PathHelpers.TrySetPath(ECB, Entity, CurrentCell, nearbyCell);
                     }
                 }
 
@@ -100,7 +100,7 @@ namespace UnitBehaviours.Sleeping
             }
 
             // I found a bed!! I will go there! 
-            PathHelpers.TrySetPath(ecb, entity, currentCell, closestAvailableBed);
+            PathHelpers.TrySetPath(ECB, Entity, CurrentCell, closestAvailableBed);
         }
     }
 }
