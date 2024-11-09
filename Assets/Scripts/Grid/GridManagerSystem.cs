@@ -17,7 +17,6 @@ public partial struct GridManager : IComponentData
 
     // GridSearchHelpers:
     public NativeArray<int2> NeighbourDeltas;
-    public NativeList<int> RandomNearbyCellIndexList;
     public int PositionListRadius;
     public NativeArray<int2> PositionList;
 
@@ -60,7 +59,6 @@ public partial class GridManagerSystem : SystemBase
 
         // GridSearchHelpers:
         gridManager.NeighbourDeltas.Dispose();
-        gridManager.RandomNearbyCellIndexList.Dispose();
         gridManager.PositionList.Dispose();
         gridManager.RelativePositionList.Dispose();
         gridManager.RelativePositionRingInfoList.Dispose();
@@ -119,7 +117,6 @@ public partial class GridManagerSystem : SystemBase
                     new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1)
                 },
                 Allocator.Persistent);
-        gridManager.RandomNearbyCellIndexList = new NativeList<int>(Allocator.Persistent);
         gridManager.PositionListRadius = 50;
         gridManager.PositionList =
             new NativeArray<int2>(GridHelpers.CalculatePositionListLength(gridManager.PositionListRadius),
