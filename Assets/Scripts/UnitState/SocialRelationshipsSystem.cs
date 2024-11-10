@@ -70,6 +70,11 @@ namespace UnitState
     {
         public void OnUpdate(ref SystemState state)
         {
+            if (!Input.GetKey(KeyCode.KeypadMultiply))
+            {
+                return;
+            }
+            
             foreach (var (localTransform, socialRelationships) in SystemAPI
                          .Query<RefRO<LocalTransform>, RefRO<SocialRelationships>>().WithAll<UnitSelection>())
             {
