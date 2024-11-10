@@ -75,9 +75,15 @@ namespace UnitState
                     var position = localTransform.ValueRO.Position;
                     var direction = math.normalize(otherPosition - position);
                     var cross = math.cross(direction, new float3(0, 0, 0.1f));
-                    Debug.DrawLine(position + cross, otherPosition + cross, Color.red);
+                    Debug.DrawLine(position + cross, otherPosition + cross, GetRelationshipColor(relationship.Value));
                 }
             }
         }
+
+        private Color GetRelationshipColor(float relationshipValue) =>
+            Color.Lerp(
+                Color.gray,
+                relationshipValue > 0 ? Color.green : Color.red,
+                math.abs(relationshipValue));
     }
 }
