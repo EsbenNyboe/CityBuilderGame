@@ -1,5 +1,6 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -71,7 +72,10 @@ namespace UnitState
                 foreach (var relationship in socialRelationships.ValueRO.Relationships)
                 {
                     var otherPosition = SystemAPI.GetComponent<LocalTransform>(relationship.Key).Position;
-                    Debug.DrawLine(localTransform.ValueRO.Position, otherPosition, Color.red);
+                    var position = localTransform.ValueRO.Position;
+                    var direction = math.normalize(otherPosition - position);
+                    var cross = math.cross(direction, new float3(0, 0, 0.1f));
+                    Debug.DrawLine(position + cross, otherPosition + cross, Color.red);
                 }
             }
         }
