@@ -11,7 +11,7 @@ using ISystem = Unity.Entities.ISystem;
 public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
-    private const bool ShowDebug = true;
+    private const bool ShowDebug = false;
 
     public void OnCreate(ref SystemState state)
     {

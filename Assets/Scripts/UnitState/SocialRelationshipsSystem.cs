@@ -32,7 +32,11 @@ namespace UnitState
                 {
                     relationships.Add(existingEntity, 0);
                     existingSocialRelationships.ValueRW.Relationships.Add(spawnedEntity, 0);
-                    // TODO: Remember to add spawned entities to spawned social relationships.
+                }
+
+                foreach (var (_, otherSpawnedEntity) in SystemAPI.Query<RefRO<SpawnedUnit>>().WithEntityAccess())
+                {
+                    relationships.Add(otherSpawnedEntity, 0);
                 }
 
                 var socialRelationships = new SocialRelationships
@@ -61,7 +65,7 @@ namespace UnitState
             ecb.Playback(state.EntityManager);
         }
     }
-    
+
     public partial struct SocialRelationshipsDebugSystem : ISystem
     {
         public void OnUpdate(ref SystemState state)
