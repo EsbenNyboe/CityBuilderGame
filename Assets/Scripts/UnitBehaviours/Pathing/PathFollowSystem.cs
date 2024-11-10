@@ -1,3 +1,4 @@
+using UnitState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -12,6 +13,7 @@ public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
     private const bool ShowDebug = false;
+    private const float AnnoyanceFromBedOccupant = 0.5f;
 
     public void OnCreate(ref SystemState state)
     {
@@ -23,9 +25,10 @@ public partial struct PathFollowSystem : ISystem
     {
         var entityCommandBuffer = new EntityCommandBuffer(Allocator.Temp);
 
-        foreach (var (localTransform, pathPositionBuffer, pathFollow, spriteTransform, entity) in SystemAPI
+        foreach (var (localTransform, pathPositionBuffer, pathFollow, spriteTransform, socialRelationships, entity) in
+                 SystemAPI
                      .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>,
-                         RefRW<SpriteTransform>>().WithEntityAccess())
+                         RefRW<SpriteTransform>, RefRW<SocialRelationships>>().WithEntityAccess())
         {
             if (pathFollow.ValueRO.PathIndex < 0)
             {
@@ -77,6 +80,12 @@ public partial struct PathFollowSystem : ISystem
                     }
                     else
                     {
+                        if (gridManager.IsBed(targetPosition) && gridManager.IsOccupied(targetPosition, entity))
+                        {
+                            gridManager.TryGetOccupant(targetPosition, out var occupant);
+                            socialRelationships.ValueRW.Relationships[occupant] -= AnnoyanceFromBedOccupant;
+                        }
+
                         GridHelpers.GetXY(targetPosition, out var x, out var y);
                         if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell))
                         {
