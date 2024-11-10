@@ -24,19 +24,20 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var commands = new EntityCommandBuffer(state.WorldUpdateAllocator);
+            var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var soundManager = SystemAPI.GetComponent<DotsSoundManager>(_soundManagerSystemHandle);
             var chopAnimationManager = SystemAPI.GetComponent<ChopAnimationManager>(_chopAnimationManager);
 
             foreach (var (isHarvesting, localTransform, inventory, entity)
-                     in SystemAPI.Query<RefRW<IsHarvesting>, RefRO<LocalTransform>, RefRW<Inventory>>().WithEntityAccess())
+                     in SystemAPI.Query<RefRW<IsHarvesting>, RefRO<LocalTransform>, RefRW<Inventory>>()
+                         .WithEntityAccess())
             {
                 if (!gridManager.IsDamageable(isHarvesting.ValueRO.Tree))
                 {
-                    commands.RemoveComponent<IsHarvesting>(entity);
-                    commands.AddComponent(entity, new IsDeciding());
-                    commands.RemoveComponent<ChopAnimationTag>(entity);
+                    ecb.RemoveComponent<IsHarvesting>(entity);
+                    ecb.AddComponent(entity, new IsDeciding());
+                    ecb.RemoveComponent<ChopAnimationTag>(entity);
                     SystemAPI.SetComponent(entity, new SpriteTransform
                     {
                         Position = float3.zero,
@@ -48,8 +49,16 @@ namespace UnitBehaviours.AutonomousHarvesting
                 isHarvesting.ValueRW.TimeUntilNextChop -= SystemAPI.Time.DeltaTime;
                 if (isHarvesting.ValueRO.TimeUntilNextChop <= 0)
                 {
-                    ChopTree(
-                        ref state,
+                    var socialEventEntity = ecb.CreateEntity();
+                    ecb.AddComponent(socialEventEntity, new SocialEvent
+                    {
+                        Perpetrator = entity,
+                        Position = localTransform.ValueRO.Position,
+                        InfluenceAmount = 0.1f,
+                        InfluenceRadius = 3
+                    });
+
+                    ChopTree(ref state,
                         soundManager,
                         ref gridManager,
                         chopAnimationManager,
@@ -60,19 +69,17 @@ namespace UnitBehaviours.AutonomousHarvesting
                 }
             }
 
-            commands.Playback(state.EntityManager);
+            ecb.Playback(state.EntityManager);
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
-        private void ChopTree(
-            ref SystemState state,
+        private void ChopTree(ref SystemState state,
             DotsSoundManager soundManager,
             ref GridManager gridManager,
             ChopAnimationManager chopAnimationManager,
             int2 treeCoords,
             RefRO<LocalTransform> localTransform,
-            RefRW<Inventory> inventory
-        )
+            RefRW<Inventory> inventory)
         {
             var treeGridIndex = gridManager.GetIndex(treeCoords);
             gridManager.AddDamage(treeGridIndex, chopAnimationManager.DamagePerChop);
