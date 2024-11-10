@@ -16,11 +16,13 @@ public partial struct UnitAnimationSelectionSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         var unitAnimationManager = SystemAPI.GetComponent<UnitAnimationManager>(_unitAnimationManagerSystem);
+        var talkAnimation = unitAnimationManager.TalkAnimation.SpriteRow;
         var sleepAnimation = unitAnimationManager.SleepAnimation.SpriteRow;
         var walkAnimation = unitAnimationManager.WalkAnimation.SpriteRow;
         var idleAnimation = unitAnimationManager.IdleAnimation.SpriteRow;
 
-        foreach (var (unitAnimator, pathFollow) in SystemAPI.Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>>().WithNone<IsSleeping>())
+        foreach (var (unitAnimator, pathFollow) in SystemAPI.Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>>()
+                     .WithNone<IsSleeping>())
         {
             if (pathFollow.ValueRO.PathIndex < 0)
             {

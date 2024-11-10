@@ -2,6 +2,7 @@ using Unity.Entities;
 
 public struct UnitAnimationManager : IComponentData
 {
+    public AnimationConfig TalkAnimation;
     public AnimationConfig SleepAnimation;
     public AnimationConfig WalkAnimation;
     public AnimationConfig IdleAnimation;
@@ -23,26 +24,32 @@ public partial class UnitAnimationManagerSystem : SystemBase
     {
         var unitAnimationManager = new UnitAnimationManager
         {
-            SleepAnimation = new AnimationConfig
+            TalkAnimation = new AnimationConfig
             {
                 SpriteRow = 0,
+                FrameCount = 2,
+                FrameInterval = 0.4f
+            },
+            SleepAnimation = new AnimationConfig
+            {
+                SpriteRow = 1,
                 FrameCount = 3,
                 FrameInterval = 0.4f
             },
             WalkAnimation = new AnimationConfig
             {
-                SpriteRow = 1,
+                SpriteRow = 2,
                 FrameCount = 2,
                 FrameInterval = 0.11f
             },
             IdleAnimation = new AnimationConfig
             {
-                SpriteRow = 2,
+                SpriteRow = 3,
                 FrameCount = 2,
                 FrameInterval = 0.8f
             },
             SpriteColumns = 3,
-            SpriteRows = 3
+            SpriteRows = 4
         };
         EntityManager.AddComponent<UnitAnimationManager>(SystemHandle);
         SystemAPI.SetComponent(SystemHandle, unitAnimationManager);

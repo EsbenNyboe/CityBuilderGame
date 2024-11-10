@@ -24,20 +24,23 @@ public partial struct SpriteSheetAnimationSystem : ISystem
         var uvScaleY = 1f / unitAnimationManager.SpriteRows;
         var uvTemplate = new Vector4(uvScaleX, uvScaleY, 0, 0);
 
+        var talkAnimation = unitAnimationManager.TalkAnimation;
         var sleepAnimation = unitAnimationManager.SleepAnimation;
         var walkAnimation = unitAnimationManager.WalkAnimation;
         var idleAnimation = unitAnimationManager.IdleAnimation;
 
 
         foreach (var (spriteSheetAnimationData, localToWorld, spriteTransform, unitAnimator) in SystemAPI
-                     .Query<RefRW<SpriteSheetAnimation>, RefRO<LocalToWorld>, RefRO<SpriteTransform>, RefRW<UnitAnimationSelection>>())
+                     .Query<RefRW<SpriteSheetAnimation>, RefRO<LocalToWorld>, RefRO<SpriteTransform>,
+                         RefRW<UnitAnimationSelection>>())
         {
             var selectedAnimation = unitAnimator.ValueRO.SelectedAnimation;
             var animationConfig = selectedAnimation switch
             {
-                0 => sleepAnimation,
-                1 => walkAnimation,
-                2 => idleAnimation,
+                0 => talkAnimation,
+                1 => sleepAnimation,
+                2 => walkAnimation,
+                3 => idleAnimation,
                 _ => throw new ArgumentOutOfRangeException()
             };
 
@@ -59,7 +62,8 @@ public partial struct SpriteSheetAnimationSystem : ISystem
         }
     }
 
-    private void UpdateAnimation(ref SystemState state, RefRW<SpriteSheetAnimation> spriteSheetAnimationData, AnimationConfig animationConfig,
+    private void UpdateAnimation(ref SystemState state, RefRW<SpriteSheetAnimation> spriteSheetAnimationData,
+        AnimationConfig animationConfig,
         out bool updateUv)
     {
         updateUv = false;
@@ -67,12 +71,14 @@ public partial struct SpriteSheetAnimationSystem : ISystem
         while (spriteSheetAnimationData.ValueRO.FrameTimer > animationConfig.FrameInterval)
         {
             spriteSheetAnimationData.ValueRW.FrameTimer -= animationConfig.FrameInterval;
-            spriteSheetAnimationData.ValueRW.CurrentFrame = (spriteSheetAnimationData.ValueRO.CurrentFrame + 1) % animationConfig.FrameCount;
+            spriteSheetAnimationData.ValueRW.CurrentFrame =
+                (spriteSheetAnimationData.ValueRO.CurrentFrame + 1) % animationConfig.FrameCount;
             updateUv = true;
         }
     }
 
-    private static void SetMatrix(RefRW<SpriteSheetAnimation> spriteSheetAnimationData, RefRO<LocalToWorld> localToWorld,
+    private static void SetMatrix(RefRW<SpriteSheetAnimation> spriteSheetAnimationData,
+        RefRO<LocalToWorld> localToWorld,
         RefRO<SpriteTransform> spriteTransform)
     {
         var position = localToWorld.ValueRO.Position + spriteTransform.ValueRO.Position;
@@ -81,7 +87,8 @@ public partial struct SpriteSheetAnimationSystem : ISystem
         spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
     }
 
-    private static void SetUv(RefRW<SpriteSheetAnimation> spriteSheetAnimationData, AnimationConfig animationConfig, Vector4 uv)
+    private static void SetUv(RefRW<SpriteSheetAnimation> spriteSheetAnimationData, AnimationConfig animationConfig,
+        Vector4 uv)
     {
         var uvScaleX = uv.x;
         var uvOffsetX = uvScaleX * spriteSheetAnimationData.ValueRO.CurrentFrame;
