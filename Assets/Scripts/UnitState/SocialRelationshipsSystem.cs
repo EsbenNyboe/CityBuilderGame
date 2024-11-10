@@ -82,6 +82,28 @@ namespace UnitState
                     Debug.DrawLine(position + cross, otherPosition + cross, GetRelationshipColor(relationship.Value));
                 }
             }
+
+            float mutualFondnessIncrement = 0f;
+            if (Input.GetKey(KeyCode.KeypadPlus))
+            {
+                mutualFondnessIncrement += SystemAPI.Time.DeltaTime;
+            }
+
+            if (Input.GetKey(KeyCode.KeypadMinus))
+            {
+                mutualFondnessIncrement -= SystemAPI.Time.DeltaTime;
+            }
+
+            if (mutualFondnessIncrement != 0f)
+            {
+                foreach (var socialRelationships in SystemAPI.Query<RefRW<SocialRelationships>>().WithAll<UnitSelection>())
+                {
+                    foreach (var (_, otherEntity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
+                    {
+                        socialRelationships.ValueRW.Relationships[otherEntity] += mutualFondnessIncrement;
+                    }
+                }
+            }
         }
 
         private Color GetRelationshipColor(float relationshipValue) =>
