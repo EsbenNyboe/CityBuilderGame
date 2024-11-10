@@ -11,7 +11,6 @@ public partial class SpawningSystemGroup : ComponentSystemGroup
 }
 
 [UpdateInGroup(typeof(SimulationSystemGroup))]
-[UpdateAfter(typeof(SpawningSystemGroup))]
 public partial class UnitBehaviourSystemGroup : ComponentSystemGroup
 {
 }
