@@ -113,7 +113,7 @@ namespace UnitState
 
         private Color GetRelationshipColor(float relationshipValue) =>
             Color.Lerp(
-                Color.gray,
+                new Color(0.5f, 0.5f, 0.5f, 0f),
                 relationshipValue > 0 ? Color.green : Color.red,
                 math.abs(relationshipValue));
     }
