@@ -81,15 +81,32 @@ namespace UnitState
         }
     }
 
+    public struct SocialRelationshipsDebugSystemData : IComponentData
+    {
+        public bool DrawRelations;
+    }
+
     public partial struct SocialRelationshipsDebugSystem : ISystem
     {
+        public void OnCreate(ref SystemState state)
+        {
+            state.EntityManager.AddComponent<SocialRelationshipsDebugSystemData>(state.SystemHandle);
+        }
+
         public void OnUpdate(ref SystemState state)
         {
-            if (!Input.GetKey(KeyCode.KeypadMultiply))
+            var settings = state.EntityManager.GetComponentDataRW<SocialRelationshipsDebugSystemData>(state.SystemHandle);
+
+            if (Input.GetKeyDown(KeyCode.KeypadMultiply))
+            {
+                settings.ValueRW.DrawRelations = !settings.ValueRO.DrawRelations;
+            }
+
+            if (!settings.ValueRO.DrawRelations)
             {
                 return;
             }
-            
+
             foreach (var (localTransform, socialRelationships) in SystemAPI
                          .Query<RefRO<LocalTransform>, RefRO<SocialRelationships>>().WithAll<UnitSelection>())
             {
