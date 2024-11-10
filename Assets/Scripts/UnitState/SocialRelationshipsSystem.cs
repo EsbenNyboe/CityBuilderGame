@@ -42,16 +42,6 @@ namespace UnitState
             }
 
             ecb.Playback(state.EntityManager);
-
-            foreach (var (localTransform, socialRelationships) in SystemAPI
-                         .Query<RefRO<LocalTransform>, RefRO<SocialRelationships>>().WithAll<UnitSelection>())
-            {
-                foreach (var relationship in socialRelationships.ValueRO.Relationships)
-                {
-                    var otherPosition = SystemAPI.GetComponent<LocalTransform>(relationship.Key).Position;
-                    Debug.DrawLine(localTransform.ValueRO.Position, otherPosition, Color.red);
-                }
-            }
         }
 
         private void CleanupDeletedUnits(ref SystemState state)
@@ -68,6 +58,22 @@ namespace UnitState
             }
 
             ecb.Playback(state.EntityManager);
+        }
+    }
+    
+    public partial struct SocialRelationshipsDebugSystem : ISystem
+    {
+        public void OnUpdate(ref SystemState state)
+        {
+            foreach (var (localTransform, socialRelationships) in SystemAPI
+                         .Query<RefRO<LocalTransform>, RefRO<SocialRelationships>>().WithAll<UnitSelection>())
+            {
+                foreach (var relationship in socialRelationships.ValueRO.Relationships)
+                {
+                    var otherPosition = SystemAPI.GetComponent<LocalTransform>(relationship.Key).Position;
+                    Debug.DrawLine(localTransform.ValueRO.Position, otherPosition, Color.red);
+                }
+            }
         }
     }
 }
