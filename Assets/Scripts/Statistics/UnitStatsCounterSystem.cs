@@ -5,8 +5,7 @@ using Unity.Entities;
 
 namespace Statistics
 {
-    [UpdateInGroup(typeof(UnitBehaviourSystemGroup), OrderLast = true)]
-    [UpdateBefore(typeof(IsDecidingSystem))]
+    [UpdateInGroup(typeof(UnitStateSystemGroup), OrderFirst = true)]
     public partial class UnitStatsCounterSystem : SystemBase
     {
         protected override void OnUpdate()
