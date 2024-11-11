@@ -14,7 +14,8 @@ namespace Rendering
 
         public void PlayDeathAnimation(Vector3 position)
         {
-            Instantiate(_deathAnimationPrefab, position, Quaternion.identity);
+            var effect = Instantiate(_deathAnimationPrefab, position, Quaternion.identity);
+            Destroy(effect, 1);
         }
     }
 }

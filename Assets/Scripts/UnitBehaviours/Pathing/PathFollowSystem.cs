@@ -1,3 +1,4 @@
+using Rendering;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
@@ -23,7 +24,7 @@ public partial struct PathFollowSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var entityCommandBuffer = new EntityCommandBuffer(Allocator.Temp);
+        var ecb = new EntityCommandBuffer(Allocator.Temp);
 
         foreach (var (localTransform, pathPositionBuffer, pathFollow, spriteTransform, socialRelationships, entity) in
                  SystemAPI
@@ -84,12 +85,21 @@ public partial struct PathFollowSystem : ISystem
                         {
                             gridManager.TryGetOccupant(targetPosition, out var occupant);
                             socialRelationships.ValueRW.Relationships[occupant] -= AnnoyanceFromBedOccupant;
+
+                            ecb.AddComponent(ecb.CreateEntity(), new DeathAnimationEvent
+                            {
+                                Position = targetPosition
+                            });
+                            var cell = GridHelpers.GetXY(targetPosition);
+                            gridManager.TryClearBed(cell);
+                            gridManager.TryClearOccupant(cell, entity);
+                            ecb.DestroyEntity(entity);
                         }
 
                         GridHelpers.GetXY(targetPosition, out var x, out var y);
                         if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell))
                         {
-                            PathHelpers.TrySetPath(entityCommandBuffer, entity, new int2(x, y), vacantCell);
+                            PathHelpers.TrySetPath(ecb, entity, new int2(x, y), vacantCell);
                         }
                         else
                         {
@@ -107,6 +117,6 @@ public partial struct PathFollowSystem : ISystem
             }
         }
 
-        entityCommandBuffer.Playback(state.EntityManager);
+        ecb.Playback(state.EntityManager);
     }
 }
