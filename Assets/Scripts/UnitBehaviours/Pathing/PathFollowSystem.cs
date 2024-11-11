@@ -91,9 +91,7 @@ public partial struct PathFollowSystem : ISystem
                                 Position = targetPosition
                             });
                             var cell = GridHelpers.GetXY(targetPosition);
-                            gridManager.TryClearBed(cell);
-                            gridManager.TryClearOccupant(cell, entity);
-                            ecb.DestroyEntity(entity);
+                            gridManager.DestroyUnit(ecb, entity, cell);
                         }
 
                         GridHelpers.GetXY(targetPosition, out var x, out var y);
@@ -106,6 +104,8 @@ public partial struct PathFollowSystem : ISystem
                             DebugHelper.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
                         }
                     }
+
+                    SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                 }
             }
 

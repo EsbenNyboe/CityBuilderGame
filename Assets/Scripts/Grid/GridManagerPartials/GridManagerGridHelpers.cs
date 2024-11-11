@@ -64,11 +64,11 @@ public partial struct GridManager
         return IsPositionInsideGrid(cell) && IsBed(cell) && !IsOccupied(cell, unit) && IsWalkable(cell);
     }
 
-    public bool TryClearBed(int2 cell)
+    private bool TryClearBed(int i)
     {
-        if (IsBed(cell))
+        if (IsBed(i))
         {
-            SetIsWalkable(cell, true);
+            SetIsWalkable(i, true);
             return true;
         }
 
@@ -93,6 +93,28 @@ public partial struct GridManager
     private bool IsVacantCell(int2 cell, Entity askingEntity)
     {
         return IsPositionInsideGrid(cell) && IsWalkable(cell) && !IsOccupied(cell, askingEntity);
+    }
+
+    public void DestroyUnit(EntityCommandBuffer ecb, Entity entity, Vector3 position)
+    {
+        var gridIndex = GetIndex(position);
+        DestroyUnit(ecb, entity, gridIndex);
+    }
+
+    public void DestroyUnit(EntityCommandBuffer ecb, Entity entity, int2 cell)
+    {
+        var gridIndex = GetIndex(cell);
+        DestroyUnit(ecb, entity, gridIndex);
+    }
+
+    public void DestroyUnit(EntityCommandBuffer ecb, Entity entity, int i)
+    {
+        if (TryClearOccupant(i, entity))
+        {
+            TryClearBed(i);
+        }
+
+        ecb.DestroyEntity(entity);
     }
 
     #endregion

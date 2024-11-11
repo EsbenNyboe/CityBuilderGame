@@ -143,9 +143,7 @@ public partial class SpawnManagerSystem : SystemBase
     {
         if (gridManager.IsPositionInsideGrid(cell) && gridManager.TryGetOccupant(cell, out var unitEntity))
         {
-            gridManager.TryClearBed(cell);
-            gridManager.TryClearOccupant(cell, unitEntity);
-            ecb.DestroyEntity(unitEntity);
+            gridManager.DestroyUnit(ecb, unitEntity, cell);
         }
     }
 

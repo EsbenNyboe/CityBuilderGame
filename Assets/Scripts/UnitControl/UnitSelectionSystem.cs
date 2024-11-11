@@ -45,9 +45,7 @@ public partial class UnitSelectionSystem : SystemBase
             var unitPosition = localTransform.ValueRO.Position;
             var cell = GridHelpers.GetXY(unitPosition);
 
-            gridManager.TryClearBed(cell);
-            gridManager.TryClearOccupant(cell, entity);
-            ecb.DestroyEntity(entity);
+            gridManager.DestroyUnit(ecb, entity, cell);
         }
 
         ecb.Playback(EntityManager);
