@@ -1,4 +1,3 @@
-using Rendering;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
@@ -14,7 +13,7 @@ public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
     private const bool ShowDebug = false;
-    private const float AnnoyanceFromBedOccupant = 0.5f;
+    private const float AnnoyanceFromBedOccupant = 10f;
 
     public void OnCreate(ref SystemState state)
     {
@@ -74,7 +73,7 @@ public partial struct PathFollowSystem : ISystem
 
                     var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
-                    if (!gridManager.IsOccupied(targetPosition, entity))
+                    if (!gridManager.IsOccupied(targetPosition, entity) && gridManager.IsWalkable(targetPosition))
                     {
                         gridManager.SetOccupant(targetPosition, entity);
                         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
@@ -85,13 +84,10 @@ public partial struct PathFollowSystem : ISystem
                         {
                             gridManager.TryGetOccupant(targetPosition, out var occupant);
                             socialRelationships.ValueRW.Relationships[occupant] -= AnnoyanceFromBedOccupant;
-
-                            ecb.AddComponent(ecb.CreateEntity(), new DeathAnimationEvent
+                            if (socialRelationships.ValueRO.Relationships[occupant] < -1f)
                             {
-                                Position = targetPosition
-                            });
-                            var cell = GridHelpers.GetXY(targetPosition);
-                            gridManager.DestroyUnit(ecb, entity, cell);
+                                socialRelationships.ValueRW.HasAnimosity = true;
+                            }
                         }
 
                         GridHelpers.GetXY(targetPosition, out var x, out var y);

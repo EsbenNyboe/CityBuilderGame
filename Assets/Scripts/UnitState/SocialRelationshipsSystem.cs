@@ -9,6 +9,8 @@ namespace UnitState
     public struct SocialRelationships : ICleanupComponentData
     {
         public NativeHashMap<Entity, float> Relationships;
+        public bool HasAnimosity;
+        public float TimeSinceAnimosityStarted;
     }
 
     [UpdateInGroup(typeof(SpawningSystemGroup))]
@@ -20,9 +22,6 @@ namespace UnitState
 
         public void OnUpdate(ref SystemState state)
         {
-            RemoveDeletedUnitsFromExistingRelationships(ref state);
-            CleanupDeletedUnits(ref state);
-
             // SETUP NEW SOCIAL RELATIONSHIPS
             using var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
             foreach (var (_, spawnedEntity) in SystemAPI.Query<RefRO<SpawnedUnit>>().WithEntityAccess())
@@ -45,37 +44,6 @@ namespace UnitState
                     Relationships = relationships
                 };
                 ecb.AddComponent(spawnedEntity, socialRelationships);
-            }
-
-            ecb.Playback(state.EntityManager);
-        }
-
-        private void RemoveDeletedUnitsFromExistingRelationships(ref SystemState state)
-        {
-            // UPDATE EXISTING RELATIONSHIPS
-            using var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
-            foreach (var socialRelationships in SystemAPI.Query<RefRW<SocialRelationships>>().WithAll<LocalTransform>())
-            {
-                foreach (var (_, destroyedEntity) in SystemAPI.Query<RefRO<SocialRelationships>>()
-                             .WithNone<LocalTransform>().WithEntityAccess())
-                {
-                    socialRelationships.ValueRW.Relationships.Remove(destroyedEntity);
-                }
-            }
-
-            ecb.Playback(state.EntityManager);
-        }
-
-        private void CleanupDeletedUnits(ref SystemState state)
-        {
-            // CLEANUP SOCIAL RELATIONSHIPS
-            using var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
-            foreach (var (socialRelationships, entity) in SystemAPI.Query<RefRW<SocialRelationships>>()
-                         .WithNone<LocalTransform>().WithEntityAccess())
-            {
-                socialRelationships.ValueRW.Relationships.Dispose();
-                ecb.RemoveComponent<SocialRelationships>(entity);
-                ecb.DestroyEntity(entity);
             }
 
             ecb.Playback(state.EntityManager);
@@ -141,6 +109,10 @@ namespace UnitState
                     foreach (var (_, otherEntity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
                     {
                         socialRelationships.ValueRW.Relationships[otherEntity] += mutualFondnessIncrement;
+                        if (socialRelationships.ValueRW.Relationships[otherEntity] < -1f)
+                        {
+                            socialRelationships.ValueRW.HasAnimosity = true;
+                        }
                     }
                 }
             }

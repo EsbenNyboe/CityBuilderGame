@@ -1,4 +1,5 @@
 using UnitAgency;
+using UnitBehaviours.Animosity;
 using UnitBehaviours.AutonomousHarvesting;
 using Unity.Collections;
 using Unity.Entities;
@@ -46,6 +47,14 @@ namespace Statistics
             var isIdleCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsIdle>().Build(this)
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfIdleUnits(isIdleCount);
+            
+            var isMurderingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsMurdering>().Build(this)
+                .CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfMurderingUnits(isMurderingCount);
+            
+            var isSeekingVictimCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingVictim>().Build(this)
+                .CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfSeekingVictimUnits(isSeekingVictimCount);
         }
     }
 }

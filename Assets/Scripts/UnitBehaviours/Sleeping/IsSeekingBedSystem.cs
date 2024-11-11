@@ -29,10 +29,10 @@ namespace UnitBehaviours.Sleeping
         {
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
+            var currentTime = SystemAPI.Time.ElapsedTime;
 
-            foreach (var (localTransform, pathFollow, entity) in SystemAPI
-                         .Query<RefRO<LocalTransform>, RefRO<PathFollow>>()
-                         .WithAll<IsSeekingBed>()
+            foreach (var (localTransform, pathFollow, isSeekingBed, entity) in SystemAPI
+                         .Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRO<IsSeekingBed>>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
@@ -41,12 +41,24 @@ namespace UnitBehaviours.Sleeping
                 }
 
                 // I reacted my destination / I'm standing still: I should find a bed!
+                var ecb = GetEntityCommandBuffer(ref state);
+                var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+
+                // Am I on a bed?
+                if (gridManager.IsBed(currentCell) && !gridManager.IsOccupied(currentCell, entity))
+                {
+                    // Ahhhh, I found my bed! 
+                    ecb.RemoveComponent<IsSeekingBed>(entity);
+                    ecb.AddComponent<IsDeciding>(entity);
+                    continue;
+                }
+
                 jobHandleList.Add(new SeekBedJob
                 {
-                    CurrentCell = GridHelpers.GetXY(localTransform.ValueRO.Position),
+                    CurrentCell = currentCell,
                     Entity = entity,
                     GridManager = gridManager,
-                    ECB = GetEntityCommandBuffer(ref state)
+                    ECB = ecb
                 }.Schedule());
             }
 
@@ -72,22 +84,15 @@ namespace UnitBehaviours.Sleeping
 
         public void Execute()
         {
-            // Am I on a bed?
-            if (GridManager.IsBed(CurrentCell) && !GridManager.IsOccupied(CurrentCell, Entity))
-            {
-                // Ahhhh, I found my bed! 
-                ECB.RemoveComponent<IsSeekingBed>(Entity);
-                ECB.AddComponent<IsDeciding>(Entity);
-                return;
-            }
-
             // I'm not on a bed... I should find the closest bed.
             if (!GridManager.TryGetClosestBedSemiRandom(CurrentCell, out var closestAvailableBed))
             {
                 // There is no available bed anywhere!
+                // Am I standing on a bed? 
                 if (GridManager.IsInteractable(CurrentCell))
                 {
-                    // Whoops, I'm standing on a bed.. I should move..
+                    // TODO: Check if this actually ever happens.
+                    // Whoops, someone is sleeping here.. I should move..
                     if (GridManager.TryGetNearbyEmptyCellSemiRandom(CurrentCell, out var nearbyCell))
                     {
                         PathHelpers.TrySetPath(ECB, Entity, CurrentCell, nearbyCell);
@@ -95,7 +100,9 @@ namespace UnitBehaviours.Sleeping
                 }
 
                 // I guess I have to wait for a bed to be available...
-                // I'll keep checking all beds every frame, until I succeed!!!!
+                // Let me try again later..
+                ECB.RemoveComponent<IsSeekingBed>(Entity);
+                ECB.AddComponent<IsDeciding>(Entity);
                 return;
             }
 

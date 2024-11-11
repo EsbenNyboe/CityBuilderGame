@@ -276,6 +276,12 @@ public partial struct GridManager
         }
     }
 
+    public bool TryGetNeighbourCell(int index, int2 cell, out int2 neighbourCell)
+    {
+        neighbourCell = GetNeighbourCell(index, cell);
+        return IsPositionInsideGrid(cell);
+    }
+
     public int2 GetNeighbourCell(int index, int2 cell)
     {
         GetNeighbourCell(index, cell.x, cell.y, out var neighbourX, out var neighbourY);

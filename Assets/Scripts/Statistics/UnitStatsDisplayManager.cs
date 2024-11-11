@@ -14,6 +14,8 @@ namespace Statistics
         [SerializeField] private bool _showNumberOfSleepers;
         [SerializeField] private bool _showNumberOfHarvesters;
         [SerializeField] private bool _showNumberOfIdle;
+        [SerializeField] private bool _showNumberOfMurderers;
+        [SerializeField] private bool _showNumberOfVictimSeekers;
 
         [SerializeField] private UnitStatsDisplay _numberOfUnitsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfDecisionsDisplay;
@@ -24,6 +26,8 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _numberOfSleepersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfHarvestersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfIdleDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfMurderingDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfSeekingVictimDisplay;
 
         private void Awake()
         {
@@ -86,6 +90,16 @@ namespace Statistics
         public void SetNumberOfIdleUnits(int isIdleCount)
         {
             _numberOfIdleDisplay.SetStatsValue(isIdleCount);
+        }
+
+        public void SetNumberOfMurderingUnits(int isMurderingCount)
+        {
+            _numberOfMurderingDisplay.SetStatsValue(isMurderingCount);
+        }
+
+        public void SetNumberOfSeekingVictimUnits(int isSeekingVictimCount)
+        {
+            _numberOfSeekingVictimDisplay.SetStatsValue(isSeekingVictimCount);
         }
     }
 }

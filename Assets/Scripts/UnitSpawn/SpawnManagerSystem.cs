@@ -20,6 +20,9 @@ public partial class SpawnManagerSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        var ecb = SystemAPI.GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(World.Unmanaged);
+
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
         var itemToSpawn = SpawnMenuManager.Instance.ItemToSpawn;
         var itemToDelete = SpawnMenuManager.Instance.ItemToDelete;
@@ -36,7 +39,6 @@ public partial class SpawnManagerSystem : SystemBase
         }
 
         var cellList = GridHelpersManaged.GetCellListAroundTargetCell(cellPosition, brushSize);
-        var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
         // TODO: Make SpawnManager into a Singleton instead
         foreach (var spawnManager in SystemAPI.Query<RefRO<SpawnManager>>())
         {
@@ -44,7 +46,6 @@ public partial class SpawnManagerSystem : SystemBase
             DeleteProcess(ecb, ref gridManager, cellList, itemToDelete);
         }
 
-        ecb.Playback(EntityManager);
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 

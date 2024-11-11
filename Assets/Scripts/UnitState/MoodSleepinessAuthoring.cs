@@ -4,6 +4,7 @@ using UnityEngine;
 public struct MoodSleepiness : IComponentData
 {
     public float Sleepiness;
+    public double MostRecentSleepAction;
 }
 
 public class MoodSleepinessAuthoring : MonoBehaviour
