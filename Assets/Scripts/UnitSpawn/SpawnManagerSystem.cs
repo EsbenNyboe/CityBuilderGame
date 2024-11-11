@@ -48,7 +48,8 @@ public partial class SpawnManagerSystem : SystemBase
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 
-    private void SpawnProcess(ref GridManager gridManager, List<int2> cellList, SpawnManager spawnManager, SpawnItemType itemToSpawn)
+    private void SpawnProcess(ref GridManager gridManager, List<int2> cellList, SpawnManager spawnManager,
+        SpawnItemType itemToSpawn)
     {
         switch (itemToSpawn)
         {
@@ -87,7 +88,8 @@ public partial class SpawnManagerSystem : SystemBase
         }
     }
 
-    private void DeleteProcess(EntityCommandBuffer ecb, ref GridManager gridManager, List<int2> cellList, SpawnItemType itemToDelete)
+    private void DeleteProcess(EntityCommandBuffer ecb, ref GridManager gridManager, List<int2> cellList,
+        SpawnItemType itemToDelete)
     {
         switch (itemToDelete)
         {
@@ -129,25 +131,28 @@ public partial class SpawnManagerSystem : SystemBase
 
     private void TrySpawnUnit(ref GridManager gridManager, int2 position, Entity prefab)
     {
-        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) && !gridManager.IsOccupied(position))
+        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
+            !gridManager.IsOccupied(position))
         {
             var unitEntity = InstantiateAtPosition(prefab, position);
             gridManager.SetOccupant(position, unitEntity);
         }
     }
 
-    private void TryDeleteUnit(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
+    private void TryDeleteUnit(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
     {
-        if (gridManager.IsPositionInsideGrid(position) && gridManager.TryGetOccupant(position, out var unitEntity))
+        if (gridManager.IsPositionInsideGrid(cell) && gridManager.TryGetOccupant(cell, out var unitEntity))
         {
+            gridManager.TryClearBed(cell);
+            gridManager.TryClearOccupant(cell, unitEntity);
             ecb.DestroyEntity(unitEntity);
-            gridManager.SetOccupant(position, Entity.Null);
         }
     }
 
     private void TrySpawnTree(ref GridManager gridManager, int2 position)
     {
-        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) && !gridManager.IsDamageable(position))
+        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
+            !gridManager.IsDamageable(position))
         {
             gridManager.SetIsWalkable(position, false);
             gridManager.SetHealthToMax(position);
@@ -156,7 +161,8 @@ public partial class SpawnManagerSystem : SystemBase
 
     private void TryDeleteTree(ref GridManager gridManager, int2 position)
     {
-        if (gridManager.IsPositionInsideGrid(position) && !gridManager.IsWalkable(position) && gridManager.IsDamageable(position))
+        if (gridManager.IsPositionInsideGrid(position) && !gridManager.IsWalkable(position) &&
+            gridManager.IsDamageable(position))
         {
             gridManager.SetIsWalkable(position, true);
             gridManager.SetHealthToZero(position);
@@ -165,7 +171,8 @@ public partial class SpawnManagerSystem : SystemBase
 
     private void TrySpawnBed(ref GridManager gridManager, int2 position)
     {
-        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) && !gridManager.IsInteractable(position))
+        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
+            !gridManager.IsInteractable(position))
         {
             gridManager.SetInteractableBed(position);
         }
@@ -193,10 +200,12 @@ public partial class SpawnManagerSystem : SystemBase
     {
         // TODO: FIIIIIIX
         // If it's not a tree or a bed, it must be a DropPoint, I guess?
-        if (!gridManager.IsWalkable(position) && !gridManager.IsInteractable(position) && !gridManager.IsDamageable(position))
+        if (!gridManager.IsWalkable(position) && !gridManager.IsInteractable(position) &&
+            !gridManager.IsDamageable(position))
         {
             var gridIndex = gridManager.GetIndex(position);
-            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<DropPoint>, RefRO<LocalTransform>>().WithEntityAccess())
+            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<DropPoint>, RefRO<LocalTransform>>()
+                         .WithEntityAccess())
             {
                 if (gridManager.GetIndex(localTransform.ValueRO.Position) == gridIndex)
                 {

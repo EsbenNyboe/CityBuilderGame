@@ -35,7 +35,7 @@ public partial class UnitSelectionSystem : SystemBase
 
     private void DeleteSelectedUnits()
     {
-        var entityCommandBuffer = new EntityCommandBuffer(WorldUpdateAllocator);
+        var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
 
@@ -43,14 +43,14 @@ public partial class UnitSelectionSystem : SystemBase
                      .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
         {
             var unitPosition = localTransform.ValueRO.Position;
-            GridHelpers.GetXY(unitPosition, out var x, out var y);
-            gridManager.SetIsWalkable(x, y, true);
+            var cell = GridHelpers.GetXY(unitPosition);
 
-            gridManager.TryClearOccupant(x, y, entity);
-            entityCommandBuffer.DestroyEntity(entity);
+            gridManager.TryClearBed(cell);
+            gridManager.TryClearOccupant(cell, entity);
+            ecb.DestroyEntity(entity);
         }
 
-        entityCommandBuffer.Playback(EntityManager);
+        ecb.Playback(EntityManager);
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 }

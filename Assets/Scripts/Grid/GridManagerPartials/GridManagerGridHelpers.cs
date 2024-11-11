@@ -64,6 +64,17 @@ public partial struct GridManager
         return IsPositionInsideGrid(cell) && IsBed(cell) && !IsOccupied(cell, unit) && IsWalkable(cell);
     }
 
+    public bool TryClearBed(int2 cell)
+    {
+        if (IsBed(cell))
+        {
+            SetIsWalkable(cell, true);
+            return true;
+        }
+
+        return false;
+    }
+
     public bool IsTree(int2 cell)
     {
         return IsPositionInsideGrid(cell) && IsDamageable(cell);
