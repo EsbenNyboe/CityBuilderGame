@@ -75,6 +75,7 @@ namespace UnitState
             {
                 socialRelationships.ValueRW.Relationships.Dispose();
                 ecb.RemoveComponent<SocialRelationships>(entity);
+                ecb.DestroyEntity(entity);
             }
 
             ecb.Playback(state.EntityManager);
@@ -95,7 +96,8 @@ namespace UnitState
 
         public void OnUpdate(ref SystemState state)
         {
-            var settings = state.EntityManager.GetComponentDataRW<SocialRelationshipsDebugSystemData>(state.SystemHandle);
+            var settings =
+                state.EntityManager.GetComponentDataRW<SocialRelationshipsDebugSystemData>(state.SystemHandle);
 
             if (Input.GetKeyDown(KeyCode.KeypadMultiply))
             {
@@ -120,7 +122,7 @@ namespace UnitState
                 }
             }
 
-            float mutualFondnessIncrement = 0f;
+            var mutualFondnessIncrement = 0f;
             if (Input.GetKey(KeyCode.KeypadPlus))
             {
                 mutualFondnessIncrement += SystemAPI.Time.DeltaTime;
@@ -133,7 +135,8 @@ namespace UnitState
 
             if (mutualFondnessIncrement != 0f)
             {
-                foreach (var socialRelationships in SystemAPI.Query<RefRW<SocialRelationships>>().WithAll<UnitSelection>())
+                foreach (var socialRelationships in SystemAPI.Query<RefRW<SocialRelationships>>()
+                             .WithAll<UnitSelection>())
                 {
                     foreach (var (_, otherEntity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
                     {
@@ -143,10 +146,12 @@ namespace UnitState
             }
         }
 
-        private Color GetRelationshipColor(float relationshipValue) =>
-            Color.Lerp(
+        private Color GetRelationshipColor(float relationshipValue)
+        {
+            return Color.Lerp(
                 new Color(0.5f, 0.5f, 0.5f, 0f),
                 relationshipValue > 0 ? Color.green : Color.red,
                 math.abs(relationshipValue));
+        }
     }
 }
