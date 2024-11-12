@@ -58,7 +58,14 @@ public partial class SpawnManagerSystem : SystemBase
             case SpawnItemType.Unit:
                 foreach (var cell in cellList)
                 {
-                    TrySpawnUnit(ref gridManager, cell, spawnManager.UnitPrefab);
+                    TrySpawnUnit(ref gridManager, cell, spawnManager.UnitPrefab, true);
+                }
+
+                break;
+            case SpawnItemType.Zombie:
+                foreach (var cell in cellList)
+                {
+                    TrySpawnUnit(ref gridManager, cell, spawnManager.ZombiePrefab, false);
                 }
 
                 break;
@@ -83,6 +90,7 @@ public partial class SpawnManagerSystem : SystemBase
                 }
 
                 break;
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -129,13 +137,16 @@ public partial class SpawnManagerSystem : SystemBase
     }
 
 
-    private void TrySpawnUnit(ref GridManager gridManager, int2 position, Entity prefab)
+    private void TrySpawnUnit(ref GridManager gridManager, int2 position, Entity prefab, bool isPerson)
     {
         if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
             !gridManager.IsOccupied(position))
         {
             var unitEntity = InstantiateAtPosition(prefab, position);
-            gridManager.SetOccupant(position, unitEntity);
+            if (isPerson)
+            {
+                gridManager.SetOccupant(position, unitEntity);
+            }
         }
     }
 

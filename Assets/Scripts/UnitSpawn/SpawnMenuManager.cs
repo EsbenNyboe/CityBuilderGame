@@ -127,5 +127,6 @@ public enum SpawnItemType
     Unit,
     Tree,
     Bed,
-    House
+    House,
+    Zombie
 }
