@@ -74,7 +74,8 @@ public partial struct PathFollowSystem : ISystem
 
                     var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
-                    if (!gridManager.IsOccupied(targetPosition, entity))
+                    // TODO: If we implement path-invalidation, there's no need to check if the tile is walkable or not
+                    if (!gridManager.IsOccupied(targetPosition, entity) && gridManager.IsWalkable(targetPosition))
                     {
                         gridManager.SetOccupant(targetPosition, entity);
                         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
