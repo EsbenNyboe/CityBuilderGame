@@ -41,7 +41,7 @@ public partial class SpawnManagerSystem : SystemBase
         // TODO: Make SpawnManager into a Singleton instead
         foreach (var spawnManager in SystemAPI.Query<RefRO<SpawnManager>>())
         {
-            SpawnProcess(ref gridManager, cellList, spawnManager.ValueRO, itemToSpawn);
+            SpawnProcess(ecb, ref gridManager, cellList, spawnManager.ValueRO, itemToSpawn);
             DeleteProcess(ecb, ref gridManager, cellList, brushSize, itemToDelete);
         }
 
@@ -49,7 +49,8 @@ public partial class SpawnManagerSystem : SystemBase
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 
-    private void SpawnProcess(ref GridManager gridManager, List<int2> cellList, SpawnManager spawnManager,
+    private void SpawnProcess(EntityCommandBuffer ecb, ref GridManager gridManager, List<int2> cellList,
+        SpawnManager spawnManager,
         SpawnItemType itemToSpawn)
     {
         switch (itemToSpawn)
@@ -59,14 +60,14 @@ public partial class SpawnManagerSystem : SystemBase
             case SpawnItemType.Unit:
                 foreach (var cell in cellList)
                 {
-                    TrySpawnUnit(ref gridManager, cell, spawnManager.UnitPrefab, true);
+                    TrySpawnUnit(ecb, ref gridManager, cell, spawnManager.UnitPrefab, true);
                 }
 
                 break;
             case SpawnItemType.Zombie:
                 foreach (var cell in cellList)
                 {
-                    TrySpawnUnit(ref gridManager, cell, spawnManager.ZombiePrefab, false);
+                    TrySpawnUnit(ecb, ref gridManager, cell, spawnManager.ZombiePrefab, false);
                 }
 
                 break;
@@ -141,15 +142,21 @@ public partial class SpawnManagerSystem : SystemBase
         }
     }
 
-    private void TrySpawnUnit(ref GridManager gridManager, int2 position, Entity prefab, bool isPerson)
+    private void TrySpawnUnit(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position, Entity prefab,
+        bool isPerson)
     {
         if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
             !gridManager.IsOccupied(position))
         {
-            var unitEntity = InstantiateAtPosition(prefab, position);
+            var entity = InstantiateAtPosition(prefab, position);
             if (isPerson)
             {
-                gridManager.SetOccupant(position, unitEntity);
+                gridManager.SetOccupant(position, entity);
+            }
+            else
+            {
+                // Zombies don't have a hierarchy, therefore they don't need to have a LinkedEntityGroup
+                ecb.RemoveComponent<LinkedEntityGroup>(entity);
             }
         }
     }
