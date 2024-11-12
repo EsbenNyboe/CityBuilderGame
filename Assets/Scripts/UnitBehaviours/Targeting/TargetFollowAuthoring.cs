@@ -6,6 +6,7 @@ namespace UnitBehaviours.Pathing
     public struct TargetFollow : IComponentData
     {
         public Entity Target;
+        public float CurrentDistanceToTarget;
     }
 
     public class TargetFollowAuthoring : MonoBehaviour

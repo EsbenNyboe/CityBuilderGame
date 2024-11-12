@@ -12,7 +12,7 @@ namespace UnitBehaviours.Pathing
         {
             var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
             foreach (var (targetFollow, localTransform) in
-                     SystemAPI.Query<RefRO<TargetFollow>, RefRW<LocalTransform>>())
+                     SystemAPI.Query<RefRW<TargetFollow>, RefRW<LocalTransform>>())
             {
                 var target = targetFollow.ValueRO.Target;
                 if (!transformLookup.HasComponent(target))
@@ -24,7 +24,9 @@ namespace UnitBehaviours.Pathing
                 var targetPosition = transformLookup[target].Position;
                 var currentPosition = localTransform.ValueRO.Position;
                 var direction = math.normalizesafe(targetPosition - currentPosition);
-                localTransform.ValueRW.Position += direction * MoveSpeed * SystemAPI.Time.DeltaTime;
+                currentPosition += direction * MoveSpeed * SystemAPI.Time.DeltaTime;
+                localTransform.ValueRW.Position = currentPosition;
+                targetFollow.ValueRW.CurrentDistanceToTarget = math.distance(currentPosition, targetPosition);
             }
         }
     }
