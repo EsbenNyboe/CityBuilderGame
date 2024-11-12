@@ -91,8 +91,7 @@ public partial struct PathFollowSystem : ISystem
                             {
                                 Position = targetPosition
                             });
-                            var cell = GridHelpers.GetXY(targetPosition);
-                            gridManager.DestroyUnit(ecb, entity, cell);
+                            ecb.SetComponentEnabled<IsAlive>(entity, false);
                         }
 
                         GridHelpers.GetXY(targetPosition, out var x, out var y);

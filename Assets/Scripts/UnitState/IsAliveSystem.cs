@@ -7,6 +7,7 @@ namespace UnitState
     public partial class IsAliveSystem : SystemBase
     {
         private EntityQuery _deadUnits;
+        private SystemHandle _gridManagerSystemHandle;
 
         protected override void OnCreate()
         {
@@ -14,11 +15,21 @@ namespace UnitState
             RequireForUpdate<IsAlive>();
 
             _deadUnits = new EntityQueryBuilder(Allocator.Temp).WithDisabled<IsAlive>().WithAll<Child>().Build(this);
+            _gridManagerSystemHandle = World.GetOrCreateSystem<GridManagerSystem>();
         }
 
         protected override void OnUpdate()
         {
+            var gridManagerRW = EntityManager.GetComponentDataRW<GridManager>(_gridManagerSystemHandle);
             using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
+
+            // Cleanup grid
+            foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>()
+                         .WithEntityAccess())
+            {
+                var position = localTransform.ValueRO.Position;
+                gridManagerRW.ValueRW.OnUnitDestroyed(entity, position);
+            }
 
             // Cleanup dead units
             foreach (var socialRelationships in

@@ -1,3 +1,4 @@
+using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -38,14 +39,9 @@ public partial class UnitSelectionSystem : SystemBase
         var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
-
-        foreach (var (unitSelection, localTransform, entity) in SystemAPI
-                     .Query<RefRO<UnitSelection>, RefRO<LocalTransform>>().WithEntityAccess())
+        foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
         {
-            var unitPosition = localTransform.ValueRO.Position;
-            var cell = GridHelpers.GetXY(unitPosition);
-
-            gridManager.DestroyUnit(ecb, entity, cell);
+            ecb.SetComponentEnabled<IsAlive>(entity, false);
         }
 
         ecb.Playback(EntityManager);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CodeMonkey.Utils;
+using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -152,9 +153,9 @@ public partial class SpawnManagerSystem : SystemBase
 
     private void TryDeleteUnit(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
     {
-        if (gridManager.IsPositionInsideGrid(cell) && gridManager.TryGetOccupant(cell, out var unitEntity))
+        if (gridManager.IsPositionInsideGrid(cell) && gridManager.TryGetOccupant(cell, out var entity))
         {
-            gridManager.DestroyUnit(ecb, unitEntity, cell);
+            ecb.SetComponentEnabled<IsAlive>(entity, false);
         }
     }
 
