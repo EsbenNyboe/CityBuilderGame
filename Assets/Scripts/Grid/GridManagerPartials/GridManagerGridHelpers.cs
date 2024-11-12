@@ -1,3 +1,4 @@
+using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -114,7 +115,7 @@ public partial struct GridManager
             TryClearBed(i);
         }
 
-        ecb.DestroyEntity(entity);
+        ecb.SetComponentEnabled<IsAlive>(entity, false);
     }
 
     #endregion
