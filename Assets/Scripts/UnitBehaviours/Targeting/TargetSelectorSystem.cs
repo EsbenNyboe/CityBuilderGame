@@ -29,6 +29,7 @@ namespace UnitBehaviours.Pathing
                 var distance = math.distance(position, targetPosition);
                 if (distance < shortestTargetDistance)
                 {
+                    shortestTargetDistance = distance;
                     target = entity;
                 }
             }
