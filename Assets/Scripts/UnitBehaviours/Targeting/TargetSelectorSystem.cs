@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -6,6 +7,7 @@ namespace UnitBehaviours.Pathing
 {
     public partial struct TargetSelectorSystem : ISystem
     {
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             foreach (var (targetFollow, localTransform) in SystemAPI.Query<RefRW<TargetFollow>, RefRO<LocalTransform>>()

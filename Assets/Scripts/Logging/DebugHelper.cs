@@ -14,6 +14,14 @@ public static class DebugHelper
         }
     }
 
+    public static void Log(int intMessage)
+    {
+        if (EnableDebugLog)
+        {
+            Debug.Log(intMessage.ToString());
+        }
+    }
+
     public static void Log(string message, Entity entity)
     {
         if (EnableDebugLog)
