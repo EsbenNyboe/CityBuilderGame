@@ -11,6 +11,8 @@ public class SoundManager : MonoBehaviour
 
     [SerializeField] private SoundConfig _destroyTreeSound;
 
+    [SerializeField] private SoundConfig _dieSound;
+
     private Queue<AudioSource> _pool;
 
     public static SoundManager Instance { get; private set; }
@@ -33,6 +35,11 @@ public class SoundManager : MonoBehaviour
     public void PlayDestroyTreeSound(Vector3 position)
     {
         PlayAtPosition(_destroyTreeSound, position);
+    }
+
+    public void PlayDieSound(Vector3 position)
+    {
+        PlayAtPosition(_dieSound, position);
     }
 
     private void PlayAtPosition(SoundConfig sound, Vector3 position)
@@ -96,7 +103,8 @@ public class SoundManager : MonoBehaviour
         poolItem.priority = template.priority;
         poolItem.reverbZoneMix = template.reverbZoneMix;
         poolItem.rolloffMode = template.rolloffMode;
-        poolItem.SetCustomCurve(AudioSourceCurveType.CustomRolloff, template.GetCustomCurve(AudioSourceCurveType.CustomRolloff));
+        poolItem.SetCustomCurve(AudioSourceCurveType.CustomRolloff,
+            template.GetCustomCurve(AudioSourceCurveType.CustomRolloff));
         poolItem.spatialBlend = template.spatialBlend;
         poolItem.spatialize = template.spatialize;
         poolItem.spatializePostEffects = template.spatializePostEffects;

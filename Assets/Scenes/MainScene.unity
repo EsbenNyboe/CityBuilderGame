@@ -1153,6 +1153,11 @@ MonoBehaviour:
     Volume: 0.864
     PitchCenter: 0.862
     PitchVariance: 0.143
+  _dieSound:
+    Clip: {fileID: 8300000, guid: 558f9f56f603a954b8d45e17e89341d9, type: 3}
+    Volume: 0.433
+    PitchCenter: 1.076
+    PitchVariance: 0.06
 --- !u!4 &219774712
 Transform:
   m_ObjectHideFlags: 0

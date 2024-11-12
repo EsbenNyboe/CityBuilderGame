@@ -18,6 +18,7 @@ namespace Rendering
                          .WithEntityAccess())
             {
                 DeathAnimationManager.Instance.PlayDeathAnimation(deathAnimationEvent.ValueRO.Position);
+                SoundManager.Instance.PlayDieSound(deathAnimationEvent.ValueRO.Position);
                 ecb.DestroyEntity(entity);
             }
 
