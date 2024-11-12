@@ -1,4 +1,3 @@
-using Rendering;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
@@ -87,10 +86,6 @@ public partial struct PathFollowSystem : ISystem
                             gridManager.TryGetOccupant(targetPosition, out var occupant);
                             socialRelationships.ValueRW.Relationships[occupant] -= AnnoyanceFromBedOccupant;
 
-                            ecb.AddComponent(ecb.CreateEntity(), new DeathAnimationEvent
-                            {
-                                Position = targetPosition
-                            });
                             ecb.SetComponentEnabled<IsAlive>(entity, false);
                         }
 

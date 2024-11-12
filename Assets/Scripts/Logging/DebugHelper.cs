@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class DebugHelper
 {
-    private const bool EnableDebugLog = false;
+    private const bool EnableDebugLog = true;
 
     public static void Log(string message)
     {

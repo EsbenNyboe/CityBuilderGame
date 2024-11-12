@@ -1,3 +1,4 @@
+using Rendering;
 using UnitBehaviours.Pathing;
 using Unity.Collections;
 using Unity.Entities;
@@ -23,6 +24,14 @@ namespace UnitState
         {
             var gridManagerRW = EntityManager.GetComponentDataRW<GridManager>(_gridManagerSystemHandle);
             using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
+            using var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
+
+            // Play death effect
+            foreach (var localTransform in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>())
+            {
+                ecb.AddComponent(ecb.CreateEntity(),
+                    new DeathAnimationEvent { Position = localTransform.ValueRO.Position });
+            }
 
             // Cleanup grid
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>()
@@ -70,6 +79,7 @@ namespace UnitState
             }
 
             // Destroy dead units
+            ecb.Playback(EntityManager);
             EntityManager.DestroyEntity(deadEntitiesTotal.AsArray());
         }
     }

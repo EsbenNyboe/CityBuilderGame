@@ -1,6 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UnitBehaviours.Pathing
 {
@@ -27,6 +28,8 @@ namespace UnitBehaviours.Pathing
                 currentPosition += direction * MoveSpeed * SystemAPI.Time.DeltaTime;
                 localTransform.ValueRW.Position = currentPosition;
                 targetFollow.ValueRW.CurrentDistanceToTarget = math.distance(currentPosition, targetPosition);
+
+                Debug.DrawLine(currentPosition, targetPosition, Color.red);
             }
         }
     }
