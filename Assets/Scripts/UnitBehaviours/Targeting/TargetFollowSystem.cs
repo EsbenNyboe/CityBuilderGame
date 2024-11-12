@@ -15,7 +15,11 @@ namespace UnitBehaviours.Pathing
             foreach (var (targetFollow, localTransform) in
                      SystemAPI.Query<RefRW<TargetFollow>, RefRW<LocalTransform>>())
             {
-                var target = targetFollow.ValueRO.Target;
+                if (!targetFollow.ValueRO.TryGetTarget(out var target))
+                {
+                    continue;
+                }
+
                 if (!transformLookup.HasComponent(target))
                 {
                     DebugHelper.LogError("Target has no transform!");
