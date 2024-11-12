@@ -85,8 +85,6 @@ public partial struct PathFollowSystem : ISystem
                         {
                             gridManager.TryGetOccupant(targetPosition, out var occupant);
                             socialRelationships.ValueRW.Relationships[occupant] -= AnnoyanceFromBedOccupant;
-
-                            ecb.SetComponentEnabled<IsAlive>(entity, false);
                         }
 
                         GridHelpers.GetXY(targetPosition, out var x, out var y);
