@@ -7,7 +7,7 @@ namespace UnitBehaviours.Pathing
 {
     public partial struct TargetFollowSystem : ISystem
     {
-        private const float MoveSpeed = 5f;
+        private const float MoveSpeed = 1f;
 
         public void OnUpdate(ref SystemState state)
         {

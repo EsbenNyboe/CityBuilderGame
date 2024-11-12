@@ -42,7 +42,7 @@ public partial class SpawnManagerSystem : SystemBase
         foreach (var spawnManager in SystemAPI.Query<RefRO<SpawnManager>>())
         {
             SpawnProcess(ref gridManager, cellList, spawnManager.ValueRO, itemToSpawn);
-            DeleteProcess(ecb, ref gridManager, cellList, itemToDelete);
+            DeleteProcess(ecb, ref gridManager, cellList, brushSize, itemToDelete);
         }
 
         ecb.Playback(EntityManager);
@@ -98,7 +98,7 @@ public partial class SpawnManagerSystem : SystemBase
     }
 
     private void DeleteProcess(EntityCommandBuffer ecb, ref GridManager gridManager, List<int2> cellList,
-        SpawnItemType itemToDelete)
+        int brushSize, SpawnItemType itemToDelete)
     {
         switch (itemToDelete)
         {
@@ -109,6 +109,10 @@ public partial class SpawnManagerSystem : SystemBase
                 {
                     TryDeleteUnit(ecb, ref gridManager, cell);
                 }
+
+                break;
+            case SpawnItemType.Zombie:
+                TryDeleteZombies(ecb, cellList[0], brushSize);
 
                 break;
             case SpawnItemType.Tree:
@@ -137,7 +141,6 @@ public partial class SpawnManagerSystem : SystemBase
         }
     }
 
-
     private void TrySpawnUnit(ref GridManager gridManager, int2 position, Entity prefab, bool isPerson)
     {
         if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
@@ -156,6 +159,18 @@ public partial class SpawnManagerSystem : SystemBase
         if (gridManager.IsPositionInsideGrid(cell) && gridManager.TryGetOccupant(cell, out var entity))
         {
             ecb.SetComponentEnabled<IsAlive>(entity, false);
+        }
+    }
+
+    private void TryDeleteZombies(EntityCommandBuffer ecb, int2 center, int brushSize)
+    {
+        foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
+        {
+            var zombieCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+            if (math.distance(center, zombieCell) <= brushSize)
+            {
+                ecb.SetComponentEnabled<IsAlive>(entity, false);
+            }
         }
     }
 
