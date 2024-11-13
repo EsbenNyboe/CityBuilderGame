@@ -6,6 +6,7 @@ using Unity.Transforms;
 
 namespace UnitState
 {
+    [UpdateInGroup(typeof(LifetimeSystemGroup), OrderFirst = true)]
     public partial class IsAliveSystem : SystemBase
     {
         private EntityQuery _deadUnits;

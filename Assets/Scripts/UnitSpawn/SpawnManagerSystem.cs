@@ -7,7 +7,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateInGroup(typeof(SpawningSystemGroup))]
+[UpdateInGroup(typeof(LifetimeSystemGroup))]
 public partial class SpawnManagerSystem : SystemBase
 {
     private SystemHandle _gridManagerSystemHandle;
