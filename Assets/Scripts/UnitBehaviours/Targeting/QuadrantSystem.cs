@@ -22,8 +22,8 @@ namespace UnitBehaviours.Targeting
     public partial struct QuadrantSystem : ISystem
     {
         private EntityQuery _entityQuery;
-        private const int QuadrantYMultiplier = 1000;
-        private const int QuadrantCellSize = 5;
+        public const int QuadrantYMultiplier = 1000;
+        public const int QuadrantCellSize = 5;
 
         public void OnCreate(ref SystemState state)
         {
@@ -80,7 +80,7 @@ namespace UnitBehaviours.Targeting
             // Debug.Log(GetPositionHashMapKey(position) + " " + position);
         }
 
-        private static int GetPositionHashMapKey(float3 position)
+        public static int GetPositionHashMapKey(float3 position)
         {
             return (int) (math.floor(position.x / QuadrantCellSize) +
                           QuadrantYMultiplier *
