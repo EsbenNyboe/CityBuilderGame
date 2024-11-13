@@ -4,13 +4,21 @@ using UnityEngine;
 
 public static class DebugHelper
 {
-    private const bool EnableDebugLog = false;
+    private const bool EnableDebugLog = true;
 
     public static void Log(string message)
     {
         if (EnableDebugLog)
         {
             Debug.Log(message);
+        }
+    }
+
+    public static void Log(int intMessage)
+    {
+        if (EnableDebugLog)
+        {
+            Debug.Log(intMessage.ToString());
         }
     }
 

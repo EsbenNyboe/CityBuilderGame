@@ -1,4 +1,3 @@
-using Rendering;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
@@ -86,13 +85,6 @@ public partial struct PathFollowSystem : ISystem
                         {
                             gridManager.TryGetOccupant(targetPosition, out var occupant);
                             socialRelationships.ValueRW.Relationships[occupant] -= AnnoyanceFromBedOccupant;
-
-                            ecb.AddComponent(ecb.CreateEntity(), new DeathAnimationEvent
-                            {
-                                Position = targetPosition
-                            });
-                            var cell = GridHelpers.GetXY(targetPosition);
-                            gridManager.DestroyUnit(ecb, entity, cell);
                         }
 
                         GridHelpers.GetXY(targetPosition, out var x, out var y);

@@ -1,4 +1,3 @@
-using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -96,26 +95,24 @@ public partial struct GridManager
         return IsPositionInsideGrid(cell) && IsWalkable(cell) && !IsOccupied(cell, askingEntity);
     }
 
-    public void DestroyUnit(EntityCommandBuffer ecb, Entity entity, Vector3 position)
+    public void OnUnitDestroyed(Entity entity, Vector3 position)
     {
         var gridIndex = GetIndex(position);
-        DestroyUnit(ecb, entity, gridIndex);
+        OnUnitDestroyed(entity, gridIndex);
     }
 
-    public void DestroyUnit(EntityCommandBuffer ecb, Entity entity, int2 cell)
+    public void OnUnitDestroyed(Entity entity, int2 cell)
     {
         var gridIndex = GetIndex(cell);
-        DestroyUnit(ecb, entity, gridIndex);
+        OnUnitDestroyed(entity, gridIndex);
     }
 
-    public void DestroyUnit(EntityCommandBuffer ecb, Entity entity, int i)
+    public void OnUnitDestroyed(Entity entity, int i)
     {
         if (TryClearOccupant(i, entity))
         {
             TryClearBed(i);
         }
-
-        ecb.SetComponentEnabled<IsAlive>(entity, false);
     }
 
     #endregion

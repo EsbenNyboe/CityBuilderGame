@@ -6,7 +6,7 @@ public partial class GridSystemGroup : ComponentSystemGroup
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
-public partial class SpawningSystemGroup : ComponentSystemGroup
+public partial class LifetimeSystemGroup : ComponentSystemGroup
 {
 }
 
