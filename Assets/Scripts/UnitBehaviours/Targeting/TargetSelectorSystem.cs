@@ -1,6 +1,7 @@
 using UnitBehaviours.Targeting;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -11,71 +12,83 @@ namespace UnitBehaviours.Pathing
     public partial struct TargetSelectorSystem : ISystem
     {
         private SystemHandle _quadrantSystemHandle;
+        private EntityQuery _entityQuery;
 
         public void OnCreate(ref SystemState state)
         {
             _quadrantSystemHandle = state.World.GetExistingSystem(typeof(QuadrantSystem));
+            _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
+                ComponentType.ReadOnly<TargetFollow>());
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var quadrantDataManager = SystemAPI.GetComponent<QuadrantDataManager>(_quadrantSystemHandle);
-            using var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
-            foreach (var (_, _, entity) in SystemAPI
-                         .Query<RefRO<TargetFollow>, RefRO<LocalTransform>>()
-                         .WithAll<TargetSelector>().WithEntityAccess())
+            var entityCount = _entityQuery.CalculateEntityCount();
+            var entities = new NativeList<Entity>(entityCount, Allocator.TempJob);
+            var positions = new NativeList<float3>(entityCount, Allocator.TempJob);
+            foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
+                         .WithAll<TargetFollow>())
             {
-                var job = new FindTargetJob
-                {
-                    QuadrantMultiHashMap = quadrantDataManager.QuadrantMultiHashMap,
-                    LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),
-                    TargetFollowLookup = SystemAPI.GetComponentLookup<TargetFollow>(),
-                    Entity = entity
-                };
-                jobHandleList.Add(job.Schedule());
+                entities.Add(entity);
+                positions.Add(localTransform.ValueRO.Position);
             }
 
-            JobHandle.CompleteAll(jobHandleList.AsArray());
+            var job = new FindTargetJob
+            {
+                QuadrantMultiHashMap = quadrantDataManager.QuadrantMultiHashMap,
+                Positions = positions.AsArray(),
+                Entities = entities.AsArray(),
+                TargetFollows = SystemAPI.GetComponentLookup<TargetFollow>()
+            };
+            var jobHandle = job.Schedule(entities.Length, 10);
+            state.Dependency = jobHandle;
+
+            entities.Dispose(state.Dependency);
+            positions.Dispose(state.Dependency);
         }
 
-        private struct FindTargetJob : IJob
+        private struct FindTargetJob : IJobParallelFor
         {
             [ReadOnly] public NativeParallelMultiHashMap<int, QuadrantData> QuadrantMultiHashMap;
-            public ComponentLookup<LocalTransform> LocalTransformLookup;
-            public ComponentLookup<TargetFollow> TargetFollowLookup;
-            public Entity Entity;
+            [ReadOnly] public NativeArray<float3> Positions;
+            [ReadOnly] public NativeArray<Entity> Entities;
 
-            public void Execute()
+            [NativeDisableContainerSafetyRestriction]
+            public ComponentLookup<TargetFollow> TargetFollows;
+
+            public void Execute(int index)
             {
-                var position = LocalTransformLookup[Entity].Position;
+                var position = Positions[index];
+                var entity = Entities[index];
                 var hashMapKey = QuadrantSystem.GetPositionHashMapKey(position);
                 var closestTargetEntity = Entity.Null;
                 var closestTargetDistance = float.MaxValue;
 
                 // First check center
                 FindTarget(hashMapKey, position, ref closestTargetEntity,
-                    ref closestTargetDistance);
+                    ref closestTargetDistance, entity);
                 // Then search neighbours
                 FindTarget(hashMapKey + 1, position, ref closestTargetEntity,
-                    ref closestTargetDistance);
+                    ref closestTargetDistance, entity);
                 FindTarget(hashMapKey - 1, position, ref closestTargetEntity,
-                    ref closestTargetDistance);
+                    ref closestTargetDistance, entity);
                 FindTarget(hashMapKey + QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance);
+                    ref closestTargetDistance, entity);
                 FindTarget(hashMapKey - QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance);
+                    ref closestTargetDistance, entity);
                 // Then search corners
                 FindTarget(hashMapKey + 1 + QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance);
+                    ref closestTargetDistance, entity);
                 FindTarget(hashMapKey - 1 + QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance);
+                    ref closestTargetDistance, entity);
                 FindTarget(hashMapKey + 1 - QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance);
+                    ref closestTargetDistance, entity);
                 FindTarget(hashMapKey - 1 - QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance);
+                    ref closestTargetDistance, entity);
 
-                TargetFollowLookup[Entity] = new TargetFollow
+                TargetFollows[entity] = new TargetFollow
                 {
                     Target = closestTargetEntity,
                     CurrentDistanceToTarget = closestTargetDistance
@@ -83,7 +96,7 @@ namespace UnitBehaviours.Pathing
             }
 
             private void FindTarget(int hashMapKey, float3 position, ref Entity closestTargetEntity,
-                ref float closestTargetDistance)
+                ref float closestTargetDistance, Entity entity)
             {
                 QuadrantData quadrantData;
                 NativeParallelMultiHashMapIterator<int> nativeParallelMultiHashMapIterator;
@@ -96,7 +109,7 @@ namespace UnitBehaviours.Pathing
                         if (distance < closestTargetDistance)
                         {
                             // Don't kill yourself, plz
-                            if (Entity != quadrantData.Entity)
+                            if (entity != quadrantData.Entity)
                             {
                                 closestTargetDistance = distance;
                                 closestTargetEntity = quadrantData.Entity;
@@ -106,25 +119,6 @@ namespace UnitBehaviours.Pathing
                                  ref nativeParallelMultiHashMapIterator));
                 }
             }
-        }
-
-        private bool TryGetClosestTarget(ref SystemState state, float3 position, out Entity target)
-        {
-            target = Entity.Null;
-            var shortestTargetDistance = float.MaxValue;
-            foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithAll<Targetable>()
-                         .WithEntityAccess())
-            {
-                var targetPosition = localTransform.ValueRO.Position;
-                var distance = math.distance(position, targetPosition);
-                if (distance < shortestTargetDistance)
-                {
-                    shortestTargetDistance = distance;
-                    target = entity;
-                }
-            }
-
-            return target != Entity.Null;
         }
     }
 }
