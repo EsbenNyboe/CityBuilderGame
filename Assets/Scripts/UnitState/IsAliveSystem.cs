@@ -1,5 +1,6 @@
 using Rendering;
 using UnitBehaviours.Pathing;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
@@ -7,28 +8,32 @@ using Unity.Transforms;
 namespace UnitState
 {
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
-    public partial class IsAliveSystem : SystemBase
+    public partial struct IsAliveSystem : ISystem
     {
         private EntityQuery _deadUnits;
         private SystemHandle _gridManagerSystemHandle;
         private EntityQuery _deadZombies;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
-            RequireForUpdate<IsAlive>();
+            state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<IsAlive>();
 
-            _deadZombies = new EntityQueryBuilder(Allocator.Temp).WithDisabled<IsAlive>().WithAll<Zombie>().Build(this);
-            _deadUnits = new EntityQueryBuilder(Allocator.Temp).WithDisabled<IsAlive>().WithAll<Child>().Build(this);
-            _gridManagerSystemHandle = World.GetOrCreateSystem<GridManagerSystem>();
+            _deadZombies = new EntityQueryBuilder(Allocator.Temp)
+                .WithDisabled<IsAlive>().WithAll<Zombie>().Build(ref state);
+            _deadUnits = new EntityQueryBuilder(Allocator.Temp)
+                .WithDisabled<IsAlive>().WithAll<Child>().Build(ref state);
+            _gridManagerSystemHandle = state.World.GetOrCreateSystem<GridManagerSystem>();
         }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            var gridManagerRW = EntityManager.GetComponentDataRW<GridManager>(_gridManagerSystemHandle);
+            var gridManagerRW = state.EntityManager.GetComponentDataRW<GridManager>(_gridManagerSystemHandle);
             using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
             using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
             var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(World.Unmanaged);
+                .CreateCommandBuffer(state.WorldUnmanaged);
 
             // Cleanup social events
             foreach (var (socialEvent, entity) in SystemAPI.Query<RefRO<SocialEvent>>().WithEntityAccess())
@@ -94,10 +99,10 @@ namespace UnitState
             }
 
             // Destroy dead units
-            EntityManager.DestroyEntity(deadUnits);
-            EntityManager.DestroyEntity(deadLogs.AsArray());
-            EntityManager.DestroyEntity(_deadZombies);
-            EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
+            state.EntityManager.DestroyEntity(deadUnits);
+            state.EntityManager.DestroyEntity(deadLogs.AsArray());
+            state.EntityManager.DestroyEntity(_deadZombies);
+            state.EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
         }
     }
 }
