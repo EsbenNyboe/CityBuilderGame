@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -20,17 +21,18 @@ namespace UnitState
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
-            foreach (var (socialRelationships, localTransform) in SystemAPI
-                         .Query<RefRW<SocialRelationships>, RefRO<LocalTransform>>())
+            foreach (var socialEventRefRO in SystemAPI.Query<RefRO<SocialEvent>>())
             {
-                foreach (var socialEventRefRO in SystemAPI.Query<RefRO<SocialEvent>>())
+                var socialEvent = socialEventRefRO.ValueRO;
+                foreach (var (socialRelationships, localTransform) in SystemAPI
+                             .Query<RefRW<SocialRelationships>, RefRO<LocalTransform>>())
                 {
-                    var socialEvent = socialEventRefRO.ValueRO;
                     var distance = Vector3.Distance(localTransform.ValueRO.Position, socialEvent.Position);
                     if (distance < socialEvent.InfluenceRadius)
                     {
