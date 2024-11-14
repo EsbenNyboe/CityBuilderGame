@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Rendering
 {
-    [UpdateInGroup(typeof(RenderingSystemGroup))]
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial class SpriteSheetRendererSystem : SystemBase
     {
         private static readonly Vector4[] UVInstancedArray = new Vector4[SliceCount];
@@ -20,6 +20,8 @@ namespace Rendering
 
         protected override void OnUpdate()
         {
+            World.Unmanaged.GetExistingSystemState<SpriteSheetSortingSystem>().CompleteDependency();
+
             var spriteSheetSortingManager = SystemAPI.GetSingleton<SpriteSheetSortingManager>();
             var unitMesh = SpriteSheetRendererManager.Instance.UnitMesh;
             var unitMaterial = SpriteSheetRendererManager.Instance.UnitMaterial;

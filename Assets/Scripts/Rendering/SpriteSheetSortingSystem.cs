@@ -14,7 +14,7 @@ public struct SpriteSheetSortingManager : IComponentData
     public NativeArray<Vector4> SpriteUvArray;
 }
 
-[UpdateInGroup(typeof(PreRenderingSystemGroup))]
+[UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
 [BurstCompile]
 public partial struct SpriteSheetSortingSystem : ISystem
 {
@@ -42,8 +42,7 @@ public partial struct SpriteSheetSortingSystem : ISystem
 
     private void HandleMeshSorting(ref SystemState state)
     {
-        var localToWorldSystemState = state.WorldUnmanaged.GetExistingSystemState<LocalToWorldSystem>();
-        localToWorldSystemState.CompleteDependency();
+        state.WorldUnmanaged.GetExistingSystemState<LocalToWorldSystem>().CompleteDependency();
 
         // Create sliced queues of the data, before sorting
         CreateSlicedQueues(ref state, out var nativeQueue1, out var nativeQueue2, out var nativeQueue3,
