@@ -26,8 +26,21 @@ namespace UnitState
         {
             var gridManagerRW = EntityManager.GetComponentDataRW<GridManager>(_gridManagerSystemHandle);
             using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
+            using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
             var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(World.Unmanaged);
+
+            // Cleanup social events
+            foreach (var (socialEvent, entity) in SystemAPI.Query<RefRO<SocialEvent>>().WithEntityAccess())
+            {
+                for (var i = 0; i < deadUnits.Length; i++)
+                {
+                    if (socialEvent.ValueRO.Perpetrator == deadUnits[i])
+                    {
+                        invalidSocialEvents.Add(entity);
+                    }
+                }
+            }
 
             // Play death effect
             foreach (var localTransform in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>())
@@ -84,6 +97,7 @@ namespace UnitState
             EntityManager.DestroyEntity(deadUnits);
             EntityManager.DestroyEntity(deadLogs.AsArray());
             EntityManager.DestroyEntity(_deadZombies);
+            EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
         }
     }
 }
