@@ -1,4 +1,3 @@
-using CodeMonkey.Utils;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -52,9 +51,9 @@ namespace UnitBehaviours.Targeting
             var quadrantMultiHashMap =
                 SystemAPI.GetComponent<QuadrantDataManager>(state.SystemHandle).QuadrantMultiHashMap;
 
-            DebugDrawQuadrant(UtilsClass.GetMouseWorldPosition());
-            DebugHelper.Log(GetEntityCountInHashmap(quadrantMultiHashMap,
-                GetPositionHashMapKey(UtilsClass.GetMouseWorldPosition())));
+            // DebugDrawQuadrant(UtilsClass.GetMouseWorldPosition());
+            // DebugHelper.Log(GetEntityCountInHashmap(quadrantMultiHashMap,
+            //     GetPositionHashMapKey(UtilsClass.GetMouseWorldPosition())));
 
             quadrantMultiHashMap.Clear();
             if (_entityQuery.CalculateEntityCount() > quadrantMultiHashMap.Capacity)
