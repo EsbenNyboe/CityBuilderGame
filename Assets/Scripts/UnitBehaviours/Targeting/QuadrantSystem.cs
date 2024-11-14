@@ -18,7 +18,7 @@ namespace UnitBehaviours.Targeting
         public NativeParallelMultiHashMap<int, QuadrantData> QuadrantMultiHashMap;
     }
 
-    [UpdateInGroup(typeof(LifetimeSystemGroup), OrderLast = true)]
+    [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct QuadrantSystem : ISystem
     {
         private EntityQuery _entityQuery;

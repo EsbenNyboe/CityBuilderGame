@@ -14,12 +14,18 @@ namespace UnitState
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct SocialRelationshipsSystem : ISystem
     {
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<EndInitializationEntityCommandBufferSystem.Singleton>();
+        }
+
         private const int InitialCapacity = 100;
 
         public void OnUpdate(ref SystemState state)
         {
             // SETUP NEW SOCIAL RELATIONSHIPS
-            using var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
+            var ecb = SystemAPI.GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (_, spawnedEntity) in SystemAPI.Query<RefRO<SpawnedUnit>>().WithEntityAccess())
             {
                 var relationships = new NativeHashMap<Entity, float>(InitialCapacity, Allocator.Persistent);
@@ -41,8 +47,6 @@ namespace UnitState
                 };
                 ecb.AddComponent(spawnedEntity, socialRelationships);
             }
-
-            ecb.Playback(state.EntityManager);
         }
     }
 
