@@ -16,6 +16,7 @@ public partial struct PathfindingSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
 
@@ -30,7 +31,8 @@ public partial struct PathfindingSystem : ISystem
 
         var findPathJobList = new NativeList<FindPathJob>(Allocator.Temp);
         var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
-        var entityCommandBuffer = new EntityCommandBuffer(state.WorldUpdateAllocator);
+        var entityCommandBuffer = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(state.WorldUnmanaged);
 
         var currentAmountOfSchedules = 0;
 
@@ -68,7 +70,6 @@ public partial struct PathfindingSystem : ISystem
 
         JobHandle.CompleteAll(jobHandleList.AsArray());
 
-        entityCommandBuffer.Playback(state.EntityManager);
         findPathJobList.Dispose();
         jobHandleList.Dispose();
     }

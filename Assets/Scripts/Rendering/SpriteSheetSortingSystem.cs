@@ -14,7 +14,7 @@ public struct SpriteSheetSortingManager : IComponentData
     public NativeArray<Vector4> SpriteUvArray;
 }
 
-[UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
+[UpdateInGroup(typeof(PreRenderingSystemGroup), OrderLast = true)]
 [BurstCompile]
 public partial struct SpriteSheetSortingSystem : ISystem
 {
