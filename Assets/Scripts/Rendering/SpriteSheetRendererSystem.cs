@@ -11,18 +11,16 @@ namespace Rendering
         private static readonly Vector4[] UVInstancedArray = new Vector4[SliceCount];
         private static readonly Matrix4x4[] MatrixInstancedArray = new Matrix4x4[SliceCount];
         private static readonly int MainTexUV = Shader.PropertyToID("_MainTex_UV");
-        private SystemHandle _sortingSystem;
         private static int SliceCount => 1023;
 
         protected override void OnCreate()
         {
             RequireForUpdate<SpriteSheetSortingManager>();
-            _sortingSystem = World.GetExistingSystem(typeof(SpriteSheetSortingSystem));
         }
 
         protected override void OnUpdate()
         {
-            var spriteSheetSortingManager = SystemAPI.GetComponent<SpriteSheetSortingManager>(_sortingSystem);
+            var spriteSheetSortingManager = SystemAPI.GetSingleton<SpriteSheetSortingManager>();
             var unitMesh = SpriteSheetRendererManager.Instance.UnitMesh;
             var unitMaterial = SpriteSheetRendererManager.Instance.UnitMaterial;
 
