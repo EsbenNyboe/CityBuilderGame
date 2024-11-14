@@ -61,7 +61,6 @@ namespace UnitAgency
                 if (gridManager.IsBedAvailableToUnit(unitPosition, entity))
                 {
                     commands.AddComponent(entity, new IsSleeping());
-                    gridManager.SetIsWalkable(unitPosition, false);
                 }
                 else
                 {

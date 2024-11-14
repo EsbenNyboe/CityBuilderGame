@@ -1,10 +1,11 @@
 using UnitAgency;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using ISystem = Unity.Entities.ISystem;
 using SystemState = Unity.Entities.SystemState;
 
-[UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
+[UpdateInGroup(typeof(UnitBehaviourSystemGroup), OrderFirst = true)]
 public partial struct IsSleepingSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
@@ -17,13 +18,17 @@ public partial struct IsSleepingSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
+        // TODO: Double-check if this works as intended:
+        // Completing jobs reading from grid, before starting to write to grid in this system
+        state.WorldUnmanaged.GetExistingSystemState<UnitBehaviourSystemGroup>().CompleteDependency();
+
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
         var sleepinessPerSecWhenSleeping = -0.2f * SystemAPI.Time.DeltaTime;
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
-        foreach (var (localTransform, pathFollow, moodSleepiness, entity) in SystemAPI
-                     .Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodSleepiness>>().WithAll<IsSleeping>()
+        foreach (var (isSleeping, localTransform, pathFollow, moodSleepiness, entity) in SystemAPI
+                     .Query<RefRW<IsSleeping>, RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodSleepiness>>()
                      .WithEntityAccess())
         {
             if (pathFollow.ValueRO.IsMoving())
@@ -33,35 +38,40 @@ public partial struct IsSleepingSystem : ISystem
                 continue;
             }
 
+            var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+
+            if (!isSleeping.ValueRO.IsInitialized)
+            {
+                isSleeping.ValueRW.IsInitialized = true;
+                gridManager.SetIsWalkable(currentCell, false);
+            }
+
             if (moodSleepiness.ValueRO.Sleepiness > 0)
             {
                 moodSleepiness.ValueRW.Sleepiness += sleepinessPerSecWhenSleeping;
             }
             else
             {
-                GoAwayFromBed(ref state, ecb, ref gridManager, entity);
+                GoAwayFromBed(ref state, ecb, ref gridManager, entity, currentCell);
             }
         }
 
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 
-    private void GoAwayFromBed(  ref SystemState state, EntityCommandBuffer commands, ref GridManager gridManager,
-        Entity entity)
+    private void GoAwayFromBed(ref SystemState state, EntityCommandBuffer commands, ref GridManager gridManager,
+        Entity entity, int2 currentCell)
     {
         // I should leave the bed-area, so others can use the bed...
-        var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
-
-        if (gridManager.EntityIsOccupant(unitPosition, entity))
+        if (gridManager.EntityIsOccupant(currentCell, entity))
         {
-            gridManager.SetIsWalkable(unitPosition, true);
+            gridManager.SetIsWalkable(currentCell, true);
         }
         else
         {
             DebugHelper.Log("Seems like someone else was spooning me, while I slept... They can keep the bed!");
         }
 
-        var currentCell = GridHelpers.GetXY(unitPosition);
         if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out var nearbyCell))
         {
             PathHelpers.TrySetPath(commands, entity, currentCell, nearbyCell);

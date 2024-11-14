@@ -51,7 +51,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 }.Schedule());
             }
 
-            JobHandle.CompleteAll(jobHandleList.AsArray());
+            state.Dependency = JobHandle.CombineDependencies(jobHandleList.AsArray());
             jobHandleList.Dispose();
         }
 
