@@ -35,10 +35,16 @@ namespace UnitBehaviours.AutonomousHarvesting
                     continue;
                 }
 
+                var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+                if (gridManager.IsOccupied(currentCell, entity))
+                {
+                    continue;
+                }
+
                 // I reacted my destination / I'm standing still: I should find a tree!
                 jobHandleList.Add(new SeekTreeJob
                 {
-                    CurrentCell = GridHelpers.GetXY(localTransform.ValueRO.Position),
+                    CurrentCell = currentCell,
                     Entity = entity,
                     GridManager = gridManager,
                     Ecb = GetEntityCommandBuffer(ref state)
@@ -52,8 +58,8 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         private EntityCommandBuffer GetEntityCommandBuffer(ref SystemState state)
         {
-            var ecbTest = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
-            return ecbTest.CreateCommandBuffer(state.WorldUnmanaged);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
+            return ecb.CreateCommandBuffer(state.WorldUnmanaged);
         }
     }
 

@@ -12,7 +12,8 @@ namespace Rendering
     {
         protected override void OnUpdate()
         {
-            var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(World.Unmanaged);
 
             foreach (var (deathAnimationEvent, entity) in SystemAPI.Query<RefRO<DeathAnimationEvent>>()
                          .WithEntityAccess())
@@ -21,8 +22,6 @@ namespace Rendering
                 SoundManager.Instance.PlayDieSound(deathAnimationEvent.ValueRO.Position);
                 ecb.DestroyEntity(entity);
             }
-
-            ecb.Playback(EntityManager);
         }
     }
 }

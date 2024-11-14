@@ -75,7 +75,8 @@ public partial class UnitControlSystem : SystemBase
                 selectOnlyOneEntity = true;
             }
 
-            var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(World.Unmanaged);
 
             DeselectAllUnits(ecb);
 
@@ -105,8 +106,6 @@ public partial class UnitControlSystem : SystemBase
                     selectedEntityCount++;
                 }
             }
-
-            ecb.Playback(EntityManager);
         }
 
         if (Input.GetMouseButtonDown(1) && !Input.GetKey(KeyCode.LeftControl))
@@ -118,14 +117,13 @@ public partial class UnitControlSystem : SystemBase
 
     private void SelectAllUnits()
     {
-        var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(World.Unmanaged);
 
         foreach (var (_, entity) in SystemAPI.Query<RefRO<Selectable>>().WithEntityAccess())
         {
             ecb.AddComponent(entity, new UnitSelection());
         }
-
-        ecb.Playback(EntityManager);
     }
 
     private void DeselectAllUnits(EntityCommandBuffer ecb)
@@ -147,7 +145,8 @@ public partial class UnitControlSystem : SystemBase
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
-        var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(World.Unmanaged);
 
         var mousePosition = UtilsClass.GetMouseWorldPosition();
         var cellSize = 1f; // gridManager currently only supports a cellSize of 1
@@ -173,7 +172,6 @@ public partial class UnitControlSystem : SystemBase
             }
         }
 
-        ecb.Playback(EntityManager);
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 

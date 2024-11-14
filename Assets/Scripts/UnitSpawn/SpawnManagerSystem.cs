@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CodeMonkey.Utils;
+using UnitBehaviours.Pathing;
 using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -37,7 +38,8 @@ public partial class SpawnManagerSystem : SystemBase
         }
 
         var cellList = GridHelpersManaged.GetCellListAroundTargetCell(cellPosition, brushSize);
-        var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
+        var ecb = SystemAPI.GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(World.Unmanaged);
         // TODO: Make SpawnManager into a Singleton instead
         foreach (var spawnManager in SystemAPI.Query<RefRO<SpawnManager>>())
         {
@@ -45,7 +47,6 @@ public partial class SpawnManagerSystem : SystemBase
             DeleteProcess(ecb, ref gridManager, cellList, brushSize, itemToDelete);
         }
 
-        ecb.Playback(EntityManager);
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 
@@ -106,10 +107,7 @@ public partial class SpawnManagerSystem : SystemBase
             case SpawnItemType.None:
                 break;
             case SpawnItemType.Unit:
-                foreach (var cell in cellList)
-                {
-                    TryDeleteUnit(ecb, ref gridManager, cell);
-                }
+                TryDeleteUnits(ecb, cellList[0], brushSize);
 
                 break;
             case SpawnItemType.Zombie:
@@ -161,17 +159,23 @@ public partial class SpawnManagerSystem : SystemBase
         }
     }
 
-    private void TryDeleteUnit(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
+    private void TryDeleteUnits(EntityCommandBuffer ecb, int2 center, int brushSize)
     {
-        if (gridManager.IsPositionInsideGrid(cell) && gridManager.TryGetOccupant(cell, out var entity))
+        foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
+                     .WithAll<SocialRelationships>())
         {
-            ecb.SetComponentEnabled<IsAlive>(entity, false);
+            var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+            if (math.distance(center, cell) <= brushSize)
+            {
+                ecb.SetComponentEnabled<IsAlive>(entity, false);
+            }
         }
     }
 
     private void TryDeleteZombies(EntityCommandBuffer ecb, int2 center, int brushSize)
     {
-        foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess())
+        foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
+                     .WithAll<Zombie>())
         {
             var zombieCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
             if (math.distance(center, zombieCell) <= brushSize)

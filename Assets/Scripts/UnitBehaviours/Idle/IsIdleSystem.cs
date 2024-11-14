@@ -9,13 +9,20 @@ public struct IsIdle : IComponentData
 [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
 public partial struct IsIdleSystem : ISystem
 {
+    public void OnCreate(ref SystemState state)
+    {
+        state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+    }
+
     private const float MaxIdleTime = 1f;
 
     public void OnUpdate(ref SystemState state)
     {
-        var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(state.WorldUnmanaged);
 
-        foreach (var (pathFollow, moodRestlessness, entity) in SystemAPI.Query<RefRO<PathFollow>, RefRW<MoodRestlessness>>().WithEntityAccess()
+        foreach (var (pathFollow, moodRestlessness, entity) in SystemAPI
+                     .Query<RefRO<PathFollow>, RefRW<MoodRestlessness>>().WithEntityAccess()
                      .WithAll<IsIdle>())
         {
             if (pathFollow.ValueRO.IsMoving())
@@ -30,7 +37,5 @@ public partial struct IsIdleSystem : ISystem
                 ecb.AddComponent(entity, new IsDeciding());
             }
         }
-
-        ecb.Playback(state.EntityManager);
     }
 }

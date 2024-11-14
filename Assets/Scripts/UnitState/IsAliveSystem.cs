@@ -6,7 +6,7 @@ using Unity.Transforms;
 
 namespace UnitState
 {
-    [UpdateInGroup(typeof(LifetimeSystemGroup), OrderFirst = true)]
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial class IsAliveSystem : SystemBase
     {
         private EntityQuery _deadUnits;
@@ -26,7 +26,21 @@ namespace UnitState
         {
             var gridManagerRW = EntityManager.GetComponentDataRW<GridManager>(_gridManagerSystemHandle);
             using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
-            using var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
+            using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
+            var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(World.Unmanaged);
+
+            // Cleanup social events
+            foreach (var (socialEvent, entity) in SystemAPI.Query<RefRO<SocialEvent>>().WithEntityAccess())
+            {
+                for (var i = 0; i < deadUnits.Length; i++)
+                {
+                    if (socialEvent.ValueRO.Perpetrator == deadUnits[i])
+                    {
+                        invalidSocialEvents.Add(entity);
+                    }
+                }
+            }
 
             // Play death effect
             foreach (var localTransform in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>())
@@ -80,10 +94,10 @@ namespace UnitState
             }
 
             // Destroy dead units
-            ecb.Playback(EntityManager);
             EntityManager.DestroyEntity(deadUnits);
             EntityManager.DestroyEntity(deadLogs.AsArray());
             EntityManager.DestroyEntity(_deadZombies);
+            EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
         }
     }
 }

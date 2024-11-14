@@ -1,6 +1,5 @@
 using UnitState;
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -17,13 +16,15 @@ public partial struct PathFollowSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var ecb = new EntityCommandBuffer(Allocator.Temp);
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(state.WorldUnmanaged);
 
         foreach (var (localTransform, pathPositionBuffer, pathFollow, spriteTransform, socialRelationships, entity) in
                  SystemAPI
@@ -109,7 +110,5 @@ public partial struct PathFollowSystem : ISystem
                 spriteTransform.ValueRW.Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
             }
         }
-
-        ecb.Playback(state.EntityManager);
     }
 }
