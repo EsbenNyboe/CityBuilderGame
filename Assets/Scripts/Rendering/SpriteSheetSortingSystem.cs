@@ -16,22 +16,27 @@ public struct SpriteSheetSortingManager : IComponentData
 
 [UpdateInGroup(typeof(PreRenderingSystemGroup))]
 [BurstCompile]
-public partial class SpriteSheetSortingSystem : SystemBase
+public partial struct SpriteSheetSortingSystem : ISystem
 {
-    protected override void OnCreate()
+    private EntityQuery _entityQuery;
+
+    public void OnCreate(ref SystemState state)
     {
-        EntityManager.AddComponent<SpriteSheetSortingManager>(SystemHandle);
+        state.EntityManager.AddComponent<SpriteSheetSortingManager>(state.SystemHandle);
+        _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<SpriteSheetAnimation>(),
+            ComponentType.ReadOnly<LocalToWorld>());
     }
 
-    protected override void OnUpdate()
+    public void OnUpdate(ref SystemState state)
     {
-        HandleMeshSorting();
+        HandleMeshSorting(ref state);
     }
 
-    private void HandleMeshSorting()
+    private void HandleMeshSorting(ref SystemState state)
     {
         // Create sliced queues of the data, before sorting
-        CreateSlicedQueues(out var nativeQueue_1, out var nativeQueue_2, out var nativeQueue_3, out var nativeQueue_4);
+        CreateSlicedQueues(ref state, out var nativeQueue_1, out var nativeQueue_2, out var nativeQueue_3,
+            out var nativeQueue_4);
 
         var jobHandleArray = new NativeArray<JobHandle>(4, Allocator.TempJob);
 
@@ -47,12 +52,12 @@ public partial class SpriteSheetSortingSystem : SystemBase
         MergeSlicedArrays(jobHandleArray, out var matrixArray, out var uvArray, nativeArray_1, nativeArray_2,
             nativeArray_3, nativeArray_4);
 
-        var spriteSheetSortingManager = SystemAPI.GetComponent<SpriteSheetSortingManager>(SystemHandle);
+        var spriteSheetSortingManager = SystemAPI.GetComponent<SpriteSheetSortingManager>(state.SystemHandle);
         spriteSheetSortingManager.SpriteMatrixArray.Dispose();
         spriteSheetSortingManager.SpriteUvArray.Dispose();
         spriteSheetSortingManager.SpriteMatrixArray = matrixArray;
         spriteSheetSortingManager.SpriteUvArray = uvArray;
-        SystemAPI.SetComponent(SystemHandle, spriteSheetSortingManager);
+        SystemAPI.SetComponent(state.SystemHandle, spriteSheetSortingManager);
 
         jobHandleArray.Dispose();
         nativeQueue_1.Dispose();
@@ -65,19 +70,17 @@ public partial class SpriteSheetSortingSystem : SystemBase
         nativeArray_4.Dispose();
     }
 
-    protected override void OnDestroy()
+    public void OnDestroy(ref SystemState state)
     {
-        var spriteSheetSortingManager = SystemAPI.GetComponent<SpriteSheetSortingManager>(SystemHandle);
+        var spriteSheetSortingManager = SystemAPI.GetComponent<SpriteSheetSortingManager>(state.SystemHandle);
         spriteSheetSortingManager.SpriteMatrixArray.Dispose();
         spriteSheetSortingManager.SpriteUvArray.Dispose();
     }
 
-    private void CreateSlicedQueues(out NativeQueue<RenderData> nativeQueue_1,
+    private void CreateSlicedQueues(ref SystemState state, out NativeQueue<RenderData> nativeQueue_1,
         out NativeQueue<RenderData> nativeQueue_2,
         out NativeQueue<RenderData> nativeQueue_3, out NativeQueue<RenderData> nativeQueue_4)
     {
-        var entityQuery = GetEntityQuery(typeof(SpriteSheetAnimation), typeof(LocalToWorld));
-
         var camera = Camera.main;
         if (camera == null)
         {
@@ -119,7 +122,7 @@ public partial class SpriteSheetSortingSystem : SystemBase
             NativeQueue_3 = nativeQueue_3,
             NativeQueue_4 = nativeQueue_4
         };
-        cullAndSortJob.Run(entityQuery);
+        cullAndSortJob.Run(_entityQuery);
     }
 
     private static void ConvertQueuesToArrays(NativeArray<JobHandle> jobHandleArray,
