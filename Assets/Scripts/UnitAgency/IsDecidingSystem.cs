@@ -11,11 +11,14 @@ namespace UnitAgency
     internal partial struct IsDecidingSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
+        private EntityQuery _query;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
+            _query = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<IsDeciding>());
         }
 
         [BurstCompile]
@@ -23,16 +26,18 @@ namespace UnitAgency
         {
             // Following the example at: https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/systems-entity-command-buffer-automatic-playback.html
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
-            var commands = new EntityCommandBuffer(state.WorldUpdateAllocator);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (_, inventory, moodSleepiness, entity)
                      in SystemAPI.Query<RefRO<IsDeciding>, RefRO<Inventory>, RefRO<MoodSleepiness>>()
                          .WithEntityAccess())
             {
-                commands.RemoveComponent<IsDeciding>(entity);
-                DecideNextBehaviour(ref state, ref gridManager, commands, inventory, moodSleepiness, entity);
+                ecb.RemoveComponent<IsDeciding>(entity);
+                DecideNextBehaviour(ref state, ref gridManager, ecb, inventory, moodSleepiness, entity);
             }
 
-            commands.Playback(state.EntityManager);
+            // TODO: Test if this will block jobs
+            // state.EntityManager.DestroyEntity(_query);
         }
 
         private void DecideNextBehaviour(ref SystemState state,

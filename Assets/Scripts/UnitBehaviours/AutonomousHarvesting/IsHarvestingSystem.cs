@@ -16,6 +16,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
             _soundManagerSystemHandle = state.World.GetExistingSystem<DotsSoundManagerSystem>();
             _chopAnimationManager = state.World.GetExistingSystem<ChopAnimationManagerSystem>();
@@ -24,7 +25,8 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var soundManager = SystemAPI.GetComponent<DotsSoundManager>(_soundManagerSystemHandle);
             var chopAnimationManager = SystemAPI.GetComponent<ChopAnimationManager>(_chopAnimationManager);
@@ -69,7 +71,6 @@ namespace UnitBehaviours.AutonomousHarvesting
                 }
             }
 
-            ecb.Playback(state.EntityManager);
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
