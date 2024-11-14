@@ -23,11 +23,16 @@ public partial class AnimationSystemGroup : ComponentSystemGroup
 
 [UpdateInGroup(typeof(SimulationSystemGroup))]
 [UpdateAfter(typeof(AnimationSystemGroup))]
-public partial class RenderingSystemGroup : ComponentSystemGroup
+public partial class PreRenderingSystemGroup : ComponentSystemGroup
 {
 }
 
 [UpdateInGroup(typeof(PresentationSystemGroup), OrderFirst = true)]
 public partial class UnitStateSystemGroup : ComponentSystemGroup
+{
+}
+
+[UpdateInGroup(typeof(PresentationSystemGroup))]
+public partial class RenderingSystemGroup : ComponentSystemGroup
 {
 }

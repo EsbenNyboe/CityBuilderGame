@@ -4,7 +4,7 @@ using Unity.Entities;
 using Unity.Rendering;
 using Unity.Transforms;
 
-[UpdateInGroup(typeof(RenderingSystemGroup))]
+[UpdateInGroup(typeof(PreRenderingSystemGroup))]
 [BurstCompile]
 public partial struct InventoryItemVisualSystem : ISystem
 {
@@ -12,7 +12,8 @@ public partial struct InventoryItemVisualSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         // TODO: Remove this, and integrate resource-graphic in unit-animation-sheet (or something else, maybe)
-        foreach (var (child, entity) in SystemAPI.Query<DynamicBuffer<Child>>().WithNone<IsSeekingDropPoint>().WithEntityAccess())
+        foreach (var (child, entity) in SystemAPI.Query<DynamicBuffer<Child>>().WithNone<IsSeekingDropPoint>()
+                     .WithEntityAccess())
         {
             state.EntityManager.SetComponentEnabled<MaterialMeshInfo>(child[0].Value, false);
         }
