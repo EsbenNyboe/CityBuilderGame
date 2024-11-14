@@ -4,7 +4,7 @@ using Unity.Entities;
 namespace UnitBehaviours.Gossiping
 {
     /// <summary>
-    /// Indicates that we are standing around and waiting for someone to anyone to come and talk with us.
+    ///     Indicates that we are standing around and waiting for someone to anyone to come and talk with us.
     /// </summary>
     public struct IsAvailableForTalking : IComponentData
     {
@@ -13,11 +13,18 @@ namespace UnitBehaviours.Gossiping
 
     public partial struct IsAvailableForTalkingSystem : ISystem
     {
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+        }
+
         public void OnUpdate(ref SystemState state)
         {
-            using var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
 
-            foreach (var (isAvailableForTalking, entity) in SystemAPI.Query<RefRW<IsAvailableForTalking>>().WithEntityAccess())
+            foreach (var (isAvailableForTalking, entity) in SystemAPI.Query<RefRW<IsAvailableForTalking>>()
+                         .WithEntityAccess())
             {
                 isAvailableForTalking.ValueRW.PatienceSeconds -= SystemAPI.Time.DeltaTime;
                 if (isAvailableForTalking.ValueRO.PatienceSeconds <= 0)
@@ -26,8 +33,6 @@ namespace UnitBehaviours.Gossiping
                     ecb.AddComponent<IsDeciding>(entity);
                 }
             }
-
-            ecb.Playback(state.EntityManager);
         }
     }
 }

@@ -36,7 +36,8 @@ public partial class UnitSelectionSystem : SystemBase
 
     private void DeleteSelectedUnits()
     {
-        var ecb = new EntityCommandBuffer(WorldUpdateAllocator);
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(World.Unmanaged);
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
         foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
@@ -44,7 +45,6 @@ public partial class UnitSelectionSystem : SystemBase
             ecb.SetComponentEnabled<IsAlive>(entity, false);
         }
 
-        ecb.Playback(EntityManager);
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 }

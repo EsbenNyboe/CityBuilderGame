@@ -15,6 +15,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
         }
 
@@ -22,7 +23,8 @@ namespace UnitBehaviours.AutonomousHarvesting
         public void OnUpdate(ref SystemState state)
         {
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
-            var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (localTransform, pathFollow, inventory, entity)
                      in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<Inventory>>()
                          .WithAll<IsSeekingDropPoint>()
@@ -52,7 +54,6 @@ namespace UnitBehaviours.AutonomousHarvesting
             }
 
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-            ecb.Playback(state.EntityManager);
         }
 
         private int2 FindClosestDropPoint(ref SystemState state,

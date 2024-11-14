@@ -11,7 +11,7 @@ namespace UnitState
         public NativeHashMap<Entity, float> Relationships;
     }
 
-    [UpdateInGroup(typeof(LifetimeSystemGroup), OrderLast = true)]
+    [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct SocialRelationshipsSystem : ISystem
     {
         private const int InitialCapacity = 100;

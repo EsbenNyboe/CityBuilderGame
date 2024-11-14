@@ -15,9 +15,15 @@ namespace UnitState
 
     public partial struct SocialEventSystem : ISystem
     {
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+        }
+
         public void OnUpdate(ref SystemState state)
         {
-            using var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
 
             foreach (var (socialRelationships, localTransform) in SystemAPI
                          .Query<RefRW<SocialRelationships>, RefRO<LocalTransform>>())
@@ -38,8 +44,6 @@ namespace UnitState
             {
                 ecb.RemoveComponent<SocialEvent>(entity);
             }
-
-            ecb.Playback(state.EntityManager);
         }
     }
 }

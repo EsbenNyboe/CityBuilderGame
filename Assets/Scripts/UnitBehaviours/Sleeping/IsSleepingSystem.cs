@@ -11,12 +11,14 @@ public partial struct IsSleepingSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
 
     public void OnUpdate(ref SystemState state)
     {
-        var ecb = new EntityCommandBuffer(state.WorldUpdateAllocator);
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(state.WorldUnmanaged);
         var sleepinessPerSecWhenSleeping = -0.2f * SystemAPI.Time.DeltaTime;
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
@@ -42,7 +44,6 @@ public partial struct IsSleepingSystem : ISystem
         }
 
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-        ecb.Playback(state.EntityManager);
     }
 
     private void GoAwayFromBed(  ref SystemState state, EntityCommandBuffer commands, ref GridManager gridManager,

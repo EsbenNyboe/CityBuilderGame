@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-[UpdateInGroup(typeof(LifetimeSystemGroup), OrderFirst = true)]
+[UpdateInGroup(typeof(LifetimeSystemGroup), OrderLast = true)]
 public partial struct SpawnedUnitSystem : ISystem
 {
     public void OnUpdate(ref SystemState state)
