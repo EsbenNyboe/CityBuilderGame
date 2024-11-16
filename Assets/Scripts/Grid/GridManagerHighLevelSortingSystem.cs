@@ -280,10 +280,17 @@ namespace Grid
                         return;
                     }
 
-                    if (currentNode.NeighboursSearched >= neighbours.Length && currentNode.NodeSource.x > -1)
+                    while (currentNode.NeighboursSearched >= neighbours.Length && currentNode.NodeSource.x > -1)
                     {
                         var newNode = closedNodes[currentNode.NodeSource];
                         currentNode = newNode;
+
+                        _currentIteration++;
+                        if (_currentIteration > 100000)
+                        {
+                            Debug.LogError("Too many iterations. OpenNodes length: " + openNodes.Count());
+                            return;
+                        }
                     }
                 }
             }
