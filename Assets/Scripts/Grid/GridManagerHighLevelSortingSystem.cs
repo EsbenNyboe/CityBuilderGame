@@ -14,26 +14,21 @@ namespace Grid
         private int _debugListSuccessHitsCurrent;
         private NativeList<int2> _debugList;
         private NativeList<int2> _debugListSuccessHits;
+        private NativeHashMap<int2, int> _debugSectionMap;
         private bool _isDebugging;
+        private bool _hasQuickDebuggedWholeSection;
+        private int _currentSectionBeingDebugged;
         private bool _initialized;
 
         public void OnCreate(ref SystemState state)
         {
             _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
+            _isDebugging = true;
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            if (_initialized)
-            {
-                DebugLogic(ref state);
-                return;
-            }
-
-            // _initialized = true;
-
             SortingProcess(ref state);
-            DebugLogic(ref state);
         }
 
         private void DebugLogic(ref SystemState state)
@@ -48,8 +43,25 @@ namespace Grid
                 return;
             }
 
-            if (Input.GetKeyDown(KeyCode.Return) || (Input.GetKey(KeyCode.Return) && Input.GetKey(KeyCode.LeftShift)))
+            if (Input.GetKeyDown(KeyCode.Return))
             {
+                _hasQuickDebuggedWholeSection = false;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Return) ||
+                (Input.GetKey(KeyCode.Return) && Input.GetKey(KeyCode.LeftShift) && !_hasQuickDebuggedWholeSection))
+            {
+                if (_debugSectionMap.TryGetValue(_debugList[_debugListCurrent],
+                        out var currentSection))
+                {
+                    if (_currentSectionBeingDebugged != currentSection)
+                    {
+                        _currentSectionBeingDebugged = currentSection;
+                        _hasQuickDebuggedWholeSection = true;
+                        return;
+                    }
+                }
+
                 if (_debugListSuccessHitsCurrent == 0)
                 {
                     if (_debugListCurrent == 0)
@@ -134,6 +146,7 @@ namespace Grid
 
             _debugList = new NativeList<int2>(walkablesCount, Allocator.Persistent);
             _debugListSuccessHits = new NativeList<int2>(walkablesCount, Allocator.Persistent);
+            _debugSectionMap = new NativeHashMap<int2, int>(walkablesCount, Allocator.Persistent);
 
             // Sort to sections
             var closedNodes = new NativeParallelHashMap<int2, WalkableSectionNode>(walkablesCount, Allocator.Temp);
@@ -147,22 +160,40 @@ namespace Grid
             // Debug.Log("Remaining open nodes: " + openNodes.Count());
             // Debug.Log("Length of final map: " + walkableSections.Count());
 
-            using var sectionKeys = walkableSections.GetKeyArray(Allocator.Temp);
-            var sectionCount = sectionKeys.Length;
 
-            var sectionKey = 0;
-            while (sectionKey < sectionCount)
+            if (_isDebugging)
             {
-                if (walkableSections.TryGetFirstValue(sectionKey, out var walkableSectionNode, out var iterator))
+                using var sectionKeys = walkableSections.GetKeyArray(Allocator.Temp);
+                var sectionCount = 0;
+                foreach (var key in sectionKeys)
                 {
-                    do
+                    if (key >= sectionCount)
                     {
-                        DebugDrawCell(walkableSectionNode.GridCell, GetSectionColor(sectionKey));
-                    } while (walkableSections.TryGetNextValue(out walkableSectionNode, ref iterator));
+                        sectionCount = key + 1;
+                    }
                 }
 
-                sectionKey++;
+                if (Input.GetKeyDown(KeyCode.P))
+                {
+                    Debug.Log("Section count: " + sectionCount);
+                }
+
+                var sectionKey = 0;
+                while (sectionKey < sectionCount)
+                {
+                    if (walkableSections.TryGetFirstValue(sectionKey, out var walkableSectionNode, out var iterator))
+                    {
+                        do
+                        {
+                            DebugDrawCell(walkableSectionNode.GridCell, GetSectionColor(sectionKey));
+                        } while (walkableSections.TryGetNextValue(out walkableSectionNode, ref iterator));
+                    }
+
+                    sectionKey++;
+                }
             }
+
+            DebugLogic(ref state);
 
             walkableSections.Dispose();
             openNodes.Dispose();
@@ -188,6 +219,7 @@ namespace Grid
         {
             _debugList.Dispose();
             _debugListSuccessHits.Dispose();
+            _debugSectionMap.Dispose();
         }
 
         private static int _currentIteration;
@@ -214,6 +246,11 @@ namespace Grid
                 _debugList.Add(currentCell);
                 _debugListSuccessHits.Add(currentCell);
 
+                if (!_debugSectionMap.TryAdd(currentCell, currentSection))
+                {
+                    Debug.Log("Try add failed (1)");
+                }
+
                 while (currentNode.NeighboursSearched < neighbours.Length)
                 {
                     var neighbourCell = currentNode.GridCell + neighbours[currentNode.NeighboursSearched];
@@ -230,6 +267,10 @@ namespace Grid
                         closedNodes.TryAdd(currentNode.GridCell, currentNode);
                         currentNode = newNode;
                         _debugListSuccessHits.Add(neighbourCell);
+                        if (!_debugSectionMap.TryAdd(neighbourCell, currentSection))
+                        {
+                            Debug.Log("Try add failed (2)");
+                        }
                     }
 
                     _currentIteration++;
@@ -239,7 +280,6 @@ namespace Grid
                         return;
                     }
 
-                    // how to return to NodeSource?
                     if (currentNode.NeighboursSearched >= neighbours.Length && currentNode.NodeSource.x > -1)
                     {
                         var newNode = closedNodes[currentNode.NodeSource];
