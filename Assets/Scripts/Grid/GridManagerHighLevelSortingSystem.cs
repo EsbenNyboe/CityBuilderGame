@@ -113,11 +113,15 @@ namespace Grid
 
         private static void DebugDrawCell(int2 cell, Color color)
         {
-            var debugPosition = new Vector3(cell.x - 0.5f, cell.y - 0.5f, 0);
-            Debug.DrawLine(debugPosition, debugPosition + new Vector3(+1, +0), color);
-            Debug.DrawLine(debugPosition, debugPosition + new Vector3(+0, +1), color);
-            Debug.DrawLine(debugPosition + new Vector3(+1, +0), debugPosition + new Vector3(+1, +1), color);
-            Debug.DrawLine(debugPosition + new Vector3(+0, +1), debugPosition + new Vector3(+1, +1), color);
+            var padding = 0.2f;
+            var offset = 1f - padding;
+            var debugPosition = new Vector3(cell.x - 0.5f + padding, cell.y - 0.5f + padding, 0);
+            Debug.DrawLine(debugPosition, debugPosition + new Vector3(+offset, +0), color);
+            Debug.DrawLine(debugPosition, debugPosition + new Vector3(+0, +offset), color);
+            Debug.DrawLine(debugPosition + new Vector3(+offset, +0), debugPosition + new Vector3(+offset, +offset),
+                color);
+            Debug.DrawLine(debugPosition + new Vector3(+0, +offset), debugPosition + new Vector3(+offset, +offset),
+                color);
         }
 
         private void SortingProcess(ref SystemState state)
