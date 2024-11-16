@@ -36,7 +36,7 @@ namespace Grid
 
         private void DebugLogic(ref SystemState state)
         {
-            if (Input.GetKeyDown(KeyCode.Return))
+            if (Input.GetKeyDown(KeyCode.Return) || (Input.GetKey(KeyCode.Return) && Input.GetKey(KeyCode.LeftShift)))
             {
                 if (_debugListSuccessHitsCurrent == 0)
                 {
@@ -110,7 +110,6 @@ namespace Grid
                 new NativeParallelMultiHashMap<int, WalkableSectionNode>(walkablesCount, Allocator.Temp);
 
             Debug.Log("Length before: " + walkableNodeQueue.Count);
-            var currentCell = walkableNodeQueue.Dequeue();
             while (walkableNodeQueue.Count > 0)
             {
                 openNodes.Add(walkableNodeQueue.Dequeue());
@@ -120,23 +119,10 @@ namespace Grid
 
             _debugList = new NativeList<int2>(walkablesCount, Allocator.Persistent);
             _debugListSuccessHits = new NativeList<int2>(walkablesCount, Allocator.Persistent);
-            _debugList.Add(currentCell);
-            _debugListSuccessHits.Add(currentCell);
 
             // Sort to sections
-            var currentSection = 0;
-            var currentNode = new WalkableSectionNode
-            {
-                GridCell = currentCell,
-                NodeSource = -1
-            };
-            walkableSections.Add(currentSection, currentNode);
-            openNodes.Remove(currentCell);
             var closedNodes = new NativeParallelHashMap<int2, WalkableSectionNode>(walkablesCount, Allocator.Temp);
-            closedNodes.Add(currentCell, currentNode);
-
-            SearchNeighbours(walkableSections, openNodes, closedNodes, currentNode, currentSection,
-                gridManager.NeighbourDeltas);
+            SearchCellList(walkableSections, openNodes, closedNodes, gridManager.NeighbourDeltas);
 
             foreach (var openNode in openNodes)
             {
@@ -158,62 +144,61 @@ namespace Grid
 
         private static int _currentIteration;
 
-        private void SearchNeighbours(NativeParallelMultiHashMap<int, WalkableSectionNode> walkableSections,
+        private void SearchCellList(NativeParallelMultiHashMap<int, WalkableSectionNode> walkableSections,
             NativeParallelHashSet<int2> openNodes, NativeParallelHashMap<int2, WalkableSectionNode> closedNodes,
-            WalkableSectionNode currentNode, int currentSection,
             NativeArray<int2> neighbours)
         {
-            while (currentNode.NeighboursSearched < neighbours.Length)
+            var currentSection = -1;
+            while (openNodes.Count() > 0)
             {
-                var neighbourCell = currentNode.GridCell + neighbours[currentNode.NeighboursSearched];
-                _debugList.Add(neighbourCell);
-                currentNode.NeighboursSearched++;
-                if (openNodes.Remove(neighbourCell))
+                using var enumerator = openNodes.GetEnumerator();
+                enumerator.MoveNext();
+                currentSection++;
+                var currentCell = enumerator.Current;
+                openNodes.Remove(currentCell);
+                var currentNode = new WalkableSectionNode
                 {
-                    var newNode = new WalkableSectionNode
+                    GridCell = currentCell,
+                    NodeSource = -1
+                };
+                walkableSections.Add(currentSection, currentNode);
+                closedNodes.Add(currentCell, currentNode);
+                _debugList.Add(currentCell);
+                _debugListSuccessHits.Add(currentCell);
+
+                while (currentNode.NeighboursSearched < neighbours.Length)
+                {
+                    var neighbourCell = currentNode.GridCell + neighbours[currentNode.NeighboursSearched];
+                    _debugList.Add(neighbourCell);
+                    currentNode.NeighboursSearched++;
+                    if (openNodes.Remove(neighbourCell))
                     {
-                        GridCell = neighbourCell,
-                        NodeSource = currentNode.GridCell
-                    };
-                    walkableSections.Add(currentSection, newNode);
-                    closedNodes.TryAdd(currentNode.GridCell, currentNode);
-                    currentNode = newNode;
-                    _debugListSuccessHits.Add(neighbourCell);
-                }
+                        var newNode = new WalkableSectionNode
+                        {
+                            GridCell = neighbourCell,
+                            NodeSource = currentNode.GridCell
+                        };
+                        walkableSections.Add(currentSection, newNode);
+                        closedNodes.TryAdd(currentNode.GridCell, currentNode);
+                        currentNode = newNode;
+                        _debugListSuccessHits.Add(neighbourCell);
+                    }
 
-                _currentIteration++;
-                if (_currentIteration > 100000)
-                {
-                    Debug.LogError("Too many iterations. OpenNodes length: " + openNodes.Count());
-                    return;
-                }
+                    _currentIteration++;
+                    if (_currentIteration > 100000)
+                    {
+                        Debug.LogError("Too many iterations. OpenNodes length: " + openNodes.Count());
+                        return;
+                    }
 
-                // how to return to NodeSource?
-                if (currentNode.NeighboursSearched >= neighbours.Length && currentNode.NodeSource.x > -1)
-                {
-                    var newNode = closedNodes[currentNode.NodeSource];
-                    currentNode = newNode;
+                    // how to return to NodeSource?
+                    if (currentNode.NeighboursSearched >= neighbours.Length && currentNode.NodeSource.x > -1)
+                    {
+                        var newNode = closedNodes[currentNode.NodeSource];
+                        currentNode = newNode;
+                    }
                 }
             }
-
-            // using var enumerator = openNodes.GetEnumerator();
-            // if (!enumerator.MoveNext())
-            // {
-            //     Debug.Log("OpenNodes is emptied");
-            //     return;
-            // }
-            //
-            // {
-            //     openNodes.Remove(enumerator.Current);
-            //     currentSection++;
-            //     var newNode = new WalkableSectionNode
-            //     {
-            //         GridCell = currentNode.GridCell,
-            //         NodeSource = -1
-            //     };
-            //     walkableSections.Add(currentSection, newNode);
-            //     currentNode = newNode;
-            // }
         }
 
         private struct WalkableSectionNode

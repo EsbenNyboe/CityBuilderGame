@@ -5881,6 +5881,18 @@ MonoBehaviour:
     EndCell:
       x: 13
       y: 6
+  - StartCell:
+      x: 20
+      y: 10
+    EndCell:
+      x: 23
+      y: 12
+  - StartCell:
+      x: 22
+      y: 10
+    EndCell:
+      x: 24
+      y: 13
 --- !u!4 &1762969891
 Transform:
   m_ObjectHideFlags: 0
