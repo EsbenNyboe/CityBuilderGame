@@ -5865,10 +5865,22 @@ MonoBehaviour:
   _areasToExclude:
   - StartCell:
       x: 10
-      y: 10
+      y: 0
     EndCell:
-      x: 90
-      y: 90
+      x: 14
+      y: 1
+  - StartCell:
+      x: 13
+      y: 0
+    EndCell:
+      x: 14
+      y: 5
+  - StartCell:
+      x: 10
+      y: 5
+    EndCell:
+      x: 13
+      y: 6
 --- !u!4 &1762969891
 Transform:
   m_ObjectHideFlags: 0
