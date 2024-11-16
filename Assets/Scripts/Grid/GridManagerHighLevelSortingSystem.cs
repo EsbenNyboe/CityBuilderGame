@@ -14,6 +14,7 @@ namespace Grid
         private int _debugListSuccessHitsCurrent;
         private NativeList<int2> _debugList;
         private NativeList<int2> _debugListSuccessHits;
+        private bool _isDebugging;
         private bool _initialized;
 
         public void OnCreate(ref SystemState state)
@@ -29,13 +30,24 @@ namespace Grid
                 return;
             }
 
-            _initialized = true;
+            // _initialized = true;
 
             SortingProcess(ref state);
+            DebugLogic(ref state);
         }
 
         private void DebugLogic(ref SystemState state)
         {
+            if (Input.GetKeyDown(KeyCode.U))
+            {
+                _isDebugging = !_isDebugging;
+            }
+
+            if (!_isDebugging)
+            {
+                return;
+            }
+
             if (Input.GetKeyDown(KeyCode.Return) || (Input.GetKey(KeyCode.Return) && Input.GetKey(KeyCode.LeftShift)))
             {
                 if (_debugListSuccessHitsCurrent == 0)
@@ -64,11 +76,9 @@ namespace Grid
                     _debugListCurrent = 0;
                 }
 
-                Debug.Log(_debugList[_debugListCurrent]);
+                // Debug.Log(_debugList[_debugListCurrent]);
             }
 
-            var debugPosition = new Vector3(_debugList[_debugListCurrent].x - 0.5f,
-                _debugList[_debugListCurrent].y - 0.5f, 0);
 
             var color = Color.red;
             if (_debugListCurrent == 0)
@@ -81,6 +91,12 @@ namespace Grid
                 color = Color.green;
             }
 
+            DebugDrawCell(_debugList[_debugListCurrent], color);
+        }
+
+        private static void DebugDrawCell(int2 cell, Color color)
+        {
+            var debugPosition = new Vector3(cell.x - 0.5f, cell.y - 0.5f, 0);
             Debug.DrawLine(debugPosition, debugPosition + new Vector3(+1, +0), color);
             Debug.DrawLine(debugPosition, debugPosition + new Vector3(+0, +1), color);
             Debug.DrawLine(debugPosition + new Vector3(+1, +0), debugPosition + new Vector3(+1, +1), color);
@@ -109,7 +125,6 @@ namespace Grid
             var walkableSections =
                 new NativeParallelMultiHashMap<int, WalkableSectionNode>(walkablesCount, Allocator.Temp);
 
-            Debug.Log("Length before: " + walkableNodeQueue.Count);
             while (walkableNodeQueue.Count > 0)
             {
                 openNodes.Add(walkableNodeQueue.Dequeue());
@@ -124,16 +139,49 @@ namespace Grid
             var closedNodes = new NativeParallelHashMap<int2, WalkableSectionNode>(walkablesCount, Allocator.Temp);
             SearchCellList(walkableSections, openNodes, closedNodes, gridManager.NeighbourDeltas);
 
-            foreach (var openNode in openNodes)
+            // Debug.Log("Length before: " + walkablesCount);
+            // foreach (var openNode in openNodes)
+            // {
+            //     Debug.Log("Open node: " + openNode);
+            // }
+            // Debug.Log("Remaining open nodes: " + openNodes.Count());
+            // Debug.Log("Length of final map: " + walkableSections.Count());
+
+            using var sectionKeys = walkableSections.GetKeyArray(Allocator.Temp);
+            var sectionCount = sectionKeys.Length;
+
+            var sectionKey = 0;
+            while (sectionKey < sectionCount)
             {
-                Debug.Log("Open node: " + openNode);
+                if (walkableSections.TryGetFirstValue(sectionKey, out var walkableSectionNode, out var iterator))
+                {
+                    do
+                    {
+                        DebugDrawCell(walkableSectionNode.GridCell, GetSectionColor(sectionKey));
+                    } while (walkableSections.TryGetNextValue(out walkableSectionNode, ref iterator));
+                }
+
+                sectionKey++;
             }
 
-            Debug.Log("Remaining open nodes: " + openNodes.Count());
-            Debug.Log("Length of final map: " + walkableSections.Count());
             walkableSections.Dispose();
             openNodes.Dispose();
             closedNodes.Dispose();
+        }
+
+        private Color GetSectionColor(int sectionKey)
+        {
+            return sectionKey switch
+            {
+                0 => Color.cyan,
+                1 => Color.magenta,
+                2 => Color.yellow,
+                3 => Color.blue,
+                4 => Color.black,
+                5 => Color.white,
+                6 => Color.green,
+                _ => Color.gray
+            };
         }
 
         public void OnDestroy(ref SystemState state)
