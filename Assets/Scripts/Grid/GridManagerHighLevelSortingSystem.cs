@@ -1,4 +1,3 @@
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -24,6 +23,7 @@ namespace Grid
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<DebugToggleManager>();
             _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
             _isDebugging = true;
         }
@@ -120,8 +120,8 @@ namespace Grid
 
         private void SortingProcess(ref SystemState state)
         {
-            _currentIteration = 0;
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var isDebug = SystemAPI.GetSingleton<DebugToggleManager>().IsDebugging;
 
             var walkableNodeQueue = new NativeQueue<int2>(Allocator.Temp);
             var gridSize = gridManager.Height * gridManager.Width;
@@ -147,24 +147,16 @@ namespace Grid
 
             walkableNodeQueue.Dispose();
 
-            _debugList = new NativeList<int2>(walkablesCount, Allocator.Persistent);
-            _debugListSuccessHits = new NativeList<int2>(walkablesCount, Allocator.Persistent);
-            _debugSectionMap = new NativeHashMap<int2, int>(walkablesCount, Allocator.Persistent);
+            var debugLength = isDebug ? walkablesCount : 0;
+            _debugList = new NativeList<int2>(debugLength, Allocator.Persistent);
+            _debugListSuccessHits = new NativeList<int2>(debugLength, Allocator.Persistent);
+            _debugSectionMap = new NativeHashMap<int2, int>(debugLength, Allocator.Persistent);
 
             // Sort to sections
             var closedNodes = new NativeParallelHashMap<int2, WalkableSectionNode>(walkablesCount, Allocator.Temp);
-            SearchCellList(walkableSections, openNodes, closedNodes, gridManager.NeighbourDeltas);
+            SearchCellList(walkableSections, openNodes, closedNodes, gridManager.NeighbourDeltas, isDebug);
 
-            // Debug.Log("Length before: " + walkablesCount);
-            // foreach (var openNode in openNodes)
-            // {
-            //     Debug.Log("Open node: " + openNode);
-            // }
-            // Debug.Log("Remaining open nodes: " + openNodes.Count());
-            // Debug.Log("Length of final map: " + walkableSections.Count());
-
-
-            if (_isDebugging)
+            if (isDebug && _isDebugging)
             {
                 using var sectionKeys = walkableSections.GetKeyArray(Allocator.Temp);
                 var sectionCount = 0;
@@ -176,10 +168,10 @@ namespace Grid
                     }
                 }
 
-                if (Input.GetKeyDown(KeyCode.P))
-                {
-                    Debug.Log("Section count: " + sectionCount);
-                }
+                // if (Input.GetKeyDown(KeyCode.P))
+                // {
+                //     Debug.Log("Section count: " + sectionCount);
+                // }
 
                 var sectionKey = 0;
                 while (sectionKey < sectionCount)
@@ -196,7 +188,10 @@ namespace Grid
                 }
             }
 
-            DebugLogic(ref state);
+            if (isDebug)
+            {
+                DebugLogic(ref state);
+            }
 
             walkableSections.Dispose();
             openNodes.Dispose();
@@ -225,11 +220,9 @@ namespace Grid
             _debugSectionMap.Dispose();
         }
 
-        private static int _currentIteration;
-
         private void SearchCellList(NativeParallelMultiHashMap<int, WalkableSectionNode> walkableSections,
             NativeParallelHashSet<int2> openNodes, NativeParallelHashMap<int2, WalkableSectionNode> closedNodes,
-            NativeArray<int2> neighbours)
+            NativeArray<int2> neighbours, bool isDebug)
         {
             var currentSection = -1;
             while (openNodes.Count() > 0)
@@ -246,18 +239,24 @@ namespace Grid
                 currentSection++;
                 walkableSections.Add(currentSection, currentNode);
                 closedNodes.Add(currentCell, currentNode);
-                _debugList.Add(currentCell);
-                _debugListSuccessHits.Add(currentCell);
-
-                if (!_debugSectionMap.TryAdd(currentCell, currentSection))
+                if (isDebug)
                 {
-                    Debug.Log("Try add failed (1)");
+                    _debugList.Add(currentCell);
+                    _debugListSuccessHits.Add(currentCell);
+                    if (!_debugSectionMap.TryAdd(currentCell, currentSection))
+                    {
+                        Debug.Log("Try add failed (1)");
+                    }
                 }
 
                 while (currentNode.NeighboursSearched < neighbours.Length)
                 {
                     var neighbourCell = currentNode.GridCell + neighbours[currentNode.NeighboursSearched];
-                    _debugList.Add(neighbourCell);
+                    if (isDebug)
+                    {
+                        _debugList.Add(neighbourCell);
+                    }
+
                     currentNode.NeighboursSearched++;
                     if (openNodes.Remove(neighbourCell))
                     {
@@ -269,31 +268,20 @@ namespace Grid
                         walkableSections.Add(currentSection, newNode);
                         closedNodes.TryAdd(currentNode.GridCell, currentNode);
                         currentNode = newNode;
-                        _debugListSuccessHits.Add(neighbourCell);
-                        if (!_debugSectionMap.TryAdd(neighbourCell, currentSection))
+                        if (isDebug)
                         {
-                            Debug.Log("Try add failed (2)");
+                            _debugListSuccessHits.Add(neighbourCell);
+                            if (!_debugSectionMap.TryAdd(neighbourCell, currentSection))
+                            {
+                                Debug.Log("Try add failed (2)");
+                            }
                         }
-                    }
-
-                    _currentIteration++;
-                    if (_currentIteration > 100000)
-                    {
-                        Debug.LogError("Too many iterations. OpenNodes length: " + openNodes.Count());
-                        return;
                     }
 
                     while (currentNode.NeighboursSearched >= neighbours.Length && currentNode.NodeSource.x > -1)
                     {
                         var newNode = closedNodes[currentNode.NodeSource];
                         currentNode = newNode;
-
-                        _currentIteration++;
-                        if (_currentIteration > 100000)
-                        {
-                            Debug.LogError("Too many iterations. OpenNodes length: " + openNodes.Count());
-                            return;
-                        }
                     }
                 }
             }
