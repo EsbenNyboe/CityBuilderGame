@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using Random = Unity.Mathematics.Random;
 
 namespace Grid
 {
@@ -208,7 +209,18 @@ namespace Grid
 
         private Color GetSectionColor(int sectionKey)
         {
-            return sectionKey switch
+            var random = new Random((uint)(sectionKey * 999 + 1));
+            var color = new Color
+            {
+                r = random.NextFloat(),
+                g = random.NextFloat(),
+                b = random.NextFloat(),
+                a = 1
+            };
+            return color;
+
+            var colorIndex = sectionKey % 7;
+            return colorIndex switch
             {
                 0 => Color.cyan,
                 1 => Color.magenta,
