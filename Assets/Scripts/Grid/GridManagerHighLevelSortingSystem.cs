@@ -136,6 +136,13 @@ namespace Grid
             }
 
             var walkablesCount = walkableNodeQueue.Count;
+            if (walkablesCount <= 0)
+            {
+                // There's nowhere for anyone to walk
+                walkableNodeQueue.Dispose();
+                return;
+            }
+
             var openNodes = new NativeParallelHashSet<int2>(walkablesCount, Allocator.Temp);
             var walkableSections =
                 new NativeParallelMultiHashMap<int, WalkableSectionNode>(walkablesCount, Allocator.Temp);
