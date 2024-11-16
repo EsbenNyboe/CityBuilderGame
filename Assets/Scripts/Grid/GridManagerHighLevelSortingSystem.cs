@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -20,12 +21,14 @@ namespace Grid
         private int _currentSectionBeingDebugged;
         private bool _initialized;
 
+
         public void OnCreate(ref SystemState state)
         {
             _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
             _isDebugging = true;
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             SortingProcess(ref state);
@@ -233,7 +236,6 @@ namespace Grid
             {
                 using var enumerator = openNodes.GetEnumerator();
                 enumerator.MoveNext();
-                currentSection++;
                 var currentCell = enumerator.Current;
                 openNodes.Remove(currentCell);
                 var currentNode = new WalkableSectionNode
@@ -241,6 +243,7 @@ namespace Grid
                     GridCell = currentCell,
                     NodeSource = -1
                 };
+                currentSection++;
                 walkableSections.Add(currentSection, currentNode);
                 closedNodes.Add(currentCell, currentNode);
                 _debugList.Add(currentCell);
