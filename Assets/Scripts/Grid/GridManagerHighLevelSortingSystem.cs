@@ -51,45 +51,18 @@ namespace Grid
                 AllocateDebugContainers(walkablesCount);
             }
 
-            var walkableSections = new NativeParallelMultiHashMap<int, WalkableSectionNode>(walkablesCount, Allocator.Temp);
             var closedNodes = new NativeParallelHashMap<int2, WalkableSectionNode>(walkablesCount, Allocator.Temp);
-            SortWalkableSections(walkableSections, openNodes, closedNodes, gridManager.NeighbourDeltas, isDebug);
-
-
-            using var sectionKeys = walkableSections.GetKeyArray(Allocator.Temp);
-            var sectionCount = 0;
-            foreach (var key in sectionKeys)
-            {
-                if (key >= sectionCount)
-                {
-                    sectionCount = key + 1;
-                }
-            }
-
-            var sectionKey = 0;
-            while (sectionKey < sectionCount)
-            {
-                if (walkableSections.TryGetFirstValue(sectionKey, out var walkableSectionNode, out var iterator))
-                {
-                    do
-                    {
-                        gridManager.SetWalkableSection(walkableSectionNode.GridCell, sectionKey);
-                    } while (walkableSections.TryGetNextValue(out walkableSectionNode, ref iterator));
-                }
-
-                sectionKey++;
-            }
+            SortWalkableSections(ref gridManager, openNodes, closedNodes, isDebug);
 
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
             if (isDebug)
             {
-                DebugDrawSections(walkableSections);
+                DebugDrawSections(gridManager);
                 DebugDrawSearchAlgorithm(ref state);
                 DisposeDebugContainers();
             }
 
-            walkableSections.Dispose();
             openNodes.Dispose();
             closedNodes.Dispose();
         }
@@ -131,10 +104,10 @@ namespace Grid
             return openNodes;
         }
 
-        private void SortWalkableSections(NativeParallelMultiHashMap<int, WalkableSectionNode> walkableSections,
-            NativeParallelHashSet<int2> openNodes, NativeParallelHashMap<int2, WalkableSectionNode> closedNodes,
-            NativeArray<int2> neighbourDeltas, bool isDebug)
+        private void SortWalkableSections(ref GridManager gridManager, NativeParallelHashSet<int2> openNodes,
+            NativeParallelHashMap<int2, WalkableSectionNode> closedNodes, bool isDebug)
         {
+            var neighbourDeltas = gridManager.NeighbourDeltas;
             var currentSection = -1;
             while (openNodes.Count() > 0)
             {
@@ -149,7 +122,7 @@ namespace Grid
                     NodeSource = -1
                 };
                 currentSection++;
-                walkableSections.Add(currentSection, currentNode);
+                gridManager.SetWalkableSection(currentCell, currentSection);
                 closedNodes.Add(currentCell, currentNode);
                 if (isDebug)
                 {
@@ -175,7 +148,7 @@ namespace Grid
                             GridCell = neighbourCell,
                             NodeSource = currentNode.GridCell
                         };
-                        walkableSections.Add(currentSection, newNode);
+                        gridManager.SetWalkableSection(neighbourCell, currentSection);
                         closedNodes.TryAdd(currentNode.GridCell, currentNode);
 
                         // Interrupt current neighbour-search, and continue neighbour-search at new node
@@ -238,30 +211,15 @@ namespace Grid
             _debugSectionMap.Add(neighbourCell, currentSection);
         }
 
-        private void DebugDrawSections(NativeParallelMultiHashMap<int, WalkableSectionNode> walkableSections)
+        private void DebugDrawSections(GridManager gridManager)
         {
-            using var sectionKeys = walkableSections.GetKeyArray(Allocator.Temp);
-            var sectionCount = 0;
-            foreach (var key in sectionKeys)
+            var walkableGrid = gridManager.WalkableGrid;
+            for (var i = 0; i < walkableGrid.Length; i++)
             {
-                if (key >= sectionCount)
+                if (gridManager.IsWalkable(i))
                 {
-                    sectionCount = key + 1;
+                    DebugDrawCell(gridManager.GetXY(i), GetSectionColor(gridManager.WalkableGrid[i].Section));
                 }
-            }
-
-            var sectionKey = 0;
-            while (sectionKey < sectionCount)
-            {
-                if (walkableSections.TryGetFirstValue(sectionKey, out var walkableSectionNode, out var iterator))
-                {
-                    do
-                    {
-                        DebugDrawCell(walkableSectionNode.GridCell, GetSectionColor(sectionKey));
-                    } while (walkableSections.TryGetNextValue(out walkableSectionNode, ref iterator));
-                }
-
-                sectionKey++;
             }
         }
 
