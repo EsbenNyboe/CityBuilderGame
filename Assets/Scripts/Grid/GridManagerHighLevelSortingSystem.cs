@@ -7,7 +7,7 @@ using Random = Unity.Mathematics.Random;
 
 namespace Grid
 {
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     public partial struct GridManagerHighLevelSortingSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
@@ -37,6 +37,11 @@ namespace Grid
         {
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var isDebug = SystemAPI.GetSingleton<DebugToggleManager>().IsDebugging;
+
+            if (!gridManager.WalkableGridIsDirty && !isDebug)
+            {
+                return;
+            }
 
             if (!TryGetWalkableCells(gridManager, out var walkableNodeQueue))
             {
