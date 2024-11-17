@@ -215,6 +215,37 @@ public partial struct GridManager
         return false;
     }
 
+    public bool TryGetNearbyWalkableCellSemiRandom(int2 center, out int2 nearbyCell)
+    {
+        for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
+        {
+            var ringStart = RelativePositionRingInfoList[ring].x;
+            var ringEnd = RelativePositionRingInfoList[ring].y;
+            var randomStartIndex = GetSemiRandomIndex(ringStart, ringEnd);
+            var currentIndex = randomStartIndex + 1;
+
+            while (currentIndex != randomStartIndex)
+            {
+                currentIndex++;
+                if (currentIndex >= ringEnd)
+                {
+                    currentIndex = ringStart;
+                }
+
+                var relativePosition = center + RelativePositionList[currentIndex];
+                if (IsPositionInsideGrid(relativePosition) && IsWalkable(relativePosition))
+                {
+                    nearbyCell = relativePosition;
+                    return true;
+                }
+            }
+        }
+
+        DebugHelper.LogError("No nearby empty cell was found");
+
+        nearbyCell = new int2(-1, -1);
+        return false;
+    }
 
     public void PopulateRelativePositionList(int relativePositionListRadius)
     {

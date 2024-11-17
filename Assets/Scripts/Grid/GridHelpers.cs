@@ -76,6 +76,12 @@ public class GridHelpers
         return new Vector3(x, y, 0);
     }
 
+    public static Vector3 GetWorldPosition(int2 cell)
+    {
+        // gridManager currently only supports default origin-position (Vector3.zero) and default cellSize (1f)
+        return new Vector3(cell.x, cell.y, 0);
+    }
+
     #endregion
 
     #region GridSearch_Neighbours

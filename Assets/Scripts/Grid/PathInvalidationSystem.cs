@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 namespace Grid
 {
@@ -44,25 +45,46 @@ namespace Grid
                 invalidatedCells.Add(invalidatedCellsQueue.Dequeue());
             }
 
-            foreach (var (pathFollow, pathPositions, entity) in SystemAPI.Query<RefRW<PathFollow>, DynamicBuffer<PathPosition>>().WithEntityAccess())
+            foreach (var (localTransform, pathFollow, pathPositions, entity) in SystemAPI
+                         .Query<RefRW<LocalTransform>, RefRW<PathFollow>, DynamicBuffer<PathPosition>>().WithEntityAccess())
             {
                 var pathIndex = pathFollow.ValueRO.PathIndex;
                 if (CurrentPathIsInvalidated(pathPositions, invalidatedCells, pathIndex))
                 {
                     var currentPathPosition = pathPositions[pathIndex].Position;
                     var targetPathPosition = pathPositions[0].Position;
-                    if (gridManager.IsMatchingSection(currentPathPosition, targetPathPosition) && gridManager.IsWalkable(targetPathPosition))
+                    var positionIsWalkable = gridManager.IsWalkable(currentPathPosition);
+                    var targetIsWalkable = gridManager.IsWalkable(targetPathPosition);
+                    var pathIsPossible = gridManager.IsMatchingSection(currentPathPosition, targetPathPosition);
+
+                    if (positionIsWalkable && targetIsWalkable && pathIsPossible)
                     {
-                        PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition);
-                    }
-                    else if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentPathPosition, out targetPathPosition))
-                    {
-                        DebugHelper.Log("Current path is no longer possible. I'll go stand somewhere...");
+                        // My target is still reachable. I'll find a better path.
                         PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition);
                     }
                     else
                     {
-                        DebugHelper.LogError("I'm stuck!");
+                        // My target is no longer reachable. I'll try and find a nearby place to stand...
+                        if (positionIsWalkable && gridManager.TryGetNearbyEmptyCellSemiRandom(currentPathPosition, out targetPathPosition))
+                        {
+                            // I'll walk to a nearby spot...
+                            PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition);
+                        }
+                        else if (!positionIsWalkable && gridManager.TryGetNearbyWalkableCellSemiRandom(currentPathPosition, out targetPathPosition))
+                        {
+                            // I'll defy physics, and move to a nearby spot.
+                            pathPositions.Clear();
+                            pathPositions.Add(new PathPosition { Position = targetPathPosition });
+                            pathFollow.ValueRW.PathIndex = 0;
+                        }
+                        else
+                        {
+                            // I'm stuck... I guess, I'll just stand here, then...
+                            var newTarget = pathPositions[0].Position;
+                            pathPositions.Clear();
+                            pathPositions.Add(new PathPosition { Position = newTarget });
+                            pathFollow.ValueRW.PathIndex = 0;
+                        }
                     }
                 }
             }
