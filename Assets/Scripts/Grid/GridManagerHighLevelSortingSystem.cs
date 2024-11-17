@@ -55,6 +55,33 @@ namespace Grid
             var closedNodes = new NativeParallelHashMap<int2, WalkableSectionNode>(walkablesCount, Allocator.Temp);
             SortWalkableSections(walkableSections, openNodes, closedNodes, gridManager.NeighbourDeltas, isDebug);
 
+
+            using var sectionKeys = walkableSections.GetKeyArray(Allocator.Temp);
+            var sectionCount = 0;
+            foreach (var key in sectionKeys)
+            {
+                if (key >= sectionCount)
+                {
+                    sectionCount = key + 1;
+                }
+            }
+
+            var sectionKey = 0;
+            while (sectionKey < sectionCount)
+            {
+                if (walkableSections.TryGetFirstValue(sectionKey, out var walkableSectionNode, out var iterator))
+                {
+                    do
+                    {
+                        gridManager.SetWalkableSection(walkableSectionNode.GridCell, sectionKey);
+                    } while (walkableSections.TryGetNextValue(out walkableSectionNode, ref iterator));
+                }
+
+                sectionKey++;
+            }
+
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+
             if (isDebug)
             {
                 DebugDrawSections(walkableSections);

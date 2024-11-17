@@ -1,4 +1,3 @@
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -6,6 +5,7 @@ public struct WalkableCell
 {
     public bool IsWalkable;
     public bool IsDirty;
+    public int Section;
 }
 
 public partial struct GridManager
@@ -68,4 +68,13 @@ public partial struct GridManager
     }
 
     #endregion
+
+    // Note: Remember to call SetComponent after this method
+    public void SetWalkableSection(int2 cell, int sectionKey)
+    {
+        var gridIndex = GetIndex(cell);
+        var walkableCell = WalkableGrid[gridIndex];
+        walkableCell.Section = sectionKey;
+        WalkableGrid[gridIndex] = walkableCell;
+    }
 }
