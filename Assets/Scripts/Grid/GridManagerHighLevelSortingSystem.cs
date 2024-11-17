@@ -35,6 +35,8 @@ namespace Grid
 
         private void SortingProcess(ref SystemState state)
         {
+            state.CompleteDependency();
+
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var isDebug = SystemAPI.GetSingleton<DebugToggleManager>().IsDebugging;
 
