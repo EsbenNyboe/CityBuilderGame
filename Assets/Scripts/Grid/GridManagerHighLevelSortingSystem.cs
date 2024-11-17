@@ -33,54 +33,27 @@ namespace Grid
             SortingProcess(ref state);
         }
 
-        public void OnDestroy(ref SystemState state)
-        {
-        }
-
         private void SortingProcess(ref SystemState state)
         {
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var isDebug = SystemAPI.GetSingleton<DebugToggleManager>().IsDebugging;
 
-            var walkableNodeQueue = new NativeQueue<int2>(Allocator.Temp);
-            var gridSize = gridManager.Height * gridManager.Width;
-
-            for (var i = 0; i < gridSize; i++)
+            if (!TryGetWalkableCells(gridManager, out var walkableNodeQueue))
             {
-                var walkableCell = gridManager.WalkableGrid[i];
-                if (walkableCell.IsWalkable)
-                {
-                    walkableNodeQueue.Enqueue(gridManager.GetXY(i));
-                }
-            }
-
-            var walkablesCount = walkableNodeQueue.Count;
-            if (walkablesCount <= 0)
-            {
-                // There's nowhere for anyone to walk
-                walkableNodeQueue.Dispose();
                 return;
             }
 
-            var openNodes = new NativeParallelHashSet<int2>(walkablesCount, Allocator.Temp);
-            var walkableSections =
-                new NativeParallelMultiHashMap<int, WalkableSectionNode>(walkablesCount, Allocator.Temp);
-
-            while (walkableNodeQueue.Count > 0)
-            {
-                openNodes.Add(walkableNodeQueue.Dequeue());
-            }
-
-            walkableNodeQueue.Dispose();
+            var walkablesCount = walkableNodeQueue.Count;
+            var openNodes = ConvertToHashSet(walkableNodeQueue);
 
             if (isDebug)
             {
                 AllocateDebugContainers(walkablesCount);
             }
 
-            // Sort to sections
+            var walkableSections = new NativeParallelMultiHashMap<int, WalkableSectionNode>(walkablesCount, Allocator.Temp);
             var closedNodes = new NativeParallelHashMap<int2, WalkableSectionNode>(walkablesCount, Allocator.Temp);
-            SearchCellList(walkableSections, openNodes, closedNodes, gridManager.NeighbourDeltas, isDebug);
+            SortWalkableSections(walkableSections, openNodes, closedNodes, gridManager.NeighbourDeltas, isDebug);
 
             if (isDebug)
             {
@@ -94,13 +67,51 @@ namespace Grid
             closedNodes.Dispose();
         }
 
-        private void SearchCellList(NativeParallelMultiHashMap<int, WalkableSectionNode> walkableSections,
+        private static bool TryGetWalkableCells(GridManager gridManager, out NativeQueue<int2> walkableNodeQueue)
+        {
+            walkableNodeQueue = new NativeQueue<int2>(Allocator.Temp);
+            var gridSize = gridManager.Height * gridManager.Width;
+
+            for (var i = 0; i < gridSize; i++)
+            {
+                var walkableCell = gridManager.WalkableGrid[i];
+                if (walkableCell.IsWalkable)
+                {
+                    walkableNodeQueue.Enqueue(gridManager.GetXY(i));
+                }
+            }
+
+            if (walkableNodeQueue.Count > 0)
+            {
+                return true;
+            }
+
+            // There's nowhere for anyone to walk
+            walkableNodeQueue.Dispose();
+            return false;
+        }
+
+        private static NativeParallelHashSet<int2> ConvertToHashSet(NativeQueue<int2> walkableNodeQueue)
+        {
+            var openNodes = new NativeParallelHashSet<int2>(walkableNodeQueue.Count, Allocator.Temp);
+
+            while (walkableNodeQueue.Count > 0)
+            {
+                openNodes.Add(walkableNodeQueue.Dequeue());
+            }
+
+            walkableNodeQueue.Dispose();
+            return openNodes;
+        }
+
+        private void SortWalkableSections(NativeParallelMultiHashMap<int, WalkableSectionNode> walkableSections,
             NativeParallelHashSet<int2> openNodes, NativeParallelHashMap<int2, WalkableSectionNode> closedNodes,
-            NativeArray<int2> neighbours, bool isDebug)
+            NativeArray<int2> neighbourDeltas, bool isDebug)
         {
             var currentSection = -1;
             while (openNodes.Count() > 0)
             {
+                // Add first node to section
                 using var enumerator = openNodes.GetEnumerator();
                 enumerator.MoveNext();
                 var currentCell = enumerator.Current;
@@ -118,9 +129,11 @@ namespace Grid
                     AddSectionStartToDebugData(currentCell, currentSection);
                 }
 
-                while (currentNode.NeighboursSearched < neighbours.Length)
+                // Add all nodes to this section, by searching all neighbours
+                while (currentNode.NeighboursSearched < neighbourDeltas.Length)
                 {
-                    var neighbourCell = currentNode.GridCell + neighbours[currentNode.NeighboursSearched];
+                    // Search node-neighbour
+                    var neighbourCell = currentNode.GridCell + neighbourDeltas[currentNode.NeighboursSearched];
                     if (isDebug)
                     {
                         AddSearchStepToDebugData(neighbourCell);
@@ -129,6 +142,7 @@ namespace Grid
                     currentNode.NeighboursSearched++;
                     if (openNodes.Remove(neighbourCell))
                     {
+                        // Add node to section
                         var newNode = new WalkableSectionNode
                         {
                             GridCell = neighbourCell,
@@ -136,17 +150,21 @@ namespace Grid
                         };
                         walkableSections.Add(currentSection, newNode);
                         closedNodes.TryAdd(currentNode.GridCell, currentNode);
+
+                        // Interrupt current neighbour-search, and continue neighbour-search at new node
                         currentNode = newNode;
+
                         if (isDebug)
                         {
                             AddSearchHitToDebugData(neighbourCell, currentSection);
                         }
                     }
 
-                    while (currentNode.NeighboursSearched >= neighbours.Length && currentNode.NodeSource.x > -1)
+                    while (currentNode.NeighboursSearched >= neighbourDeltas.Length && currentNode.NodeSource.x > -1)
                     {
-                        var newNode = closedNodes[currentNode.NodeSource];
-                        currentNode = newNode;
+                        // Resume interrupted neighbour-search at the node, where we came from
+                        var previousNode = closedNodes[currentNode.NodeSource];
+                        currentNode = previousNode;
                     }
                 }
             }
