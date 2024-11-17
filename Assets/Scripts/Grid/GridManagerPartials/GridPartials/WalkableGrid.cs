@@ -85,7 +85,7 @@ public partial struct GridManager
     /// <param name="cell"></param>
     /// <param name="otherCell"></param>
     /// <returns></returns>
-    private bool IsMatchingSection(int2 cell, int2 otherCell)
+    public bool IsMatchingSection(int2 cell, int2 otherCell)
     {
         return GetSection(cell) == GetSection(otherCell);
     }
