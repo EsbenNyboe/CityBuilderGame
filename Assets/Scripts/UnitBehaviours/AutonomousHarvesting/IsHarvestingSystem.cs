@@ -7,7 +7,7 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
-    [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
+    [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
     public partial struct IsHarvestingSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
@@ -25,6 +25,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            state.CompleteDependency();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);

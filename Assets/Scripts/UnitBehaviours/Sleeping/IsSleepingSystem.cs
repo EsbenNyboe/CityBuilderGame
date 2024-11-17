@@ -5,7 +5,7 @@ using Unity.Transforms;
 using ISystem = Unity.Entities.ISystem;
 using SystemState = Unity.Entities.SystemState;
 
-[UpdateInGroup(typeof(UnitBehaviourSystemGroup), OrderFirst = true)]
+[UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
 public partial struct IsSleepingSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
@@ -18,9 +18,7 @@ public partial struct IsSleepingSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
-        // TODO: Double-check if this works as intended:
-        // Completing jobs reading from grid, before starting to write to grid in this system
-        state.WorldUnmanaged.GetExistingSystemState<UnitBehaviourSystemGroup>().CompleteDependency();
+        state.CompleteDependency();
 
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);

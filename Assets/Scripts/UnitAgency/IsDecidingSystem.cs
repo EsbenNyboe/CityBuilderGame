@@ -33,15 +33,12 @@ namespace UnitAgency
                          .WithEntityAccess())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
-                DecideNextBehaviour(ref state, ref gridManager, ecb, inventory, moodSleepiness, entity);
+                DecideNextBehaviour(ref state, gridManager, ecb, inventory, moodSleepiness, entity);
             }
-
-            // TODO: Test if this will block jobs
-            // state.EntityManager.DestroyEntity(_query);
         }
 
         private void DecideNextBehaviour(ref SystemState state,
-            ref GridManager gridManager,
+            GridManager gridManager,
             EntityCommandBuffer commands,
             RefRO<Inventory> inventory,
             RefRO<MoodSleepiness> moodSleepiness,
@@ -76,8 +73,6 @@ namespace UnitAgency
             {
                 commands.AddComponent(entity, new IsSeekingTree());
             }
-
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
         private bool HasLogOfWood(Inventory inventory)

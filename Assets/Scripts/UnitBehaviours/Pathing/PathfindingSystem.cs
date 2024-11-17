@@ -346,9 +346,4 @@ public struct PathNode
     {
         fCost = gCost + hCost;
     }
-
-    public void SetIsWalkable(bool isWalkable)
-    {
-        this.isWalkable = isWalkable;
-    }
 }

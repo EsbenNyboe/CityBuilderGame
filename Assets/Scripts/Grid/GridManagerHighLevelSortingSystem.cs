@@ -7,7 +7,7 @@ using Random = Unity.Mathematics.Random;
 
 namespace Grid
 {
-    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
+    [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup), OrderLast = true)]
     public partial struct GridManagerHighLevelSortingSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;

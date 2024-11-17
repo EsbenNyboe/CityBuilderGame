@@ -15,6 +15,12 @@ public partial class UnitStateSystemGroup : ComponentSystemGroup
 {
 }
 
+[UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
+[UpdateAfter(typeof(UnitStateSystemGroup))]
+public partial class UnitBehaviourGridWritingSystemGroup : ComponentSystemGroup
+{
+}
+
 [UpdateInGroup(typeof(SimulationSystemGroup))]
 public partial class UnitBehaviourSystemGroup : ComponentSystemGroup
 {

@@ -38,7 +38,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 var unitWorldPosition = localTransform.ValueRO.Position;
                 var unitGridPosition = GridHelpers.GetXY(unitWorldPosition);
                 var closestDropPointEntrance =
-                    FindClosestDropPoint(ref state, ref gridManager, unitWorldPosition, entity);
+                    FindClosestDropPoint(ref state, gridManager, unitWorldPosition, entity);
                 if (unitGridPosition.Equals(closestDropPointEntrance))
                 {
                     inventory.ValueRW.CurrentItem = InventoryItem.None;
@@ -52,13 +52,9 @@ namespace UnitBehaviours.AutonomousHarvesting
                     PathHelpers.TrySetPath(ecb, entity, unitGridPosition, closestDropPointEntrance);
                 }
             }
-
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
         }
 
-        private int2 FindClosestDropPoint(ref SystemState state,
-            ref GridManager gridManager,
-            float3 position, Entity selfEntity)
+        private int2 FindClosestDropPoint(ref SystemState state, GridManager gridManager, float3 position, Entity selfEntity)
         {
             var closestDropPoint = new float3(-1);
             var shortestDropPointDistance = math.INFINITY;
