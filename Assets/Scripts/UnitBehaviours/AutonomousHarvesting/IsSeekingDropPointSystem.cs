@@ -81,6 +81,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
             var dropPointCell = GridHelpers.GetXY(closestDropPoint);
             var cellPosition = GridHelpers.GetXY(position);
+            // TODO: Make unit select second-closest droppoint, if there's no path to the closest one.
             gridManager.TryGetClosestValidNeighbourOfTarget(cellPosition, selfEntity, dropPointCell,
                 out var dropPointEntrance);
 

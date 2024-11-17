@@ -77,4 +77,22 @@ public partial struct GridManager
         walkableCell.Section = sectionKey;
         WalkableGrid[gridIndex] = walkableCell;
     }
+
+    /// <summary>
+    ///     True, if there is a path from "cell" to "otherCell".
+    ///     False, if pathing is impossible.
+    /// </summary>
+    /// <param name="cell"></param>
+    /// <param name="otherCell"></param>
+    /// <returns></returns>
+    private bool IsMatchingSection(int2 cell, int2 otherCell)
+    {
+        return GetSection(cell) == GetSection(otherCell);
+    }
+
+    private int GetSection(int2 cell)
+    {
+        var gridIndex = GetIndex(cell);
+        return WalkableGrid[gridIndex].Section;
+    }
 }

@@ -42,7 +42,7 @@ public partial struct GridManager
         for (var j = 0; j < 8; j++)
         {
             var neighbourCell = GetNeighbourCell(j, targetCell);
-            if (!IsVacantCell(neighbourCell, selfEntity))
+            if (!IsVacantCell(neighbourCell, selfEntity) || !IsMatchingSection(selfCell, neighbourCell))
             {
                 continue;
             }
@@ -168,9 +168,10 @@ public partial struct GridManager
                     currentIndex = ringStart;
                 }
 
-                if (IsAvailableBed(center + RelativePositionList[currentIndex]))
+                var targetCell = center + RelativePositionList[currentIndex];
+                if (IsAvailableBed(targetCell) && IsMatchingSection(center, targetCell))
                 {
-                    availableBed = center + RelativePositionList[currentIndex];
+                    availableBed = targetCell;
                     return true;
                 }
             }
