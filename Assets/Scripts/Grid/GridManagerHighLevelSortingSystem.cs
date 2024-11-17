@@ -12,6 +12,7 @@ namespace Grid
     {
         private SystemHandle _gridManagerSystemHandle;
 
+        // Debugging
         private int _debugListCurrent;
         private int _debugListSuccessHitsCurrent;
         private NativeList<int2> _debugList;
@@ -34,9 +35,6 @@ namespace Grid
 
         public void OnDestroy(ref SystemState state)
         {
-            _debugList.Dispose();
-            _debugListSuccessHits.Dispose();
-            _debugSectionMap.Dispose();
         }
 
         private void SortingProcess(ref SystemState state)
@@ -75,10 +73,10 @@ namespace Grid
 
             walkableNodeQueue.Dispose();
 
-            var debugLength = isDebug ? walkablesCount : 0;
-            _debugList = new NativeList<int2>(debugLength, Allocator.Persistent);
-            _debugListSuccessHits = new NativeList<int2>(debugLength, Allocator.Persistent);
-            _debugSectionMap = new NativeHashMap<int2, int>(debugLength, Allocator.Persistent);
+            if (isDebug)
+            {
+                AllocateDebugContainers(walkablesCount);
+            }
 
             // Sort to sections
             var closedNodes = new NativeParallelHashMap<int2, WalkableSectionNode>(walkablesCount, Allocator.Temp);
@@ -86,34 +84,9 @@ namespace Grid
 
             if (isDebug)
             {
-                using var sectionKeys = walkableSections.GetKeyArray(Allocator.Temp);
-                var sectionCount = 0;
-                foreach (var key in sectionKeys)
-                {
-                    if (key >= sectionCount)
-                    {
-                        sectionCount = key + 1;
-                    }
-                }
-
-                var sectionKey = 0;
-                while (sectionKey < sectionCount)
-                {
-                    if (walkableSections.TryGetFirstValue(sectionKey, out var walkableSectionNode, out var iterator))
-                    {
-                        do
-                        {
-                            DebugDrawCell(walkableSectionNode.GridCell, GetSectionColor(sectionKey));
-                        } while (walkableSections.TryGetNextValue(out walkableSectionNode, ref iterator));
-                    }
-
-                    sectionKey++;
-                }
-            }
-
-            if (isDebug)
-            {
-                DebugLogic(ref state);
+                DebugDrawSections(walkableSections);
+                DebugDrawSearchAlgorithm(ref state);
+                DisposeDebugContainers();
             }
 
             walkableSections.Dispose();
@@ -142,9 +115,7 @@ namespace Grid
                 closedNodes.Add(currentCell, currentNode);
                 if (isDebug)
                 {
-                    _debugList.Add(currentCell);
-                    _debugListSuccessHits.Add(currentCell);
-                    _debugSectionMap.Add(currentCell, currentSection);
+                    AddSectionStartToDebugData(currentCell, currentSection);
                 }
 
                 while (currentNode.NeighboursSearched < neighbours.Length)
@@ -152,7 +123,7 @@ namespace Grid
                     var neighbourCell = currentNode.GridCell + neighbours[currentNode.NeighboursSearched];
                     if (isDebug)
                     {
-                        _debugList.Add(neighbourCell);
+                        AddSearchStepToDebugData(neighbourCell);
                     }
 
                     currentNode.NeighboursSearched++;
@@ -168,8 +139,7 @@ namespace Grid
                         currentNode = newNode;
                         if (isDebug)
                         {
-                            _debugListSuccessHits.Add(neighbourCell);
-                            _debugSectionMap.Add(neighbourCell, currentSection);
+                            AddSearchHitToDebugData(neighbourCell, currentSection);
                         }
                     }
 
@@ -191,7 +161,66 @@ namespace Grid
 
         #region Debugging
 
-        private void DebugLogic(ref SystemState state)
+        private void AllocateDebugContainers(int debugLength)
+        {
+            _debugList = new NativeList<int2>(debugLength, Allocator.Temp);
+            _debugListSuccessHits = new NativeList<int2>(debugLength, Allocator.Temp);
+            _debugSectionMap = new NativeHashMap<int2, int>(debugLength, Allocator.Temp);
+        }
+
+        private void DisposeDebugContainers()
+        {
+            _debugList.Dispose();
+            _debugListSuccessHits.Dispose();
+            _debugSectionMap.Dispose();
+        }
+
+        private void AddSectionStartToDebugData(int2 currentCell, int currentSection)
+        {
+            _debugList.Add(currentCell);
+            _debugListSuccessHits.Add(currentCell);
+            _debugSectionMap.Add(currentCell, currentSection);
+        }
+
+        private void AddSearchStepToDebugData(int2 neighbourCell)
+        {
+            _debugList.Add(neighbourCell);
+        }
+
+        private void AddSearchHitToDebugData(int2 neighbourCell, int currentSection)
+        {
+            _debugListSuccessHits.Add(neighbourCell);
+            _debugSectionMap.Add(neighbourCell, currentSection);
+        }
+
+        private void DebugDrawSections(NativeParallelMultiHashMap<int, WalkableSectionNode> walkableSections)
+        {
+            using var sectionKeys = walkableSections.GetKeyArray(Allocator.Temp);
+            var sectionCount = 0;
+            foreach (var key in sectionKeys)
+            {
+                if (key >= sectionCount)
+                {
+                    sectionCount = key + 1;
+                }
+            }
+
+            var sectionKey = 0;
+            while (sectionKey < sectionCount)
+            {
+                if (walkableSections.TryGetFirstValue(sectionKey, out var walkableSectionNode, out var iterator))
+                {
+                    do
+                    {
+                        DebugDrawCell(walkableSectionNode.GridCell, GetSectionColor(sectionKey));
+                    } while (walkableSections.TryGetNextValue(out walkableSectionNode, ref iterator));
+                }
+
+                sectionKey++;
+            }
+        }
+
+        private void DebugDrawSearchAlgorithm(ref SystemState state)
         {
             if (Input.GetKeyDown(KeyCode.Return))
             {
