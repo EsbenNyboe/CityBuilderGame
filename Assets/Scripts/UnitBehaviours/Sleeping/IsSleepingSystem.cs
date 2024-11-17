@@ -2,6 +2,7 @@ using UnitAgency;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 using SystemState = Unity.Entities.SystemState;
 
@@ -67,7 +68,9 @@ public partial struct IsSleepingSystem : ISystem
         }
         else
         {
-            DebugHelper.Log("Seems like someone else was spooning me, while I slept... They can keep the bed!");
+            Debug.Log("Seems like someone else was spooning me, while I slept... Why does this happen?");
+            // HACK:
+            gridManager.SetIsWalkable(currentCell, true);
         }
 
         if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out var nearbyCell))
