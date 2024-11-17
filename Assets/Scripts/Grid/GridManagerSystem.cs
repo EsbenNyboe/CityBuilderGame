@@ -80,6 +80,7 @@ public partial class GridManagerSystem : SystemBase
             var cell = gridManager.WalkableGrid[i];
             cell.IsWalkable = true;
             cell.IsDirty = true;
+            cell.Section = -1;
             gridManager.WalkableGrid[i] = cell;
         }
 
