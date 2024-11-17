@@ -98,8 +98,6 @@ public partial struct PathFollowSystem : ISystem
                             DebugHelper.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
                         }
                     }
-
-                    SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
                 }
             }
 

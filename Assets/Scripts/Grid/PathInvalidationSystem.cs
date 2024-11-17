@@ -51,14 +51,18 @@ namespace Grid
                 {
                     var currentPathPosition = pathPositions[pathIndex].Position;
                     var targetPathPosition = pathPositions[0].Position;
-                    if (gridManager.IsMatchingSection(currentPathPosition, targetPathPosition))
+                    if (gridManager.IsMatchingSection(currentPathPosition, targetPathPosition) && gridManager.IsWalkable(targetPathPosition))
                     {
+                        PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition);
+                    }
+                    else if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentPathPosition, out targetPathPosition))
+                    {
+                        DebugHelper.Log("Current path is no longer possible. I'll go stand somewhere...");
                         PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition);
                     }
                     else
                     {
-                        // TODO: Insert logic for finding random nearby path-target
-                        DebugHelper.Log("Current path is no longer possible. TODO: Insert logic for finding a random nearby path-target.");
+                        DebugHelper.LogError("I'm stuck!");
                     }
                 }
             }
