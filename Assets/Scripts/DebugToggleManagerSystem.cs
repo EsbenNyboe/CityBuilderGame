@@ -8,10 +8,16 @@ public struct DebugToggleManager : IComponentData
 
 public partial struct DebugToggleManagerSystem : ISystem
 {
+    private const bool IsDebuggingDefault = true;
+
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<DebugToggleManager>();
-        state.EntityManager.CreateSingleton<DebugToggleManager>();
+        var singletonEntity = state.EntityManager.CreateSingleton<DebugToggleManager>();
+        SystemAPI.SetComponent(singletonEntity, new DebugToggleManager
+        {
+            IsDebugging = IsDebuggingDefault
+        });
     }
 
     public void OnUpdate(ref SystemState state)
