@@ -200,9 +200,10 @@ public partial struct GridManager
                     currentIndex = ringStart;
                 }
 
-                if (IsEmptyCell(center + RelativePositionList[currentIndex]))
+                var relativePosition = center + RelativePositionList[currentIndex];
+                if (IsEmptyCell(relativePosition) && IsMatchingSection(center, relativePosition))
                 {
-                    nearbyCell = center + RelativePositionList[currentIndex];
+                    nearbyCell = relativePosition;
                     return true;
                 }
             }
