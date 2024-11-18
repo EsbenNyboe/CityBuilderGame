@@ -11,8 +11,9 @@ using ISystem = Unity.Entities.ISystem;
 public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
-    private const bool ShowDebug = false;
+    private const bool ShowDebug = true;
     private const float AnnoyanceFromBedOccupant = 0.5f;
+    private const float MoveSpeed = 5f;
 
     public void OnCreate(ref SystemState state)
     {
@@ -36,69 +37,37 @@ public partial struct PathFollowSystem : ISystem
                 continue;
             }
 
-            var pathPosition = pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position;
-            var targetPosition = new float3(pathPosition.x, pathPosition.y, 0);
-            var moveDirection = math.normalizesafe(targetPosition - localTransform.ValueRO.Position);
-            var moveSpeed = 5f;
+            var currentPosition = localTransform.ValueRO.Position;
+            var targetCell = pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position;
+            var targetPosition = new float3(targetCell.x, targetCell.y, 0);
+            var moveAmount = MoveSpeed * SystemAPI.Time.DeltaTime;
 
-            var distanceBeforeMoving = math.distance(localTransform.ValueRO.Position, targetPosition);
-            localTransform.ValueRW.Position +=
-                moveDirection * moveSpeed * SystemAPI.Time.DeltaTime; // * Globals.GameSpeed();
-            var distanceAfterMoving = math.distance(localTransform.ValueRO.Position, targetPosition);
-
-            if (ShowDebug)
+            var pathFollowEnded = false;
+            while (math.distance(currentPosition, targetPosition) - moveAmount < 0)
             {
-                var pathEndPosition = pathPositionBuffer[0].Position;
-                Debug.DrawLine(localTransform.ValueRO.Position, new Vector3(pathEndPosition.x, pathEndPosition.y),
-                    Color.red);
-            }
-
-            var unitIsOnNextPathPosition = distanceAfterMoving < 0.1f;
-
-
-            // HACK:
-            if (!unitIsOnNextPathPosition && distanceAfterMoving > distanceBeforeMoving)
-            {
-                unitIsOnNextPathPosition = true;
-                localTransform.ValueRW.Position = targetPosition;
-            }
-
-            if (unitIsOnNextPathPosition)
-            {
-                // next waypoint
+                // Unit will overshoot its target. Therefore, we increment its path, before moving.
+                moveAmount -= math.distance(currentPosition, targetPosition);
                 pathFollow.ValueRW.PathIndex--;
-
                 if (pathFollow.ValueRO.PathIndex < 0)
                 {
-                    localTransform.ValueRW.Position = targetPosition;
-
-                    var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
-
-                    // TODO: If we implement path-invalidation, there's no need to check if the tile is walkable or not
-                    if (!gridManager.IsOccupied(targetPosition, entity) && gridManager.IsWalkable(targetPosition))
-                    {
-                        gridManager.SetOccupant(targetPosition, entity);
-                        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-                    }
-                    else
-                    {
-                        if (gridManager.IsBed(targetPosition) && gridManager.IsOccupied(targetPosition, entity))
-                        {
-                            gridManager.TryGetOccupant(targetPosition, out var occupant);
-                            socialRelationships.ValueRW.Relationships[occupant] -= AnnoyanceFromBedOccupant;
-                        }
-
-                        GridHelpers.GetXY(targetPosition, out var x, out var y);
-                        if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell))
-                        {
-                            PathHelpers.TrySetPath(ecb, entity, new int2(x, y), vacantCell);
-                        }
-                        else
-                        {
-                            DebugHelper.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
-                        }
-                    }
+                    pathFollowEnded = true;
+                    EndPathFollowing(ref state, ecb, entity, localTransform, socialRelationships, targetPosition);
                 }
+                else
+                {
+                    // We select a new startPosition, which dissociates it from the actual LocalTransform-position
+                    currentPosition = targetPosition;
+                    targetPosition =
+                        GridHelpers.GetWorldPosition(pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position);
+                }
+            }
+
+            var moveDirection = math.normalizesafe(targetPosition - currentPosition);
+
+            if (!pathFollowEnded)
+            {
+                currentPosition += moveDirection * moveAmount;
+                localTransform.ValueRW.Position = currentPosition;
             }
 
             if (moveDirection.x != 0)
@@ -106,6 +75,47 @@ public partial struct PathFollowSystem : ISystem
                 var angleInDegrees = moveDirection.x > 0 ? 0f : 180f;
                 spriteTransform.ValueRW.Position = Vector3.zero;
                 spriteTransform.ValueRW.Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
+            }
+
+            if (ShowDebug)
+            {
+                var pathEndPosition = pathPositionBuffer[0].Position;
+                Debug.DrawLine(currentPosition, new Vector3(pathEndPosition.x, pathEndPosition.y),
+                    Color.red);
+            }
+        }
+    }
+
+    private void EndPathFollowing(ref SystemState state, EntityCommandBuffer ecb, Entity entity,
+        RefRW<LocalTransform> localTransform,
+        RefRW<SocialRelationships> socialRelationships, float3 targetPosition)
+    {
+        localTransform.ValueRW.Position = targetPosition;
+
+        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+
+        // TODO: If we implement path-invalidation, there's no need to check if the tile is walkable or not
+        if (!gridManager.IsOccupied(targetPosition, entity) && gridManager.IsWalkable(targetPosition))
+        {
+            gridManager.SetOccupant(targetPosition, entity);
+            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+        }
+        else
+        {
+            if (gridManager.IsBed(targetPosition) && gridManager.IsOccupied(targetPosition, entity))
+            {
+                gridManager.TryGetOccupant(targetPosition, out var occupant);
+                socialRelationships.ValueRW.Relationships[occupant] -= AnnoyanceFromBedOccupant;
+            }
+
+            GridHelpers.GetXY(targetPosition, out var x, out var y);
+            if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell))
+            {
+                PathHelpers.TrySetPath(ecb, entity, new int2(x, y), vacantCell);
+            }
+            else
+            {
+                DebugHelper.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
             }
         }
     }
