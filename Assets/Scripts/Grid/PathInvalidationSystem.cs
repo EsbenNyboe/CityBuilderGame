@@ -115,9 +115,9 @@ namespace Grid
             }
             else
             {
-                // My target is no longer reachable. I'll try and find a nearby place to stand...
+                // My target is no longer reachable. I'll try and find a place close to my target...
                 if (currentCellIsWalkable &&
-                    gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out targetCell, isDebuggingSearch))
+                    gridManager.TryGetNearbyEmptyCellSemiRandom(targetCell, out targetCell, isDebuggingSearch))
                 {
                     if (isDebuggingPathInvalidation)
                     {
@@ -125,8 +125,14 @@ namespace Grid
                     }
 
                     // I'll walk to a nearby spot...
-                    PathHelpers.TrySetPath(ecb, entity, currentCell, targetCell,
-                        isDebuggingPath);
+                    if (nextPathNodeIsWalkable)
+                    {
+                        PathHelpers.TrySetPath(ecb, entity, nextPathNode, targetCell, isDebuggingPath);
+                    }
+                    else
+                    {
+                        PathHelpers.TrySetPath(ecb, entity, currentCell, targetCell, isDebuggingPath);
+                    }
 
                     // I should do a new search ASAP.
                     moodInitiative.ValueRW.Initiative += 1f;
