@@ -76,8 +76,7 @@ public partial class UnitControlSystem : SystemBase
                 selectOnlyOneEntity = true;
             }
 
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(World.Unmanaged);
+            using var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             DeselectAllUnits(ecb);
 
@@ -107,6 +106,8 @@ public partial class UnitControlSystem : SystemBase
                     selectedEntityCount++;
                 }
             }
+
+            ecb.Playback(EntityManager);
         }
 
         if (Input.GetMouseButtonDown(1) && !Input.GetKey(KeyCode.LeftControl))
@@ -118,13 +119,14 @@ public partial class UnitControlSystem : SystemBase
 
     private void SelectAllUnits()
     {
-        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-            .CreateCommandBuffer(World.Unmanaged);
+        using var ecb = new EntityCommandBuffer(Allocator.Temp);
 
         foreach (var (_, entity) in SystemAPI.Query<RefRO<Selectable>>().WithEntityAccess())
         {
             ecb.AddComponent(entity, new UnitSelection());
         }
+
+        ecb.Playback(EntityManager);
     }
 
     private void DeselectAllUnits(EntityCommandBuffer ecb)
@@ -146,8 +148,7 @@ public partial class UnitControlSystem : SystemBase
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
-        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-            .CreateCommandBuffer(World.Unmanaged);
+        using var ecb = new EntityCommandBuffer(Allocator.Temp);
 
         var mousePosition = UtilsClass.GetMouseWorldPosition();
         var cellSize = 1f; // gridManager currently only supports a cellSize of 1
@@ -174,6 +175,7 @@ public partial class UnitControlSystem : SystemBase
         }
 
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+        ecb.Playback(EntityManager);
     }
 
     private void MoveUnitsToWalkableArea(ref GridManager gridManager, NativeArray<int2> movePositionList,
