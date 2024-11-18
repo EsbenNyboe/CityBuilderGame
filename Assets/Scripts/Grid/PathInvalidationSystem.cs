@@ -1,5 +1,6 @@
 using Debugging;
 using UnitState;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -21,6 +22,7 @@ namespace Grid
             _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
