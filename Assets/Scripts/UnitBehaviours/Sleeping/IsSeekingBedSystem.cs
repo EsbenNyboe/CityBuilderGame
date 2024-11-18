@@ -34,7 +34,10 @@ namespace UnitBehaviours.Sleeping
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
+            var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
+            var isDebuggingPath = debugToggleManager.DebugPathfinding;
+            var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
+
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
 
@@ -62,7 +65,8 @@ namespace UnitBehaviours.Sleeping
                     Entity = entity,
                     GridManager = gridManager,
                     ECB = GetEntityCommandBuffer(ref state),
-                    IsDebugging = isDebugging
+                    IsDebuggingSearch = isDebuggingSearch,
+                    IsDebuggingPath = isDebuggingPath
                 }.Schedule());
             }
 
@@ -85,7 +89,8 @@ namespace UnitBehaviours.Sleeping
         [ReadOnly] public Entity Entity;
         [ReadOnly] public GridManager GridManager;
         public EntityCommandBuffer ECB;
-        [ReadOnly] public bool IsDebugging;
+        [ReadOnly] public bool IsDebuggingSearch;
+        [ReadOnly] public bool IsDebuggingPath;
 
         public void Execute()
         {
@@ -105,9 +110,9 @@ namespace UnitBehaviours.Sleeping
                 if (GridManager.IsInteractable(CurrentCell))
                 {
                     // Whoops, I'm standing on a bed.. I should move..
-                    if (GridManager.TryGetNearbyEmptyCellSemiRandom(CurrentCell, out var nearbyCell))
+                    if (GridManager.TryGetNearbyEmptyCellSemiRandom(CurrentCell, out var nearbyCell, IsDebuggingSearch))
                     {
-                        PathHelpers.TrySetPath(ECB, Entity, CurrentCell, nearbyCell, IsDebugging);
+                        PathHelpers.TrySetPath(ECB, Entity, CurrentCell, nearbyCell, IsDebuggingPath);
                     }
                 }
 
@@ -117,7 +122,7 @@ namespace UnitBehaviours.Sleeping
             }
 
             // I found a bed!! I will go there! 
-            PathHelpers.TrySetPath(ECB, Entity, CurrentCell, closestAvailableBed, IsDebugging);
+            PathHelpers.TrySetPath(ECB, Entity, CurrentCell, closestAvailableBed, IsDebuggingPath);
         }
     }
 }

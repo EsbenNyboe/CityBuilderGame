@@ -183,7 +183,7 @@ public partial struct GridManager
         return false;
     }
 
-    public bool TryGetNearbyEmptyCellSemiRandom(int2 center, out int2 nearbyCell)
+    public bool TryGetNearbyEmptyCellSemiRandom(int2 center, out int2 nearbyCell, bool isDebugging = false)
     {
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
@@ -209,7 +209,10 @@ public partial struct GridManager
             }
         }
 
-        DebugHelper.LogError("No nearby empty cell was found");
+        if (isDebugging)
+        {
+            DebugHelper.LogError("No nearby empty cell was found");
+        }
 
         nearbyCell = new int2(-1, -1);
         return false;

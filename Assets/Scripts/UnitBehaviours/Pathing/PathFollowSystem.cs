@@ -25,7 +25,10 @@ public partial struct PathFollowSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
+        var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
+        var isDebuggingPath = debugToggleManager.DebugPathfinding;
+        var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
+
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
 
@@ -72,7 +75,8 @@ public partial struct PathFollowSystem : ISystem
                     // I have reached my destination.
                     moveAmount = 0;
                     distanceToTarget = 0;
-                    EndPathFollowing(ref state, ecb, entity, socialRelationships, targetPosition, isDebugging);
+                    EndPathFollowing(ref state, ecb, entity, socialRelationships, targetPosition, isDebuggingSearch,
+                        isDebuggingPath);
                 }
                 else
                 {
@@ -99,7 +103,7 @@ public partial struct PathFollowSystem : ISystem
                 spriteTransform.ValueRW.Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
             }
 
-            if (isDebugging)
+            if (isDebuggingPath)
             {
                 var pathEndPosition = pathPositionBuffer[0].Position;
                 Debug.DrawLine(currentPosition, new Vector3(pathEndPosition.x, pathEndPosition.y),
@@ -109,7 +113,8 @@ public partial struct PathFollowSystem : ISystem
     }
 
     private void EndPathFollowing(ref SystemState state, EntityCommandBuffer ecb, Entity entity,
-        RefRW<SocialRelationships> socialRelationships, float3 targetPosition, bool isDebugging)
+        RefRW<SocialRelationships> socialRelationships, float3 targetPosition,
+        bool isDebuggingSearch, bool isDebuggingPath)
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
@@ -128,14 +133,14 @@ public partial struct PathFollowSystem : ISystem
             }
 
             GridHelpers.GetXY(targetPosition, out var x, out var y);
-            if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell))
+            if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell, isDebuggingSearch))
             {
-                PathHelpers.TrySetPath(ecb, entity, new int2(x, y), vacantCell, isDebugging);
+                PathHelpers.TrySetPath(ecb, entity, new int2(x, y), vacantCell, isDebuggingPath);
             }
             // TODO: Go to a nearby walkable-cell, then?
             else
             {
-                if (isDebugging)
+                if (isDebuggingPath)
                 {
                     DebugHelper.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
                 }

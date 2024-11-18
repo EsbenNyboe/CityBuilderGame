@@ -15,8 +15,14 @@ namespace Debugging
             var debugToggleManager = SystemAPI.GetSingletonRW<DebugToggleManager>();
             var debugToggleManagerInterface = DebugToggleManagerInterface.Instance;
 
-            debugToggleManager.ValueRW.DebugSectionSorting = debugToggleManagerInterface.DebugSectionSorting;
-            debugToggleManager.ValueRW.DebugPathfinding = debugToggleManagerInterface.DebugPathfinding;
+            debugToggleManager.ValueRW.DebugSectionSorting =
+                debugToggleManagerInterface.DebugSectionSorting;
+
+            debugToggleManager.ValueRW.DebugPathfinding =
+                debugToggleManagerInterface.DebugPathfinding;
+
+            debugToggleManager.ValueRW.DebugPathSearchEmptyCells =
+                debugToggleManagerInterface.DebugPathSearchEmptyCells;
         }
     }
 
@@ -24,5 +30,6 @@ namespace Debugging
     {
         public bool DebugSectionSorting;
         public bool DebugPathfinding;
+        public bool DebugPathSearchEmptyCells;
     }
 }

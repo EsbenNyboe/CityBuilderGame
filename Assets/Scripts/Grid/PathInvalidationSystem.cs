@@ -21,7 +21,10 @@ namespace Grid
 
         public void OnUpdate(ref SystemState state)
         {
-            var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
+            var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
+            var isDebuggingPath = debugToggleManager.DebugPathfinding;
+            var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
+
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
@@ -64,16 +67,18 @@ namespace Grid
                     if (positionIsWalkable && targetIsWalkable && pathIsPossible)
                     {
                         // My target is still reachable. I'll find a better path.
-                        PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition, isDebugging);
+                        PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition, isDebuggingPath);
                     }
                     else
                     {
                         // My target is no longer reachable. I'll try and find a nearby place to stand...
                         if (positionIsWalkable &&
-                            gridManager.TryGetNearbyEmptyCellSemiRandom(currentPathPosition, out targetPathPosition))
+                            gridManager.TryGetNearbyEmptyCellSemiRandom(currentPathPosition, out targetPathPosition,
+                                isDebuggingSearch))
                         {
                             // I'll walk to a nearby spot...
-                            PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition, isDebugging);
+                            PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition,
+                                isDebuggingPath);
                         }
                         else if (!positionIsWalkable &&
                                  gridManager.TryGetNearbyWalkableCellSemiRandom(currentPathPosition,
