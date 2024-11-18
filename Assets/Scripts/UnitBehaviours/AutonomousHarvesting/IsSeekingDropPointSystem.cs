@@ -1,4 +1,5 @@
-﻿using UnitAgency;
+﻿using Debugging;
+using UnitAgency;
 using UnitState;
 using Unity.Burst;
 using Unity.Entities;
@@ -15,6 +16,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
         }
@@ -22,6 +24,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
@@ -49,12 +52,13 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 if (closestDropPointEntrance.x > -1)
                 {
-                    PathHelpers.TrySetPath(ecb, entity, unitGridPosition, closestDropPointEntrance);
+                    PathHelpers.TrySetPath(ecb, entity, unitGridPosition, closestDropPointEntrance, isDebugging);
                 }
             }
         }
 
-        private int2 FindClosestDropPoint(ref SystemState state, GridManager gridManager, float3 position, Entity selfEntity)
+        private int2 FindClosestDropPoint(ref SystemState state, GridManager gridManager, float3 position,
+            Entity selfEntity)
         {
             var closestDropPoint = new float3(-1);
             var shortestDropPointDistance = math.INFINITY;

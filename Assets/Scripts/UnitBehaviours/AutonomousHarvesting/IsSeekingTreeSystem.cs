@@ -1,4 +1,5 @@
-﻿using UnitAgency;
+﻿using Debugging;
+using UnitAgency;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
@@ -21,6 +22,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
         }
@@ -28,6 +30,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
 
@@ -83,6 +86,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [ReadOnly] public Entity Entity;
         [ReadOnly] public GridManager GridManager;
         public EntityCommandBuffer Ecb;
+        [ReadOnly] public bool IsDebugging;
 
         public void Execute()
         {
@@ -105,7 +109,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             }
 
             // I found a tree!! I will go there! 
-            PathHelpers.TrySetPath(Ecb, Entity, CurrentCell, choppingCell);
+            PathHelpers.TrySetPath(Ecb, Entity, CurrentCell, choppingCell, IsDebugging);
         }
     }
 }

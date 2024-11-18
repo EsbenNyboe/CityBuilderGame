@@ -1,3 +1,4 @@
+using Debugging;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -13,12 +14,14 @@ namespace Grid
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
         }
 
         public void OnUpdate(ref SystemState state)
         {
+            var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
@@ -60,7 +63,7 @@ namespace Grid
                     if (positionIsWalkable && targetIsWalkable && pathIsPossible)
                     {
                         // My target is still reachable. I'll find a better path.
-                        PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition);
+                        PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition, isDebugging);
                     }
                     else
                     {
@@ -68,7 +71,7 @@ namespace Grid
                         if (positionIsWalkable && gridManager.TryGetNearbyEmptyCellSemiRandom(currentPathPosition, out targetPathPosition))
                         {
                             // I'll walk to a nearby spot...
-                            PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition);
+                            PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition, isDebugging);
                         }
                         else if (!positionIsWalkable && gridManager.TryGetNearbyWalkableCellSemiRandom(currentPathPosition, out targetPathPosition))
                         {

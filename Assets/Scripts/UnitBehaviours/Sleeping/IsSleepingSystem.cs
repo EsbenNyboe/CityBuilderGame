@@ -1,3 +1,4 @@
+using Debugging;
 using UnitAgency;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -13,6 +14,7 @@ public partial struct IsSleepingSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<DebugToggleManager>();
         state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
@@ -21,6 +23,7 @@ public partial struct IsSleepingSystem : ISystem
     {
         state.CompleteDependency();
 
+        var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
         var sleepinessPerSecWhenSleeping = -0.2f * SystemAPI.Time.DeltaTime;
@@ -51,7 +54,7 @@ public partial struct IsSleepingSystem : ISystem
             }
             else
             {
-                GoAwayFromBed(ref state, ecb, ref gridManager, entity, currentCell);
+                GoAwayFromBed(ref state, ecb, ref gridManager, entity, currentCell, isDebugging);
             }
         }
 
@@ -59,7 +62,7 @@ public partial struct IsSleepingSystem : ISystem
     }
 
     private void GoAwayFromBed(ref SystemState state, EntityCommandBuffer commands, ref GridManager gridManager,
-        Entity entity, int2 currentCell)
+        Entity entity, int2 currentCell, bool isDebugging)
     {
         // I should leave the bed-area, so others can use the bed...
         if (gridManager.EntityIsOccupant(currentCell, entity))
@@ -75,7 +78,7 @@ public partial struct IsSleepingSystem : ISystem
 
         if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out var nearbyCell))
         {
-            PathHelpers.TrySetPath(commands, entity, currentCell, nearbyCell);
+            PathHelpers.TrySetPath(commands, entity, currentCell, nearbyCell, isDebugging);
         }
     }
 }

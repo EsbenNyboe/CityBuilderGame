@@ -130,8 +130,9 @@ public partial struct PathFollowSystem : ISystem
             GridHelpers.GetXY(targetPosition, out var x, out var y);
             if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell))
             {
-                PathHelpers.TrySetPath(ecb, entity, new int2(x, y), vacantCell);
+                PathHelpers.TrySetPath(ecb, entity, new int2(x, y), vacantCell, isDebugging);
             }
+            // TODO: Go to a nearby walkable-cell, then?
             else
             {
                 if (isDebugging)
