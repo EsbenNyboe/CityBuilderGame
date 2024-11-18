@@ -52,6 +52,18 @@ namespace UnitBehaviours.Sleeping
                     continue;
                 }
 
+                var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+
+                // Am I on a bed?
+                if (gridManager.IsBed(currentCell) && !gridManager.IsOccupied(currentCell, entity))
+                {
+                    // Ahhhh, I found my bed!
+                    var ecb = GetEntityCommandBuffer(ref state);
+                    ecb.RemoveComponent<IsSeekingBed>(entity);
+                    ecb.AddComponent<IsDeciding>(entity);
+                    continue;
+                }
+
                 if (!moodInitiative.ValueRO.HasInitiative())
                 {
                     continue;
@@ -59,10 +71,10 @@ namespace UnitBehaviours.Sleeping
 
                 moodInitiative.ValueRW.UseInitiative();
 
-                // I reacted my destination / I'm standing still: I should find a bed!
+                // I'm not on a bed... I will seek the closest bed.
                 jobHandleList.Add(new SeekBedJob
                 {
-                    CurrentCell = GridHelpers.GetXY(localTransform.ValueRO.Position),
+                    CurrentCell = currentCell,
                     Entity = entity,
                     GridManager = gridManager,
                     ECB = GetEntityCommandBuffer(ref state),
@@ -98,16 +110,6 @@ namespace UnitBehaviours.Sleeping
 
         public void Execute()
         {
-            // Am I on a bed?
-            if (GridManager.IsBed(CurrentCell) && !GridManager.IsOccupied(CurrentCell, Entity))
-            {
-                // Ahhhh, I found my bed! 
-                ECB.RemoveComponent<IsSeekingBed>(Entity);
-                ECB.AddComponent<IsDeciding>(Entity);
-                return;
-            }
-
-            // I'm not on a bed... I should find the closest bed.
             if (!GridManager.TryGetClosestBedSemiRandom(CurrentCell, out var closestAvailableBed, IsDebuggingSeek))
             {
                 // There is no available bed anywhere!

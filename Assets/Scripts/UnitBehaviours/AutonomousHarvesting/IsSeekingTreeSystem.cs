@@ -53,6 +53,16 @@ namespace UnitBehaviours.AutonomousHarvesting
                     continue;
                 }
 
+                // Am I adjacent to a tree?
+                if (gridManager.TryGetNeighbouringTreeCell(currentCell, out _))
+                {
+                    // I found my adjacent tree!
+                    var ecb = GetEntityCommandBuffer(ref state);
+                    ecb.RemoveComponent<IsSeekingTree>(entity);
+                    ecb.AddComponent<IsDeciding>(entity);
+                    continue;
+                }
+
                 if (!moodInitiative.ValueRO.HasInitiative())
                 {
                     continue;
@@ -60,7 +70,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 moodInitiative.ValueRW.UseInitiative();
 
-                // I reacted my destination / I'm standing still: I should find a tree!
+                // I'm not next to a tree... I should find the closest tree.
                 jobHandleList.Add(new SeekTreeJob
                 {
                     CurrentCell = currentCell,
@@ -97,16 +107,6 @@ namespace UnitBehaviours.AutonomousHarvesting
 
         public void Execute()
         {
-            // Am I adjacent to a tree?
-            if (GridManager.TryGetNeighbouringTreeCell(CurrentCell, out _))
-            {
-                // I found my adjacent tree! 
-                Ecb.RemoveComponent<IsSeekingTree>(Entity);
-                Ecb.AddComponent<IsDeciding>(Entity);
-                return;
-            }
-
-            // I'm not next to a tree... I should find the closest tree.
             if (!GridManager.TryGetClosestChoppingCellSemiRandom(CurrentCell, Entity, out var choppingCell,
                     IsDebuggingSeek))
             {
