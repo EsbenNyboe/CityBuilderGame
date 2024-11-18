@@ -1,4 +1,5 @@
 ﻿using UnitAgency;
+using UnitState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -8,6 +9,10 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
+    public struct IsSeekingTree : IComponentData
+    {
+    }
+
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     [BurstCompile]
     public partial struct IsSeekingTreeSystem : ISystem
@@ -26,8 +31,9 @@ namespace UnitBehaviours.AutonomousHarvesting
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
 
-            foreach (var (localTransform, pathFollow, entity)
-                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>>().WithAll<IsSeekingTree>()
+            foreach (var (localTransform, pathFollow, moodInitiative, entity)
+                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodInitiative>>()
+                         .WithAll<IsSeekingTree>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
@@ -40,6 +46,13 @@ namespace UnitBehaviours.AutonomousHarvesting
                 {
                     continue;
                 }
+
+                if (!moodInitiative.ValueRO.HasInitiative())
+                {
+                    continue;
+                }
+
+                moodInitiative.ValueRW.UseInitiative();
 
                 // I reacted my destination / I'm standing still: I should find a tree!
                 jobHandleList.Add(new SeekTreeJob

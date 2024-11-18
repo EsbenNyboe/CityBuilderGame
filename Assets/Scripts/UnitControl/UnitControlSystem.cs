@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using CodeMonkey.Utils;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Sleeping;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;

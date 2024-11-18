@@ -1,5 +1,6 @@
 using UnitAgency;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Sleeping;
 using Unity.Collections;
 using Unity.Entities;
 

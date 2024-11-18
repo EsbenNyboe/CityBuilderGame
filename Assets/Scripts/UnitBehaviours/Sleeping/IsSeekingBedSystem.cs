@@ -1,4 +1,5 @@
 using UnitAgency;
+using UnitState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -12,6 +13,10 @@ using SystemState = Unity.Entities.SystemState;
 
 namespace UnitBehaviours.Sleeping
 {
+    public struct IsSeekingBed : IComponentData
+    {
+    }
+
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     [BurstCompile]
     public partial struct IsSeekingBedSystem : ISystem
@@ -30,8 +35,8 @@ namespace UnitBehaviours.Sleeping
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
 
-            foreach (var (localTransform, pathFollow, entity) in SystemAPI
-                         .Query<RefRO<LocalTransform>, RefRO<PathFollow>>()
+            foreach (var (localTransform, pathFollow, moodInitiative, entity) in SystemAPI
+                         .Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodInitiative>>()
                          .WithAll<IsSeekingBed>()
                          .WithEntityAccess())
             {
@@ -39,6 +44,13 @@ namespace UnitBehaviours.Sleeping
                 {
                     continue;
                 }
+
+                if (!moodInitiative.ValueRO.HasInitiative())
+                {
+                    continue;
+                }
+
+                moodInitiative.ValueRW.UseInitiative();
 
                 // I reacted my destination / I'm standing still: I should find a bed!
                 jobHandleList.Add(new SeekBedJob

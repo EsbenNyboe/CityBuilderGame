@@ -1,4 +1,5 @@
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Sleeping;
 using UnitState;
 using Unity.Burst;
 using Unity.Entities;
