@@ -32,23 +32,39 @@ public partial struct PathFollowSystem : ISystem
                      .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>,
                          RefRW<SpriteTransform>, RefRW<SocialRelationships>>().WithEntityAccess())
         {
-            if (pathFollow.ValueRO.PathIndex < 0)
+            var pathIndex = pathFollow.ValueRO.PathIndex;
+            if (pathIndex < 0)
             {
                 continue;
             }
 
             var currentPosition = localTransform.ValueRO.Position;
-            var targetCell = pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position;
-            var targetPosition = new float3(targetCell.x, targetCell.y, 0);
+            var targetPosition = GridHelpers.GetWorldPosition(pathPositionBuffer[pathIndex].Position);
+            var distanceToTarget = math.distance(currentPosition, targetPosition);
+            if (pathIndex > 1)
+            {
+                // TODO: Move this logic to PathfindingSystem for better performance
+                var nextTargetPosition = GridHelpers.GetWorldPosition(pathPositionBuffer[pathIndex - 1].Position);
+                var distanceFromCurrentToNextTarget = math.distance(currentPosition, nextTargetPosition);
+                var distanceFromTargetToNextTarget = math.distance(targetPosition, nextTargetPosition);
+                if (distanceFromCurrentToNextTarget < distanceToTarget + distanceFromTargetToNextTarget)
+                {
+                    targetPosition = nextTargetPosition;
+                    pathIndex--;
+                    pathFollow.ValueRW.PathIndex = pathIndex;
+                }
+            }
+
             var moveAmount = MoveSpeed * SystemAPI.Time.DeltaTime;
 
             var pathFollowEnded = false;
-            while (math.distance(currentPosition, targetPosition) - moveAmount < 0)
+            while (distanceToTarget - moveAmount < 0)
             {
                 // Unit will overshoot its target. Therefore, we increment its path, before moving.
                 moveAmount -= math.distance(currentPosition, targetPosition);
-                pathFollow.ValueRW.PathIndex--;
-                if (pathFollow.ValueRO.PathIndex < 0)
+                pathIndex--;
+                pathFollow.ValueRW.PathIndex = pathIndex;
+                if (pathIndex < 0)
                 {
                     pathFollowEnded = true;
                     EndPathFollowing(ref state, ecb, entity, localTransform, socialRelationships, targetPosition);
@@ -57,9 +73,10 @@ public partial struct PathFollowSystem : ISystem
                 {
                     // We select a new startPosition, which dissociates it from the actual LocalTransform-position
                     currentPosition = targetPosition;
-                    targetPosition =
-                        GridHelpers.GetWorldPosition(pathPositionBuffer[pathFollow.ValueRO.PathIndex].Position);
+                    targetPosition = GridHelpers.GetWorldPosition(pathPositionBuffer[pathIndex].Position);
                 }
+
+                distanceToTarget = math.distance(currentPosition, targetPosition);
             }
 
             var moveDirection = math.normalizesafe(targetPosition - currentPosition);
