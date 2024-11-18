@@ -1,4 +1,5 @@
 using System;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -91,27 +92,57 @@ namespace Rendering
             var outQueues = new NativeArray<NativeQueue<RenderData>>(1 + quickPivots.Length * 2, Allocator.Temp);
             outQueues[0] = spriteSheetsToSort;
 
-            var pivotIndex = 0;
+            var jobIndex = 0;
             for (var i = 0; i < jobBatches.Length; i++)
             {
                 var batchSize = jobBatches[i].Length;
                 for (var j = 0; j < batchSize; j++)
                 {
-                    var pivot = quickPivots[pivotIndex];
+                    var pivot = quickPivots[jobIndex];
                     var quickSortJob = new QuickSortJob
                     {
                         Pivot = pivot,
-                        InQueue = outQueues[pivotIndex],
-                        OutQueue1 = outQueues[pivotIndex + batchSize + j] =
+                        InQueue = outQueues[jobIndex],
+                        OutQueue1 = outQueues[jobIndex + batchSize + j] =
                             new NativeQueue<RenderData>(Allocator.TempJob),
-                        OutQueue2 = outQueues[pivotIndex + batchSize + j + 1] =
+                        OutQueue2 = outQueues[jobIndex + batchSize + j + 1] =
                             new NativeQueue<RenderData>(Allocator.TempJob)
                     };
-                    var jobBatch = jobBatches[i];
                     var dependency = i > 0 ? JobHandle.CombineDependencies(jobBatches[i - 1]) : default;
+                    var jobBatch = jobBatches[i];
                     jobBatch[j] = quickSortJob.Schedule(dependency);
                     jobBatches[i] = jobBatch;
-                    pivotIndex++;
+                    jobIndex++;
+                }
+            }
+
+            var queueJobs = new NativeArray<JobHandle>(jobBatches.Length, Allocator.TempJob);
+            for (var i = 0; i < jobBatches.Length; i++)
+            {
+                queueJobs[i] = JobHandle.CombineDependencies(jobBatches[i]);
+            }
+
+            JobHandle.CompleteAll(queueJobs);
+            queueJobs.Dispose();
+
+            var outArrays = new NativeArray<NativeArray<RenderData>>(outQueues.Length, Allocator.Temp);
+            jobIndex = 0;
+            for (var i = 0; i < jobBatches.Length; i++)
+            {
+                var batchSize = jobBatches[i].Length;
+                for (var j = 0; j < batchSize; j++)
+                {
+                    var nativeQueueToArrayJob = new NativeQueueToArrayJob
+                    {
+                        NativeQueue = outQueues[jobIndex],
+                        NativeArray = outArrays[jobIndex] =
+                            new NativeArray<RenderData>(outQueues[jobIndex].Count, Allocator.TempJob)
+                    };
+                    var dependency = i > 0 ? JobHandle.CombineDependencies(jobBatches[i - 1]) : default;
+                    var jobBatch = jobBatches[i];
+                    jobBatch[j] = nativeQueueToArrayJob.Schedule(dependency);
+                    jobBatches[i] = jobBatch;
+                    jobIndex++;
                 }
             }
 
@@ -138,16 +169,17 @@ namespace Rendering
 
             outQueues.Dispose();
 
+            for (var i = 0; i < outArrays.Length; i++)
+            {
+                outArrays[i].Dispose();
+            }
+
+            outArrays.Dispose();
             quickPivots.Dispose();
             jobBatches.Dispose();
-            // var queueStructList = new NativeList<QueueStruct>(Allocator.TempJob);
-
-
-            // CULL
-
-            // THEN SORT
         }
 
+        [BurstCompile]
         private partial struct CullJob : IJobEntity
         {
             public float XLeft; // Left most cull position
@@ -184,6 +216,7 @@ namespace Rendering
             }
         }
 
+        [BurstCompile]
         private struct QuickSortJob : IJob
         {
             [ReadOnly] public float Pivot;
@@ -209,16 +242,28 @@ namespace Rendering
             }
         }
 
+        [BurstCompile]
+        private struct NativeQueueToArrayJob : IJob
+        {
+            public NativeQueue<RenderData> NativeQueue;
+            public NativeArray<RenderData> NativeArray;
+
+            public void Execute()
+            {
+                var index = 0;
+                while (NativeQueue.TryDequeue(out var renderData))
+                {
+                    NativeArray[index] = renderData;
+                    index++;
+                }
+            }
+        }
+
         public struct RenderData
         {
             public float3 Position;
             public Matrix4x4 Matrix;
             public Vector4 Uv;
-        }
-
-        public struct QueueStruct
-        {
-            public NativeQueue<RenderData> Queue;
         }
     }
 }
