@@ -15,14 +15,14 @@ namespace Debugging
             var debugToggleManager = SystemAPI.GetSingletonRW<DebugToggleManager>();
             var debugToggleManagerInterface = DebugToggleManagerInterface.Instance;
 
-            debugToggleManager.ValueRW.IsDebugging = debugToggleManagerInterface.IsDebugging;
+            debugToggleManager.ValueRW.DebugSectionSorting = debugToggleManagerInterface.DebugSectionSorting;
             debugToggleManager.ValueRW.DebugPathfinding = debugToggleManagerInterface.DebugPathfinding;
         }
     }
 
     public struct DebugToggleManager : IComponentData
     {
-        public bool IsDebugging;
+        public bool DebugSectionSorting;
         public bool DebugPathfinding;
     }
 }

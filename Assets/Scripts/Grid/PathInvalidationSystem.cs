@@ -7,7 +7,7 @@ using Unity.Transforms;
 namespace Grid
 {
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup), OrderLast = true)]
-    [UpdateAfter(typeof(GridManagerHighLevelSortingSystem))]
+    [UpdateAfter(typeof(GridManagerSectionSortingSystem))]
     public partial struct PathInvalidationSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
@@ -49,7 +49,8 @@ namespace Grid
             }
 
             foreach (var (localTransform, pathFollow, pathPositions, entity) in SystemAPI
-                         .Query<RefRW<LocalTransform>, RefRW<PathFollow>, DynamicBuffer<PathPosition>>().WithEntityAccess())
+                         .Query<RefRW<LocalTransform>, RefRW<PathFollow>, DynamicBuffer<PathPosition>>()
+                         .WithEntityAccess())
             {
                 var pathIndex = pathFollow.ValueRO.PathIndex;
                 if (CurrentPathIsInvalidated(pathPositions, invalidatedCells, pathIndex))
@@ -68,12 +69,15 @@ namespace Grid
                     else
                     {
                         // My target is no longer reachable. I'll try and find a nearby place to stand...
-                        if (positionIsWalkable && gridManager.TryGetNearbyEmptyCellSemiRandom(currentPathPosition, out targetPathPosition))
+                        if (positionIsWalkable &&
+                            gridManager.TryGetNearbyEmptyCellSemiRandom(currentPathPosition, out targetPathPosition))
                         {
                             // I'll walk to a nearby spot...
                             PathHelpers.TrySetPath(ecb, entity, currentPathPosition, targetPathPosition, isDebugging);
                         }
-                        else if (!positionIsWalkable && gridManager.TryGetNearbyWalkableCellSemiRandom(currentPathPosition, out targetPathPosition))
+                        else if (!positionIsWalkable &&
+                                 gridManager.TryGetNearbyWalkableCellSemiRandom(currentPathPosition,
+                                     out targetPathPosition))
                         {
                             // I'll defy physics, and move to a nearby spot.
                             pathPositions.Clear();
@@ -93,7 +97,8 @@ namespace Grid
             }
         }
 
-        private static bool CurrentPathIsInvalidated(DynamicBuffer<PathPosition> pathPositions, NativeHashSet<int2> invalidatedCells, int pathIndex)
+        private static bool CurrentPathIsInvalidated(DynamicBuffer<PathPosition> pathPositions,
+            NativeHashSet<int2> invalidatedCells, int pathIndex)
         {
             for (var i = pathIndex; i > -1; i--)
             {

@@ -9,7 +9,7 @@ using Random = Unity.Mathematics.Random;
 namespace Grid
 {
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup), OrderLast = true)]
-    public partial struct GridManagerHighLevelSortingSystem : ISystem
+    public partial struct GridManagerSectionSortingSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
 
@@ -39,9 +39,9 @@ namespace Grid
             state.CompleteDependency();
 
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
-            var isDebug = SystemAPI.GetSingleton<DebugToggleManager>().IsDebugging;
+            var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugSectionSorting;
 
-            if (!gridManager.WalkableGridIsDirty && !isDebug)
+            if (!gridManager.WalkableGridIsDirty && !isDebugging)
             {
                 return;
             }
@@ -54,17 +54,17 @@ namespace Grid
             var walkablesCount = walkableNodeQueue.Count;
             var openNodes = ConvertToHashSet(walkableNodeQueue);
 
-            if (isDebug)
+            if (isDebugging)
             {
                 AllocateDebugContainers(walkablesCount);
             }
 
             var closedNodes = new NativeParallelHashMap<int2, WalkableSectionNode>(walkablesCount, Allocator.Temp);
-            SortWalkableSections(ref gridManager, openNodes, closedNodes, isDebug);
+            SortWalkableSections(ref gridManager, openNodes, closedNodes, isDebugging);
 
             SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
 
-            if (isDebug)
+            if (isDebugging)
             {
                 DebugDrawSections(gridManager);
                 DebugDrawSearchAlgorithm(ref state);
