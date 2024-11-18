@@ -10,8 +10,18 @@ namespace Rendering
 {
     public partial struct SpriteSheetQuickSortSystem : ISystem
     {
+        private EntityQuery _entityQuery;
+
+        public void OnCreate(ref SystemState state)
+        {
+            _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<SpriteSheetAnimation>(),
+                ComponentType.ReadOnly<LocalToWorld>());
+        }
+
         public void OnUpdate(ref SystemState state)
         {
+            state.Dependency.Complete();
+
             var camera = Camera.main;
             if (camera == null)
             {
@@ -67,10 +77,66 @@ namespace Rendering
                 }
             }
 
-            for (var i = 0; i < quickPivots.Length; i++)
+            // Select sprite sheets that need sorting:
+            var spriteSheetsToSort = new NativeQueue<RenderData>(Allocator.TempJob);
+            new CullJob
             {
-                Debug.Log("Quick pivot " + i + ": " + quickPivots[i]);
+                XLeft = xLeft,
+                XRight = xRight,
+                YTop = yTop,
+                YBottom = yBottom,
+                NativeQueue = spriteSheetsToSort
+            }.Run(_entityQuery);
+
+            var outQueues = new NativeArray<NativeQueue<RenderData>>(1 + quickPivots.Length * 2, Allocator.Temp);
+            outQueues[0] = spriteSheetsToSort;
+
+            var pivotIndex = 0;
+            for (var i = 0; i < jobBatches.Length; i++)
+            {
+                var batchSize = jobBatches[i].Length;
+                for (var j = 0; j < batchSize; j++)
+                {
+                    var pivot = quickPivots[pivotIndex];
+                    var quickSortJob = new QuickSortJob
+                    {
+                        Pivot = pivot,
+                        InQueue = outQueues[pivotIndex],
+                        OutQueue1 = outQueues[pivotIndex + batchSize + j] =
+                            new NativeQueue<RenderData>(Allocator.TempJob),
+                        OutQueue2 = outQueues[pivotIndex + batchSize + j + 1] =
+                            new NativeQueue<RenderData>(Allocator.TempJob)
+                    };
+                    var jobBatch = jobBatches[i];
+                    var dependency = i > 0 ? JobHandle.CombineDependencies(jobBatches[i - 1]) : default;
+                    jobBatch[j] = quickSortJob.Schedule(dependency);
+                    jobBatches[i] = jobBatch;
+                    pivotIndex++;
+                }
             }
+
+            var jobs = new NativeArray<JobHandle>(jobBatches.Length, Allocator.Temp);
+            for (var index = 0; index < jobBatches.Length; index++)
+            {
+                jobs[index] = JobHandle.CombineDependencies(jobBatches[index]);
+                jobBatches[index].Dispose();
+            }
+
+            JobHandle.CompleteAll(jobs);
+            jobs.Dispose();
+
+            for (var i = 0; i < outQueues.Length; i++)
+            {
+                while (outQueues[i].Count > 0)
+                {
+                    var renderData = outQueues[i].Dequeue();
+                    Debug.Log("Queue " + i + " contains: " + renderData.Position.y);
+                }
+
+                outQueues[i].Dispose();
+            }
+
+            outQueues.Dispose();
 
             quickPivots.Dispose();
             jobBatches.Dispose();
@@ -82,20 +148,14 @@ namespace Rendering
             // THEN SORT
         }
 
-        private partial struct CullAndSort : IJobEntity
+        private partial struct CullJob : IJobEntity
         {
             public float XLeft; // Left most cull position
             public float XRight; // Right most cull position
-            public float YTop1; // Top most cull position
-            public float YTop2; // Second slice from top
-            public float YTop3; // Third slice from top
-            public float YTop4; // Fourth slice from top
+            public float YTop; // Top most cull position
             public float YBottom; // Bottom most cull position
 
-            public NativeQueue<RenderData> NativeQueue1;
-            public NativeQueue<RenderData> NativeQueue2;
-            public NativeQueue<RenderData> NativeQueue3;
-            public NativeQueue<RenderData> NativeQueue4;
+            public NativeQueue<RenderData> NativeQueue;
 
             public void Execute(ref LocalToWorld localToWorld, ref SpriteSheetAnimation animationData)
             {
@@ -107,7 +167,7 @@ namespace Rendering
                 }
 
                 var positionY = localToWorld.Position.y;
-                if (!(positionY > YBottom) || !(positionY < YTop1))
+                if (!(positionY > YBottom) || !(positionY < YTop))
                 {
                     // Unit is not within vertical view-bounds. No need to render.
                     return;
@@ -120,21 +180,31 @@ namespace Rendering
                     Uv = animationData.Uv
                 };
 
-                if (positionY < YTop4)
+                NativeQueue.Enqueue(renderData);
+            }
+        }
+
+        private struct QuickSortJob : IJob
+        {
+            [ReadOnly] public float Pivot;
+
+            public NativeQueue<RenderData> InQueue;
+            public NativeQueue<RenderData> OutQueue1;
+            public NativeQueue<RenderData> OutQueue2;
+
+            public void Execute()
+            {
+                while (InQueue.Count > 0)
                 {
-                    NativeQueue4.Enqueue(renderData);
-                }
-                else if (positionY < YTop3)
-                {
-                    NativeQueue3.Enqueue(renderData);
-                }
-                else if (positionY < YTop2)
-                {
-                    NativeQueue2.Enqueue(renderData);
-                }
-                else
-                {
-                    NativeQueue1.Enqueue(renderData);
+                    var renderData = InQueue.Dequeue();
+                    if (renderData.Position.y < Pivot)
+                    {
+                        OutQueue1.Enqueue(renderData);
+                    }
+                    else
+                    {
+                        OutQueue2.Enqueue(renderData);
+                    }
                 }
             }
         }
