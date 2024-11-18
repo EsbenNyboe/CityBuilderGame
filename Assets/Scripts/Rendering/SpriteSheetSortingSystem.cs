@@ -8,14 +8,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public struct SpriteSheetSortingManager : IComponentData
-{
-    public NativeArray<Matrix4x4> SpriteMatrixArray;
-    public NativeArray<Vector4> SpriteUvArray;
-}
-
-[UpdateInGroup(typeof(PreRenderingSystemGroup), OrderLast = true)]
-[BurstCompile]
+[DisableAutoCreation]
 public partial struct SpriteSheetSortingSystem : ISystem
 {
     private EntityQuery _entityQuery;
