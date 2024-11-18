@@ -23,6 +23,12 @@ namespace Debugging
 
             debugToggleManager.ValueRW.DebugPathSearchEmptyCells =
                 debugToggleManagerInterface.DebugPathSearchEmptyCells;
+
+            debugToggleManager.ValueRW.DebugBedSeeking =
+                debugToggleManagerInterface.DebugBedSeeking;
+
+            debugToggleManager.ValueRW.DebugTreeSeeking =
+                debugToggleManagerInterface.DebugTreeSeeking;
         }
     }
 
@@ -31,5 +37,7 @@ namespace Debugging
         public bool DebugSectionSorting;
         public bool DebugPathfinding;
         public bool DebugPathSearchEmptyCells;
+        public bool DebugBedSeeking;
+        public bool DebugTreeSeeking;
     }
 }

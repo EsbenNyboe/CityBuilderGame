@@ -118,7 +118,8 @@ public partial struct GridManager
         return PositionList;
     }
 
-    public bool TryGetClosestChoppingCellSemiRandom(int2 selfCell, Entity selfEntity, out int2 availableChoppingCell)
+    public bool TryGetClosestChoppingCellSemiRandom(int2 selfCell, Entity selfEntity, out int2 availableChoppingCell,
+        bool isDebugging)
     {
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
@@ -145,13 +146,16 @@ public partial struct GridManager
             }
         }
 
-        DebugHelper.LogWarning("No available chopping cell was found within the search-range");
+        if (isDebugging)
+        {
+            DebugHelper.LogWarning("No available chopping cell was found within the search-range");
+        }
 
         availableChoppingCell = -1;
         return false;
     }
 
-    public bool TryGetClosestBedSemiRandom(int2 center, out int2 availableBed)
+    public bool TryGetClosestBedSemiRandom(int2 center, out int2 availableBed, bool isDebugging)
     {
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
@@ -177,7 +181,10 @@ public partial struct GridManager
             }
         }
 
-        DebugHelper.LogWarning("No available bed was found within the search-range");
+        if (isDebugging)
+        {
+            DebugHelper.LogWarning("No available bed was found within the search-range");
+        }
 
         availableBed = new int2(-1, -1);
         return false;

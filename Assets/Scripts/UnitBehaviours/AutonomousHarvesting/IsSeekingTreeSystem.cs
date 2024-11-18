@@ -30,7 +30,10 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
+            var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
+            var isDebuggingSeek = debugToggleManager.DebugTreeSeeking;
+            var isDebuggingPath = debugToggleManager.DebugPathfinding;
+
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
 
@@ -63,7 +66,9 @@ namespace UnitBehaviours.AutonomousHarvesting
                     CurrentCell = currentCell,
                     Entity = entity,
                     GridManager = gridManager,
-                    Ecb = GetEntityCommandBuffer(ref state)
+                    Ecb = GetEntityCommandBuffer(ref state),
+                    IsDebuggingSeek = isDebuggingSeek,
+                    IsDebuggingPath = isDebuggingPath
                 }.Schedule());
             }
 
@@ -86,7 +91,9 @@ namespace UnitBehaviours.AutonomousHarvesting
         [ReadOnly] public Entity Entity;
         [ReadOnly] public GridManager GridManager;
         public EntityCommandBuffer Ecb;
-        [ReadOnly] public bool IsDebugging;
+
+        [ReadOnly] public bool IsDebuggingSeek;
+        [ReadOnly] public bool IsDebuggingPath;
 
         public void Execute()
         {
@@ -100,7 +107,8 @@ namespace UnitBehaviours.AutonomousHarvesting
             }
 
             // I'm not next to a tree... I should find the closest tree.
-            if (!GridManager.TryGetClosestChoppingCellSemiRandom(CurrentCell, Entity, out var choppingCell))
+            if (!GridManager.TryGetClosestChoppingCellSemiRandom(CurrentCell, Entity, out var choppingCell,
+                    IsDebuggingSeek))
             {
                 // I can't see any nearby trees
                 Ecb.RemoveComponent<IsSeekingTree>(Entity);
@@ -109,7 +117,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             }
 
             // I found a tree!! I will go there! 
-            PathHelpers.TrySetPath(Ecb, Entity, CurrentCell, choppingCell, IsDebugging);
+            PathHelpers.TrySetPath(Ecb, Entity, CurrentCell, choppingCell, IsDebuggingPath);
         }
     }
 }

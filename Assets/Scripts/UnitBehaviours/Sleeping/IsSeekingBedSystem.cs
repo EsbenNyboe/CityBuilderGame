@@ -35,6 +35,7 @@ namespace UnitBehaviours.Sleeping
         public void OnUpdate(ref SystemState state)
         {
             var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
+            var isDebuggingSeek = debugToggleManager.DebugBedSeeking;
             var isDebuggingPath = debugToggleManager.DebugPathfinding;
             var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
 
@@ -65,6 +66,7 @@ namespace UnitBehaviours.Sleeping
                     Entity = entity,
                     GridManager = gridManager,
                     ECB = GetEntityCommandBuffer(ref state),
+                    IsDebuggingSeek = isDebuggingSeek,
                     IsDebuggingSearch = isDebuggingSearch,
                     IsDebuggingPath = isDebuggingPath
                 }.Schedule());
@@ -89,6 +91,8 @@ namespace UnitBehaviours.Sleeping
         [ReadOnly] public Entity Entity;
         [ReadOnly] public GridManager GridManager;
         public EntityCommandBuffer ECB;
+
+        [ReadOnly] public bool IsDebuggingSeek;
         [ReadOnly] public bool IsDebuggingSearch;
         [ReadOnly] public bool IsDebuggingPath;
 
@@ -104,7 +108,7 @@ namespace UnitBehaviours.Sleeping
             }
 
             // I'm not on a bed... I should find the closest bed.
-            if (!GridManager.TryGetClosestBedSemiRandom(CurrentCell, out var closestAvailableBed))
+            if (!GridManager.TryGetClosestBedSemiRandom(CurrentCell, out var closestAvailableBed, IsDebuggingSeek))
             {
                 // There is no available bed anywhere!
                 if (GridManager.IsInteractable(CurrentCell))
