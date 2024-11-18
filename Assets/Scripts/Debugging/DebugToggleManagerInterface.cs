@@ -10,6 +10,7 @@ namespace Debugging
         public bool DebugPathSearchEmptyCells;
         public bool DebugBedSeeking;
         public bool DebugTreeSeeking;
+        public bool DebugPathInvalidation;
 
         private void Awake()
         {

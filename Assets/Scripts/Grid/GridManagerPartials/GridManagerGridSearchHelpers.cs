@@ -225,24 +225,23 @@ public partial struct GridManager
         return false;
     }
 
-    public bool TryGetNearbyWalkableCellSemiRandom(int2 center, out int2 nearbyCell)
+    public bool TryGetClosestWalkableCell(int2 center, out int2 nearbyCell, bool includeSelf = true)
     {
+        if (includeSelf && IsPositionInsideGrid(center) && IsWalkable(center))
+        {
+            nearbyCell = center;
+            return true;
+        }
+
+        // TODO: De-prioritize corners, since they have a higher travel-cost
         for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
         {
             var ringStart = RelativePositionRingInfoList[ring].x;
             var ringEnd = RelativePositionRingInfoList[ring].y;
-            var randomStartIndex = GetSemiRandomIndex(ringStart, ringEnd);
-            var currentIndex = randomStartIndex + 1;
 
-            while (currentIndex != randomStartIndex)
+            for (var i = ringStart; i < ringEnd; i++)
             {
-                currentIndex++;
-                if (currentIndex >= ringEnd)
-                {
-                    currentIndex = ringStart;
-                }
-
-                var relativePosition = center + RelativePositionList[currentIndex];
+                var relativePosition = center + RelativePositionList[i];
                 if (IsPositionInsideGrid(relativePosition) && IsWalkable(relativePosition))
                 {
                     nearbyCell = relativePosition;
@@ -251,7 +250,7 @@ public partial struct GridManager
             }
         }
 
-        DebugHelper.LogError("No nearby empty cell was found");
+        DebugHelper.LogError("No nearby walkable cell was found");
 
         nearbyCell = new int2(-1, -1);
         return false;

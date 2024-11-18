@@ -18,6 +18,9 @@ namespace Debugging
             debugToggleManager.ValueRW.DebugSectionSorting =
                 debugToggleManagerInterface.DebugSectionSorting;
 
+            debugToggleManager.ValueRW.DebugPathInvalidation =
+                debugToggleManagerInterface.DebugPathInvalidation;
+
             debugToggleManager.ValueRW.DebugPathfinding =
                 debugToggleManagerInterface.DebugPathfinding;
 
@@ -35,6 +38,7 @@ namespace Debugging
     public struct DebugToggleManager : IComponentData
     {
         public bool DebugSectionSorting;
+        public bool DebugPathInvalidation;
         public bool DebugPathfinding;
         public bool DebugPathSearchEmptyCells;
         public bool DebugBedSeeking;
