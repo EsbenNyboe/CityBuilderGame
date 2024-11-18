@@ -1,3 +1,4 @@
+using Debugging;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -16,6 +17,7 @@ public partial struct PathfindingSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<DebugToggleManager>();
         state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
@@ -23,6 +25,7 @@ public partial struct PathfindingSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
         var walkableGrid = gridManager.WalkableGrid;
         var gridWidth = gridManager.Width;
@@ -57,7 +60,8 @@ public partial struct PathfindingSystem : ISystem
                 EndPosition = endPosition,
                 Entity = entity,
                 PathFollowLookup = SystemAPI.GetComponentLookup<PathFollow>(),
-                PathPositionLookup = SystemAPI.GetBufferLookup<PathPosition>()
+                PathPositionLookup = SystemAPI.GetBufferLookup<PathPosition>(),
+                IsDebugging = isDebugging
             };
             findPathJobList.Add(findPathJob);
             jobHandleList.Add(findPathJob.Schedule());
@@ -177,6 +181,8 @@ public partial struct PathfindingSystem : ISystem
         [NativeDisableContainerSafetyRestriction]
         public BufferLookup<PathPosition> PathPositionLookup;
 
+        [ReadOnly] public bool IsDebugging;
+
         public void Execute()
         {
             var pathNodeArray = GetPathNodeArray(GridSize, WalkableGrid);
@@ -192,7 +198,11 @@ public partial struct PathfindingSystem : ISystem
             if (endNode.cameFromNodeIndex == -1)
             {
                 // Didn't find a path!
-                DebugHelper.LogWarning("Didn't find a path!");
+                if (IsDebugging)
+                {
+                    DebugHelper.LogError("Didn't find a path!");
+                }
+
                 PathFollowLookup[Entity] = new PathFollow
                 {
                     PathIndex = -1

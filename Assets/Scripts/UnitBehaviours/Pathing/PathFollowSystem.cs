@@ -1,3 +1,4 @@
+using Debugging;
 using UnitState;
 using Unity.Burst;
 using Unity.Entities;
@@ -11,12 +12,12 @@ using ISystem = Unity.Entities.ISystem;
 public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
-    private const bool ShowDebug = true;
     private const float AnnoyanceFromBedOccupant = 0.5f;
     private const float MoveSpeed = 5f;
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<DebugToggleManager>();
         state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
@@ -24,6 +25,7 @@ public partial struct PathFollowSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
 
@@ -70,7 +72,7 @@ public partial struct PathFollowSystem : ISystem
                     // I have reached my destination.
                     moveAmount = 0;
                     distanceToTarget = 0;
-                    EndPathFollowing(ref state, ecb, entity, socialRelationships, targetPosition);
+                    EndPathFollowing(ref state, ecb, entity, socialRelationships, targetPosition, isDebugging);
                 }
                 else
                 {
@@ -97,7 +99,7 @@ public partial struct PathFollowSystem : ISystem
                 spriteTransform.ValueRW.Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
             }
 
-            if (ShowDebug)
+            if (isDebugging)
             {
                 var pathEndPosition = pathPositionBuffer[0].Position;
                 Debug.DrawLine(currentPosition, new Vector3(pathEndPosition.x, pathEndPosition.y),
@@ -107,7 +109,7 @@ public partial struct PathFollowSystem : ISystem
     }
 
     private void EndPathFollowing(ref SystemState state, EntityCommandBuffer ecb, Entity entity,
-        RefRW<SocialRelationships> socialRelationships, float3 targetPosition)
+        RefRW<SocialRelationships> socialRelationships, float3 targetPosition, bool isDebugging)
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
@@ -132,7 +134,10 @@ public partial struct PathFollowSystem : ISystem
             }
             else
             {
-                DebugHelper.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
+                if (isDebugging)
+                {
+                    DebugHelper.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
+                }
             }
         }
     }
