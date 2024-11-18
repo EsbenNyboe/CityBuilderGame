@@ -50,6 +50,7 @@ public partial struct PathFollowSystem : ISystem
                 if (distanceFromCurrentToNextTarget < distanceToTarget + distanceFromTargetToNextTarget)
                 {
                     targetPosition = nextTargetPosition;
+                    distanceToTarget = math.distance(currentPosition, targetPosition);
                     pathIndex--;
                     pathFollow.ValueRW.PathIndex = pathIndex;
                 }
@@ -57,35 +58,37 @@ public partial struct PathFollowSystem : ISystem
 
             var moveAmount = MoveSpeed * SystemAPI.Time.DeltaTime;
 
-            var pathFollowEnded = false;
             while (distanceToTarget - moveAmount < 0)
             {
-                // Unit will overshoot its target. Therefore, we increment its path, before moving.
-                moveAmount -= math.distance(currentPosition, targetPosition);
+                // I have overshot my target. Therefore, I'll increment my path-index.
                 pathIndex--;
                 pathFollow.ValueRW.PathIndex = pathIndex;
+                currentPosition = targetPosition;
+
                 if (pathIndex < 0)
                 {
-                    pathFollowEnded = true;
-                    EndPathFollowing(ref state, ecb, entity, localTransform, socialRelationships, targetPosition);
+                    // I have reached my destination.
+                    moveAmount = 0;
+                    distanceToTarget = 0;
+                    EndPathFollowing(ref state, ecb, entity, socialRelationships, targetPosition);
                 }
                 else
                 {
-                    // We select a new startPosition, which dissociates it from the actual LocalTransform-position
+                    // I have not reached my destination.
+                    // So I'll start targeting the next path-position in my buffer.
+                    moveAmount -= distanceToTarget;
                     currentPosition = targetPosition;
                     targetPosition = GridHelpers.GetWorldPosition(pathPositionBuffer[pathIndex].Position);
+                    distanceToTarget = math.distance(currentPosition, targetPosition);
                 }
-
-                distanceToTarget = math.distance(currentPosition, targetPosition);
             }
 
             var moveDirection = math.normalizesafe(targetPosition - currentPosition);
 
-            if (!pathFollowEnded)
-            {
-                currentPosition += moveDirection * moveAmount;
-                localTransform.ValueRW.Position = currentPosition;
-            }
+            // currentPosition is either my actual current position,
+            // or the position of the last path-position, I traversed this frame.
+            currentPosition += moveDirection * moveAmount;
+            localTransform.ValueRW.Position = currentPosition;
 
             if (moveDirection.x != 0)
             {
@@ -104,11 +107,8 @@ public partial struct PathFollowSystem : ISystem
     }
 
     private void EndPathFollowing(ref SystemState state, EntityCommandBuffer ecb, Entity entity,
-        RefRW<LocalTransform> localTransform,
         RefRW<SocialRelationships> socialRelationships, float3 targetPosition)
     {
-        localTransform.ValueRW.Position = targetPosition;
-
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
         // TODO: If we implement path-invalidation, there's no need to check if the tile is walkable or not
