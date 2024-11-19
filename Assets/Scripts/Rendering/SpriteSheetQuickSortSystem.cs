@@ -1,4 +1,4 @@
-using System;
+using Rendering;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -22,6 +22,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<CameraInformation>();
         var singletonEntity = state.EntityManager.CreateSingleton<SpriteSheetSortingManager>();
         SystemAPI.SetComponent(singletonEntity, new SpriteSheetSortingManager
         {
@@ -35,22 +36,20 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         state.RequireForUpdate<SpriteSheetSortingManager>();
     }
 
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         state.Dependency.Complete();
 
-        var camera = Camera.main;
-        if (camera == null)
-        {
-            Debug.LogError("Camera is null");
-            throw new Exception();
-        }
+        var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
+
+        var cameraPosition = cameraInformation.CameraPosition;
+        var screenRatio = cameraInformation.ScreenRatio;
+        var orthographicSize = cameraInformation.OrthographicSize;
 
         var cullBuffer = 1f; // We add some buffer, so culling is not noticable
-        float3 cameraPosition = camera.transform.position;
-        var screenRatio = Screen.width / (float)Screen.height;
-        var cameraSizeX = camera.orthographicSize * screenRatio + cullBuffer;
-        var cameraSizeY = camera.orthographicSize + cullBuffer;
+        var cameraSizeX = orthographicSize * screenRatio + cullBuffer;
+        var cameraSizeY = orthographicSize + cullBuffer;
 
         var xLeft = cameraPosition.x - cameraSizeX;
         var xRight = cameraPosition.x + cameraSizeX;
