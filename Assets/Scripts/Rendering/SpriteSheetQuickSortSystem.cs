@@ -108,6 +108,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         var outQueues = new NativeArray<NativeQueue<RenderData>>(1 + quickPivots.Length * 2, Allocator.Temp);
         outQueues[0] = spriteSheetsToSort;
 
+        var jobList = new NativeList<JobHandle>(Allocator.Temp);
         var jobIndex = 0;
         for (var i = 0; i < jobBatches.Length; i++)
         {
@@ -115,33 +116,31 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             for (var j = 0; j < batchSize; j++)
             {
                 var pivot = quickPivots[jobIndex];
+                var outQueueIndex1 = jobIndex + batchSize + j;
+                var outQueueIndex2 = outQueueIndex1 + 1;
                 var quickSortJob = new QuickSortJob
                 {
                     Pivot = pivot,
                     InQueue = outQueues[jobIndex],
-                    OutQueue1 = outQueues[jobIndex + batchSize + j] =
+                    OutQueue1 = outQueues[outQueueIndex1] =
                         new NativeQueue<RenderData>(Allocator.TempJob),
-                    OutQueue2 = outQueues[jobIndex + batchSize + j + 1] =
+                    OutQueue2 = outQueues[outQueueIndex2] =
                         new NativeQueue<RenderData>(Allocator.TempJob)
                 };
-                var dependency = i > 0 ? JobHandle.CombineDependencies(jobBatches[i - 1]) : default;
-                var jobBatch = jobBatches[i];
-                jobBatch[j] = quickSortJob.Schedule(dependency);
-                jobBatches[i] = jobBatch;
+                jobList.Add(quickSortJob.Schedule());
                 jobIndex++;
             }
+
+            JobHandle.CompleteAll(jobList.AsArray());
+            jobList.Clear();
         }
 
-        var queueJobs = new NativeArray<JobHandle>(jobBatches.Length, Allocator.TempJob);
         for (var i = 0; i < jobBatches.Length; i++)
         {
-            queueJobs[i] = JobHandle.CombineDependencies(jobBatches[i]);
             jobBatches[i].Dispose();
         }
 
         jobBatches.Dispose();
-        JobHandle.CompleteAll(queueJobs);
-        queueJobs.Dispose();
 
         var outQueuesLength = outQueues.Length;
         var jobs = new NativeArray<JobHandle>(outQueuesLength, Allocator.Temp);
