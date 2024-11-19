@@ -77,8 +77,7 @@ public partial struct IsSleepingSystem : ISystem
             ecb.AddComponent(ecb.CreateEntity(), new DebugPopupEvent
             {
                 Type = DebugPopupEventType.SleepOccupancyIssue,
-                Cell = currentCell,
-                TimeWhenCreated = SystemAPI.Time.DeltaTime
+                Cell = currentCell
             });
             Debug.Log("Seems like someone else was spooning me, while I slept... Why does this happen?");
             // HACK:

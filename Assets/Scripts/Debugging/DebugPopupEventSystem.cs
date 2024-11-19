@@ -8,6 +8,8 @@ namespace Debugging
     {
         public DebugPopupEventType Type;
         public int2 Cell;
+
+        public bool IsInitialized;
         public float TimeWhenCreated;
     }
 
@@ -27,8 +29,17 @@ namespace Debugging
             var ecb = SystemAPI.GetSingleton<BeginPresentationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(World.Unmanaged);
             var currentTime = SystemAPI.Time.ElapsedTime;
-            foreach (var (debugPopupEvent, entity) in SystemAPI.Query<RefRO<DebugPopupEvent>>().WithEntityAccess())
+            foreach (var (debugPopupEvent, entity) in SystemAPI.Query<RefRW<DebugPopupEvent>>().WithEntityAccess())
             {
+                if (!debugPopupEvent.ValueRO.IsInitialized)
+                {
+                    debugPopupEvent.ValueRW.IsInitialized = true;
+                    debugPopupEvent.ValueRW.TimeWhenCreated = (float)currentTime;
+                    DebugPopupEventManager.Instance.ShowPopup(
+                        GridHelpers.GetWorldPosition(debugPopupEvent.ValueRO.Cell), PopupLifetime,
+                        debugPopupEvent.ValueRO.Type);
+                }
+
                 DebugDrawCell(debugPopupEvent.ValueRO.Cell, Color.red);
                 if (currentTime > debugPopupEvent.ValueRO.TimeWhenCreated + PopupLifetime)
                 {
