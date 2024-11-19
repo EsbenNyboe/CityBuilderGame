@@ -78,7 +78,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             {
                 normalizedPivot *= 0.5f;
                 normalizedPivotInterval *= 0.5f;
-                normalizedPivotSum = normalizedPivot;
+                normalizedPivotSum = 1 - normalizedPivot;
             }
         }
 
