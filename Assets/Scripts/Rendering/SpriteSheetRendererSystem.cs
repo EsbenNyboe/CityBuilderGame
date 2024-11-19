@@ -20,7 +20,6 @@ namespace Rendering
 
         protected override void OnUpdate()
         {
-            // World.Unmanaged.GetExistingSystemState<SpriteSheetSortingSystem>().CompleteDependency();
             World.Unmanaged.GetExistingSystemState<SpriteSheetQuickSortSystem>().CompleteDependency();
 
             var spriteSheetSortingManager = SystemAPI.GetSingleton<SpriteSheetSortingManager>();
