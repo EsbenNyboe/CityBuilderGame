@@ -7,6 +7,11 @@ using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 using SystemState = Unity.Entities.SystemState;
 
+public struct IsSleeping : IComponentData
+{
+    public bool IsInitialized;
+}
+
 [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
 public partial struct IsSleepingSystem : ISystem
 {
@@ -45,6 +50,14 @@ public partial struct IsSleepingSystem : ISystem
             }
 
             var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+
+            if (!gridManager.EntityIsOccupant(currentCell, entity))
+            {
+                if (isDebuggingOccupation)
+                {
+                    Debug.LogError("I'm not the occupant! I shouldn't be sleeping here!");
+                }
+            }
 
             if (!isSleeping.ValueRO.IsInitialized)
             {
