@@ -307,7 +307,8 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         }
     }
 
-    public struct SortByPositionParallelJob : IJob
+    [BurstCompile]
+    private struct SortByPositionParallelJob : IJob
     {
         [NativeDisableContainerSafetyRestriction]
         public NativeArray<RenderData> SharedNativeArray;
@@ -333,28 +334,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         }
     }
 
-    [BurstCompile]
-    private struct FillArraysParallelJob : IJobParallelFor
-    {
-        [ReadOnly] public NativeArray<RenderData> NativeArray;
-
-        [NativeDisableContainerSafetyRestriction]
-        public NativeArray<Matrix4x4> MatrixArray;
-
-        [NativeDisableContainerSafetyRestriction]
-        public NativeArray<Vector4> UvArray;
-
-        [ReadOnly] public int StartIndex;
-
-        public void Execute(int index)
-        {
-            var renderData = NativeArray[index];
-            MatrixArray[StartIndex + index] = renderData.Matrix;
-            UvArray[StartIndex + index] = renderData.Uv;
-        }
-    }
-
-    public struct RenderData
+    private struct RenderData
     {
         public float3 Position;
         public Matrix4x4 Matrix;
