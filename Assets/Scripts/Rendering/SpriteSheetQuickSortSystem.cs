@@ -158,6 +158,16 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             visibleEntityTotal += outArrays[index].Length;
         }
 
+        // Clear data
+        var singleton = SystemAPI.GetSingletonRW<SpriteSheetSortingManager>();
+        singleton.ValueRW.SpriteMatrixArray.Dispose();
+        singleton.ValueRW.SpriteUvArray.Dispose();
+        singleton.ValueRW.SpriteMatrixArray = new NativeArray<Matrix4x4>(visibleEntityTotal, Allocator.TempJob);
+        singleton.ValueRW.SpriteUvArray = new NativeArray<Vector4>(visibleEntityTotal, Allocator.TempJob);
+        var spriteMatrixArray = singleton.ValueRO.SpriteMatrixArray;
+        var spriteUvArray = singleton.ValueRO.SpriteUvArray;
+
+
         var sharedNativeArray = new NativeArray<RenderData>(visibleEntityTotal, Allocator.TempJob);
         var startIndexes = new NativeArray<int>(outArrays.Length, Allocator.Temp);
         var endIndexes = new NativeArray<int>(outArrays.Length, Allocator.Temp);
@@ -187,23 +197,16 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
 
         JobHandle.CompleteAll(jobs);
 
-        var singleton = SystemAPI.GetSingletonRW<SpriteSheetSortingManager>();
-        singleton.ValueRW.SpriteMatrixArray.Dispose();
-        singleton.ValueRW.SpriteUvArray.Dispose();
-        singleton.ValueRW.SpriteMatrixArray = new NativeArray<Matrix4x4>(visibleEntityTotal, Allocator.TempJob);
-        singleton.ValueRW.SpriteUvArray = new NativeArray<Vector4>(visibleEntityTotal, Allocator.TempJob);
-
         jobBatches.Dispose();
 
-        var spriteMatrixArray = singleton.ValueRO.SpriteMatrixArray;
-        var spriteUvArray = singleton.ValueRO.SpriteUvArray;
-
-        for (var i = 0; i < sharedNativeArray.Length; i++)
+        var fillArraysJob = new FillArraysJob
         {
-            var renderData = sharedNativeArray[i];
-            spriteMatrixArray[i] = renderData.Matrix;
-            spriteUvArray[i] = renderData.Uv;
-        }
+            SortedArray = sharedNativeArray,
+            MatrixArray = spriteMatrixArray,
+            UvArray = spriteUvArray
+        };
+        var jobHandle = fillArraysJob.Schedule(visibleEntityTotal, 10);
+        jobHandle.Complete();
 
         jobs.Dispose();
         sharedNativeArray.Dispose();
@@ -330,6 +333,21 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
                     }
                 }
             }
+        }
+    }
+
+    [BurstCompile]
+    private struct FillArraysJob : IJobParallelFor
+    {
+        public NativeArray<RenderData> SortedArray;
+        public NativeArray<Matrix4x4> MatrixArray;
+        public NativeArray<Vector4> UvArray;
+
+        public void Execute(int index)
+        {
+            var renderData = SortedArray[index];
+            MatrixArray[index] = renderData.Matrix;
+            UvArray[index] = renderData.Uv;
         }
     }
 
