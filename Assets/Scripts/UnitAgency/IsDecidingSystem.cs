@@ -29,50 +29,56 @@ namespace UnitAgency
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            foreach (var (_, inventory, moodSleepiness, entity)
-                     in SystemAPI.Query<RefRO<IsDeciding>, RefRO<Inventory>, RefRO<MoodSleepiness>>()
-                         .WithEntityAccess())
+            foreach (var (_, pathFollow, inventory, moodSleepiness, entity)
+                     in SystemAPI.Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<MoodSleepiness>>()
+                         .WithEntityAccess().WithNone<PathfindingParams>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
-                DecideNextBehaviour(ref state, gridManager, ecb, inventory, moodSleepiness, entity);
+                DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, moodSleepiness, entity);
             }
         }
 
         private void DecideNextBehaviour(ref SystemState state,
             GridManager gridManager,
-            EntityCommandBuffer commands,
+            EntityCommandBuffer ecb,
+            RefRO<PathFollow> pathFollow,
             RefRO<Inventory> inventory,
             RefRO<MoodSleepiness> moodSleepiness,
-            Entity entity
-        )
+            Entity entity)
         {
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
+            var cell = GridHelpers.GetXY(unitPosition);
 
             var isSleepy = moodSleepiness.ValueRO.Sleepiness > 0.2f;
+            var isMoving = pathFollow.ValueRO.IsMoving();
 
             if (HasLogOfWood(inventory.ValueRO))
             {
-                commands.AddComponent(entity, new IsSeekingDropPoint());
+                ecb.AddComponent(entity, new IsSeekingDropPoint());
+            }
+            else if (isMoving)
+            {
+                ecb.AddComponent(entity, new IsIdle());
             }
             else if (isSleepy)
             {
                 if (gridManager.IsBedAvailableToUnit(unitPosition, entity))
                 {
-                    commands.AddComponent(entity, new IsSleeping());
+                    ecb.AddComponent(entity, new IsSleeping());
                 }
                 else
                 {
-                    commands.AddComponent(entity, new IsSeekingBed());
+                    ecb.AddComponent(entity, new IsSeekingBed());
                 }
             }
-            else if (IsAdjacentToTree(ref state, gridManager, unitPosition, out var tree))
+            else if (IsAdjacentToTree(ref state, gridManager, cell, out var tree))
             {
-                commands.AddComponent(entity, new IsHarvesting(tree));
-                commands.AddComponent<ChopAnimationTag>(entity);
+                ecb.AddComponent(entity, new IsHarvesting(tree));
+                ecb.AddComponent<ChopAnimationTag>(entity);
             }
             else
             {
-                commands.AddComponent(entity, new IsSeekingTree());
+                ecb.AddComponent(entity, new IsSeekingTree());
             }
         }
 
@@ -81,10 +87,8 @@ namespace UnitAgency
             return inventory.CurrentItem == InventoryItem.LogOfWood;
         }
 
-        private bool IsAdjacentToTree(ref SystemState state, GridManager gridManager, float3 unitPosition,
-            out int2 tree)
+        private bool IsAdjacentToTree(ref SystemState state, GridManager gridManager, int2 cell, out int2 tree)
         {
-            var cell = GridHelpers.GetXY(unitPosition);
             var foundTree = gridManager.TryGetNeighbouringTreeCell(cell, out tree);
             return foundTree;
         }

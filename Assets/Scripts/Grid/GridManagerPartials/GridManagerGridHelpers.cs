@@ -66,7 +66,7 @@ public partial struct GridManager
 
     public bool IsBedAvailableToUnit(int2 cell, Entity unit)
     {
-        return IsPositionInsideGrid(cell) && IsBed(cell) && !IsOccupied(cell, unit) && IsWalkable(cell);
+        return IsPositionInsideGrid(cell) && IsBed(cell) && EntityIsOccupant(cell, unit) && IsWalkable(cell);
     }
 
     private bool TryClearBed(int i)
