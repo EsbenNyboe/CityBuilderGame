@@ -144,6 +144,8 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             jobBatches[i].Dispose();
         }
 
+        jobBatches.Dispose();
+
         var outQueuesLength = outQueues.Length;
         var jobs = new NativeArray<JobHandle>(outQueuesLength, Allocator.TempJob);
         var outArrays = new NativeArray<NativeArray<RenderData>>(outQueuesLength, Allocator.TempJob);
@@ -174,7 +176,6 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         var spriteMatrixArray = singleton.ValueRO.SpriteMatrixArray;
         var spriteUvArray = singleton.ValueRO.SpriteUvArray;
 
-
         var sharedNativeArray = new NativeArray<RenderData>(visibleEntityTotal, Allocator.TempJob);
         var startIndexes = new NativeArray<int>(outArrays.Length, Allocator.TempJob);
         var endIndexes = new NativeArray<int>(outArrays.Length, Allocator.TempJob);
@@ -202,9 +203,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             jobs[i] = sortByPositionParallelJob.Schedule();
         }
 
-        JobHandle.CompleteAll(jobs);
-
-        jobBatches.Dispose();
+        var dependency = JobHandle.CombineDependencies(jobs);
 
         var fillArraysJob = new FillArraysJob
         {
@@ -212,7 +211,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             MatrixArray = spriteMatrixArray,
             UvArray = spriteUvArray
         };
-        var dependency = fillArraysJob.Schedule(visibleEntityTotal, 10);
+        dependency = fillArraysJob.Schedule(visibleEntityTotal, 10, dependency);
 
         jobs.Dispose(dependency);
         sharedNativeArray.Dispose(dependency);
