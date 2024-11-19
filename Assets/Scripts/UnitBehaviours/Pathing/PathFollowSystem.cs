@@ -46,7 +46,7 @@ public partial struct PathFollowSystem : ISystem
             var currentPosition = localTransform.ValueRO.Position;
             var targetPosition = GridHelpers.GetWorldPosition(pathPositionBuffer[pathIndex].Position);
             var distanceToTarget = math.distance(currentPosition, targetPosition);
-            if (pathIndex > 1)
+            if (pathIndex == pathPositionBuffer.Length - 1)
             {
                 // TODO: Move this logic to PathfindingSystem for better performance
                 var nextTargetPosition = GridHelpers.GetWorldPosition(pathPositionBuffer[pathIndex - 1].Position);
