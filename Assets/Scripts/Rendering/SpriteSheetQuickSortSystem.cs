@@ -65,7 +65,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
 
         var splitTimes = 4;
         var jobCount = (int)math.pow(2, splitTimes) - 1;
-        var quickPivots = new NativeArray<float>(jobCount, Allocator.TempJob);
+        var quickPivots = new NativeArray<float>(jobCount, Allocator.Temp);
 
         var normalizedPivotInterval = 1f;
         var normalizedPivot = 0.5f;
@@ -82,17 +82,18 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             }
         }
 
-        var jobBatches = new NativeArray<NativeArray<JobHandle>>(splitTimes, Allocator.TempJob);
+        var jobBatches = new NativeArray<NativeArray<JobHandle>>(splitTimes, Allocator.Temp);
 
         var finishedJobBatches = 0;
         var jobBatchSize = 1;
         var jobBatchIndex = 0;
+
         for (var i = 0; i < quickPivots.Length; i++)
         {
             if (i == finishedJobBatches + jobBatchSize - 1)
             {
                 // jobBatches follow the pattern of 1, 2, 4, 8, etc...
-                jobBatches[jobBatchIndex] = new NativeArray<JobHandle>(jobBatchSize, Allocator.TempJob);
+                jobBatches[jobBatchIndex] = new NativeArray<JobHandle>(jobBatchSize, Allocator.Temp);
                 finishedJobBatches += jobBatchSize;
                 jobBatchSize *= 2;
                 jobBatchIndex++;
@@ -110,10 +111,10 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             NativeQueue = spriteSheetsToSort
         }.Run(_entityQuery);
 
-        var outQueues = new NativeArray<NativeQueue<RenderData>>(1 + quickPivots.Length * 2, Allocator.TempJob);
+        var outQueues = new NativeArray<NativeQueue<RenderData>>(1 + quickPivots.Length * 2, Allocator.Temp);
         outQueues[0] = spriteSheetsToSort;
 
-        var jobList = new NativeList<JobHandle>(Allocator.TempJob);
+        var jobList = new NativeList<JobHandle>(Allocator.Temp);
         var jobIndex = 0;
         var jobBatchesLength = jobBatches.Length;
         for (var i = 0; i < jobBatchesLength; i++)
@@ -139,6 +140,8 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             jobList.Clear();
         }
 
+        jobList.Dispose();
+
         for (var i = 0; i < jobBatches.Length; i++)
         {
             jobBatches[i].Dispose();
@@ -147,8 +150,8 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         jobBatches.Dispose();
 
         var outQueuesLength = outQueues.Length;
-        var jobs = new NativeArray<JobHandle>(outQueuesLength, Allocator.TempJob);
-        var outArrays = new NativeArray<NativeArray<RenderData>>(outQueuesLength, Allocator.TempJob);
+        var jobs = new NativeArray<JobHandle>(outQueuesLength, Allocator.Temp);
+        var outArrays = new NativeArray<NativeArray<RenderData>>(outQueuesLength, Allocator.Temp);
         for (var i = 0; i < outQueuesLength; i++)
         {
             var nativeQueueToArrayJob = new NativeQueueToArrayJob
@@ -213,11 +216,14 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         };
         dependency = fillArraysJob.Schedule(visibleEntityTotal, 10, dependency);
 
-        jobs.Dispose(dependency);
         sharedNativeArray.Dispose(dependency);
-        quickPivots.Dispose(dependency);
         startIndexes.Dispose(dependency);
         endIndexes.Dispose(dependency);
+
+        state.Dependency = dependency;
+
+        jobs.Dispose();
+        quickPivots.Dispose();
 
         for (var i = 0; i < outQueuesLength; i++)
         {
