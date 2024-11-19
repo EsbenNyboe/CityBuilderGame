@@ -61,6 +61,11 @@ public partial struct GridManager
     public bool IsBedAvailableToUnit(float3 unitPosition, Entity unit)
     {
         var cell = GridHelpers.GetXY(unitPosition);
+        return IsBedAvailableToUnit(cell, unit);
+    }
+
+    public bool IsBedAvailableToUnit(int2 cell, Entity unit)
+    {
         return IsPositionInsideGrid(cell) && IsBed(cell) && !IsOccupied(cell, unit) && IsWalkable(cell);
     }
 

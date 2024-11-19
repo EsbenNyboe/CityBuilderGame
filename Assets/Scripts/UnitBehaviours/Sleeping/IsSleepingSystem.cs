@@ -24,6 +24,7 @@ public partial struct IsSleepingSystem : ISystem
         state.CompleteDependency();
 
         var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
+        var isDebuggingOccupation = debugToggleManager.DebugBedOccupation;
         var isDebuggingPath = debugToggleManager.DebugPathfinding;
         var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
 
@@ -57,7 +58,8 @@ public partial struct IsSleepingSystem : ISystem
             }
             else
             {
-                GoAwayFromBed(ref state, ecb, ref gridManager, entity, currentCell, isDebuggingSearch, isDebuggingPath);
+                GoAwayFromBed(ref state, ecb, ref gridManager, entity, currentCell, isDebuggingOccupation,
+                    isDebuggingSearch, isDebuggingPath);
             }
         }
 
@@ -65,7 +67,7 @@ public partial struct IsSleepingSystem : ISystem
     }
 
     private void GoAwayFromBed(ref SystemState state, EntityCommandBuffer ecb, ref GridManager gridManager,
-        Entity entity, int2 currentCell, bool isDebuggingSearch, bool isDebuggingPath)
+        Entity entity, int2 currentCell, bool isDebuggingOccupation, bool isDebuggingSearch, bool isDebuggingPath)
     {
         // I should leave the bed-area, so others can use the bed...
         if (gridManager.EntityIsOccupant(currentCell, entity))
@@ -74,14 +76,15 @@ public partial struct IsSleepingSystem : ISystem
         }
         else
         {
-            ecb.AddComponent(ecb.CreateEntity(), new DebugPopupEvent
+            if (isDebuggingOccupation)
             {
-                Type = DebugPopupEventType.SleepOccupancyIssue,
-                Cell = currentCell
-            });
-            Debug.Log("Seems like someone else was spooning me, while I slept... Why does this happen?");
-            // HACK:
-            gridManager.SetIsWalkable(currentCell, true);
+                ecb.AddComponent(ecb.CreateEntity(), new DebugPopupEvent
+                {
+                    Type = DebugPopupEventType.SleepOccupancyIssue,
+                    Cell = currentCell
+                });
+                Debug.Log("Seems like someone else was spooning me, while I slept... Why does this happen?");
+            }
         }
 
         if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out var nearbyCell, isDebuggingSearch))

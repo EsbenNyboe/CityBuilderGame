@@ -55,7 +55,7 @@ namespace UnitBehaviours.Sleeping
                 var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
 
                 // Am I on a bed?
-                if (gridManager.IsBed(currentCell) && !gridManager.IsOccupied(currentCell, entity))
+                if (gridManager.IsBedAvailableToUnit(currentCell, entity))
                 {
                     // Ahhhh, I found my bed!
                     var ecb = GetEntityCommandBuffer(ref state);
