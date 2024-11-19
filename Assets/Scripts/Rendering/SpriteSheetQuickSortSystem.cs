@@ -278,7 +278,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             while (InQueue.Count > 0)
             {
                 var renderData = InQueue.Dequeue();
-                if (renderData.Position.y < Pivot)
+                if (renderData.Position.y > Pivot)
                 {
                     OutQueue1.Enqueue(renderData);
                 }
