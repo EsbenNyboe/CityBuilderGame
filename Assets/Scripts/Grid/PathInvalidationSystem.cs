@@ -139,7 +139,10 @@ namespace Grid
                     // I should do a new search ASAP.
                     moodInitiative.ValueRW.Initiative += 1f;
                 }
-                else if (!currentCellIsWalkable && gridManager.TryGetClosestWalkableCell(currentCell, out targetCell))
+                else if (!currentCellIsWalkable &&
+                         (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out targetCell, isDebuggingSearch, true,
+                              10) ||
+                          gridManager.TryGetClosestWalkableCell(currentCell, out targetCell)))
                 {
                     if (isDebuggingPathInvalidation)
                     {

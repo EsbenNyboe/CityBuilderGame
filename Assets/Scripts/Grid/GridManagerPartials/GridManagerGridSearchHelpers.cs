@@ -1,7 +1,7 @@
-using Unity.Assertions;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine.Assertions;
 
 public partial struct GridManager
 {
@@ -190,9 +190,19 @@ public partial struct GridManager
         return false;
     }
 
-    public bool TryGetNearbyEmptyCellSemiRandom(int2 center, out int2 nearbyCell, bool isDebugging = false)
+    public bool TryGetNearbyEmptyCellSemiRandom(int2 center,
+        out int2 nearbyCell,
+        bool isDebugging = false,
+        bool ignoreSection = false,
+        int radius = -1)
     {
-        for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
+        Assert.IsTrue(radius < RelativePositionRingInfoList.Length);
+        if (radius < 1)
+        {
+            radius = RelativePositionRingInfoList.Length;
+        }
+
+        for (var ring = 1; ring < radius; ring++)
         {
             var ringStart = RelativePositionRingInfoList[ring].x;
             var ringEnd = RelativePositionRingInfoList[ring].y;
@@ -208,7 +218,7 @@ public partial struct GridManager
                 }
 
                 var relativePosition = center + RelativePositionList[currentIndex];
-                if (IsEmptyCell(relativePosition) && IsMatchingSection(center, relativePosition))
+                if (IsEmptyCell(relativePosition) && (ignoreSection || IsMatchingSection(center, relativePosition)))
                 {
                     nearbyCell = relativePosition;
                     return true;
@@ -326,7 +336,7 @@ public partial struct GridManager
 
     public void GetNeighbourCell(int index, int x, int y, out int neighbourX, out int neighbourY)
     {
-        Assert.IsTrue(index >= 0 && index < 8,
+        Unity.Assertions.Assert.IsTrue(index >= 0 && index < 8,
             "Index must be min 0 and max 8, because a cell can only have 8 neighbours!");
 
         neighbourX = x + NeighbourDeltas[index].x;

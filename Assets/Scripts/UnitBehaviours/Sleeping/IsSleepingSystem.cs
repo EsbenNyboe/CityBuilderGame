@@ -1,5 +1,6 @@
 using Debugging;
 using UnitAgency;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -24,6 +25,7 @@ public partial struct IsSleepingSystem : ISystem
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
 
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         state.CompleteDependency();
