@@ -64,7 +64,7 @@ public partial struct IsSleepingSystem : ISystem
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
     }
 
-    private void GoAwayFromBed(ref SystemState state, EntityCommandBuffer commands, ref GridManager gridManager,
+    private void GoAwayFromBed(ref SystemState state, EntityCommandBuffer ecb, ref GridManager gridManager,
         Entity entity, int2 currentCell, bool isDebuggingSearch, bool isDebuggingPath)
     {
         // I should leave the bed-area, so others can use the bed...
@@ -74,6 +74,12 @@ public partial struct IsSleepingSystem : ISystem
         }
         else
         {
+            ecb.AddComponent(ecb.CreateEntity(), new DebugPopupEvent
+            {
+                Type = DebugPopupEventType.SleepOccupancyIssue,
+                Cell = currentCell,
+                TimeWhenCreated = SystemAPI.Time.DeltaTime
+            });
             Debug.Log("Seems like someone else was spooning me, while I slept... Why does this happen?");
             // HACK:
             gridManager.SetIsWalkable(currentCell, true);
@@ -81,7 +87,7 @@ public partial struct IsSleepingSystem : ISystem
 
         if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out var nearbyCell, isDebuggingSearch))
         {
-            PathHelpers.TrySetPath(commands, entity, currentCell, nearbyCell, isDebuggingPath);
+            PathHelpers.TrySetPath(ecb, entity, currentCell, nearbyCell, isDebuggingPath);
         }
     }
 }
