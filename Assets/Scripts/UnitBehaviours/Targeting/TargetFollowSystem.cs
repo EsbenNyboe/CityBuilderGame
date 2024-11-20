@@ -1,3 +1,4 @@
+using Debugging;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -23,10 +24,10 @@ namespace UnitBehaviours.Pathing
     public partial struct TargetFollowSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
-        private const bool IsDebugging = true;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
         }
@@ -38,6 +39,7 @@ namespace UnitBehaviours.Pathing
                 .CreateCommandBuffer(state.WorldUnmanaged);
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
+            var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugTargetFollow;
 
             foreach (var (targetFollow, localTransform, pathFollow, entity) in
                      SystemAPI.Query<RefRW<TargetFollow>, RefRO<LocalTransform>, RefRO<PathFollow>>()
@@ -56,7 +58,7 @@ namespace UnitBehaviours.Pathing
 
                 var targetPosition = transformLookup[target].Position;
                 var currentPosition = localTransform.ValueRO.Position;
-                if (IsDebugging)
+                if (isDebugging)
                 {
                     Debug.DrawLine(currentPosition, targetPosition, Color.red);
                 }
@@ -79,18 +81,18 @@ namespace UnitBehaviours.Pathing
                             out var neighbourCell))
                     {
                         // I'll go stand next to my target. 
-                        PathHelpers.TrySetPath(ecb, entity, currentCell, neighbourCell, IsDebugging);
+                        PathHelpers.TrySetPath(ecb, entity, currentCell, neighbourCell, isDebugging);
                     }
                     else if (gridManager.TryGetNearbyEmptyCellSemiRandom(targetCell, out var nearbyCell) &&
                              math.distance(currentCell, targetCell) > math.distance(nearbyCell, targetCell))
                     {
                         // I'll move a bit closer to my target.
-                        PathHelpers.TrySetPath(ecb, entity, currentCell, nearbyCell, IsDebugging);
+                        PathHelpers.TrySetPath(ecb, entity, currentCell, nearbyCell, isDebugging);
                     }
                     else
                     {
                         // I can't move any closer to my target!
-                        if (IsDebugging)
+                        if (isDebugging)
                         {
                             Debug.LogError("I can't move any closer to my target!");
                         }
