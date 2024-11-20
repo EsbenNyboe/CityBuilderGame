@@ -62,8 +62,8 @@ namespace UnitBehaviours.AutonomousHarvesting
                     {
                         Perpetrator = entity,
                         Position = localTransform.ValueRO.Position,
-                        InfluenceAmount = 0.1f,
-                        InfluenceRadius = 3
+                        InfluenceAmount = 1f,
+                        InfluenceRadius = 10
                     });
 
                     ChopTree(ref state,

@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Mathematics;
 
 namespace UnitState
 {
@@ -15,8 +16,15 @@ namespace UnitState
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct SocialRelationshipsSystem : ISystem
     {
+        private const int InitialCapacity = 100;
+        private const float EvaluationInterval = 0.1f;
+        private const float MinimumFondness = -2f;
+        private const float MaximumFondness = 2f;
+        private const float NeutralizationFactor = 0.01f;
+
         private EntityQuery _existingUnitsQuery;
         private EntityQuery _spawnedUnitsQuery;
+        private float _timeOfLastEvaluation;
 
         public void OnCreate(ref SystemState state)
         {
@@ -25,7 +33,6 @@ namespace UnitState
             _spawnedUnitsQuery = state.GetEntityQuery(ComponentType.ReadOnly(typeof(SpawnedUnit)));
         }
 
-        private const int InitialCapacity = 100;
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
@@ -50,6 +57,21 @@ namespace UnitState
                 SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
             }.Schedule(existingUnits.Length, 200);
             annoyingDudeJob.Complete();
+            var currentTime = (float)SystemAPI.Time.ElapsedTime;
+            var timeSinceLastEvaluation = currentTime - _timeOfLastEvaluation;
+            if (timeSinceLastEvaluation < EvaluationInterval)
+            {
+                return;
+            }
+
+            _timeOfLastEvaluation = currentTime;
+            var evaluateAllRelationshipsJob = new EvaluateAllRelationshipsJob
+            {
+                ExistingUnits = existingUnits,
+                NeutralizationAmount = NeutralizationFactor * timeSinceLastEvaluation,
+                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
+            }.Schedule(existingUnits.Length, 200);
+            evaluateAllRelationshipsJob.Complete();
         }
 
         private void SetupNewRelationships(ref SystemState state, EntityCommandBuffer ecb,
@@ -75,6 +97,45 @@ namespace UnitState
             existingUnitJobs.Complete();
 
             spawnedUnits.Dispose();
+        }
+
+        [BurstCompile]
+        private struct EvaluateAllRelationshipsJob : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<Entity> ExistingUnits;
+            [ReadOnly] public float NeutralizationAmount;
+
+            [NativeDisableContainerSafetyRestriction]
+            public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
+
+            public void Execute(int index)
+            {
+                var socialRelationships = SocialRelationshipsLookup[ExistingUnits[index]];
+                var relationships = socialRelationships.Relationships;
+
+                foreach (var unit in ExistingUnits)
+                {
+                    var fondness = relationships[unit];
+
+                    // Slowly forget whatever feelings you have for towards this person:
+                    switch (fondness)
+                    {
+                        case > 0:
+                            fondness -= NeutralizationAmount;
+                            break;
+                        case < 0:
+                            fondness += NeutralizationAmount;
+                            break;
+                    }
+
+                    // If you're beyond the actual range of emotion, you need to chill the fuck out:
+                    fondness = math.clamp(fondness, MinimumFondness, MaximumFondness);
+                    relationships[unit] = fondness;
+                }
+
+                socialRelationships.Relationships = relationships;
+                SocialRelationshipsLookup[ExistingUnits[index]] = socialRelationships;
+            }
         }
 
         [BurstCompile]
