@@ -65,13 +65,6 @@ public partial class SpawnManagerSystem : SystemBase
                 }
 
                 break;
-            case SpawnItemType.Zombie:
-                foreach (var cell in cellList)
-                {
-                    TrySpawnUnit(ecb, ref gridManager, cell, spawnManager.ZombiePrefab, false);
-                }
-
-                break;
             case SpawnItemType.Tree:
                 foreach (var cell in cellList)
                 {
@@ -110,10 +103,6 @@ public partial class SpawnManagerSystem : SystemBase
                 TryDeleteUnits(ecb, cellList[0], brushSize);
 
                 break;
-            case SpawnItemType.Zombie:
-                TryDeleteZombies(ecb, cellList[0], brushSize);
-
-                break;
             case SpawnItemType.Tree:
                 foreach (var cell in cellList)
                 {
@@ -141,19 +130,19 @@ public partial class SpawnManagerSystem : SystemBase
     }
 
     private void TrySpawnUnit(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position, Entity prefab,
-        bool isPerson)
+        bool hasHierarchy)
     {
         if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
             !gridManager.IsOccupied(position))
         {
             var entity = InstantiateAtPosition(prefab, position);
-            if (isPerson)
+            if (hasHierarchy)
             {
                 gridManager.SetOccupant(position, entity);
             }
             else
             {
-                // Zombies don't have a hierarchy, therefore they don't need to have a LinkedEntityGroup
+                // If the unit doesn't have a hierarchy, we don't need to have a LinkedEntityGroup
                 ecb.RemoveComponent<LinkedEntityGroup>(entity);
             }
         }
@@ -166,19 +155,6 @@ public partial class SpawnManagerSystem : SystemBase
         {
             var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
             if (math.distance(center, cell) <= brushSize)
-            {
-                ecb.SetComponentEnabled<IsAlive>(entity, false);
-            }
-        }
-    }
-
-    private void TryDeleteZombies(EntityCommandBuffer ecb, int2 center, int brushSize)
-    {
-        foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
-                     .WithAll<Zombie>())
-        {
-            var zombieCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
-            if (math.distance(center, zombieCell) <= brushSize)
             {
                 ecb.SetComponentEnabled<IsAlive>(entity, false);
             }

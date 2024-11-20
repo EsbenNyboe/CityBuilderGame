@@ -16,15 +16,12 @@ namespace UnitState
     {
         private EntityQuery _deadUnits;
         private SystemHandle _gridManagerSystemHandle;
-        private EntityQuery _deadZombies;
 
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<IsAlive>();
 
-            _deadZombies = new EntityQueryBuilder(Allocator.Temp)
-                .WithDisabled<IsAlive>().WithAll<Zombie>().Build(ref state);
             _deadUnits = new EntityQueryBuilder(Allocator.Temp)
                 .WithDisabled<IsAlive>().WithAll<Child>().Build(ref state);
             _gridManagerSystemHandle = state.World.GetOrCreateSystem<GridManagerSystem>();
@@ -105,7 +102,6 @@ namespace UnitState
             // Destroy dead units
             state.EntityManager.DestroyEntity(deadUnits);
             state.EntityManager.DestroyEntity(deadLogs.AsArray());
-            state.EntityManager.DestroyEntity(_deadZombies);
             state.EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
         }
     }
