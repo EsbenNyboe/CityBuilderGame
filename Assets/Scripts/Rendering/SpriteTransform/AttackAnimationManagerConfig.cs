@@ -1,12 +1,10 @@
 ﻿using UnityEngine;
 
-public class ChopAnimationManagerConfig : MonoBehaviour
+public class AttackAnimationManagerConfig : MonoBehaviour
 {
-    public static ChopAnimationManagerConfig Instance;
+    public static AttackAnimationManagerConfig Instance;
 
     [SerializeField] private float _chopDuration = 1f;
-
-    [SerializeField] private float _damagePerChop = 10f;
 
     [SerializeField] private float _chopAnimationSize = 0.5f;
 
@@ -20,11 +18,6 @@ public class ChopAnimationManagerConfig : MonoBehaviour
     public static float ChopDuration()
     {
         return Instance._chopDuration / Globals.GameSpeed();
-    }
-
-    public static float DamagePerChop()
-    {
-        return Instance._damagePerChop;
     }
 
     public static float ChopAnimationSize()

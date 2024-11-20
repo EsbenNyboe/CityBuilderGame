@@ -18,20 +18,20 @@ namespace UnitBehaviours.AutonomousHarvesting
             TimeUntilNextChop = 0f;
         }
     }
-    
+
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
     public partial struct IsHarvestingSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
         private SystemHandle _soundManagerSystemHandle;
-        private SystemHandle _chopAnimationManager;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<AttackAnimationManager>();
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
             _soundManagerSystemHandle = state.World.GetExistingSystem<DotsSoundManagerSystem>();
-            _chopAnimationManager = state.World.GetExistingSystem<ChopAnimationManagerSystem>();
         }
 
         [BurstCompile]
@@ -42,7 +42,8 @@ namespace UnitBehaviours.AutonomousHarvesting
                 .CreateCommandBuffer(state.WorldUnmanaged);
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var soundManager = SystemAPI.GetComponent<DotsSoundManager>(_soundManagerSystemHandle);
-            var chopAnimationManager = SystemAPI.GetComponent<ChopAnimationManager>(_chopAnimationManager);
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
+            var attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
 
             foreach (var (isHarvesting, localTransform, inventory, entity)
                      in SystemAPI.Query<RefRW<IsHarvesting>, RefRO<LocalTransform>, RefRW<Inventory>>()
@@ -52,7 +53,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 {
                     ecb.RemoveComponent<IsHarvesting>(entity);
                     ecb.AddComponent(entity, new IsDeciding());
-                    ecb.RemoveComponent<ChopAnimationTag>(entity);
+                    ecb.RemoveComponent<AttackAnimation>(entity);
                     SystemAPI.SetComponent(entity, new SpriteTransform
                     {
                         Position = float3.zero,
@@ -76,11 +77,11 @@ namespace UnitBehaviours.AutonomousHarvesting
                     ChopTree(ref state,
                         soundManager,
                         ref gridManager,
-                        chopAnimationManager,
+                        unitBehaviourManager,
                         isHarvesting.ValueRO.Tree,
                         localTransform,
                         inventory);
-                    isHarvesting.ValueRW.TimeUntilNextChop = chopAnimationManager.ChopDuration;
+                    isHarvesting.ValueRW.TimeUntilNextChop = attackAnimationManager.AttackDuration;
                 }
             }
 
@@ -90,13 +91,13 @@ namespace UnitBehaviours.AutonomousHarvesting
         private void ChopTree(ref SystemState state,
             DotsSoundManager soundManager,
             ref GridManager gridManager,
-            ChopAnimationManager chopAnimationManager,
+            UnitBehaviourManager unitBehaviourManager,
             int2 treeCoords,
             RefRO<LocalTransform> localTransform,
             RefRW<Inventory> inventory)
         {
             var treeGridIndex = gridManager.GetIndex(treeCoords);
-            gridManager.AddDamage(treeGridIndex, chopAnimationManager.DamagePerChop);
+            gridManager.AddDamage(treeGridIndex, unitBehaviourManager.DamagePerChop);
             var soundPosition = GridHelpers.GetWorldPosition(treeCoords.x, treeCoords.y);
             soundManager.ChopSoundRequests.Enqueue(soundPosition);
 

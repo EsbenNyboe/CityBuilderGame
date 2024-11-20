@@ -5,38 +5,39 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public struct ChopAnimationTag : IComponentData
+public struct AttackAnimation : IComponentData
 {
 }
 
 [BurstCompile]
-[UpdateAfter(typeof(ChopAnimationManagerSystem))]
+[UpdateAfter(typeof(AttackAnimationManagerSystem))]
 [UpdateInGroup(typeof(AnimationSystemGroup))]
-public partial struct ChopAnimationSystem : ISystem
+public partial struct AttackAnimationSystem : ISystem
 {
-    private SystemHandle _chopAnimationManagerSystemHandle;
-
     public void OnCreate(ref SystemState state)
     {
-        _chopAnimationManagerSystemHandle = state.World.GetExistingSystem<ChopAnimationManagerSystem>();
+        state.RequireForUpdate<AttackAnimationManager>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var chopAnimationManager = SystemAPI.GetComponent<ChopAnimationManager>(_chopAnimationManagerSystemHandle);
-        var chopDuration = chopAnimationManager.ChopDuration;
-        var chopSize = chopAnimationManager.ChopAnimationSize;
-        var chopIdleTime = chopAnimationManager.ChopAnimationIdleTime;
+        var attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
+        var chopDuration = attackAnimationManager.AttackDuration;
+        var chopSize = attackAnimationManager.AttackAnimationSize;
+        var chopIdleTime = attackAnimationManager.AttackAnimationIdleTime;
 
         foreach (var (isHarvesting, spriteTransform, localTransform) in SystemAPI
-                     .Query<RefRO<IsHarvesting>, RefRW<SpriteTransform>, RefRO<LocalTransform>>().WithPresent<ChopAnimationTag>())
+                     .Query<RefRO<IsHarvesting>, RefRW<SpriteTransform>, RefRO<LocalTransform>>()
+                     .WithPresent<AttackAnimation>())
         {
-            DoChopAnimation(ref state, isHarvesting, spriteTransform, localTransform, chopDuration, chopSize, chopIdleTime);
+            DoChopAnimation(ref state, isHarvesting, spriteTransform, localTransform, chopDuration, chopSize,
+                chopIdleTime);
         }
     }
 
-    private void DoChopAnimation(ref SystemState state, RefRO<IsHarvesting> isHarvesting, RefRW<SpriteTransform> spriteTransform,
+    private void DoChopAnimation(ref SystemState state, RefRO<IsHarvesting> isHarvesting,
+        RefRW<SpriteTransform> spriteTransform,
         RefRO<LocalTransform> localTransform, float chopDuration, float chopSize, float chopIdleTime)
     {
         // Manage animation state:

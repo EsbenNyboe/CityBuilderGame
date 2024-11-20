@@ -83,7 +83,7 @@ namespace UnitAgency
             else if (IsAdjacentToTree(ref state, gridManager, cell, out var tree))
             {
                 ecb.AddComponent(entity, new IsHarvesting(tree));
-                ecb.AddComponent<ChopAnimationTag>(entity);
+                ecb.AddComponent<AttackAnimation>(entity);
             }
             else
             {

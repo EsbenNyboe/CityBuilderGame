@@ -288,7 +288,7 @@ public partial class UnitControlSystem : SystemBase
 
     private static void RemoveAllBehaviours(EntityCommandBuffer ecb, Entity entity)
     {
-        ecb.RemoveComponent<ChopAnimationTag>(entity);
+        ecb.RemoveComponent<AttackAnimation>(entity);
         ecb.RemoveComponent<IsHarvesting>(entity);
         ecb.RemoveComponent<IsSeekingTree>(entity);
         ecb.RemoveComponent<IsSeekingDropPoint>(entity);
