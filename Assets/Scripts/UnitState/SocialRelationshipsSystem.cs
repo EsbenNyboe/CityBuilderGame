@@ -33,7 +33,6 @@ namespace UnitState
             _spawnedUnitsQuery = state.GetEntityQuery(ComponentType.ReadOnly(typeof(SpawnedUnit)));
         }
 
-
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {

@@ -1,6 +1,7 @@
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
+using UnitBehaviours.Targeting;
 using UnitState;
 using Unity.Burst;
 using Unity.Entities;
@@ -23,9 +24,11 @@ namespace UnitAgency
     {
         private SystemHandle _gridManagerSystemHandle;
         private EntityQuery _query;
+        private AttackAnimationManager _attackAnimationManager;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
@@ -35,7 +38,7 @@ namespace UnitAgency
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // Following the example at: https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/systems-entity-command-buffer-automatic-playback.html
+            _attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
@@ -78,13 +81,27 @@ namespace UnitAgency
             }
             else if (isAnnoyedAtSomeone)
             {
-                ecb.AddComponent(entity, new IsAttemptingMurder());
-                ecb.SetComponent(entity, new TargetFollow
+                var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
+                var annoyingDudePosition = transformLookup[annoyingDude].Position;
+                var distanceToTarget = math.distance(unitPosition, annoyingDudePosition);
+                if (distanceToTarget <= IsAttemptingMurderSystem.AttackRange)
                 {
-                    Target = annoyingDude,
-                    CurrentDistanceToTarget = math.INFINITY,
-                    DesiredRange = IsAttemptingMurderSystem.AttackRange
-                });
+                    ecb.AddComponent(entity, new IsMurdering
+                    {
+                        Target = annoyingDude
+                    });
+                    ecb.AddComponent(entity, new AttackAnimation(new int2(-1), -1));
+                }
+                else
+                {
+                    ecb.AddComponent(entity, new IsAttemptingMurder());
+                    ecb.SetComponent(entity, new TargetFollow
+                    {
+                        Target = annoyingDude,
+                        CurrentDistanceToTarget = distanceToTarget,
+                        DesiredRange = IsAttemptingMurderSystem.AttackRange
+                    });
+                }
             }
             else if (isSleepy)
             {

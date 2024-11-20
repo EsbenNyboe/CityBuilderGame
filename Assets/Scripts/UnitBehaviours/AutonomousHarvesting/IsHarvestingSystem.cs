@@ -42,15 +42,10 @@ namespace UnitBehaviours.AutonomousHarvesting
                          .Query<RefRW<AttackAnimation>, RefRW<Inventory>, RefRO<LocalTransform>>()
                          .WithEntityAccess().WithAll<IsHarvesting>())
             {
-                if (!gridManager.IsDamageable(attackAnimation.ValueRO.Target))
+                if (!gridManager.IsDamageable((int2)attackAnimation.ValueRO.Target))
                 {
                     ecb.RemoveComponent<IsHarvesting>(entity);
-                    ecb.RemoveComponent<AttackAnimation>(entity);
-                    SystemAPI.SetComponent(entity, new SpriteTransform
-                    {
-                        Position = float3.zero,
-                        Rotation = quaternion.identity
-                    });
+                    attackAnimation.ValueRW.MarkedForDeletion = true;
                     ecb.AddComponent(entity, new IsDeciding());
                     continue;
                 }
@@ -70,7 +65,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                         soundManager,
                         ref gridManager,
                         unitBehaviourManager,
-                        attackAnimation.ValueRO.Target,
+                        (int2)attackAnimation.ValueRO.Target,
                         inventory);
                     attackAnimation.ValueRW.TimeLeft = attackAnimationManager.AttackDuration;
                 }

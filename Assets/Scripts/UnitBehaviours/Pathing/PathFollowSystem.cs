@@ -121,7 +121,7 @@ public partial struct PathFollowSystem : ISystem
             if (moveDirection.x != 0)
             {
                 var angleInDegrees = moveDirection.x > 0 ? 0f : 180f;
-                spriteTransform.ValueRW.Position = Vector3.zero;
+                // spriteTransform.ValueRW.Position = Vector3.zero;
                 spriteTransform.ValueRW.Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
             }
 

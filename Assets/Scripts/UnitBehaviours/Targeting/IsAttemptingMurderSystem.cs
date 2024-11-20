@@ -1,5 +1,4 @@
 using UnitAgency;
-using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -15,6 +14,7 @@ namespace UnitBehaviours.Pathing
     {
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
@@ -22,6 +22,7 @@ namespace UnitBehaviours.Pathing
 
         public void OnUpdate(ref SystemState state)
         {
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (targetFollow, pathFollow, localTransform, entity) in SystemAPI
@@ -29,7 +30,7 @@ namespace UnitBehaviours.Pathing
                          .WithEntityAccess()
                          .WithAll<IsAttemptingMurder>())
             {
-                pathFollow.ValueRW.MoveSpeedMultiplier = 0.5f;
+                pathFollow.ValueRW.MoveSpeedMultiplier = unitBehaviourManager.MoveSpeedWhenAttemptingMurder;
 
                 if (targetFollow.ValueRO.Target == Entity.Null)
                 {
@@ -48,13 +49,16 @@ namespace UnitBehaviours.Pathing
                     continue;
                 }
 
-                SystemAPI.SetComponentEnabled<IsAlive>(targetFollow.ValueRO.Target, false);
-                targetFollow.ValueRW.Target = Entity.Null;
-                targetFollow.ValueRW.CurrentDistanceToTarget = math.INFINITY;
-                targetFollow.ValueRW.DesiredRange = -1;
-
+                RemoveTarget(targetFollow);
                 RemoveBehaviour(ecb, entity, pathFollow);
             }
+        }
+
+        private static void RemoveTarget(RefRW<TargetFollow> targetFollow)
+        {
+            targetFollow.ValueRW.Target = Entity.Null;
+            targetFollow.ValueRW.CurrentDistanceToTarget = math.INFINITY;
+            targetFollow.ValueRW.DesiredRange = -1;
         }
 
         private static void RemoveBehaviour(EntityCommandBuffer ecb, Entity entity, RefRW<PathFollow> pathFollow)
