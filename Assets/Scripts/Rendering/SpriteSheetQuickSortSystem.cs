@@ -48,8 +48,36 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
     {
         state.Dependency.Complete();
 
-        var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
+        var spriteSheetsToSort = GetDataToSort(ref state, out var yTop, out var yBottom);
+        var visibleEntitiesTotal = spriteSheetsToSort.Count;
 
+        var splitTimes = 4;
+        var splitJobCount = (int)math.pow(2, splitTimes) - 1;
+
+        var arrayOfQueues = InitializeQuickSortQueues(splitJobCount, spriteSheetsToSort);
+
+        var quickPivots = GetArrayOfPivots(splitJobCount, yBottom, yTop);
+        var jobBatchSizes = GetJobBatchSizes(splitTimes, splitJobCount);
+
+        QuickSortQueuesToVerticalSections(arrayOfQueues, quickPivots, jobBatchSizes);
+        var arrayOfArrays = ConvertQueuesToArrays(arrayOfQueues);
+
+        GetSingletonDataContainers(ref state, visibleEntitiesTotal, out var spriteMatrixArray, out var spriteUvArray);
+
+        var sharedNativeArray = MergeArraysIntoOneSharedArray(visibleEntitiesTotal, arrayOfArrays,
+            out var startIndexes,
+            out var endIndexes);
+
+        var dependency = ScheduleBubbleSortingOfEachSection(sharedNativeArray, startIndexes, endIndexes);
+        dependency = ScheduleWritingToDataContainers(sharedNativeArray, spriteMatrixArray, spriteUvArray, dependency,
+            visibleEntitiesTotal);
+        state.Dependency = dependency;
+    }
+
+
+    private NativeQueue<RenderData> GetDataToSort(ref SystemState state, out float yTop, out float yBottom)
+    {
+        var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
         var cameraPosition = cameraInformation.CameraPosition;
         var screenRatio = cameraInformation.ScreenRatio;
         var orthographicSize = cameraInformation.OrthographicSize;
@@ -60,17 +88,39 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
 
         var xLeft = cameraPosition.x - cameraSizeX;
         var xRight = cameraPosition.x + cameraSizeX;
-        var yTop = cameraPosition.y + cameraSizeY;
-        var yBottom = cameraPosition.y - cameraSizeY;
+        yTop = cameraPosition.y + cameraSizeY;
+        yBottom = cameraPosition.y - cameraSizeY;
 
-        var splitTimes = 4;
-        var jobCount = (int)math.pow(2, splitTimes) - 1;
-        var quickPivots = new NativeArray<float>(jobCount, Allocator.Temp);
+        // Filter out all units that are outside the field of view
+        var spriteSheetsToSort = new NativeQueue<RenderData>(Allocator.TempJob);
+        new CullJob
+        {
+            XLeft = xLeft,
+            XRight = xRight,
+            YTop = yTop,
+            YBottom = yBottom,
+            NativeQueue = spriteSheetsToSort
+        }.Run(_entityQuery);
+
+        return spriteSheetsToSort;
+    }
+
+    private static NativeArray<NativeQueue<RenderData>> InitializeQuickSortQueues(int splitJobCount,
+        NativeQueue<RenderData> spriteSheetsToSort)
+    {
+        var outQueues = new NativeArray<NativeQueue<RenderData>>(1 + splitJobCount * 2, Allocator.Temp);
+        outQueues[0] = spriteSheetsToSort;
+        return outQueues;
+    }
+
+    private static NativeArray<float> GetArrayOfPivots(int splitJobCount, float yBottom, float yTop)
+    {
+        var quickPivots = new NativeArray<float>(splitJobCount, Allocator.Temp);
 
         var normalizedPivotInterval = 1f;
         var normalizedPivot = 0.5f;
         var normalizedPivotSum = normalizedPivot;
-        for (var i = 0; i < jobCount; i++)
+        for (var i = 0; i < splitJobCount; i++)
         {
             quickPivots[i] = yBottom + normalizedPivotSum * (yTop - yBottom);
             normalizedPivotSum -= normalizedPivotInterval;
@@ -82,44 +132,39 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             }
         }
 
-        var jobBatches = new NativeArray<NativeArray<JobHandle>>(splitTimes, Allocator.Temp);
+        return quickPivots;
+    }
 
-        var finishedJobBatches = 0;
+    private static NativeArray<int> GetJobBatchSizes(int splitTimes, int splitJobCount)
+    {
+        var jobBatchSizes = new NativeArray<int>(splitTimes, Allocator.Temp);
+        var jobBatchSizeSum = 0;
         var jobBatchSize = 1;
         var jobBatchIndex = 0;
 
-        for (var i = 0; i < quickPivots.Length; i++)
+        for (var i = 0; i < splitJobCount; i++)
         {
-            if (i == finishedJobBatches + jobBatchSize - 1)
+            if (i == jobBatchSizeSum + jobBatchSize - 1)
             {
                 // jobBatches follow the pattern of 1, 2, 4, 8, etc...
-                jobBatches[jobBatchIndex] = new NativeArray<JobHandle>(jobBatchSize, Allocator.Temp);
-                finishedJobBatches += jobBatchSize;
+                jobBatchSizes[jobBatchIndex] = jobBatchSize;
+                jobBatchSizeSum += jobBatchSize;
                 jobBatchSize *= 2;
                 jobBatchIndex++;
             }
         }
 
-        // Select sprite sheets that need sorting:
-        var spriteSheetsToSort = new NativeQueue<RenderData>(Allocator.TempJob);
-        new CullJob
-        {
-            XLeft = xLeft,
-            XRight = xRight,
-            YTop = yTop,
-            YBottom = yBottom,
-            NativeQueue = spriteSheetsToSort
-        }.Run(_entityQuery);
+        return jobBatchSizes;
+    }
 
-        var outQueues = new NativeArray<NativeQueue<RenderData>>(1 + quickPivots.Length * 2, Allocator.Temp);
-        outQueues[0] = spriteSheetsToSort;
-
-        var jobList = new NativeList<JobHandle>(Allocator.Temp);
+    private static void QuickSortQueuesToVerticalSections(NativeArray<NativeQueue<RenderData>> outQueues,
+        NativeArray<float> quickPivots,
+        NativeArray<int> jobBatchSizes)
+    {
+        var jobBatch = new NativeList<JobHandle>(Allocator.Temp);
         var jobIndex = 0;
-        var jobBatchesLength = jobBatches.Length;
-        for (var i = 0; i < jobBatchesLength; i++)
+        foreach (var batchSize in jobBatchSizes)
         {
-            var batchSize = jobBatches[i].Length;
             for (var j = 0; j < batchSize; j++)
             {
                 var pivot = quickPivots[jobIndex];
@@ -132,56 +177,69 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
                     OutQueue1 = outQueues[outQueueIndex1] = new NativeQueue<RenderData>(Allocator.TempJob),
                     OutQueue2 = outQueues[outQueueIndex2] = new NativeQueue<RenderData>(Allocator.TempJob)
                 };
-                jobList.Add(quickSortJob.Schedule());
+                jobBatch.Add(quickSortJob.Schedule());
                 jobIndex++;
             }
 
-            JobHandle.CompleteAll(jobList.AsArray());
-            jobList.Clear();
+            JobHandle.CompleteAll(jobBatch.AsArray());
+            jobBatch.Clear();
         }
 
-        jobList.Dispose();
+        jobBatch.Dispose();
+        jobBatchSizes.Dispose();
+        quickPivots.Dispose();
+    }
 
-        for (var i = 0; i < jobBatches.Length; i++)
-        {
-            jobBatches[i].Dispose();
-        }
-
-        jobBatches.Dispose();
-
-        var outQueuesLength = outQueues.Length;
+    private static NativeArray<NativeArray<RenderData>> ConvertQueuesToArrays(
+        NativeArray<NativeQueue<RenderData>> arrayOfQueues)
+    {
+        var outQueuesLength = arrayOfQueues.Length;
         var jobs = new NativeArray<JobHandle>(outQueuesLength, Allocator.Temp);
-        var outArrays = new NativeArray<NativeArray<RenderData>>(outQueuesLength, Allocator.Temp);
+        var arrayOfArrays = new NativeArray<NativeArray<RenderData>>(outQueuesLength, Allocator.Temp);
         for (var i = 0; i < outQueuesLength; i++)
         {
             var nativeQueueToArrayJob = new NativeQueueToArrayJob
             {
-                NativeQueue = outQueues[i],
-                NativeArray = outArrays[i] = new NativeArray<RenderData>(outQueues[i].Count, Allocator.TempJob)
+                NativeQueue = arrayOfQueues[i],
+                NativeArray = arrayOfArrays[i] = new NativeArray<RenderData>(arrayOfQueues[i].Count, Allocator.TempJob)
             };
             jobs[i] = nativeQueueToArrayJob.Schedule();
         }
 
         JobHandle.CompleteAll(jobs);
+        jobs.Dispose();
 
-        var visibleEntityTotal = 0;
-        for (var index = 0; index < outArrays.Length; index++)
+        for (var i = 0; i < arrayOfQueues.Length; i++)
         {
-            visibleEntityTotal += outArrays[index].Length;
+            arrayOfQueues[i].Dispose();
         }
 
+        arrayOfQueues.Dispose();
+
+        return arrayOfArrays;
+    }
+
+    private void GetSingletonDataContainers(ref SystemState state, int visibleEntitiesTotal,
+        out NativeArray<Matrix4x4> spriteMatrixArray,
+        out NativeArray<Vector4> spriteUvArray)
+    {
         // Clear data
         var singleton = SystemAPI.GetSingletonRW<SpriteSheetSortingManager>();
         singleton.ValueRW.SpriteMatrixArray.Dispose();
         singleton.ValueRW.SpriteUvArray.Dispose();
-        singleton.ValueRW.SpriteMatrixArray = new NativeArray<Matrix4x4>(visibleEntityTotal, Allocator.TempJob);
-        singleton.ValueRW.SpriteUvArray = new NativeArray<Vector4>(visibleEntityTotal, Allocator.TempJob);
-        var spriteMatrixArray = singleton.ValueRO.SpriteMatrixArray;
-        var spriteUvArray = singleton.ValueRO.SpriteUvArray;
+        singleton.ValueRW.SpriteMatrixArray = new NativeArray<Matrix4x4>(visibleEntitiesTotal, Allocator.TempJob);
+        singleton.ValueRW.SpriteUvArray = new NativeArray<Vector4>(visibleEntitiesTotal, Allocator.TempJob);
+        spriteMatrixArray = singleton.ValueRO.SpriteMatrixArray;
+        spriteUvArray = singleton.ValueRO.SpriteUvArray;
+    }
 
-        var sharedNativeArray = new NativeArray<RenderData>(visibleEntityTotal, Allocator.TempJob);
-        var startIndexes = new NativeArray<int>(outArrays.Length, Allocator.TempJob);
-        var endIndexes = new NativeArray<int>(outArrays.Length, Allocator.TempJob);
+    private static NativeArray<RenderData> MergeArraysIntoOneSharedArray(int visibleEntitiesTotal,
+        NativeArray<NativeArray<RenderData>> outArrays,
+        out NativeArray<int> startIndexes, out NativeArray<int> endIndexes)
+    {
+        var sharedNativeArray = new NativeArray<RenderData>(visibleEntitiesTotal, Allocator.TempJob);
+        startIndexes = new NativeArray<int>(outArrays.Length, Allocator.TempJob);
+        endIndexes = new NativeArray<int>(outArrays.Length, Allocator.TempJob);
         var sharedIndex = 0;
 
         for (var i = 0; i < outArrays.Length; i++)
@@ -197,46 +255,49 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
 
         for (var i = 0; i < outArrays.Length; i++)
         {
-            var sortByPositionParallelJob = new SortByPositionParallelJob
+            outArrays[i].Dispose();
+        }
+
+        outArrays.Dispose();
+
+        return sharedNativeArray;
+    }
+
+    private static JobHandle ScheduleBubbleSortingOfEachSection(NativeArray<RenderData> sharedNativeArray,
+        NativeArray<int> startIndexes, NativeArray<int> endIndexes)
+    {
+        var jobs = new NativeArray<JobHandle>(startIndexes.Length, Allocator.Temp);
+        for (var i = 0; i < jobs.Length; i++)
+        {
+            var sortByPositionJob = new SortByPositionParallelJob
             {
                 SharedNativeArray = sharedNativeArray,
                 StartIndex = startIndexes[i],
                 EndIndex = endIndexes[i]
             };
-            jobs[i] = sortByPositionParallelJob.Schedule();
+            jobs[i] = sortByPositionJob.Schedule();
         }
 
         var dependency = JobHandle.CombineDependencies(jobs);
+        startIndexes.Dispose(dependency);
+        endIndexes.Dispose(dependency);
+        jobs.Dispose();
+        return dependency;
+    }
 
+    private static JobHandle ScheduleWritingToDataContainers(NativeArray<RenderData> sharedNativeArray,
+        NativeArray<Matrix4x4> spriteMatrixArray,
+        NativeArray<Vector4> spriteUvArray, JobHandle dependency, int visibleEntitiesTotal)
+    {
         var fillArraysJob = new FillArraysJob
         {
             SortedArray = sharedNativeArray,
             MatrixArray = spriteMatrixArray,
             UvArray = spriteUvArray
         };
-        dependency = fillArraysJob.Schedule(visibleEntityTotal, 10, dependency);
-
+        dependency = fillArraysJob.Schedule(visibleEntitiesTotal, 10, dependency);
         sharedNativeArray.Dispose(dependency);
-        startIndexes.Dispose(dependency);
-        endIndexes.Dispose(dependency);
-
-        state.Dependency = dependency;
-
-        jobs.Dispose();
-        quickPivots.Dispose();
-
-        for (var i = 0; i < outQueuesLength; i++)
-        {
-            outQueues[i].Dispose();
-        }
-
-        for (var i = 0; i < outArrays.Length; i++)
-        {
-            outArrays[i].Dispose();
-        }
-
-        outQueues.Dispose();
-        outArrays.Dispose();
+        return dependency;
     }
 
     [BurstCompile]
