@@ -14,11 +14,12 @@ namespace UnitBehaviours
 
     public class VillagerAuthoring : MonoBehaviour
     {
+        [SerializeField] private float _maxHealth = 100f;
         [SerializeField] private InventoryItem _startItem;
         [SerializeField] private float _sleepiness;
-        [SerializeField] private float _restlessness;
+        [SerializeField] private float _restlessness = 1f;
         [SerializeField] private float _loneliness;
-        [SerializeField] private float _initiative;
+        [SerializeField] private float _initiative = 1f;
 
         public class VillagerAuthoringBaker : Baker<VillagerAuthoring>
         {
@@ -46,6 +47,11 @@ namespace UnitBehaviours
                 AddComponent<UnitAnimationSelection>(entity);
 
                 AddComponent<IsDeciding>(entity);
+                AddComponent(entity, new Health
+                {
+                    CurrentHealth = authoring._maxHealth,
+                    MaxHealth = authoring._maxHealth
+                });
                 AddComponent(entity, new Inventory { CurrentItem = authoring._startItem });
                 AddComponent(entity, new MoodSleepiness { Sleepiness = authoring._sleepiness });
                 AddComponent(entity, new MoodRestlessness { Restlessness = authoring._restlessness });

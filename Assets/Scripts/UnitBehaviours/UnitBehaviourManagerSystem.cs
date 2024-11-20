@@ -5,6 +5,7 @@ namespace UnitBehaviours
     public struct UnitBehaviourManager : IComponentData
     {
         public float DamagePerChop;
+        public float DamagePerAttack;
         public float MoveSpeedWhenAttemptingMurder;
     }
 
@@ -19,6 +20,7 @@ namespace UnitBehaviours
         {
             var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             unitBehaviourManager.DamagePerChop = UnitBehaviourManagerConfig.Instance.DamagePerChop;
+            unitBehaviourManager.DamagePerAttack = UnitBehaviourManagerConfig.Instance.DamagePerAttack;
             unitBehaviourManager.MoveSpeedWhenAttemptingMurder =
                 UnitBehaviourManagerConfig.Instance.MoveSpeedWhenAttemptingMurder;
             SystemAPI.SetSingleton(unitBehaviourManager);

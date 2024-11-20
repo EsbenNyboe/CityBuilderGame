@@ -1,4 +1,4 @@
-using Rendering;
+using Events;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using Unity.Burst;
@@ -56,7 +56,7 @@ namespace UnitState
             foreach (var localTransform in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>())
             {
                 ecb.AddComponent(ecb.CreateEntity(),
-                    new DeathAnimationEvent { Position = localTransform.ValueRO.Position });
+                    new DeathEvent { Position = localTransform.ValueRO.Position });
             }
 
             // Cleanup grid

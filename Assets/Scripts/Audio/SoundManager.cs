@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -8,10 +9,9 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private AudioSource _template;
 
     [SerializeField] private SoundConfig _chopSound;
-
     [SerializeField] private SoundConfig _destroyTreeSound;
-
     [SerializeField] private SoundConfig _dieSound;
+    [SerializeField] private SoundConfig _damageSound;
 
     private Queue<AudioSource> _pool;
 
@@ -37,9 +37,14 @@ public class SoundManager : MonoBehaviour
         PlayAtPosition(_destroyTreeSound, position);
     }
 
-    public void PlayDieSound(Vector3 position)
+    public void PlayDeathSound(Vector3 position)
     {
         PlayAtPosition(_dieSound, position);
+    }
+
+    public void PlayDamageSound(float3 position)
+    {
+        PlayAtPosition(_damageSound, position);
     }
 
     private void PlayAtPosition(SoundConfig sound, Vector3 position)
