@@ -6,15 +6,12 @@ using UnityEngine;
 
 namespace UnitBehaviours.Pathing
 {
-    public partial struct TargetFollow : IComponentData
+    public struct TargetFollow : IComponentData
     {
         public Entity Target;
         public float DesiredRange;
         public float CurrentDistanceToTarget;
-    }
 
-    public partial struct TargetFollow
-    {
         public readonly bool TryGetTarget(out Entity target)
         {
             target = Target;

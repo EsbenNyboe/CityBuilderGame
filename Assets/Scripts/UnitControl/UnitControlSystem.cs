@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using CodeMonkey.Utils;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using Unity.Collections;
 using Unity.Entities;
@@ -223,7 +224,6 @@ public partial class UnitControlSystem : SystemBase
 
             ForceUnitToSelectPath(ecb, ref gridManager, entity, GridHelpers.GetXY(localTransform.ValueRO.Position),
                 endPosition);
-            ecb.AddComponent<IsIdle>(entity);
         }
     }
 
@@ -272,18 +272,36 @@ public partial class UnitControlSystem : SystemBase
     private void ForceUnitToSelectPath(EntityCommandBuffer ecb, ref GridManager gridManager, Entity entity,
         int2 startPosition, int2 endPosition)
     {
-        SystemAPI.SetComponent(entity, new SpriteTransform
-        {
-            Position = float3.zero,
-            Rotation = quaternion.identity
-        });
-
         if (PathHelpers.TrySetPath(ecb, entity, startPosition, endPosition))
         {
             TryResetGridCell(ref gridManager, startPosition, entity);
         }
 
         RemoveAllBehaviours(ecb, entity);
+        ResetAllBehaviourState(entity);
+        ecb.AddComponent<IsIdle>(entity);
+    }
+
+    private void ResetAllBehaviourState(Entity entity)
+    {
+        SystemAPI.SetComponent(entity, new SpriteTransform
+        {
+            Position = float3.zero,
+            Rotation = quaternion.identity
+        });
+
+        SystemAPI.SetComponent(entity, new TargetFollow
+        {
+            Target = Entity.Null,
+            DesiredRange = -1,
+            CurrentDistanceToTarget = math.INFINITY
+        });
+
+        SystemAPI.SetComponent(entity, new PathFollow
+        {
+            PathIndex = -1,
+            MoveSpeedMultiplier = 1
+        });
     }
 
     private static void RemoveAllBehaviours(EntityCommandBuffer ecb, Entity entity)
@@ -293,11 +311,14 @@ public partial class UnitControlSystem : SystemBase
         ecb.RemoveComponent<IsSeekingTree>(entity);
         ecb.RemoveComponent<IsSeekingDropPoint>(entity);
 
-        ecb.RemoveComponent<IsSeekingBed>(entity);
         ecb.RemoveComponent<IsSleeping>(entity);
+        ecb.RemoveComponent<IsSeekingBed>(entity);
 
         ecb.RemoveComponent<IsIdle>(entity);
         ecb.RemoveComponent<IsTickListener>(entity);
+
+        ecb.RemoveComponent<IsAttemptingMurder>(entity);
+        ecb.RemoveComponent<TargetSelector>(entity);
     }
 
 
