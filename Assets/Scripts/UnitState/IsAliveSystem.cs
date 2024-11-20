@@ -3,6 +3,7 @@ using UnitBehaviours.Pathing;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace UnitState
@@ -77,6 +78,23 @@ namespace UnitState
                 foreach (var deadUnit in deadUnits)
                 {
                     socialRelationships.ValueRW.Relationships.Remove(deadUnit);
+                    if (deadUnit == socialRelationships.ValueRO.AnnoyingDude)
+                    {
+                        socialRelationships.ValueRW.AnnoyingDude = Entity.Null;
+                    }
+                }
+            }
+
+            // Cleanup TargetFollow targets
+            foreach (var targetFollow in SystemAPI.Query<RefRW<TargetFollow>>())
+            {
+                foreach (var deadUnit in deadUnits)
+                {
+                    if (deadUnit == targetFollow.ValueRO.Target)
+                    {
+                        targetFollow.ValueRW.Target = Entity.Null;
+                        targetFollow.ValueRW.CurrentDistanceToTarget = math.INFINITY;
+                    }
                 }
             }
 

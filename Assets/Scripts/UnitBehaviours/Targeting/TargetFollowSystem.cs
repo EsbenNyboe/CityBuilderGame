@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -20,10 +21,12 @@ namespace UnitBehaviours.Pathing
         }
     }
 
+    [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct TargetFollowSystem : ISystem
     {
         private const float MoveSpeed = 1f;
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);

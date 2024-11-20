@@ -26,7 +26,7 @@ public partial struct PathFollow
 public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
-    private const float AnnoyanceFromBedOccupant = 0.5f;
+    private const float AnnoyanceFromBedOccupant = 10f;
     private const float MoveSpeed = 5f;
 
     public void OnCreate(ref SystemState state)
@@ -144,7 +144,13 @@ public partial struct PathFollowSystem : ISystem
             if (gridManager.IsBed(targetPosition) && gridManager.IsOccupied(targetPosition, entity))
             {
                 gridManager.TryGetOccupant(targetPosition, out var occupant);
-                socialRelationships.ValueRW.Relationships[occupant] -= AnnoyanceFromBedOccupant;
+                var fondnessOfBedOccupant = socialRelationships.ValueRO.Relationships[occupant];
+                fondnessOfBedOccupant -= AnnoyanceFromBedOccupant;
+                socialRelationships.ValueRW.Relationships[occupant] = fondnessOfBedOccupant;
+                if (fondnessOfBedOccupant < -1)
+                {
+                    socialRelationships.ValueRW.AnnoyingDude = occupant;
+                }
             }
 
             GridHelpers.GetXY(targetPosition, out var x, out var y);

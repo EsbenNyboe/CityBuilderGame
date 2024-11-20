@@ -1,4 +1,5 @@
 using UnitAgency;
+using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using UnitState;
 using Unity.Entities;
@@ -27,12 +28,14 @@ namespace UnitBehaviours
                 AddComponent<Villager>(entity);
                 AddComponent<IsAlive>(entity);
                 SetComponentEnabled<IsAlive>(entity, true);
-                AddComponent<QuadrantEntity>(entity);
                 AddComponent<SpawnedUnit>(entity);
 
                 AddComponent<Selectable>(entity);
                 AddComponent<PathPosition>(entity);
                 AddComponent(entity, new PathFollow { PathIndex = -1 });
+
+                AddComponent<QuadrantEntity>(entity);
+                AddComponent<TargetFollow>(entity);
 
                 AddComponent(entity, new SpriteTransform { Position = new float3(), Rotation = quaternion.identity });
                 AddComponent<SpriteSheetAnimation>(entity);

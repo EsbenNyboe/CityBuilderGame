@@ -1,4 +1,5 @@
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitState;
 using Unity.Burst;
@@ -38,12 +39,15 @@ namespace UnitAgency
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            foreach (var (_, pathFollow, inventory, moodSleepiness, entity)
-                     in SystemAPI.Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<MoodSleepiness>>()
+            foreach (var (_, pathFollow, inventory, moodSleepiness, socialRelationships, entity)
+                     in SystemAPI
+                         .Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<MoodSleepiness>,
+                             RefRO<SocialRelationships>>()
                          .WithEntityAccess().WithNone<Pathfinding>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
-                DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, moodSleepiness, entity);
+                DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, moodSleepiness,
+                    socialRelationships, entity);
             }
         }
 
@@ -53,6 +57,7 @@ namespace UnitAgency
             RefRO<PathFollow> pathFollow,
             RefRO<Inventory> inventory,
             RefRO<MoodSleepiness> moodSleepiness,
+            RefRO<SocialRelationships> socialRelationships,
             Entity entity)
         {
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
@@ -60,6 +65,8 @@ namespace UnitAgency
 
             var isSleepy = moodSleepiness.ValueRO.Sleepiness > 0.2f;
             var isMoving = pathFollow.ValueRO.IsMoving();
+            var annoyingDude = socialRelationships.ValueRO.AnnoyingDude;
+            var isAnnoyedAtSomeone = annoyingDude != Entity.Null;
 
             if (HasLogOfWood(inventory.ValueRO))
             {
@@ -68,6 +75,15 @@ namespace UnitAgency
             else if (isMoving)
             {
                 ecb.AddComponent(entity, new IsIdle());
+            }
+            else if (isAnnoyedAtSomeone)
+            {
+                ecb.AddComponent(entity, new IsAttemptingMurder());
+                ecb.SetComponent(entity, new TargetFollow
+                {
+                    Target = annoyingDude,
+                    CurrentDistanceToTarget = math.INFINITY
+                });
             }
             else if (isSleepy)
             {

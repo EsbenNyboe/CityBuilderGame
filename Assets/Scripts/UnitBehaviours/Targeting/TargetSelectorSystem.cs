@@ -1,3 +1,4 @@
+using UnitAgency;
 using UnitBehaviours.Targeting;
 using Unity.Burst;
 using Unity.Collections;
@@ -13,6 +14,7 @@ namespace UnitBehaviours.Pathing
     {
     }
 
+    [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct TargetSelectorSystem : ISystem
     {
         private SystemHandle _quadrantSystemHandle;
@@ -20,6 +22,8 @@ namespace UnitBehaviours.Pathing
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<TargetSelector>();
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _quadrantSystemHandle = state.World.GetExistingSystem(typeof(QuadrantSystem));
             _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<TargetFollow>());
@@ -32,11 +36,16 @@ namespace UnitBehaviours.Pathing
             var entityCount = _entityQuery.CalculateEntityCount();
             var entities = new NativeList<Entity>(entityCount, Allocator.TempJob);
             var positions = new NativeList<float3>(entityCount, Allocator.TempJob);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
                          .WithAll<TargetFollow>())
             {
                 entities.Add(entity);
                 positions.Add(localTransform.ValueRO.Position);
+                // TODO: Add some safe-guard against add/remove-loop:
+                ecb.RemoveComponent<TargetSelector>(entity);
+                ecb.AddComponent<IsDeciding>(entity);
             }
 
             var job = new FindTargetJob

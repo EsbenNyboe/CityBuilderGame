@@ -9,6 +9,7 @@ namespace UnitState
     public struct SocialRelationships : IComponentData
     {
         public NativeHashMap<Entity, float> Relationships;
+        public Entity AnnoyingDude;
     }
 
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
@@ -29,10 +30,31 @@ namespace UnitState
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var existingUnits = _existingUnitsQuery.ToEntityArray(Allocator.TempJob);
+            // EVALUATE EXISTING SOCIAL RELATIONSHIPS
+            EvaluateExistingRelationships(ref state, existingUnits);
+
             // SETUP NEW SOCIAL RELATIONSHIPS
             var ecb = SystemAPI.GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            var existingUnits = _existingUnitsQuery.ToEntityArray(Allocator.TempJob);
+            SetupNewRelationships(ref state, ecb, existingUnits);
+
+            existingUnits.Dispose();
+        }
+
+        private void EvaluateExistingRelationships(ref SystemState state, NativeArray<Entity> existingUnits)
+        {
+            var annoyingDudeJob = new EvaluateAnnoyingDudeJob
+            {
+                ExistingUnits = existingUnits,
+                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
+            }.Schedule(existingUnits.Length, 200);
+            annoyingDudeJob.Complete();
+        }
+
+        private void SetupNewRelationships(ref SystemState state, EntityCommandBuffer ecb,
+            NativeArray<Entity> existingUnits)
+        {
             var spawnedUnits = _spawnedUnitsQuery.ToEntityArray(Allocator.TempJob);
 
             var spawnedUnitJobs = new SetupSpawnedUnitRelationshipsJob
@@ -52,8 +74,30 @@ namespace UnitState
             spawnedUnitJobs.Complete();
             existingUnitJobs.Complete();
 
-            existingUnits.Dispose();
             spawnedUnits.Dispose();
+        }
+
+        [BurstCompile]
+        private struct EvaluateAnnoyingDudeJob : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<Entity> ExistingUnits;
+
+            [NativeDisableContainerSafetyRestriction]
+            public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
+
+            public void Execute(int index)
+            {
+                var socialRelationships = SocialRelationshipsLookup[ExistingUnits[index]];
+
+                var relationships = socialRelationships.Relationships;
+                var annoyingDude = socialRelationships.AnnoyingDude;
+                if (annoyingDude != Entity.Null && relationships[annoyingDude] > -1)
+                {
+                    // He's not annoying anymore
+                    socialRelationships.AnnoyingDude = Entity.Null;
+                    SocialRelationshipsLookup[ExistingUnits[index]] = socialRelationships;
+                }
+            }
         }
 
         [BurstCompile]
