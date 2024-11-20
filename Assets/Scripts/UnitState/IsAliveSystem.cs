@@ -7,6 +7,10 @@ using Unity.Transforms;
 
 namespace UnitState
 {
+    public struct IsAlive : IComponentData, IEnableableComponent
+    {
+    }
+
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial struct IsAliveSystem : ISystem
     {

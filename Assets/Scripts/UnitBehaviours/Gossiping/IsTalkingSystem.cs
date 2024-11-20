@@ -1,4 +1,5 @@
 using UnitAgency;
+using UnitState;
 using Unity.Entities;
 
 namespace UnitBehaviours.Gossiping
@@ -22,7 +23,7 @@ namespace UnitBehaviours.Gossiping
             foreach (var (loneliness, entity) in SystemAPI.Query<RefRO<MoodLoneliness>>().WithAll<IsTalking>()
                          .WithEntityAccess())
             {
-                if (loneliness.ValueRO.Value <= 0)
+                if (loneliness.ValueRO.Loneliness <= 0)
                 {
                     ecb.RemoveComponent<IsTalking>(entity);
                     ecb.AddComponent<IsDeciding>(entity);

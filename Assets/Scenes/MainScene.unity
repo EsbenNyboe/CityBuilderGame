@@ -6064,6 +6064,7 @@ MonoBehaviour:
   DebugSectionSorting: 0
   DebugPathfinding: 0
   DebugPathSearchEmptyCells: 0
+  DebugBedOccupation: 0
   DebugBedSeeking: 0
   DebugTreeSeeking: 0
   DebugPathInvalidation: 0
@@ -7118,7 +7119,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _chopDuration: 2
-  _damagePerChop: 14.78
+  _damagePerChop: 15
   _chopAnimationSize: 0.4
   _chopAnimationIdleTime: 0.729
 --- !u!114 &2042965570

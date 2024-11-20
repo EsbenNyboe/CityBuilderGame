@@ -1,5 +1,9 @@
 using Unity.Entities;
 
+public struct SpawnedUnit : IComponentData
+{
+}
+
 [UpdateInGroup(typeof(LifetimeSystemGroup), OrderLast = true)]
 public partial struct SpawnedUnitSystem : ISystem
 {

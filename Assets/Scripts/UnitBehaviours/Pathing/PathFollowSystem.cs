@@ -7,6 +7,12 @@ using Unity.Transforms;
 using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 
+
+public partial struct PathFollow : IComponentData
+{
+    public int PathIndex;
+}
+
 [UpdateInGroup(typeof(UnitStateSystemGroup))]
 [BurstCompile]
 public partial struct PathFollowSystem : ISystem

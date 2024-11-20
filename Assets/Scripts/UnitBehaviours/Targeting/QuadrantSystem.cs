@@ -7,15 +7,19 @@ using UnityEngine;
 
 namespace UnitBehaviours.Targeting
 {
-    public struct QuadrantData
+    public struct QuadrantEntity : IComponentData
     {
-        public Entity Entity;
-        public float3 Position;
     }
 
     public struct QuadrantDataManager : IComponentData
     {
         public NativeParallelMultiHashMap<int, QuadrantData> QuadrantMultiHashMap;
+    }
+
+    public struct QuadrantData
+    {
+        public Entity Entity;
+        public float3 Position;
     }
 
     [UpdateInGroup(typeof(LifetimeSystemGroup))]

@@ -5,24 +5,29 @@ using Unity.Entities;
 
 namespace UnitState
 {
-    [BurstCompile]
-    public partial struct UpdateLonelinessJob : IJobEntity
+    public struct MoodLoneliness : IComponentData
     {
-        [ReadOnly] public float DeltaTime;
-
-        [UsedImplicitly]
-        public void Execute(ref MoodLoneliness moodLoneliness)
-        {
-            moodLoneliness.Value += DeltaTime;
-        }
+        public float Loneliness;
     }
 
-    partial struct MoodLonelinessSystem : ISystem
+    internal partial struct MoodLonelinessSystem : ISystem
     {
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             new UpdateLonelinessJob { DeltaTime = SystemAPI.Time.DeltaTime }.ScheduleParallel();
+        }
+
+        [BurstCompile]
+        private partial struct UpdateLonelinessJob : IJobEntity
+        {
+            [ReadOnly] public float DeltaTime;
+
+            [UsedImplicitly]
+            public void Execute(ref MoodLoneliness moodLoneliness)
+            {
+                moodLoneliness.Loneliness += DeltaTime;
+            }
         }
     }
 }

@@ -30,9 +30,9 @@ public partial struct IsIdleSystem : ISystem
                 continue;
             }
 
-            if (moodRestlessness.ValueRO.TimeSpentDoingNothing >= MaxIdleTime)
+            if (moodRestlessness.ValueRO.Restlessness >= MaxIdleTime)
             {
-                moodRestlessness.ValueRW.TimeSpentDoingNothing = 0;
+                moodRestlessness.ValueRW.Restlessness = 0;
                 ecb.RemoveComponent<IsIdle>(entity);
                 ecb.AddComponent(entity, new IsDeciding());
             }

@@ -13,6 +13,10 @@ public struct UnitSelection : IComponentData
 {
 }
 
+public struct Selectable : IComponentData
+{
+}
+
 [UpdateBefore(typeof(PathfindingSystem))]
 [UpdateAfter(typeof(PathFollowSystem))]
 [UpdateInGroup(typeof(UnitStateSystemGroup))]

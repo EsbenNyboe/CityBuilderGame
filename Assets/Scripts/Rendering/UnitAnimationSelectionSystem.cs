@@ -1,6 +1,12 @@
 using Unity.Burst;
 using Unity.Entities;
 
+public struct UnitAnimationSelection : IComponentData
+{
+    public int SelectedAnimation;
+    public int CurrentAnimation;
+}
+
 [UpdateInGroup(typeof(AnimationSystemGroup))]
 [UpdateAfter(typeof(UnitAnimationManagerSystem))]
 public partial struct UnitAnimationSelectionSystem : ISystem
