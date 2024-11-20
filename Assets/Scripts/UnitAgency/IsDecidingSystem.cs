@@ -40,7 +40,7 @@ namespace UnitAgency
                 .CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (_, pathFollow, inventory, moodSleepiness, entity)
                      in SystemAPI.Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<MoodSleepiness>>()
-                         .WithEntityAccess().WithNone<PathfindingParams>())
+                         .WithEntityAccess().WithNone<Pathfinding>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
                 DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, moodSleepiness, entity);

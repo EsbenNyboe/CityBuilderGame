@@ -6,6 +6,12 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
+public struct Pathfinding : IComponentData
+{
+    public int2 StartPosition;
+    public int2 EndPosition;
+}
+
 [UpdateInGroup(typeof(UnitStateSystemGroup))]
 [UpdateAfter(typeof(PathFollowSystem))]
 public partial struct PathfindingSystem : ISystem
@@ -40,7 +46,7 @@ public partial struct PathfindingSystem : ISystem
         var currentAmountOfSchedules = 0;
 
         foreach (var (pathfindingParams, pathPosition, pathFollow, entity) in SystemAPI
-                     .Query<RefRO<PathfindingParams>, DynamicBuffer<PathPosition>, RefRW<PathFollow>>()
+                     .Query<RefRO<Pathfinding>, DynamicBuffer<PathPosition>, RefRW<PathFollow>>()
                      .WithEntityAccess())
         {
             if (currentAmountOfSchedules > MaxPathfindingSchedulesPerFrame)
@@ -67,7 +73,7 @@ public partial struct PathfindingSystem : ISystem
             jobHandleList.Add(findPathJob.Schedule());
 
             gridManager.TryClearOccupant(startPosition, entity);
-            entityCommandBuffer.RemoveComponent<PathfindingParams>(entity);
+            entityCommandBuffer.RemoveComponent<Pathfinding>(entity);
         }
 
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);

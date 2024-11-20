@@ -8,6 +8,10 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
+    public struct IsSeekingDropPoint : IComponentData
+    {
+    }
+
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     [BurstCompile]
     public partial struct IsSeekingDropPointSystem : ISystem

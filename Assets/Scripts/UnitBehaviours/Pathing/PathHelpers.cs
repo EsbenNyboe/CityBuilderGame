@@ -11,7 +11,7 @@ public static class PathHelpers
             return false;
         }
 
-        ecb.AddComponent(index, entity, new PathfindingParams
+        ecb.AddComponent(index, entity, new Pathfinding
         {
             StartPosition = new int2(startCell.x, startCell.y),
             EndPosition = new int2(endCell.x, endCell.y)
@@ -27,7 +27,7 @@ public static class PathHelpers
             return false;
         }
 
-        ecb.AddComponent(entity, new PathfindingParams
+        ecb.AddComponent(entity, new Pathfinding
         {
             StartPosition = new int2(startCell.x, startCell.y),
             EndPosition = new int2(endCell.x, endCell.y)

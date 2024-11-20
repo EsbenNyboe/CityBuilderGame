@@ -13,6 +13,14 @@ public partial struct PathFollow : IComponentData
     public int PathIndex;
 }
 
+public partial struct PathFollow
+{
+    public readonly bool IsMoving()
+    {
+        return PathIndex >= 0;
+    }
+}
+
 [UpdateInGroup(typeof(UnitStateSystemGroup))]
 [BurstCompile]
 public partial struct PathFollowSystem : ISystem

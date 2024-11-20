@@ -19,7 +19,7 @@ namespace Statistics
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfDecidingUnits(isDecidingCount);
 
-            var isPathfindingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<PathfindingParams>().Build(this)
+            var isPathfindingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<Pathfinding>().Build(this)
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfPathfindingUnits(isPathfindingCount);
 
