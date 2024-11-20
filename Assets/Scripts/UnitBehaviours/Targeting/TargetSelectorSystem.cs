@@ -9,6 +9,10 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.Pathing
 {
+    public struct TargetSelector : IComponentData
+    {
+    }
+
     public partial struct TargetSelectorSystem : ISystem
     {
         private SystemHandle _quadrantSystemHandle;

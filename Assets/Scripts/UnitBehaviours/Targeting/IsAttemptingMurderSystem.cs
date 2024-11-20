@@ -3,6 +3,10 @@ using Unity.Entities;
 
 namespace UnitBehaviours.Pathing
 {
+    public struct IsAttemptingMurder : IComponentData
+    {
+    }
+
     public partial struct IsAttemptingMurderSystem : ISystem
     {
         private const float AttackRange = 0.5f;
