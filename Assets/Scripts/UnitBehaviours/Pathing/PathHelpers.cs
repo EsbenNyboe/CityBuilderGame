@@ -54,14 +54,14 @@ public static class PathHelpers
             }
         }
 
-        if (startCell.x == endCell.x && startCell.y == endCell.y)
+        if (isDebugging)
         {
-            if (isDebugging)
+            // Are there any downsides to allowing pathfinding, if you're already at your destination?
+            // If you're not centered, I guess it makes sense to pathfind to the center of the cell, right?
+            if (startCell.x == endCell.x && startCell.y == endCell.y)
             {
                 DebugHelper.Log("No need to set a path. Already at destination");
             }
-
-            return true;
         }
 
         return false;
