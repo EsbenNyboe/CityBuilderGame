@@ -9,6 +9,7 @@ namespace UnitBehaviours.Pathing
     public partial struct TargetFollow : IComponentData
     {
         public Entity Target;
+        public float DesiredRange;
         public float CurrentDistanceToTarget;
     }
 
@@ -24,14 +25,22 @@ namespace UnitBehaviours.Pathing
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct TargetFollowSystem : ISystem
     {
-        private const float MoveSpeed = 1f;
+        private const bool IsDebugging = true;
+
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+        }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
             var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
-            foreach (var (targetFollow, localTransform) in
-                     SystemAPI.Query<RefRW<TargetFollow>, RefRW<LocalTransform>>())
+            foreach (var (targetFollow, localTransform, pathFollow, entity) in
+                     SystemAPI.Query<RefRW<TargetFollow>, RefRO<LocalTransform>, RefRO<PathFollow>>()
+                         .WithEntityAccess())
             {
                 if (!targetFollow.ValueRO.TryGetTarget(out var target))
                 {
@@ -46,12 +55,24 @@ namespace UnitBehaviours.Pathing
 
                 var targetPosition = transformLookup[target].Position;
                 var currentPosition = localTransform.ValueRO.Position;
-                var direction = math.normalizesafe(targetPosition - currentPosition);
-                currentPosition += direction * MoveSpeed * SystemAPI.Time.DeltaTime;
-                localTransform.ValueRW.Position = currentPosition;
-                targetFollow.ValueRW.CurrentDistanceToTarget = math.distance(currentPosition, targetPosition);
+                if (IsDebugging)
+                {
+                    Debug.DrawLine(currentPosition, targetPosition, Color.red);
+                }
 
-                Debug.DrawLine(currentPosition, targetPosition, Color.red);
+                // TODO: Make it able to update its path, while moving
+                if (pathFollow.ValueRO.IsMoving())
+                {
+                    continue;
+                }
+
+                var distanceToTarget = math.distance(currentPosition, targetPosition);
+                targetFollow.ValueRW.CurrentDistanceToTarget = distanceToTarget;
+
+                if (distanceToTarget > targetFollow.ValueRO.DesiredRange)
+                {
+                    PathHelpers.TrySetPath(ecb, entity, currentPosition, targetPosition, IsDebugging);
+                }
             }
         }
     }

@@ -82,7 +82,8 @@ namespace UnitAgency
                 ecb.SetComponent(entity, new TargetFollow
                 {
                     Target = annoyingDude,
-                    CurrentDistanceToTarget = math.INFINITY
+                    CurrentDistanceToTarget = math.INFINITY,
+                    DesiredRange = IsAttemptingMurderSystem.AttackRange
                 });
             }
             else if (isSleepy)

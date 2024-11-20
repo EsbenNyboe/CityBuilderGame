@@ -20,6 +20,14 @@ public static class PathHelpers
     }
 
     public static bool TrySetPath(EntityCommandBuffer ecb, Entity entity,
+        float3 startPosition, float3 endPosition, bool isDebugging = false)
+    {
+        var startCell = GridHelpers.GetXY(startPosition);
+        var endCell = GridHelpers.GetXY(endPosition);
+        return TrySetPath(ecb, entity, startCell, endCell, isDebugging);
+    }
+
+    public static bool TrySetPath(EntityCommandBuffer ecb, Entity entity,
         int2 startCell, int2 endCell, bool isDebugging = false)
     {
         if (PathIsRedundant(startCell, endCell, isDebugging))
