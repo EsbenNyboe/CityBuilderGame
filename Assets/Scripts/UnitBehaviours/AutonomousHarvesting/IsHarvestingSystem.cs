@@ -9,14 +9,6 @@ namespace UnitBehaviours.AutonomousHarvesting
 {
     public struct IsHarvesting : IComponentData
     {
-        public readonly int2 Tree;
-        public float TimeUntilNextChop;
-
-        public IsHarvesting(int2 tree)
-        {
-            Tree = tree;
-            TimeUntilNextChop = 0f;
-        }
     }
 
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
@@ -45,25 +37,25 @@ namespace UnitBehaviours.AutonomousHarvesting
             var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
 
-            foreach (var (isHarvesting, localTransform, inventory, entity)
-                     in SystemAPI.Query<RefRW<IsHarvesting>, RefRO<LocalTransform>, RefRW<Inventory>>()
-                         .WithEntityAccess())
+            foreach (var (attackAnimation, inventory, localTransform, entity)
+                     in SystemAPI
+                         .Query<RefRW<AttackAnimation>, RefRW<Inventory>, RefRO<LocalTransform>>()
+                         .WithEntityAccess().WithAll<IsHarvesting>())
             {
-                if (!gridManager.IsDamageable(isHarvesting.ValueRO.Tree))
+                if (!gridManager.IsDamageable(attackAnimation.ValueRO.Target))
                 {
                     ecb.RemoveComponent<IsHarvesting>(entity);
-                    ecb.AddComponent(entity, new IsDeciding());
                     ecb.RemoveComponent<AttackAnimation>(entity);
                     SystemAPI.SetComponent(entity, new SpriteTransform
                     {
                         Position = float3.zero,
                         Rotation = quaternion.identity
                     });
+                    ecb.AddComponent(entity, new IsDeciding());
                     continue;
                 }
 
-                isHarvesting.ValueRW.TimeUntilNextChop -= SystemAPI.Time.DeltaTime;
-                if (isHarvesting.ValueRO.TimeUntilNextChop <= 0)
+                if (attackAnimation.ValueRO.TimeLeft <= 0)
                 {
                     var socialEventEntity = ecb.CreateEntity();
                     ecb.AddComponent(socialEventEntity, new SocialEvent
@@ -78,10 +70,9 @@ namespace UnitBehaviours.AutonomousHarvesting
                         soundManager,
                         ref gridManager,
                         unitBehaviourManager,
-                        isHarvesting.ValueRO.Tree,
-                        localTransform,
+                        attackAnimation.ValueRO.Target,
                         inventory);
-                    isHarvesting.ValueRW.TimeUntilNextChop = attackAnimationManager.AttackDuration;
+                    attackAnimation.ValueRW.TimeLeft = attackAnimationManager.AttackDuration;
                 }
             }
 
@@ -93,7 +84,6 @@ namespace UnitBehaviours.AutonomousHarvesting
             ref GridManager gridManager,
             UnitBehaviourManager unitBehaviourManager,
             int2 treeCoords,
-            RefRO<LocalTransform> localTransform,
             RefRW<Inventory> inventory)
         {
             var treeGridIndex = gridManager.GetIndex(treeCoords);

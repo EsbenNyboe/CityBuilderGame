@@ -1,4 +1,3 @@
-using UnitBehaviours.AutonomousHarvesting;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -7,6 +6,14 @@ using UnityEngine;
 
 public struct AttackAnimation : IComponentData
 {
+    public readonly int2 Target;
+    public float TimeLeft;
+
+    public AttackAnimation(int2 target)
+    {
+        Target = target;
+        TimeLeft = 0;
+    }
 }
 
 [BurstCompile]
@@ -23,26 +30,30 @@ public partial struct AttackAnimationSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         var attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
-        var chopDuration = attackAnimationManager.AttackDuration;
-        var chopSize = attackAnimationManager.AttackAnimationSize;
-        var chopIdleTime = attackAnimationManager.AttackAnimationIdleTime;
 
-        foreach (var (isHarvesting, spriteTransform, localTransform) in SystemAPI
-                     .Query<RefRO<IsHarvesting>, RefRW<SpriteTransform>, RefRO<LocalTransform>>()
-                     .WithPresent<AttackAnimation>())
+        foreach (var (attackAnimation, spriteTransform, localTransform) in SystemAPI
+                     .Query<RefRW<AttackAnimation>, RefRW<SpriteTransform>,
+                         RefRO<LocalTransform>>())
         {
-            DoChopAnimation(ref state, isHarvesting, spriteTransform, localTransform, chopDuration, chopSize,
-                chopIdleTime);
+            DoAttackAnimation(ref state,
+                spriteTransform,
+                attackAnimation,
+                localTransform.ValueRO.Position,
+                attackAnimationManager.AttackDuration,
+                attackAnimationManager.AttackAnimationSize,
+                attackAnimationManager.AttackAnimationIdleTime);
         }
     }
 
-    private void DoChopAnimation(ref SystemState state, RefRO<IsHarvesting> isHarvesting,
+    private void DoAttackAnimation(ref SystemState state,
         RefRW<SpriteTransform> spriteTransform,
-        RefRO<LocalTransform> localTransform, float chopDuration, float chopSize, float chopIdleTime)
+        RefRW<AttackAnimation> attackAnimation,
+        float3 localTransformPosition,
+        float duration, float size, float idleTime)
     {
         // Manage animation state:
-        var timeLeft = isHarvesting.ValueRO.TimeUntilNextChop;
-
+        attackAnimation.ValueRW.TimeLeft -= SystemAPI.Time.DeltaTime;
+        var timeLeft = attackAnimation.ValueRO.TimeLeft;
         if (timeLeft < 0)
         {
             // Now this animation is doing nothing... Someone else will have to clean up this mess, and remove this component! 
@@ -50,18 +61,18 @@ public partial struct AttackAnimationSystem : ISystem
         }
 
         // Calculate animation input:
-        var timeLeftNormalized = timeLeft / chopDuration;
-        var timeLeftBeforeIdling = timeLeftNormalized - chopIdleTime;
-        var timeLeftBeforeIdlingNormalized = math.max(0, timeLeftBeforeIdling) * (1 + chopIdleTime);
+        var timeLeftNormalized = timeLeft / duration;
+        var timeLeftBeforeIdling = timeLeftNormalized - idleTime;
+        var timeLeftBeforeIdlingNormalized = math.max(0, timeLeftBeforeIdling) * (1 + idleTime);
 
         // Calculate animation output:
-        var positionDistanceFromOrigin = timeLeftBeforeIdlingNormalized * chopSize;
+        var positionDistanceFromOrigin = timeLeftBeforeIdlingNormalized * size;
 
-        var chopTargetCell = isHarvesting.ValueRO.Tree;
-        var chopTargetPosition = new float3(chopTargetCell.x, chopTargetCell.y, 0);
-        var chopDirection = ((Vector3)(chopTargetPosition - localTransform.ValueRO.Position)).normalized;
+        var targetCell = attackAnimation.ValueRO.Target;
+        var targetPosition = new float3(targetCell.x, targetCell.y, 0);
+        var attackDirection = ((Vector3)(targetPosition - localTransformPosition)).normalized;
 
-        var spritePositionOffset = positionDistanceFromOrigin * chopDirection;
+        var spritePositionOffset = positionDistanceFromOrigin * attackDirection;
         var angleInDegrees = 0f; // TODO: Set animation-direction here?
         var spriteRotationOffset = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
 

@@ -19,9 +19,9 @@ public partial class AttackAnimationManagerSystem : SystemBase
     {
         SystemAPI.SetSingleton(new AttackAnimationManager
         {
-            AttackDuration = AttackAnimationManagerConfig.ChopDuration(),
-            AttackAnimationSize = AttackAnimationManagerConfig.ChopAnimationSize(),
-            AttackAnimationIdleTime = AttackAnimationManagerConfig.ChopAnimationPostIdleTimeNormalized()
+            AttackDuration = AttackAnimationManagerConfig.Instance.AnimationDuration,
+            AttackAnimationSize = AttackAnimationManagerConfig.Instance.AnimationSize,
+            AttackAnimationIdleTime = AttackAnimationManagerConfig.Instance.AnimationIdleTime
         });
     }
 }

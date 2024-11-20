@@ -7119,9 +7119,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac8d91d1792cc1545b8f18ea4ccc7990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _chopDuration: 2
-  _chopAnimationSize: 0.4
-  _chopAnimationIdleTime: 0.729
+  AnimationDuration: 2
+  AnimationSize: 0.4
+  AnimationIdleTime: 0.729
 --- !u!114 &2042965570
 MonoBehaviour:
   m_ObjectHideFlags: 0
