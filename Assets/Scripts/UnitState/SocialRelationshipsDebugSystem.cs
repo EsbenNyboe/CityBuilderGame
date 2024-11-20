@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -17,6 +18,7 @@ namespace UnitState
             state.EntityManager.AddComponent<SocialRelationshipsDebugSystemData>(state.SystemHandle);
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var settings =

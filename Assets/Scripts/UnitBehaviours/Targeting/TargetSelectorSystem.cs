@@ -15,6 +15,7 @@ namespace UnitBehaviours.Pathing
     }
 
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
+    [DisableAutoCreation]
     public partial struct TargetSelectorSystem : ISystem
     {
         private SystemHandle _quadrantSystemHandle;

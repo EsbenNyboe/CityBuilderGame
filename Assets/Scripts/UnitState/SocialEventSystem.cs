@@ -14,19 +14,20 @@ namespace UnitState
         public float InfluenceRadius;
     }
 
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
+    [UpdateAfter(typeof(IsAliveSystem))]
     public partial struct SocialEventSystem : ISystem
     {
+        private EntityQuery _socialEventQuery;
+
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            _socialEventQuery = state.GetEntityQuery(ComponentType.ReadOnly<SocialEvent>());
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
-
             foreach (var socialEventRefRO in SystemAPI.Query<RefRO<SocialEvent>>())
             {
                 var socialEvent = socialEventRefRO.ValueRO;
@@ -36,16 +37,21 @@ namespace UnitState
                     var distance = Vector3.Distance(localTransform.ValueRO.Position, socialEvent.Position);
                     if (distance < socialEvent.InfluenceRadius)
                     {
-                        socialRelationships.ValueRW.Relationships[socialEvent.Perpetrator] +=
-                            socialEvent.InfluenceAmount;
+                        var relationships = socialRelationships.ValueRO.Relationships;
+                        if (relationships.ContainsKey(socialEvent.Perpetrator))
+                        {
+                            socialRelationships.ValueRW.Relationships[socialEvent.Perpetrator] +=
+                                socialEvent.InfluenceAmount;
+                        }
+                        else
+                        {
+                            Debug.LogError("Social Relationship Not Found");
+                        }
                     }
                 }
             }
 
-            foreach (var (socialEvent, entity) in SystemAPI.Query<RefRO<SocialEvent>>().WithEntityAccess())
-            {
-                ecb.RemoveComponent<SocialEvent>(entity);
-            }
+            state.EntityManager.DestroyEntity(_socialEventQuery);
         }
     }
 }

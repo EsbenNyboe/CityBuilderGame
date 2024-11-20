@@ -6,7 +6,7 @@ public static class PathHelpers
     public static bool TrySetPath(EntityCommandBuffer.ParallelWriter ecb, int index, Entity entity,
         int2 startCell, int2 endCell, bool isDebugging = false)
     {
-        if (PathIsRedundant(startCell, endCell, isDebugging))
+        if (PathIsInvalid(startCell, endCell, isDebugging))
         {
             return false;
         }
@@ -30,7 +30,7 @@ public static class PathHelpers
     public static bool TrySetPath(EntityCommandBuffer ecb, Entity entity,
         int2 startCell, int2 endCell, bool isDebugging = false)
     {
-        if (PathIsRedundant(startCell, endCell, isDebugging))
+        if (PathIsInvalid(startCell, endCell, isDebugging))
         {
             return false;
         }
@@ -43,8 +43,17 @@ public static class PathHelpers
         return true;
     }
 
-    private static bool PathIsRedundant(int2 startCell, int2 endCell, bool isDebugging)
+    private static bool PathIsInvalid(int2 startCell, int2 endCell, bool isDebugging)
     {
+        if (isDebugging)
+        {
+            if (endCell.x < 0 || endCell.x >= GridManagerSystem.Width || endCell.y < 0 ||
+                endCell.y > GridManagerSystem.Height)
+            {
+                DebugHelper.LogError("Path target is out of bounds!");
+            }
+        }
+
         if (startCell.x == endCell.x && startCell.y == endCell.y)
         {
             if (isDebugging)

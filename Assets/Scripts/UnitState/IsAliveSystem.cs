@@ -1,5 +1,6 @@
 using Rendering;
 using UnitBehaviours.Pathing;
+using UnitBehaviours.Targeting;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -31,6 +32,8 @@ namespace UnitState
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            state.Dependency.Complete();
+
             var gridManagerRW = state.EntityManager.GetComponentDataRW<GridManager>(_gridManagerSystemHandle);
             using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
             using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
@@ -94,18 +97,19 @@ namespace UnitState
                     {
                         targetFollow.ValueRW.Target = Entity.Null;
                         targetFollow.ValueRW.CurrentDistanceToTarget = math.INFINITY;
+                        targetFollow.ValueRW.DesiredRange = 0;
                     }
                 }
             }
 
-            // Cleanup alive units targets
-            foreach (var targetFollow in SystemAPI.Query<RefRW<TargetFollow>>())
+            // Cleanup IsMurdering targets
+            foreach (var isMurdering in SystemAPI.Query<RefRW<IsMurdering>>())
             {
                 foreach (var deadUnit in deadUnits)
                 {
-                    if (targetFollow.ValueRO.Target == deadUnit)
+                    if (deadUnit == isMurdering.ValueRO.Target)
                     {
-                        targetFollow.ValueRW.Target = Entity.Null;
+                        isMurdering.ValueRW.Target = Entity.Null;
                     }
                 }
             }

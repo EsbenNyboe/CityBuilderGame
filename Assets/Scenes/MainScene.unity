@@ -7032,6 +7032,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DamagePerChop: 15
+  MoveSpeedWhenAttemptingMurder: 1.1
 --- !u!1 &2052204910
 GameObject:
   m_ObjectHideFlags: 0

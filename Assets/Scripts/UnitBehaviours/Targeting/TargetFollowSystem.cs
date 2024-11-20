@@ -22,11 +22,13 @@ namespace UnitBehaviours.Pathing
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct TargetFollowSystem : ISystem
     {
+        private SystemHandle _gridManagerSystemHandle;
         private const bool IsDebugging = true;
 
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
         }
 
         [BurstCompile]
@@ -34,7 +36,9 @@ namespace UnitBehaviours.Pathing
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
+            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
+
             foreach (var (targetFollow, localTransform, pathFollow, entity) in
                      SystemAPI.Query<RefRW<TargetFollow>, RefRO<LocalTransform>, RefRO<PathFollow>>()
                          .WithEntityAccess())
@@ -68,7 +72,34 @@ namespace UnitBehaviours.Pathing
 
                 if (distanceToTarget > targetFollow.ValueRO.DesiredRange)
                 {
-                    PathHelpers.TrySetPath(ecb, entity, currentPosition, targetPosition, IsDebugging);
+                    var currentCell = GridHelpers.GetXY(currentPosition);
+                    var targetCell = GridHelpers.GetXY(targetPosition);
+
+                    if (gridManager.TryGetClosestValidNeighbourOfTarget(currentCell, entity, targetCell,
+                            out var neighbourCell))
+                    {
+                        // I'll go stand next to my target. 
+                        PathHelpers.TrySetPath(ecb, entity, currentCell, neighbourCell, IsDebugging);
+                    }
+                    else if (gridManager.TryGetNearbyEmptyCellSemiRandom(targetCell, out var nearbyCell) &&
+                             math.distance(currentCell, targetCell) > math.distance(nearbyCell, targetCell))
+                    {
+                        // I'll move a bit closer to my target.
+                        PathHelpers.TrySetPath(ecb, entity, currentCell, nearbyCell, IsDebugging);
+                    }
+                    else
+                    {
+                        // I can't move any closer to my target!
+                        if (IsDebugging)
+                        {
+                            Debug.LogError("I can't move any closer to my target!");
+                        }
+
+                        // I give up...
+                        targetFollow.ValueRW.Target = Entity.Null;
+                        targetFollow.ValueRW.CurrentDistanceToTarget = math.INFINITY;
+                        targetFollow.ValueRW.DesiredRange = 0;
+                    }
                 }
             }
         }

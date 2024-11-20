@@ -32,7 +32,7 @@ namespace UnitBehaviours.Targeting
                          .WithEntityAccess())
             {
                 var target = isMurdering.ValueRO.Target;
-                if (target == Entity.Null || !state.WorldUnmanaged.EntityManager.Exists(target))
+                if (target == Entity.Null)
                 {
                     // My target is already dead.
                     RemoveBehaviour(ecb, entity, attackAnimation);
