@@ -32,7 +32,11 @@ namespace UnitBehaviours
 
                 AddComponent<Selectable>(entity);
                 AddComponent<PathPosition>(entity);
-                AddComponent(entity, new PathFollow { PathIndex = -1 });
+                AddComponent(entity, new PathFollow
+                {
+                    PathIndex = -1,
+                    MoveSpeedMultiplier = 1f
+                });
 
                 AddComponent<QuadrantEntity>(entity);
                 AddComponent<TargetFollow>(entity);

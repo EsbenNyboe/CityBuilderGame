@@ -11,6 +11,13 @@ using ISystem = Unity.Entities.ISystem;
 public partial struct PathFollow : IComponentData
 {
     public int PathIndex;
+    public float MoveSpeedMultiplier;
+
+    public PathFollow (int pathIndex, float moveSpeedMultiplier = 1)
+    {
+        PathIndex = pathIndex;
+        MoveSpeedMultiplier = moveSpeedMultiplier;
+    }
 }
 
 public partial struct PathFollow
@@ -27,7 +34,7 @@ public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
     private const float AnnoyanceFromBedOccupant = 10f;
-    private const float MoveSpeed = 5f;
+    private const float BaseSpeed = 5f;
 
     public void OnCreate(ref SystemState state)
     {
@@ -76,7 +83,7 @@ public partial struct PathFollowSystem : ISystem
                 }
             }
 
-            var moveAmount = MoveSpeed * SystemAPI.Time.DeltaTime;
+            var moveAmount = BaseSpeed * pathFollow.ValueRO.MoveSpeedMultiplier * SystemAPI.Time.DeltaTime;
 
             while (distanceToTarget - moveAmount < 0)
             {
