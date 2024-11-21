@@ -39,12 +39,13 @@ public partial struct PathfindingSystem : ISystem
         var gridHeight = gridManager.Height;
         var gridSize = new int2(gridWidth, gridHeight);
 
-        var findPathJobList = new NativeList<FindPathJob>(Allocator.Temp);
-        var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
-        var entityCommandBuffer = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
 
         var currentAmountOfSchedules = 0;
+        var startCells = new NativeList<int2>(MaxPathfindingSchedulesPerFrame, Allocator.TempJob);
+        var endCells = new NativeList<int2>(MaxPathfindingSchedulesPerFrame, Allocator.TempJob);
+        var entities = new NativeList<Entity>(MaxPathfindingSchedulesPerFrame, Allocator.TempJob);
 
         foreach (var (pathfindingParams, pathPosition, pathFollow, localTransform, entity) in SystemAPI
                      .Query<RefRO<Pathfinding>, DynamicBuffer<PathPosition>, RefRW<PathFollow>, RefRO<LocalTransform>>()
@@ -72,32 +73,35 @@ public partial struct PathfindingSystem : ISystem
             }
             else
             {
-                var findPathJob = new FindPathJob
-                {
-                    WalkableGrid = walkableGrid,
-                    GridSize = gridSize,
-                    StartPosition = startCell,
-                    EndPosition = endCell,
-                    Entity = entity,
-                    PathFollowLookup = SystemAPI.GetComponentLookup<PathFollow>(),
-                    PathPositionLookup = SystemAPI.GetBufferLookup<PathPosition>(),
-                    IsDebugging = isDebugging
-                };
-                findPathJobList.Add(findPathJob);
-                jobHandleList.Add(findPathJob.Schedule());
-
+                startCells.Add(startCell);
+                endCells.Add(endCell);
+                entities.Add(entity);
                 gridManager.TryClearOccupant(startCell, entity);
             }
 
-            entityCommandBuffer.RemoveComponent<Pathfinding>(entity);
+            ecb.RemoveComponent<Pathfinding>(entity);
         }
 
+        var findPathJobParallel = new FindPathJobParallel
+        {
+            WalkableGrid = walkableGrid,
+            GridSize = gridSize,
+            StartPositions = startCells.AsArray(),
+            EndPositions = endCells.AsArray(),
+            Entities = entities.AsArray(),
+            PathFollowLookup = SystemAPI.GetComponentLookup<PathFollow>(),
+            PathPositionLookup = SystemAPI.GetBufferLookup<PathPosition>(),
+            EcbParallelWriter = ecb.AsParallelWriter(),
+            IsDebugging = isDebugging
+        };
+        var jobHandle = findPathJobParallel.Schedule(entities.Length, 10);
+        jobHandle.Complete();
+
+        startCells.Dispose();
+        endCells.Dispose();
+        entities.Dispose();
+
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
-
-        JobHandle.CompleteAll(jobHandleList.AsArray());
-
-        findPathJobList.Dispose();
-        jobHandleList.Dispose();
     }
 
     private static NativeArray<PathNode> GetPathNodeArray(int2 gridSize, NativeArray<WalkableCell> grid)
@@ -186,16 +190,14 @@ public partial struct PathfindingSystem : ISystem
     }
 
     [BurstCompile]
-    private struct FindPathJob : IJob
+    private struct FindPathJobParallel : IJobParallelFor
     {
         [ReadOnly] public NativeArray<WalkableCell> WalkableGrid;
+        [ReadOnly] public int2 GridSize;
 
-        public int2 GridSize;
-
-        public int2 StartPosition;
-        public int2 EndPosition;
-
-        public Entity Entity;
+        [ReadOnly] public NativeArray<int2> StartPositions;
+        [ReadOnly] public NativeArray<int2> EndPositions;
+        [ReadOnly] public NativeArray<Entity> Entities;
 
         [NativeDisableContainerSafetyRestriction]
         public ComponentLookup<PathFollow> PathFollowLookup;
@@ -203,18 +205,23 @@ public partial struct PathfindingSystem : ISystem
         [NativeDisableContainerSafetyRestriction]
         public BufferLookup<PathPosition> PathPositionLookup;
 
+        public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
         [ReadOnly] public bool IsDebugging;
 
-        public void Execute()
+        public void Execute(int index)
         {
+            var entity = Entities[index];
+            var startPosition = StartPositions[index];
+            var endPosition = EndPositions[index];
+
             var pathNodeArray = GetPathNodeArray(GridSize, WalkableGrid);
 
-            FindPath(pathNodeArray);
+            FindPath(pathNodeArray, startPosition, endPosition);
 
-            var pathPosition = PathPositionLookup[Entity];
+            var pathPosition = PathPositionLookup[entity];
             pathPosition.Clear();
 
-            var endNodeIndex = GridHelpers.GetIndex(GridSize.y, EndPosition.x, EndPosition.y);
+            var endNodeIndex = GridHelpers.GetIndex(GridSize.y, endPosition.x, endPosition.y);
             var endNode = pathNodeArray[endNodeIndex];
 
             if (endNode.cameFromNodeIndex == -1)
@@ -223,24 +230,36 @@ public partial struct PathfindingSystem : ISystem
                 if (IsDebugging)
                 {
                     DebugHelper.LogError("Didn't find a path!");
+                    EcbParallelWriter.AddComponent(index, EcbParallelWriter.CreateEntity(index),
+                        new DebugPopupEvent
+                        {
+                            Type = DebugPopupEventType.PathNotFoundStart,
+                            Cell = startPosition
+                        });
+                    EcbParallelWriter.AddComponent(index, EcbParallelWriter.CreateEntity(index),
+                        new DebugPopupEvent
+                        {
+                            Type = DebugPopupEventType.PathNotFoundEnd,
+                            Cell = endPosition
+                        });
                 }
 
-                PathFollowLookup[Entity] = new PathFollow(-1);
+                PathFollowLookup[entity] = new PathFollow(-1);
             }
             else
             {
                 // Found a path
                 CalculatePath(pathNodeArray, endNode, pathPosition);
-                PathFollowLookup[Entity] = new PathFollow(pathPosition.Length - 1);
+                PathFollowLookup[entity] = new PathFollow(pathPosition.Length - 1);
             }
         }
 
-        private void FindPath(NativeArray<PathNode> pathNodeArray)
+        private void FindPath(NativeArray<PathNode> pathNodeArray, int2 startPosition, int2 endPosition)
         {
             for (var i = 0; i < pathNodeArray.Length; i++)
             {
                 var pathNode = pathNodeArray[i];
-                pathNode.hCost = CalculateDistanceCost(pathNode.x, pathNode.y, EndPosition.x, EndPosition.y);
+                pathNode.hCost = CalculateDistanceCost(pathNode.x, pathNode.y, endPosition.x, endPosition.y);
                 pathNode.cameFromNodeIndex = -1;
 
                 pathNodeArray[i] = pathNode;
@@ -265,8 +284,8 @@ public partial struct PathfindingSystem : ISystem
             neighbourOffsetArrayY[6] = -1; // Right Down
             neighbourOffsetArrayY[7] = +1; // Right Up
 
-            var endNodeIndex = GridHelpers.GetIndex(GridSize.y, EndPosition.x, EndPosition.y);
-            var startNodeIndex = GridHelpers.GetIndex(GridSize.y, StartPosition.x, StartPosition.y);
+            var endNodeIndex = GridHelpers.GetIndex(GridSize.y, endPosition.x, endPosition.y);
+            var startNodeIndex = GridHelpers.GetIndex(GridSize.y, startPosition.x, startPosition.y);
 
             var startNode = pathNodeArray[startNodeIndex];
             startNode.gCost = 0;
@@ -352,6 +371,7 @@ public partial struct PathfindingSystem : ISystem
         }
     }
 }
+
 
 public struct PathNode
 {

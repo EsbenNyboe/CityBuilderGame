@@ -16,7 +16,9 @@ namespace Debugging
     public enum DebugPopupEventType
     {
         None,
-        SleepOccupancyIssue
+        SleepOccupancyIssue,
+        PathNotFoundStart,
+        PathNotFoundEnd
     }
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]
@@ -40,7 +42,7 @@ namespace Debugging
                         debugPopupEvent.ValueRO.Type);
                 }
 
-                DebugDrawCell(debugPopupEvent.ValueRO.Cell, Color.red);
+                DebugDrawCell(debugPopupEvent.ValueRO.Cell, GetDebugColor(debugPopupEvent.ValueRO.Type));
                 if (currentTime > debugPopupEvent.ValueRO.TimeWhenCreated + PopupLifetime)
                 {
                     ecb.DestroyEntity(entity);
@@ -61,6 +63,16 @@ namespace Debugging
                 debugPosition + new Vector3(+offset, +offset), color);
             Debug.DrawLine(debugPosition + new Vector3(+0, +offset),
                 debugPosition + new Vector3(+offset, +offset), color);
+        }
+
+        private static Color GetDebugColor(DebugPopupEventType debugPopupEventType)
+        {
+            return debugPopupEventType switch
+            {
+                DebugPopupEventType.PathNotFoundStart => Color.magenta,
+                DebugPopupEventType.PathNotFoundEnd => Color.yellow,
+                _ => Color.red
+            };
         }
     }
 }
