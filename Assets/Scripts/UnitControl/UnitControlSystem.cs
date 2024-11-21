@@ -4,6 +4,8 @@ using CodeMonkey.Utils;
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
+using UnitBehaviours.Talking;
+using UnitBehaviours.Targeting;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -318,7 +320,11 @@ public partial class UnitControlSystem : SystemBase
         ecb.RemoveComponent<IsTickListener>(entity);
 
         ecb.RemoveComponent<IsAttemptingMurder>(entity);
+        ecb.RemoveComponent<IsMurdering>(entity);
         ecb.RemoveComponent<TargetSelector>(entity);
+
+        ecb.RemoveComponent<IsTalkative>(entity);
+        ecb.RemoveComponent<IsTalking>(entity);
     }
 
 
