@@ -33,16 +33,18 @@ namespace Debugging
             var currentTime = SystemAPI.Time.ElapsedTime;
             foreach (var (debugPopupEvent, entity) in SystemAPI.Query<RefRW<DebugPopupEvent>>().WithEntityAccess())
             {
+                var debugColor = GetDebugColor(debugPopupEvent.ValueRO.Type);
+                
                 if (!debugPopupEvent.ValueRO.IsInitialized)
                 {
                     debugPopupEvent.ValueRW.IsInitialized = true;
                     debugPopupEvent.ValueRW.TimeWhenCreated = (float)currentTime;
                     DebugPopupEventManager.Instance.ShowPopup(
                         GridHelpers.GetWorldPosition(debugPopupEvent.ValueRO.Cell), PopupLifetime,
-                        debugPopupEvent.ValueRO.Type);
+                        debugPopupEvent.ValueRO.Type, debugColor);
                 }
 
-                DebugDrawCell(debugPopupEvent.ValueRO.Cell, GetDebugColor(debugPopupEvent.ValueRO.Type));
+                DebugDrawCell(debugPopupEvent.ValueRO.Cell, debugColor);
                 if (currentTime > debugPopupEvent.ValueRO.TimeWhenCreated + PopupLifetime)
                 {
                     ecb.DestroyEntity(entity);

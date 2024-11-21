@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Debugging
 {
@@ -14,11 +15,12 @@ namespace Debugging
             Instance = this;
         }
 
-        public void ShowPopup(Vector3 position, float duration, DebugPopupEventType eventType)
+        public void ShowPopup(Vector3 position, float duration, DebugPopupEventType eventType, Color debugColor)
         {
             var popup = Instantiate(_popupPrefab, _canvas.transform);
             popup.GetComponent<Transform>().position = position;
             popup.GetComponentInChildren<TextMeshProUGUI>().text = eventType.ToString();
+            popup.GetComponentInChildren<Image>().color = debugColor;
             Destroy(popup, duration);
         }
     }
