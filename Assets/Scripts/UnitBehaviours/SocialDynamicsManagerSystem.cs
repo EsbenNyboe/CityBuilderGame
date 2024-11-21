@@ -5,6 +5,7 @@ namespace UnitBehaviours
 {
     public struct SocialDynamicsManager : IComponentData
     {
+        public float NeutralizationFactor;
         public float ThresholdForBecomingAnnoying;
         public float ImpactOnBedBeingOccupied;
         public SocialEventConfig OnUnitAttackTree;
@@ -28,6 +29,7 @@ namespace UnitBehaviours
         {
             var singleton = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var config = SocialDynamicsManagerConfig.Instance;
+            singleton.NeutralizationFactor = config.NeutralizationFactor;
             singleton.ThresholdForBecomingAnnoying = config.ThresholdForBecomingAnnoying;
             singleton.ImpactOnBedBeingOccupied = config.ImpactOnBedBeingOccupied;
             singleton.OnUnitAttackTree = config.OnUnitAttackTree;

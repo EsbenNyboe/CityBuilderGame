@@ -1,52 +1,98 @@
 using Unity.Burst;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
 namespace UnitState
 {
-    public struct SocialRelationshipsDebugSystemData : IComponentData
-    {
-        public bool DrawRelations;
-    }
-
     public partial struct SocialRelationshipsDebugSystem : ISystem
     {
+        private EntityQuery _selectedUnitsQuery;
+        private EntityQuery _allUnitsQuery;
+
         public void OnCreate(ref SystemState state)
         {
-            state.EntityManager.AddComponent<SocialRelationshipsDebugSystemData>(state.SystemHandle);
+            state.RequireForUpdate<SocialDebugManager>();
+            _selectedUnitsQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
+                ComponentType.ReadOnly<SocialRelationships>(), ComponentType.ReadOnly<UnitSelection>());
+            _allUnitsQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
+                ComponentType.ReadOnly<SocialRelationships>());
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var settings =
-                state.EntityManager.GetComponentDataRW<SocialRelationshipsDebugSystemData>(state.SystemHandle);
-
-            if (Input.GetKeyDown(KeyCode.KeypadMultiply))
-            {
-                settings.ValueRW.DrawRelations = !settings.ValueRO.DrawRelations;
-            }
-
-            if (!settings.ValueRO.DrawRelations)
+            var socialDebugManager = SystemAPI.GetSingleton<SocialDebugManager>();
+            if (!socialDebugManager.DrawRelations)
             {
                 return;
             }
 
-            foreach (var (localTransform, socialRelationships) in SystemAPI
-                         .Query<RefRO<LocalTransform>, RefRO<SocialRelationships>>().WithAll<UnitSelection>())
+            ManipulateRelationsLogic(ref state);
+
+            var entities = socialDebugManager.IncludeNonSelections
+                ? _allUnitsQuery.ToEntityArray(Allocator.TempJob)
+                : _selectedUnitsQuery.ToEntityArray(Allocator.TempJob);
+            var drawRelationsJob = new DrawRelationsJob
             {
-                foreach (var relationship in socialRelationships.ValueRO.Relationships)
+                Entities = entities,
+                LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),
+                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
+                SocialDebugManager = socialDebugManager
+            };
+            var jobHandle = drawRelationsJob.Schedule(entities.Length, 1);
+            jobHandle.Complete();
+            entities.Dispose();
+        }
+
+        [BurstCompile]
+        private struct DrawRelationsJob : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<Entity> Entities;
+            [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
+
+            [NativeDisableContainerSafetyRestriction]
+            public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
+
+            [ReadOnly] public SocialDebugManager SocialDebugManager;
+
+            public void Execute(int index)
+            {
+                var socialRelationships = SocialRelationshipsLookup[Entities[index]];
+                var applyFilter = SocialDebugManager.ApplyFilter;
+                var minFondness = SocialDebugManager.FilterSetting.MinFondnessDrawn;
+                var maxFondness = SocialDebugManager.FilterSetting.MaxFondnessDrawn;
+
+                var position = LocalTransformLookup[Entities[index]].Position;
+                foreach (var relationship in socialRelationships.Relationships)
                 {
-                    var otherPosition = SystemAPI.GetComponent<LocalTransform>(relationship.Key).Position;
-                    var position = localTransform.ValueRO.Position;
+                    if (applyFilter && (relationship.Value < minFondness || relationship.Value > maxFondness))
+                    {
+                        continue;
+                    }
+
+                    var otherPosition = LocalTransformLookup[relationship.Key].Position;
                     var direction = math.normalize(otherPosition - position);
                     var cross = math.cross(direction, new float3(0, 0, 0.1f));
                     Debug.DrawLine(position + cross, otherPosition + cross, GetRelationshipColor(relationship.Value));
                 }
             }
 
+            private static Color GetRelationshipColor(float relationshipValue)
+            {
+                return Color.Lerp(
+                    new Color(0.5f, 0.5f, 0.5f, 0f),
+                    relationshipValue > 0 ? Color.green : Color.red,
+                    math.abs(relationshipValue));
+            }
+        }
+
+        private void ManipulateRelationsLogic(ref SystemState state)
+        {
             var mutualFondnessIncrement = 0f;
             if (Input.GetKey(KeyCode.KeypadPlus))
             {
@@ -69,14 +115,6 @@ namespace UnitState
                     }
                 }
             }
-        }
-
-        private Color GetRelationshipColor(float relationshipValue)
-        {
-            return Color.Lerp(
-                new Color(0.5f, 0.5f, 0.5f, 0f),
-                relationshipValue > 0 ? Color.green : Color.red,
-                math.abs(relationshipValue));
         }
     }
 }

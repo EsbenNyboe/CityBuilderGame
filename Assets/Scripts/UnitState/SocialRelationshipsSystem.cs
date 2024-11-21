@@ -21,7 +21,6 @@ namespace UnitState
         private const float EvaluationInterval = 0.1f;
         private const float MinimumFondness = -2f;
         private const float MaximumFondness = 2f;
-        private const float NeutralizationFactor = 0.01f;
 
         private EntityQuery _existingUnitsQuery;
         private EntityQuery _spawnedUnitsQuery;
@@ -59,7 +58,7 @@ namespace UnitState
                 ExistingUnits = existingUnits,
                 SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
                 ThresholdForBecomingAnnoying = socialDynamicsManager.ThresholdForBecomingAnnoying
-            }.Schedule(existingUnits.Length, 200);
+            }.Schedule(existingUnits.Length, 10);
             annoyingDudeJob.Complete();
             var currentTime = (float)SystemAPI.Time.ElapsedTime;
             var timeSinceLastEvaluation = currentTime - _timeOfLastEvaluation;
@@ -72,9 +71,9 @@ namespace UnitState
             var evaluateAllRelationshipsJob = new EvaluateAllRelationshipsJob
             {
                 ExistingUnits = existingUnits,
-                NeutralizationAmount = NeutralizationFactor * timeSinceLastEvaluation,
+                NeutralizationAmount = socialDynamicsManager.NeutralizationFactor * timeSinceLastEvaluation,
                 SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
-            }.Schedule(existingUnits.Length, 200);
+            }.Schedule(existingUnits.Length, 10);
             evaluateAllRelationshipsJob.Complete();
         }
 
@@ -88,14 +87,14 @@ namespace UnitState
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 ExistingUnits = existingUnits,
                 SpawnedUnits = spawnedUnits
-            }.Schedule(spawnedUnits.Length, 200);
+            }.Schedule(spawnedUnits.Length, 10);
 
             var existingUnitJobs = new UpdateExistingRelationshipsJob
             {
                 ExistingUnits = existingUnits,
                 SpawnedUnits = spawnedUnits,
                 SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
-            }.Schedule(existingUnits.Length, 200);
+            }.Schedule(existingUnits.Length, 10);
 
             spawnedUnitJobs.Complete();
             existingUnitJobs.Complete();
