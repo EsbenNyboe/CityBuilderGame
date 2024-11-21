@@ -8,6 +8,7 @@ namespace Statistics
         [SerializeField] private bool _showNumberOfUnits;
         [SerializeField] private bool _showNumberOfDecisions;
         [SerializeField] private bool _showNumberOfPathfindings;
+        [SerializeField] private bool _showNumberOfConversations;
         [SerializeField] private bool _showNumberOfBedSeekers;
         [SerializeField] private bool _showNumberOfTreeSeekers;
         [SerializeField] private bool _showNumberOfDropPointsSeekers;
@@ -20,6 +21,7 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _numberOfUnitsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfDecisionsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfPathfindingsDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfConversationsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfBedSeekersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfTreeSeekersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfDropPointSeekersDisplay;
@@ -39,12 +41,15 @@ namespace Statistics
             _numberOfUnitsDisplay.gameObject.SetActive(_showNumberOfUnits);
             _numberOfDecisionsDisplay.gameObject.SetActive(_showNumberOfDecisions);
             _numberOfPathfindingsDisplay.gameObject.SetActive(_showNumberOfPathfindings);
+            _numberOfConversationsDisplay.gameObject.SetActive(_showNumberOfConversations);
             _numberOfBedSeekersDisplay.gameObject.SetActive(_showNumberOfBedSeekers);
             _numberOfTreeSeekersDisplay.gameObject.SetActive(_showNumberOfTreeSeekers);
             _numberOfDropPointSeekersDisplay.gameObject.SetActive(_showNumberOfDropPointsSeekers);
             _numberOfSleepersDisplay.gameObject.SetActive(_showNumberOfSleepers);
             _numberOfHarvestersDisplay.gameObject.SetActive(_showNumberOfHarvesters);
             _numberOfIdleDisplay.gameObject.SetActive(_showNumberOfIdle);
+            _numberOfTalkativeDisplay.gameObject.SetActive(_showNumberOfTalkative);
+            _numberOfTalkingDisplay.gameObject.SetActive(_showNumberOfTalking);
         }
 
         public void SetNumberOfUnits(int numberOfUnits)
@@ -60,6 +65,12 @@ namespace Statistics
         public void SetNumberOfPathfindingUnits(int isPathfindingCount)
         {
             _numberOfPathfindingsDisplay.SetStatsValue(isPathfindingCount);
+        }
+
+
+        public void SetNumberOfConversationEvents(int conversationEventCount)
+        {
+            _numberOfConversationsDisplay.SetStatsValue(conversationEventCount);
         }
 
         public void SetNumberOfBedSeekingUnits(int isSeekingBedCount)

@@ -24,6 +24,10 @@ namespace Statistics
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfPathfindingUnits(isPathfindingCount);
 
+            var conversationEventCount = new EntityQueryBuilder(Allocator.Temp).WithAll<ConversationEvent>().Build(this)
+                .CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfConversationEvents(conversationEventCount);
+
             var isSeekingBedCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingBed>().Build(this)
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfBedSeekingUnits(isSeekingBedCount);
