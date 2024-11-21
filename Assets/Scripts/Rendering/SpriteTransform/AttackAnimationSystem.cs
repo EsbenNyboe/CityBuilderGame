@@ -6,20 +6,13 @@ using UnityEngine;
 
 public struct AttackAnimation : IComponentData
 {
-    public readonly float2 Target;
+    public float2 Target;
     public float TimeLeft;
     public bool MarkedForDeletion;
 
     public AttackAnimation(int2 target, float timeLeft = 0)
     {
         Target = target;
-        TimeLeft = timeLeft;
-        MarkedForDeletion = false;
-    }
-
-    public AttackAnimation(float3 target, float timeLeft = 0)
-    {
-        Target = new float2(target.x, target.y);
         TimeLeft = timeLeft;
         MarkedForDeletion = false;
     }

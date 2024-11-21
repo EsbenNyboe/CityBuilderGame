@@ -52,17 +52,14 @@ namespace UnitBehaviours.Targeting
                     continue;
                 }
 
-                if (attackAnimation.ValueRO.Target.x < 0)
-                {
-                    // I will start attacking now!
-                    var targetPosition = SystemAPI.GetComponentLookup<LocalTransform>()[target].Position;
-                    SystemAPI.SetComponent(entity, new AttackAnimation(targetPosition));
-                    continue;
-                }
+                var targetPosition = SystemAPI.GetComponentLookup<LocalTransform>()[target].Position;
+                var targetPositionOffset = SystemAPI.GetComponentLookup<SpriteTransform>()[target].Position;
+                attackAnimation.ValueRW.Target = new float2(
+                    targetPosition.x + targetPositionOffset.x,
+                    targetPosition.y + targetPositionOffset.y);
 
                 if (attackAnimation.ValueRO.TimeLeft <= 0)
                 {
-                    var targetPosition = SystemAPI.GetComponentLookup<LocalTransform>()[target].Position;
                     if (math.distance(localTransform.ValueRO.Position, targetPosition) > MaxRange)
                     {
                         // The target moved away! I cannot attack!! 
