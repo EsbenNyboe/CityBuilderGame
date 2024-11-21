@@ -55,12 +55,15 @@ namespace UnitBehaviours.Talking
 
                 // I havent started moving yet...
                 // Find a random nearby person to walk to.
-                var startWorldPosition = localTransform.ValueRO.Position;
+                var position = localTransform.ValueRO.Position;
+                var cell = GridHelpers.GetXY(position);
 
-                var hashMapKey = QuadrantSystem.GetPositionHashMapKey(startWorldPosition);
+                var hashMapKey = QuadrantSystem.GetPositionHashMapKey(position);
+
                 // TODO: Check if seeker entity and target entity are in the same Section
+                var section = gridManager.GetSection(cell);
                 if (!QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap, hashMapKey,
-                        startWorldPosition, entity, out var otherUnit, out _))
+                        section, position, entity, out var otherUnit, out _))
                 {
                     // No people nearby. I'll find a random person to walk to.
                     var index = gridManager.Random.NextInt(0, relationships.ValueRO.Relationships.Count);
@@ -69,10 +72,10 @@ namespace UnitBehaviours.Talking
 
                 var targetPosition = SystemAPI.GetComponent<LocalTransform>(otherUnit).Position;
 
-                var startCell = GridHelpers.GetXY(startWorldPosition);
+
                 var targetCell = GridHelpers.GetXY(targetPosition);
 
-                PathHelpers.TrySetPath(ecb, entity, startCell, targetCell);
+                PathHelpers.TrySetPath(ecb, entity, cell, targetCell);
                 seekingTalkingPartner.ValueRW.HasStartedMoving = true;
             }
         }

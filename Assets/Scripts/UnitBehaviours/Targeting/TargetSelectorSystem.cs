@@ -78,8 +78,9 @@ namespace UnitBehaviours.Pathing
                 var entity = Entities[index];
                 var hashMapKey = QuadrantSystem.GetPositionHashMapKey(position);
 
-                QuadrantSystem.TryFindClosestEntity(QuadrantMultiHashMap, hashMapKey, position,
-                    entity, out var closestTargetEntity, out var closestTargetDistance);
+                // section not implemented..
+                QuadrantSystem.TryFindClosestEntity(QuadrantMultiHashMap, hashMapKey, -1, position,
+                    entity,  out var closestTargetEntity, out var closestTargetDistance);
 
                 TargetFollows[entity] = new TargetFollow
                 {

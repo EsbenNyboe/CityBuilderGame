@@ -90,7 +90,7 @@ public partial struct GridManager
         return GetSection(cell) == GetSection(otherCell);
     }
 
-    private int GetSection(int2 cell)
+    public int GetSection(int2 cell)
     {
         var gridIndex = GetIndex(cell);
         return WalkableGrid[gridIndex].Section;

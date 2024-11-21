@@ -20,12 +20,14 @@ namespace UnitBehaviours.Targeting
     {
         public Entity Entity;
         public float3 Position;
+        public int Section;
     }
 
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct QuadrantSystem : ISystem
     {
         private EntityQuery _entityQuery;
+        private SystemHandle _gridManagerSystemHandle;
         public const int QuadrantYMultiplier = 1000;
         public const int QuadrantCellSize = 5;
 
@@ -33,6 +35,7 @@ namespace UnitBehaviours.Targeting
         {
             _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<QuadrantEntity>());
+            _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
 
             state.EntityManager.AddComponent<QuadrantDataManager>(state.SystemHandle);
             SystemAPI.SetComponent(state.SystemHandle, new QuadrantDataManager
@@ -52,6 +55,7 @@ namespace UnitBehaviours.Targeting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var quadrantMultiHashMap =
                 SystemAPI.GetComponent<QuadrantDataManager>(state.SystemHandle).QuadrantMultiHashMap;
 
@@ -67,7 +71,8 @@ namespace UnitBehaviours.Targeting
 
             new SetQuadrantDataHashMapJob
             {
-                QuadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter()
+                QuadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(),
+                GridManager = gridManager
             }.Schedule(_entityQuery);
         }
 
@@ -114,26 +119,30 @@ namespace UnitBehaviours.Targeting
         private partial struct SetQuadrantDataHashMapJob : IJobEntity
         {
             public NativeParallelMultiHashMap<int, QuadrantData>.ParallelWriter QuadrantMultiHashMap;
+            [ReadOnly] public GridManager GridManager;
 
             public void Execute(in Entity entity, in LocalTransform localTransform)
             {
-                var hashMapKey = GetPositionHashMapKey(localTransform.Position);
+                var position = localTransform.Position;
+                var gridIndex = GridManager.GetIndex(position);
+                var hashMapKey = GetPositionHashMapKey(position);
                 QuadrantMultiHashMap.Add(hashMapKey, new QuadrantData
                 {
                     Entity = entity,
-                    Position = localTransform.Position
+                    Position = position,
+                    Section = GridManager.WalkableGrid[gridIndex].Section
                 });
             }
         }
 
-        public static bool TryFindClosestEntity(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
-            int hashMapKey, float3 position, Entity entity,
+        public static bool TryFindClosestEntity( NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
+            int hashMapKey, int section, float3 position, Entity entity,
             out Entity closestTargetEntity, out float closestTargetDistance)
         {
             closestTargetEntity = Entity.Null;
             closestTargetDistance = float.MaxValue;
             // First check center
-            FindTarget(quadrantMultiHashMap, hashMapKey, position, ref closestTargetEntity,
+            FindTarget(quadrantMultiHashMap, hashMapKey, section, position, ref closestTargetEntity,
                 ref closestTargetDistance, entity);
 
             if (closestTargetEntity != Entity.Null)
@@ -143,27 +152,27 @@ namespace UnitBehaviours.Targeting
             }
 
             // Then search neighbours
-            FindTarget(quadrantMultiHashMap, hashMapKey + 1, position, ref closestTargetEntity,
+            FindTarget(quadrantMultiHashMap, hashMapKey + 1, section, position, ref closestTargetEntity,
                 ref closestTargetDistance, entity);
-            FindTarget(quadrantMultiHashMap, hashMapKey - 1, position, ref closestTargetEntity,
+            FindTarget(quadrantMultiHashMap, hashMapKey - 1, section, position, ref closestTargetEntity,
                 ref closestTargetDistance, entity);
-            FindTarget(quadrantMultiHashMap, hashMapKey + QuadrantYMultiplier,
+            FindTarget(quadrantMultiHashMap, hashMapKey + QuadrantYMultiplier, section,
                 position, ref closestTargetEntity,
                 ref closestTargetDistance, entity);
-            FindTarget(quadrantMultiHashMap, hashMapKey - QuadrantYMultiplier,
+            FindTarget(quadrantMultiHashMap, hashMapKey - QuadrantYMultiplier, section,
                 position, ref closestTargetEntity,
                 ref closestTargetDistance, entity);
             // Then search corners
-            FindTarget(quadrantMultiHashMap, hashMapKey + 1 + QuadrantYMultiplier,
+            FindTarget(quadrantMultiHashMap, hashMapKey + 1 + QuadrantYMultiplier, section,
                 position, ref closestTargetEntity,
                 ref closestTargetDistance, entity);
-            FindTarget(quadrantMultiHashMap, hashMapKey - 1 + QuadrantYMultiplier,
+            FindTarget(quadrantMultiHashMap, hashMapKey - 1 + QuadrantYMultiplier, section,
                 position, ref closestTargetEntity,
                 ref closestTargetDistance, entity);
-            FindTarget(quadrantMultiHashMap, hashMapKey + 1 - QuadrantYMultiplier,
+            FindTarget(quadrantMultiHashMap, hashMapKey + 1 - QuadrantYMultiplier, section,
                 position, ref closestTargetEntity,
                 ref closestTargetDistance, entity);
-            FindTarget(quadrantMultiHashMap, hashMapKey - 1 - QuadrantYMultiplier,
+            FindTarget(quadrantMultiHashMap, hashMapKey - 1 - QuadrantYMultiplier, section,
                 position, ref closestTargetEntity,
                 ref closestTargetDistance, entity);
 
@@ -171,7 +180,7 @@ namespace UnitBehaviours.Targeting
         }
 
         private static void FindTarget(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
-            int hashMapKey,
+            int hashMapKey, int section,
             float3 position, ref Entity closestTargetEntity,
             ref float closestTargetDistance, Entity entity)
         {
@@ -183,7 +192,9 @@ namespace UnitBehaviours.Targeting
                     var distance = math.distance(position, quadrantData.Position);
                     if (distance < closestTargetDistance)
                     {
-                        if (entity != quadrantData.Entity)
+                        // Make sure I'm not targeting myself.
+                        // And that my target and I are in the same walkable section.
+                        if (entity != quadrantData.Entity && section == quadrantData.Section)
                         {
                             closestTargetDistance = distance;
                             closestTargetEntity = quadrantData.Entity;
