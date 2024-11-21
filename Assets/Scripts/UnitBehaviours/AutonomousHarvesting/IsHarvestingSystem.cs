@@ -19,11 +19,12 @@ namespace UnitBehaviours.AutonomousHarvesting
 
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<AttackAnimationManager>();
-            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
             _soundManagerSystemHandle = state.World.GetExistingSystem<DotsSoundManagerSystem>();
+            state.RequireForUpdate<AttackAnimationManager>();
+            state.RequireForUpdate<UnitBehaviourManager>();
+            state.RequireForUpdate<SocialDynamicsManager>();
         }
 
         [BurstCompile]
@@ -34,23 +35,19 @@ namespace UnitBehaviours.AutonomousHarvesting
                 .CreateCommandBuffer(state.WorldUnmanaged);
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var soundManager = SystemAPI.GetComponent<DotsSoundManager>(_soundManagerSystemHandle);
-            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
+            var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
 
             foreach (var (attackAnimation, inventory, localTransform, entity)
                      in SystemAPI
                          .Query<RefRW<AttackAnimation>, RefRW<Inventory>, RefRO<LocalTransform>>()
                          .WithEntityAccess().WithAll<IsHarvesting>())
             {
-                if (!gridManager.IsDamageable(attackAnimation.ValueRO.Target))
+                if (!gridManager.IsDamageable((int2)attackAnimation.ValueRO.Target))
                 {
                     ecb.RemoveComponent<IsHarvesting>(entity);
-                    ecb.RemoveComponent<AttackAnimation>(entity);
-                    SystemAPI.SetComponent(entity, new SpriteTransform
-                    {
-                        Position = float3.zero,
-                        Rotation = quaternion.identity
-                    });
+                    attackAnimation.ValueRW.MarkedForDeletion = true;
                     ecb.AddComponent(entity, new IsDeciding());
                     continue;
                 }
@@ -62,15 +59,15 @@ namespace UnitBehaviours.AutonomousHarvesting
                     {
                         Perpetrator = entity,
                         Position = localTransform.ValueRO.Position,
-                        InfluenceAmount = 0.1f,
-                        InfluenceRadius = 3
+                        InfluenceAmount = socialDynamicsManager.OnUnitAttackTree.InfluenceAmount,
+                        InfluenceRadius = socialDynamicsManager.OnUnitAttackTree.InfluenceRadius
                     });
 
                     ChopTree(ref state,
                         soundManager,
                         ref gridManager,
                         unitBehaviourManager,
-                        attackAnimation.ValueRO.Target,
+                        (int2)attackAnimation.ValueRO.Target,
                         inventory);
                     attackAnimation.ValueRW.TimeLeft = attackAnimationManager.AttackDuration;
                 }

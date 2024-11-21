@@ -1,8 +1,10 @@
-using Rendering;
+using Events;
 using UnitBehaviours.Pathing;
+using UnitBehaviours.Targeting;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace UnitState
@@ -16,15 +18,12 @@ namespace UnitState
     {
         private EntityQuery _deadUnits;
         private SystemHandle _gridManagerSystemHandle;
-        private EntityQuery _deadZombies;
 
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<IsAlive>();
 
-            _deadZombies = new EntityQueryBuilder(Allocator.Temp)
-                .WithDisabled<IsAlive>().WithAll<Zombie>().Build(ref state);
             _deadUnits = new EntityQueryBuilder(Allocator.Temp)
                 .WithDisabled<IsAlive>().WithAll<Child>().Build(ref state);
             _gridManagerSystemHandle = state.World.GetOrCreateSystem<GridManagerSystem>();
@@ -33,6 +32,8 @@ namespace UnitState
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            state.Dependency.Complete();
+
             var gridManagerRW = state.EntityManager.GetComponentDataRW<GridManager>(_gridManagerSystemHandle);
             using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
             using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
@@ -55,7 +56,7 @@ namespace UnitState
             foreach (var localTransform in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>())
             {
                 ecb.AddComponent(ecb.CreateEntity(),
-                    new DeathAnimationEvent { Position = localTransform.ValueRO.Position });
+                    new DeathEvent { Position = localTransform.ValueRO.Position });
             }
 
             // Cleanup grid
@@ -80,17 +81,35 @@ namespace UnitState
                 foreach (var deadUnit in deadUnits)
                 {
                     socialRelationships.ValueRW.Relationships.Remove(deadUnit);
+                    if (deadUnit == socialRelationships.ValueRO.AnnoyingDude)
+                    {
+                        socialRelationships.ValueRW.AnnoyingDude = Entity.Null;
+                    }
                 }
             }
 
-            // Cleanup alive units targets
+            // Cleanup TargetFollow targets
             foreach (var targetFollow in SystemAPI.Query<RefRW<TargetFollow>>())
             {
                 foreach (var deadUnit in deadUnits)
                 {
-                    if (targetFollow.ValueRO.Target == deadUnit)
+                    if (deadUnit == targetFollow.ValueRO.Target)
                     {
                         targetFollow.ValueRW.Target = Entity.Null;
+                        targetFollow.ValueRW.CurrentDistanceToTarget = math.INFINITY;
+                        targetFollow.ValueRW.DesiredRange = 0;
+                    }
+                }
+            }
+
+            // Cleanup IsMurdering targets
+            foreach (var isMurdering in SystemAPI.Query<RefRW<IsMurdering>>())
+            {
+                foreach (var deadUnit in deadUnits)
+                {
+                    if (deadUnit == isMurdering.ValueRO.Target)
+                    {
+                        isMurdering.ValueRW.Target = Entity.Null;
                     }
                 }
             }
@@ -105,7 +124,6 @@ namespace UnitState
             // Destroy dead units
             state.EntityManager.DestroyEntity(deadUnits);
             state.EntityManager.DestroyEntity(deadLogs.AsArray());
-            state.EntityManager.DestroyEntity(_deadZombies);
             state.EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
         }
     }

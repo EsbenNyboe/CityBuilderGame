@@ -1,5 +1,7 @@
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
+using UnitBehaviours.Targeting;
 using UnitState;
 using Unity.Burst;
 using Unity.Entities;
@@ -22,9 +24,11 @@ namespace UnitAgency
     {
         private SystemHandle _gridManagerSystemHandle;
         private EntityQuery _query;
+        private AttackAnimationManager _attackAnimationManager;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
@@ -34,16 +38,19 @@ namespace UnitAgency
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // Following the example at: https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/systems-entity-command-buffer-automatic-playback.html
+            _attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            foreach (var (_, pathFollow, inventory, moodSleepiness, entity)
-                     in SystemAPI.Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<MoodSleepiness>>()
+            foreach (var (_, pathFollow, inventory, moodSleepiness, socialRelationships, entity)
+                     in SystemAPI
+                         .Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<MoodSleepiness>,
+                             RefRO<SocialRelationships>>()
                          .WithEntityAccess().WithNone<Pathfinding>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
-                DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, moodSleepiness, entity);
+                DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, moodSleepiness,
+                    socialRelationships, entity);
             }
         }
 
@@ -53,6 +60,7 @@ namespace UnitAgency
             RefRO<PathFollow> pathFollow,
             RefRO<Inventory> inventory,
             RefRO<MoodSleepiness> moodSleepiness,
+            RefRO<SocialRelationships> socialRelationships,
             Entity entity)
         {
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
@@ -60,6 +68,8 @@ namespace UnitAgency
 
             var isSleepy = moodSleepiness.ValueRO.Sleepiness > 0.2f;
             var isMoving = pathFollow.ValueRO.IsMoving();
+            var annoyingDude = socialRelationships.ValueRO.AnnoyingDude;
+            var isAnnoyedAtSomeone = annoyingDude != Entity.Null;
 
             if (HasLogOfWood(inventory.ValueRO))
             {
@@ -68,6 +78,30 @@ namespace UnitAgency
             else if (isMoving)
             {
                 ecb.AddComponent(entity, new IsIdle());
+            }
+            else if (isAnnoyedAtSomeone)
+            {
+                var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
+                var annoyingDudePosition = transformLookup[annoyingDude].Position;
+                var distanceToTarget = math.distance(unitPosition, annoyingDudePosition);
+                if (distanceToTarget <= IsAttemptingMurderSystem.AttackRange)
+                {
+                    ecb.AddComponent(entity, new IsMurdering
+                    {
+                        Target = annoyingDude
+                    });
+                    ecb.AddComponent(entity, new AttackAnimation(new int2(-1), -1));
+                }
+                else
+                {
+                    ecb.AddComponent(entity, new IsAttemptingMurder());
+                    ecb.SetComponent(entity, new TargetFollow
+                    {
+                        Target = annoyingDude,
+                        CurrentDistanceToTarget = distanceToTarget,
+                        DesiredRange = IsAttemptingMurderSystem.AttackRange
+                    });
+                }
             }
             else if (isSleepy)
             {

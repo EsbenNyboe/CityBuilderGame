@@ -1,0 +1,37 @@
+using System;
+using Unity.Entities;
+
+namespace UnitBehaviours
+{
+    public struct SocialDynamicsManager : IComponentData
+    {
+        public float ThresholdForBecomingAnnoying;
+        public float ImpactOnBedBeingOccupied;
+        public SocialEventConfig OnUnitAttackTree;
+    }
+
+    [Serializable]
+    public struct SocialEventConfig
+    {
+        public float InfluenceAmount;
+        public float InfluenceRadius;
+    }
+
+    public partial class SocialDynamicsManagerSystem : SystemBase
+    {
+        protected override void OnCreate()
+        {
+            EntityManager.CreateSingleton<SocialDynamicsManager>();
+        }
+
+        protected override void OnUpdate()
+        {
+            var singleton = SystemAPI.GetSingleton<SocialDynamicsManager>();
+            var config = SocialDynamicsManagerConfig.Instance;
+            singleton.ThresholdForBecomingAnnoying = config.ThresholdForBecomingAnnoying;
+            singleton.ImpactOnBedBeingOccupied = config.ImpactOnBedBeingOccupied;
+            singleton.OnUnitAttackTree = config.OnUnitAttackTree;
+            SystemAPI.SetSingleton(singleton);
+        }
+    }
+}

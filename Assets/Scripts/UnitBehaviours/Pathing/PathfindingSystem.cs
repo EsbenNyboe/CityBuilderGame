@@ -209,19 +209,13 @@ public partial struct PathfindingSystem : ISystem
                     DebugHelper.LogError("Didn't find a path!");
                 }
 
-                PathFollowLookup[Entity] = new PathFollow
-                {
-                    PathIndex = -1
-                };
+                PathFollowLookup[Entity] = new PathFollow(-1);
             }
             else
             {
                 // Found a path
                 CalculatePath(pathNodeArray, endNode, pathPosition);
-                PathFollowLookup[Entity] = new PathFollow
-                {
-                    PathIndex = pathPosition.Length - 1
-                };
+                PathFollowLookup[Entity] = new PathFollow(pathPosition.Length - 1);
             }
         }
 

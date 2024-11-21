@@ -35,6 +35,9 @@ namespace Debugging
 
             debugToggleManager.ValueRW.DebugTreeSeeking =
                 debugToggleManagerInterface.DebugTreeSeeking;
+
+            debugToggleManager.ValueRW.DebugTargetFollow =
+                debugToggleManagerInterface.DebugTargetFollow;
         }
     }
 
@@ -47,5 +50,6 @@ namespace Debugging
         public bool DebugBedOccupation;
         public bool DebugBedSeeking;
         public bool DebugTreeSeeking;
+        public bool DebugTargetFollow;
     }
 }

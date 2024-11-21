@@ -5,6 +5,8 @@ namespace UnitBehaviours
     public struct UnitBehaviourManager : IComponentData
     {
         public float DamagePerChop;
+        public float DamagePerAttack;
+        public float MoveSpeedWhenAttemptingMurder;
     }
 
     public partial class UnitBehaviourManagerSystem : SystemBase
@@ -16,9 +18,12 @@ namespace UnitBehaviours
 
         protected override void OnUpdate()
         {
-            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
-            unitBehaviourManager.DamagePerChop = UnitBehaviourManagerConfig.Instance.DamagePerChop;
-            SystemAPI.SetSingleton(unitBehaviourManager);
+            var singleton = SystemAPI.GetSingleton<UnitBehaviourManager>();
+            var config = UnitBehaviourManagerConfig.Instance;
+            singleton.DamagePerChop = config.DamagePerChop;
+            singleton.DamagePerAttack = config.DamagePerAttack;
+            singleton.MoveSpeedWhenAttemptingMurder = config.MoveSpeedWhenAttemptingMurder;
+            SystemAPI.SetSingleton(singleton);
         }
     }
 }

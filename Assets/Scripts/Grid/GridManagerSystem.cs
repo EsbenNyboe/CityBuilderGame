@@ -31,14 +31,14 @@ public partial struct GridManager : IComponentData
 public partial class GridManagerSystem : SystemBase
 {
     private const int MaxHealth = 100;
-    private const int width = 105;
-    private const int height = 95;
+    public const int Width = 105;
+    public const int Height = 95;
 
     protected override void OnCreate()
     {
         var gridManager = new GridManager();
-        gridManager.Width = width;
-        gridManager.Height = height;
+        gridManager.Width = Width;
+        gridManager.Height = Height;
 
         CreateGrids(ref gridManager);
         CreateGridSearchHelpers(ref gridManager);
@@ -74,7 +74,7 @@ public partial class GridManagerSystem : SystemBase
     private static void CreateGrids(ref GridManager gridManager)
     {
         gridManager.WalkableGridIsDirty = true;
-        gridManager.WalkableGrid = new NativeArray<WalkableCell>(width * height, Allocator.Persistent);
+        gridManager.WalkableGrid = new NativeArray<WalkableCell>(Width * Height, Allocator.Persistent);
         for (var i = 0; i < gridManager.WalkableGrid.Length; i++)
         {
             var cell = gridManager.WalkableGrid[i];
@@ -85,7 +85,7 @@ public partial class GridManagerSystem : SystemBase
         }
 
         gridManager.DamageableGridIsDirty = true;
-        gridManager.DamageableGrid = new NativeArray<DamageableCell>(width * height, Allocator.Persistent);
+        gridManager.DamageableGrid = new NativeArray<DamageableCell>(Width * Height, Allocator.Persistent);
         for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
         {
             var cell = gridManager.DamageableGrid[i];
@@ -96,7 +96,7 @@ public partial class GridManagerSystem : SystemBase
         }
 
         gridManager.OccupiableGridIsDirty = true;
-        gridManager.OccupiableGrid = new NativeArray<OccupiableCell>(width * height, Allocator.Persistent);
+        gridManager.OccupiableGrid = new NativeArray<OccupiableCell>(Width * Height, Allocator.Persistent);
         for (var i = 0; i < gridManager.OccupiableGrid.Length; i++)
         {
             var cell = gridManager.OccupiableGrid[i];
@@ -106,7 +106,7 @@ public partial class GridManagerSystem : SystemBase
         }
 
         gridManager.InteractableGridIsDirty = true;
-        gridManager.InteractableGrid = new NativeArray<InteractableCell>(width * height, Allocator.Persistent);
+        gridManager.InteractableGrid = new NativeArray<InteractableCell>(Width * Height, Allocator.Persistent);
         for (var i = 0; i < gridManager.InteractableGrid.Length; i++)
         {
             var cell = gridManager.InteractableGrid[i];

@@ -1,4 +1,5 @@
 using Debugging;
+using UnitBehaviours;
 using UnitState;
 using Unity.Burst;
 using Unity.Entities;
@@ -11,6 +12,13 @@ using ISystem = Unity.Entities.ISystem;
 public partial struct PathFollow : IComponentData
 {
     public int PathIndex;
+    public float MoveSpeedMultiplier;
+
+    public PathFollow (int pathIndex, float moveSpeedMultiplier = 1)
+    {
+        PathIndex = pathIndex;
+        MoveSpeedMultiplier = moveSpeedMultiplier;
+    }
 }
 
 public partial struct PathFollow
@@ -26,11 +34,11 @@ public partial struct PathFollow
 public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
-    private const float AnnoyanceFromBedOccupant = 0.5f;
-    private const float MoveSpeed = 5f;
+    private const float BaseSpeed = 5f;
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<SocialDynamicsManager>();
         state.RequireForUpdate<DebugToggleManager>();
         state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
@@ -42,6 +50,7 @@ public partial struct PathFollowSystem : ISystem
         var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
         var isDebuggingPath = debugToggleManager.DebugPathfinding;
         var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
+        var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
 
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
@@ -76,7 +85,7 @@ public partial struct PathFollowSystem : ISystem
                 }
             }
 
-            var moveAmount = MoveSpeed * SystemAPI.Time.DeltaTime;
+            var moveAmount = BaseSpeed * pathFollow.ValueRO.MoveSpeedMultiplier * SystemAPI.Time.DeltaTime;
 
             while (distanceToTarget - moveAmount < 0)
             {
@@ -90,7 +99,11 @@ public partial struct PathFollowSystem : ISystem
                     // I have reached my destination.
                     moveAmount = 0;
                     distanceToTarget = 0;
-                    EndPathFollowing(ref state, ecb, entity, socialRelationships, targetPosition, isDebuggingSearch,
+                    EndPathFollowing(ref state, ecb, entity,
+                        socialRelationships,
+                        socialDynamicsManager,
+                        targetPosition,
+                        isDebuggingSearch,
                         isDebuggingPath);
                 }
                 else
@@ -114,7 +127,7 @@ public partial struct PathFollowSystem : ISystem
             if (moveDirection.x != 0)
             {
                 var angleInDegrees = moveDirection.x > 0 ? 0f : 180f;
-                spriteTransform.ValueRW.Position = Vector3.zero;
+                // spriteTransform.ValueRW.Position = Vector3.zero;
                 spriteTransform.ValueRW.Rotation = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
             }
 
@@ -128,7 +141,8 @@ public partial struct PathFollowSystem : ISystem
     }
 
     private void EndPathFollowing(ref SystemState state, EntityCommandBuffer ecb, Entity entity,
-        RefRW<SocialRelationships> socialRelationships, float3 targetPosition,
+        RefRW<SocialRelationships> socialRelationships, SocialDynamicsManager socialDynamicsManager,
+        float3 targetPosition,
         bool isDebuggingSearch, bool isDebuggingPath)
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
@@ -144,7 +158,13 @@ public partial struct PathFollowSystem : ISystem
             if (gridManager.IsBed(targetPosition) && gridManager.IsOccupied(targetPosition, entity))
             {
                 gridManager.TryGetOccupant(targetPosition, out var occupant);
-                socialRelationships.ValueRW.Relationships[occupant] -= AnnoyanceFromBedOccupant;
+                var fondnessOfBedOccupant = socialRelationships.ValueRO.Relationships[occupant];
+                fondnessOfBedOccupant += socialDynamicsManager.ImpactOnBedBeingOccupied;
+                socialRelationships.ValueRW.Relationships[occupant] = fondnessOfBedOccupant;
+                if (fondnessOfBedOccupant < socialDynamicsManager.ThresholdForBecomingAnnoying)
+                {
+                    socialRelationships.ValueRW.AnnoyingDude = occupant;
+                }
             }
 
             GridHelpers.GetXY(targetPosition, out var x, out var y);

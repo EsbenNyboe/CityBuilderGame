@@ -1,5 +1,7 @@
-using UnitState;
+using UnitAgency;
 using Unity.Entities;
+using Unity.Mathematics;
+using Unity.Transforms;
 
 namespace UnitBehaviours.Pathing
 {
@@ -7,20 +9,63 @@ namespace UnitBehaviours.Pathing
     {
     }
 
+    [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsAttemptingMurderSystem : ISystem
     {
-        private const float AttackRange = 0.5f;
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<UnitBehaviourManager>();
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+        }
+
+        public const float AttackRange = 1.5f;
 
         public void OnUpdate(ref SystemState state)
         {
-            foreach (var (targetFollow, _) in SystemAPI.Query<RefRO<TargetFollow>, RefRO<IsAttemptingMurder>>())
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
+            foreach (var (targetFollow, pathFollow, localTransform, entity) in SystemAPI
+                         .Query<RefRW<TargetFollow>, RefRW<PathFollow>, RefRO<LocalTransform>>()
+                         .WithEntityAccess()
+                         .WithAll<IsAttemptingMurder>())
             {
-                if (targetFollow.ValueRO.Target != Entity.Null &&
-                    targetFollow.ValueRO.CurrentDistanceToTarget < AttackRange)
+                pathFollow.ValueRW.MoveSpeedMultiplier = unitBehaviourManager.MoveSpeedWhenAttemptingMurder;
+
+                if (targetFollow.ValueRO.Target == Entity.Null)
                 {
-                    SystemAPI.SetComponentEnabled<IsAlive>(targetFollow.ValueRO.Target, false);
+                    RemoveBehaviour(ecb, entity, pathFollow);
+                    continue;
                 }
+
+                if (pathFollow.ValueRO.IsMoving())
+                {
+                    continue;
+                }
+
+                if (targetFollow.ValueRO.CurrentDistanceToTarget > targetFollow.ValueRO.DesiredRange)
+                {
+                    // Target is out of reach. I'll wait a bit for TargetFollow to do its thing.
+                    continue;
+                }
+
+                RemoveTarget(targetFollow);
+                RemoveBehaviour(ecb, entity, pathFollow);
             }
+        }
+
+        private static void RemoveTarget(RefRW<TargetFollow> targetFollow)
+        {
+            targetFollow.ValueRW.Target = Entity.Null;
+            targetFollow.ValueRW.CurrentDistanceToTarget = math.INFINITY;
+            targetFollow.ValueRW.DesiredRange = -1;
+        }
+
+        private static void RemoveBehaviour(EntityCommandBuffer ecb, Entity entity, RefRW<PathFollow> pathFollow)
+        {
+            pathFollow.ValueRW.MoveSpeedMultiplier = 1;
+            ecb.RemoveComponent<IsAttemptingMurder>(entity);
+            ecb.AddComponent<IsDeciding>(entity);
         }
     }
 }

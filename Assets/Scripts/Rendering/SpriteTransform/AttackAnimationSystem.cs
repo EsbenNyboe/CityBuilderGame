@@ -6,13 +6,22 @@ using UnityEngine;
 
 public struct AttackAnimation : IComponentData
 {
-    public readonly int2 Target;
+    public readonly float2 Target;
     public float TimeLeft;
+    public bool MarkedForDeletion;
 
-    public AttackAnimation(int2 target)
+    public AttackAnimation(int2 target, float timeLeft = 0)
     {
         Target = target;
-        TimeLeft = 0;
+        TimeLeft = timeLeft;
+        MarkedForDeletion = false;
+    }
+
+    public AttackAnimation(float3 target, float timeLeft = 0)
+    {
+        Target = new float2(target.x, target.y);
+        TimeLeft = timeLeft;
+        MarkedForDeletion = false;
     }
 }
 
@@ -23,29 +32,44 @@ public partial struct AttackAnimationSystem : ISystem
 {
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
         state.RequireForUpdate<AttackAnimationManager>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
+            .CreateCommandBuffer(state.WorldUnmanaged);
         var attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
 
-        foreach (var (attackAnimation, spriteTransform, localTransform) in SystemAPI
+        foreach (var (attackAnimation, spriteTransform, localTransform, entity) in SystemAPI
                      .Query<RefRW<AttackAnimation>, RefRW<SpriteTransform>,
-                         RefRO<LocalTransform>>())
+                         RefRO<LocalTransform>>().WithEntityAccess())
         {
-            DoAttackAnimation(ref state,
-                spriteTransform,
-                attackAnimation,
-                localTransform.ValueRO.Position,
-                attackAnimationManager.AttackDuration,
-                attackAnimationManager.AttackAnimationSize,
-                attackAnimationManager.AttackAnimationIdleTime);
+            if (DoAttackAnimation(ref state,
+                    spriteTransform,
+                    attackAnimation,
+                    localTransform.ValueRO.Position,
+                    attackAnimationManager.AttackDuration,
+                    attackAnimationManager.AttackAnimationSize,
+                    attackAnimationManager.AttackAnimationIdleTime))
+            {
+                continue;
+            }
+
+            if (!attackAnimation.ValueRO.MarkedForDeletion)
+            {
+                continue;
+            }
+
+            spriteTransform.ValueRW.Position = 0;
+            spriteTransform.ValueRW.Rotation = quaternion.identity;
+            ecb.RemoveComponent<AttackAnimation>(entity);
         }
     }
 
-    private void DoAttackAnimation(ref SystemState state,
+    private bool DoAttackAnimation(ref SystemState state,
         RefRW<SpriteTransform> spriteTransform,
         RefRW<AttackAnimation> attackAnimation,
         float3 localTransformPosition,
@@ -54,10 +78,9 @@ public partial struct AttackAnimationSystem : ISystem
         // Manage animation state:
         attackAnimation.ValueRW.TimeLeft -= SystemAPI.Time.DeltaTime;
         var timeLeft = attackAnimation.ValueRO.TimeLeft;
-        if (timeLeft < 0)
+        if (timeLeft <= 0)
         {
-            // Now this animation is doing nothing... Someone else will have to clean up this mess, and remove this component! 
-            return;
+            return false;
         }
 
         // Calculate animation input:
@@ -79,5 +102,6 @@ public partial struct AttackAnimationSystem : ISystem
         // Apply animation output:
         spriteTransform.ValueRW.Position = spritePositionOffset;
         spriteTransform.ValueRW.Rotation = spriteRotationOffset;
+        return true;
     }
 }
