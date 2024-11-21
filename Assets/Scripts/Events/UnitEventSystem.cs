@@ -32,6 +32,7 @@ namespace Events
                          .WithEntityAccess())
             {
                 ParticleEffectManager.Instance.PlayDamageEffect(damageEvent.ValueRO.Position);
+                SpriteEffectManager.Instance.PlayDamageEffect(damageEvent.ValueRO.Position);
                 SoundManager.Instance.PlayDamageSound(damageEvent.ValueRO.Position);
                 ecb.DestroyEntity(entity);
             }

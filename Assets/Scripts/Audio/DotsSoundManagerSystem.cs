@@ -21,7 +21,9 @@ public partial class DotsSoundManagerSystem : SystemBase
         var chopSoundRequests = dotsSoundManager.ChopSoundRequests;
         while (chopSoundRequests.Count > 0)
         {
-            SoundManager.Instance.PlayChopSound(chopSoundRequests.Dequeue());
+            var position = chopSoundRequests.Dequeue();
+            SoundManager.Instance.PlayChopSound(position);
+            SpriteEffectManager.Instance.PlayDamageEffect(position);
         }
 
         var destroyTreeSoundRequests = dotsSoundManager.DestroyTreeSoundRequests;

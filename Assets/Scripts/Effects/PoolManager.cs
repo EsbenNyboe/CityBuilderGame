@@ -92,8 +92,7 @@ public abstract class PoolManager<T> : MonoBehaviour where T : Component
 
     private T CreatePoolItem()
     {
-        var poolObject = Instantiate(_poolItemTemplate, Vector3.zero, Quaternion.identity);
-        poolObject.transform.SetParent(transform);
+        var poolObject = Instantiate(_poolItemTemplate, transform);
         var poolItem = poolObject.GetComponent<T>();
         return poolItem;
     }
