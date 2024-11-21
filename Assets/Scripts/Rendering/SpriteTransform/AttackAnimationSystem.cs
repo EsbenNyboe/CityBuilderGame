@@ -50,7 +50,9 @@ public partial struct AttackAnimationSystem : ISystem
                     localTransform.ValueRO.Position,
                     attackAnimationManager.AttackDuration,
                     attackAnimationManager.AttackAnimationSize,
-                    attackAnimationManager.AttackAnimationIdleTime))
+                    attackAnimationManager.AttackAnimationIdleTime,
+                    out var isIdling) &&
+                !isIdling)
             {
                 continue;
             }
@@ -70,13 +72,14 @@ public partial struct AttackAnimationSystem : ISystem
         RefRW<SpriteTransform> spriteTransform,
         RefRW<AttackAnimation> attackAnimation,
         float3 localTransformPosition,
-        float duration, float size, float idleTime)
+        float duration, float size, float idleTime, out bool isIdling)
     {
         // Manage animation state:
         attackAnimation.ValueRW.TimeLeft -= SystemAPI.Time.DeltaTime;
         var timeLeft = attackAnimation.ValueRO.TimeLeft;
         if (timeLeft <= 0)
         {
+            isIdling = true;
             return false;
         }
 
@@ -99,6 +102,8 @@ public partial struct AttackAnimationSystem : ISystem
         // Apply animation output:
         spriteTransform.ValueRW.Position = spritePositionOffset;
         spriteTransform.ValueRW.Rotation = spriteRotationOffset;
+
+        isIdling = timeLeftBeforeIdlingNormalized == 0;
         return true;
     }
 }
