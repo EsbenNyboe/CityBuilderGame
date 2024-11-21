@@ -3,12 +3,13 @@ using UnityEngine;
 
 public abstract class PoolManager<T> : MonoBehaviour where T : Component
 {
+    [SerializeField] private GameObject _poolItemTemplate;
     [Min(1)] [SerializeField] private int _preferredPoolSize;
     [Min(0)] [SerializeField] private float _poolCleanupInterval;
     private Queue<T> _pool;
     private float _timeOfLatestPoolCleanup;
 
-    private void Start()
+    private void Awake()
     {
         _pool = new Queue<T>();
     }
@@ -25,6 +26,14 @@ public abstract class PoolManager<T> : MonoBehaviour where T : Component
         var numOfItemsToDestroy =
             poolSizeBeforeCleanup <= _preferredPoolSize ? 0 : poolSizeBeforeCleanup - _preferredPoolSize;
         var numOfItemsToCleanup = poolSizeBeforeCleanup;
+
+        if (numOfItemsToDestroy > 0)
+        {
+            Debug.LogWarning("Pool exceeded the preferred size with " +
+                             numOfItemsToDestroy + " pool items. " +
+                             "Consider allocating more space for the pool", gameObject);
+        }
+
         while (numOfItemsToCleanup > 0)
         {
             numOfItemsToCleanup--;
@@ -49,23 +58,21 @@ public abstract class PoolManager<T> : MonoBehaviour where T : Component
 
         if (numOfItemsToDestroy > 0)
         {
-            Debug.LogError("Pool size is too small. It's preferred size is " + _preferredPoolSize +
-                           ", but its required size is " + _pool.Count +
-                           ". Overflow: " + numOfItemsToDestroy);
+            Debug.LogError("Pool cleanup failed. Items that were not destroyed: " + numOfItemsToDestroy);
         }
     }
 
-    protected T GetOrCreatePoolItem(GameObject prefab)
+    public T GetOrCreatePoolItem()
     {
         if (!TryDequeuePoolItem(out var poolItem))
         {
-            poolItem = CreatePoolItem(prefab, transform);
+            poolItem = CreatePoolItem();
         }
 
         return poolItem;
     }
 
-    protected void EnqueuePoolItem(T poolItem, Vector3 position)
+    public void EnqueuePoolItem(T poolItem, Vector3 position)
     {
         poolItem.transform.position = position;
         Play(poolItem);
@@ -83,10 +90,10 @@ public abstract class PoolManager<T> : MonoBehaviour where T : Component
         return true;
     }
 
-    private T CreatePoolItem(GameObject prefab, Transform parent = null)
+    private T CreatePoolItem()
     {
-        var poolObject = Instantiate(prefab, Vector3.zero, Quaternion.identity);
-        poolObject.transform.SetParent(parent ? parent : transform);
+        var poolObject = Instantiate(_poolItemTemplate, Vector3.zero, Quaternion.identity);
+        poolObject.transform.SetParent(transform);
         var poolItem = poolObject.GetComponent<T>();
         return poolItem;
     }

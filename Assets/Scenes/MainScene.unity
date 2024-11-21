@@ -971,6 +971,7 @@ GameObject:
   m_Component:
   - component: {fileID: 219774712}
   - component: {fileID: 219774711}
+  - component: {fileID: 219774713}
   m_Layer: 0
   m_Name: SoundManager
   m_TagString: Untagged
@@ -1007,9 +1008,7 @@ MonoBehaviour:
     PitchVariance: 0.06
   _damageSound: {fileID: 11400000, guid: ac94ad132e7a6174aabaa128246ac099, type: 2}
   _previewSound: {fileID: 11400000, guid: ac94ad132e7a6174aabaa128246ac099, type: 2}
-  _preferredPoolSize: 100
-  _poolCleanupInterval: 1
-  _defaultTemplate: {fileID: 1506610343661268529, guid: 61b715a71611607459fcba32fcfb2760, type: 3}
+  _defaultPoolManager: {fileID: 219774713}
 --- !u!4 &219774712
 Transform:
   m_ObjectHideFlags: 0
@@ -1025,6 +1024,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &219774713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219774709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba43c4d1bb654af78fa987363d92f4b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _poolItemTemplate: {fileID: 1506610343661268529, guid: 61b715a71611607459fcba32fcfb2760, type: 3}
+  _preferredPoolSize: 200
+  _poolCleanupInterval: 5
 --- !u!1 &248984269
 GameObject:
   m_ObjectHideFlags: 0
@@ -1264,6 +1278,53 @@ RectTransform:
   m_AnchoredPosition: {x: -5, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &308826356
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 308826358}
+  - component: {fileID: 308826357}
+  m_Layer: 0
+  m_Name: DeathParticlesPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &308826357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 308826356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aee3afa31f3f4d0c9d2c1202c7cfa5ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _poolItemTemplate: {fileID: 6014855171916078136, guid: c5700d2bb6141db4ca8291d809b542de, type: 3}
+  _preferredPoolSize: 20
+  _poolCleanupInterval: 5
+--- !u!4 &308826358
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 308826356}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1281426571}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &335431595
 GameObject:
   m_ObjectHideFlags: 0
@@ -2837,6 +2898,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 708302825}
   m_CullTransparentMesh: 1
+--- !u!1 &719381205
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 719381207}
+  - component: {fileID: 719381206}
+  m_Layer: 0
+  m_Name: DamageParticlesPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &719381206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 719381205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aee3afa31f3f4d0c9d2c1202c7cfa5ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _poolItemTemplate: {fileID: 6014855171916078136, guid: 3cad03ef4bc3c0c41a56c9362f7232c1, type: 3}
+  _preferredPoolSize: 100
+  _poolCleanupInterval: 2
+--- !u!4 &719381207
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 719381205}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1281426571}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &743217675
 GameObject:
   m_ObjectHideFlags: 0
@@ -4601,7 +4709,9 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 308826358}
+  - {fileID: 719381207}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1281426572
@@ -4616,8 +4726,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecd6a33397924a24996e6ee44afc3f25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _deathEffectPrefab: {fileID: 6014855171916078136, guid: c5700d2bb6141db4ca8291d809b542de, type: 3}
-  _damageEffectPrefab: {fileID: 6014855171916078136, guid: 3cad03ef4bc3c0c41a56c9362f7232c1, type: 3}
+  _deathEffectPoolManager: {fileID: 308826357}
+  _damageEffectPoolManager: {fileID: 719381206}
 --- !u!1 &1302556147
 GameObject:
   m_ObjectHideFlags: 0

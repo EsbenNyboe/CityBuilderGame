@@ -4,16 +4,16 @@ using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class SoundManager : PoolManager<AudioSource>
+public class SoundManager : MonoBehaviour
 {
-    [SerializeField] private GameObject _defaultTemplate;
-
     [SerializeField] private SoundConfig _chopSound;
     [SerializeField] private SoundConfig _destroyTreeSound;
     [SerializeField] private SoundConfig _dieSound;
     [SerializeField] private MultiSoundConfigObject _damageSound;
 
     [SerializeField] private SoundConfigObject _previewSound;
+
+    [SerializeField] private AudioSourcePoolManager _defaultPoolManager;
     public static SoundManager Instance { get; private set; }
 
     private void Awake()
@@ -62,12 +62,12 @@ public class SoundManager : PoolManager<AudioSource>
 
     private void PlayAtPosition(AudioClip clip, float volume, float pitchCenter, float pitchVariance, Vector3 position)
     {
-        var poolItem = GetOrCreatePoolItem(_defaultTemplate);
+        var poolItem = _defaultPoolManager.GetOrCreatePoolItem();
 
         ApplySoundConfig(ref poolItem, clip, volume, pitchCenter, pitchVariance);
         ApplyDebugInfo(ref poolItem, clip);
 
-        EnqueuePoolItem(poolItem, position);
+        _defaultPoolManager.EnqueuePoolItem(poolItem, position);
     }
 
     private void ApplyDebugInfo(ref AudioSource poolItem, AudioClip clip)
@@ -83,16 +83,6 @@ public class SoundManager : PoolManager<AudioSource>
         var pitchMin = pitchCenter - pitchVariance;
         var pitchMax = pitchCenter + pitchVariance;
         poolItem.pitch = Random.Range(pitchMin, pitchMax);
-    }
-
-    protected override bool IsActive(AudioSource poolItem)
-    {
-        return poolItem.isPlaying;
-    }
-
-    protected override void Play(AudioSource poolItem)
-    {
-        poolItem.Play();
     }
 
     [Serializable]
