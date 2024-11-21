@@ -18,7 +18,7 @@ namespace UnitBehaviours.Talking
     public partial struct IsTalkingSystem : ISystem
     {
         private SystemHandle _gridManagerSystemHandle;
-        private const float LonelinessReductionFactor = 2f;
+        private const float LonelinessReductionFactor = 10f;
 
         public void OnCreate(ref SystemState state)
         {
