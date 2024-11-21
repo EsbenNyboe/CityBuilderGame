@@ -54,7 +54,7 @@ namespace UnitAgency
                          .Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<MoodSleepiness>,
                              RefRO<MoodLoneliness>,
                              RefRO<SocialRelationships>>()
-                         .WithEntityAccess().WithNone<Pathfinding>())
+                         .WithEntityAccess().WithNone<Pathfinding>().WithNone<AttackAnimation>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
                 DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, moodSleepiness,

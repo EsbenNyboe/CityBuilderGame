@@ -4,6 +4,10 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
+/// <summary>
+///     When an attack-animation is marked for deletion,
+///     it needs to finish the animation, before the unit can make a new decision.
+/// </summary>
 public struct AttackAnimation : IComponentData
 {
     public float2 Target;

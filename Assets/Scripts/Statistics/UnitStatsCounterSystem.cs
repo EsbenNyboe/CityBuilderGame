@@ -18,7 +18,8 @@ namespace Statistics
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfUnits(unitCount);
 
-            var isDecidingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsDeciding>().Build(this)
+            var isDecidingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsDeciding>()
+                .WithNone<AttackAnimation>().Build(this)
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfDecidingUnits(isDecidingCount);
 
