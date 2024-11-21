@@ -5,6 +5,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UnitBehaviours.Talking
 {
@@ -71,11 +72,20 @@ namespace UnitBehaviours.Talking
                 }
 
                 var targetPosition = SystemAPI.GetComponent<LocalTransform>(otherUnit).Position;
-
-
                 var targetCell = GridHelpers.GetXY(targetPosition);
 
-                PathHelpers.TrySetPath(ecb, entity, cell, targetCell);
+                if (!gridManager.TryGetVacantHorizontalNeighbour(targetCell, out var pathTargetCell))
+                {
+                    if (!gridManager.TryGetClosestVacantCell(cell, targetCell, out pathTargetCell))
+                    {
+                        if (!gridManager.TryGetClosestWalkableCell(targetCell, out pathTargetCell))
+                        {
+                            Debug.LogError("How hard is it to find a talking partner?!");
+                        }
+                    }
+                }
+
+                PathHelpers.TrySetPath(ecb, entity, cell, pathTargetCell);
                 seekingTalkingPartner.ValueRW.HasStartedMoving = true;
             }
         }

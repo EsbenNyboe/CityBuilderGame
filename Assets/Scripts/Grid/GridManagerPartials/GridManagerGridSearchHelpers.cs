@@ -7,6 +7,26 @@ public partial struct GridManager
 {
     #region GridSearchHelpers
 
+    public bool TryGetVacantHorizontalNeighbour(int2 cell, out int2 neighbour)
+    {
+        var leftNeighbour = new int2(cell.x - 1, cell.y);
+        var rightNeighbour = new int2(cell.x + 1, cell.y);
+        if (IsVacantCell(leftNeighbour))
+        {
+            neighbour = leftNeighbour;
+            return true;
+        }
+
+        if (IsVacantCell(rightNeighbour))
+        {
+            neighbour = rightNeighbour;
+            return true;
+        }
+
+        neighbour = -1;
+        return false;
+    }
+
     public bool TryGetNeighbouringTreeCell(int2 center, out int2 neighbouringTreeCell)
     {
         var randomStartIndex = GetSemiRandomIndex(0, 8);
@@ -230,6 +250,40 @@ public partial struct GridManager
         {
             DebugHelper.LogError("No nearby empty cell was found");
         }
+
+        nearbyCell = new int2(-1, -1);
+        return false;
+    }
+
+    public bool TryGetClosestVacantCell(int2 ownCell, int2 targetCell, out int2 nearbyCell, bool includeTarget = true)
+    {
+        if (includeTarget && IsPositionInsideGrid(targetCell) && IsWalkable(targetCell) && !IsOccupied(targetCell))
+        {
+            nearbyCell = targetCell;
+            return true;
+        }
+
+        // TODO: De-prioritize corners, since they have a higher travel-cost
+        for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
+        {
+            var ringStart = RelativePositionRingInfoList[ring].x;
+            var ringEnd = RelativePositionRingInfoList[ring].y;
+
+            for (var i = ringStart; i < ringEnd; i++)
+            {
+                var relativePosition = targetCell + RelativePositionList[i];
+                if (IsPositionInsideGrid(relativePosition) &&
+                    IsWalkable(relativePosition) &&
+                    !IsOccupied(relativePosition) &&
+                    IsMatchingSection(relativePosition, ownCell))
+                {
+                    nearbyCell = relativePosition;
+                    return true;
+                }
+            }
+        }
+
+        DebugHelper.LogError("No nearby vacant cell was found");
 
         nearbyCell = new int2(-1, -1);
         return false;

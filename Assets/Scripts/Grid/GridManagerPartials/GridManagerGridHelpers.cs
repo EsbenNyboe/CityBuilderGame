@@ -95,7 +95,7 @@ public partial struct GridManager
         return IsPositionInsideGrid(cell) && IsWalkable(cell) && !IsOccupied(cell) && !IsInteractable(cell);
     }
 
-    private bool IsVacantCell(int2 cell, Entity askingEntity)
+    private bool IsVacantCell(int2 cell, Entity askingEntity = default)
     {
         return IsPositionInsideGrid(cell) && IsWalkable(cell) && !IsOccupied(cell, askingEntity);
     }
