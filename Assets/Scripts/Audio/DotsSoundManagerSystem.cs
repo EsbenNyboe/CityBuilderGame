@@ -23,7 +23,6 @@ public partial class DotsSoundManagerSystem : SystemBase
         {
             var position = chopSoundRequests.Dequeue();
             SoundManager.Instance.PlayChopSound(position);
-            SpriteEffectManager.Instance.PlayDamageEffect(position);
         }
 
         var destroyTreeSoundRequests = dotsSoundManager.DestroyTreeSoundRequests;
