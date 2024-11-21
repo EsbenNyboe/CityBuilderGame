@@ -39,7 +39,8 @@ namespace UnitState
             {
                 Entities = entities,
                 LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),
-                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
+                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
+                SocialDebugManager = socialDebugManager
             };
             var jobHandle = drawRelationsJob.Schedule(entities.Length, 200);
             jobHandle.Complete();
@@ -55,13 +56,23 @@ namespace UnitState
             [NativeDisableContainerSafetyRestriction]
             public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
 
+            [ReadOnly] public SocialDebugManager SocialDebugManager;
+
             public void Execute(int index)
             {
                 var socialRelationships = SocialRelationshipsLookup[Entities[index]];
+                var applyFilter = SocialDebugManager.ApplyFilter;
+                var minFondness = SocialDebugManager.FilterSetting.MinFondnessDrawn;
+                var maxFondness = SocialDebugManager.FilterSetting.MaxFondnessDrawn;
 
                 var position = LocalTransformLookup[Entities[index]].Position;
                 foreach (var relationship in socialRelationships.Relationships)
                 {
+                    if (applyFilter && (relationship.Value < minFondness || relationship.Value > maxFondness))
+                    {
+                        continue;
+                    }
+
                     var otherPosition = LocalTransformLookup[relationship.Key].Position;
                     var direction = math.normalize(otherPosition - position);
                     var cross = math.cross(direction, new float3(0, 0, 0.1f));
