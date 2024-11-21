@@ -1,7 +1,9 @@
 using UnitAgency;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
+using UnitBehaviours.Targeting;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -60,6 +62,15 @@ namespace Statistics
             var isTalkingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsTalking>().Build(this)
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfTalkingUnits(isTalkingCount);
+
+            var isAttemptingMurderCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsAttemptingMurder>()
+                .Build(this)
+                .CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfIsAttemptingMurder(isAttemptingMurderCount);
+
+            var isMurderingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsMurdering>().Build(this)
+                .CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfIsMurdering(isMurderingCount);
         }
     }
 }

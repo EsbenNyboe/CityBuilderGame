@@ -17,6 +17,8 @@ namespace Statistics
         [SerializeField] private bool _showNumberOfIdle;
         [SerializeField] private bool _showNumberOfTalkative;
         [SerializeField] private bool _showNumberOfTalking;
+        [SerializeField] private bool _showNumberOfIsAttemptingMurder;
+        [SerializeField] private bool _showNumberOfIsMurdering;
 
         [SerializeField] private UnitStatsDisplay _numberOfUnitsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfDecisionsDisplay;
@@ -30,6 +32,8 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _numberOfIdleDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfTalkativeDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfTalkingDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfIsAttemptingMurderDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfIsMurderingDisplay;
 
         private void Awake()
         {
@@ -50,6 +54,8 @@ namespace Statistics
             _numberOfIdleDisplay.gameObject.SetActive(_showNumberOfIdle);
             _numberOfTalkativeDisplay.gameObject.SetActive(_showNumberOfTalkative);
             _numberOfTalkingDisplay.gameObject.SetActive(_showNumberOfTalking);
+            _numberOfIsAttemptingMurderDisplay.gameObject.SetActive(_showNumberOfIsAttemptingMurder);
+            _numberOfIsMurderingDisplay.gameObject.SetActive(_showNumberOfIsMurdering);
         }
 
         public void SetNumberOfUnits(int numberOfUnits)
@@ -111,6 +117,16 @@ namespace Statistics
         public void SetNumberOfTalkingUnits(int isTalkingCount)
         {
             _numberOfTalkingDisplay.SetStatsValue(isTalkingCount);
+        }
+
+        public void SetNumberOfIsAttemptingMurder(int isAttemptingMurderCount)
+        {
+            _numberOfIsAttemptingMurderDisplay.SetStatsValue(isAttemptingMurderCount);
+        }
+
+        public void SetNumberOfIsMurdering(int isMurderingCount)
+        {
+            _numberOfIsMurderingDisplay.SetStatsValue(isMurderingCount);
         }
     }
 }
