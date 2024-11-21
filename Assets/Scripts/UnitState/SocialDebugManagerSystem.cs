@@ -6,7 +6,7 @@ namespace UnitState
     public struct SocialDebugManager : IComponentData
     {
         public bool DrawRelations;
-        public bool ExcludeNonSelections;
+        public bool IncludeNonSelections;
         public bool ApplyFilter;
         public DrawRelationsFilter FilterSetting;
     }
@@ -31,7 +31,7 @@ namespace UnitState
             var config = SocialDebugManagerConfig.Instance;
 
             singleton.DrawRelations = config.DrawRelations;
-            singleton.ExcludeNonSelections = config.ExcludeNonSelections;
+            singleton.IncludeNonSelections = config.IncludeNonSelections;
             singleton.ApplyFilter = config.ApplyFilter;
             singleton.FilterSetting = config.FilterSetting;
 

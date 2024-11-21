@@ -7,7 +7,7 @@ namespace UnitState
         public static SocialDebugManagerConfig Instance;
 
         public bool DrawRelations;
-        public bool ExcludeNonSelections = true;
+        public bool IncludeNonSelections = true;
         public bool ApplyFilter;
         public DrawRelationsFilter FilterSetting;
 

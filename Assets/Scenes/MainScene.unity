@@ -4417,6 +4417,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DrawRelations: 1
+  IncludeNonSelections: 1
+  ApplyFilter: 1
+  FilterSetting:
+    MinFondnessDrawn: -2
+    MaxFondnessDrawn: 2
 --- !u!114 &1176266412
 MonoBehaviour:
   m_ObjectHideFlags: 0

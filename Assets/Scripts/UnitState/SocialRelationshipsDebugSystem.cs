@@ -34,7 +34,9 @@ namespace UnitState
 
             ManipulateRelationsLogic(ref state);
 
-            var entities = _selectedUnitsQuery.ToEntityArray(Allocator.TempJob);
+            var entities = socialDebugManager.IncludeNonSelections
+                ? _allUnitsQuery.ToEntityArray(Allocator.TempJob)
+                : _selectedUnitsQuery.ToEntityArray(Allocator.TempJob);
             var drawRelationsJob = new DrawRelationsJob
             {
                 Entities = entities,
