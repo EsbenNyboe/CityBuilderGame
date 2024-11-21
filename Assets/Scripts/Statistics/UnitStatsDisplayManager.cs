@@ -17,6 +17,7 @@ namespace Statistics
         [SerializeField] private bool _showNumberOfIdle;
         [SerializeField] private bool _showNumberOfTalkative;
         [SerializeField] private bool _showNumberOfTalking;
+        [SerializeField] private bool _showNumberOfIsSeekingTalkingPartner;
         [SerializeField] private bool _showNumberOfIsAttemptingMurder;
         [SerializeField] private bool _showNumberOfIsMurdering;
 
@@ -32,6 +33,7 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _numberOfIdleDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfTalkativeDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfTalkingDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfIsSeekingTalkingPartnerDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfIsAttemptingMurderDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfIsMurderingDisplay;
 
@@ -54,6 +56,7 @@ namespace Statistics
             _numberOfIdleDisplay.gameObject.SetActive(_showNumberOfIdle);
             _numberOfTalkativeDisplay.gameObject.SetActive(_showNumberOfTalkative);
             _numberOfTalkingDisplay.gameObject.SetActive(_showNumberOfTalking);
+            _numberOfIsSeekingTalkingPartnerDisplay.gameObject.SetActive(_showNumberOfIsSeekingTalkingPartner);
             _numberOfIsAttemptingMurderDisplay.gameObject.SetActive(_showNumberOfIsAttemptingMurder);
             _numberOfIsMurderingDisplay.gameObject.SetActive(_showNumberOfIsMurdering);
         }
@@ -109,14 +112,19 @@ namespace Statistics
             _numberOfIdleDisplay.SetStatsValue(isIdleCount);
         }
 
-        public void SetNumberOfTalkativeUnits(int isTalkativeCount)
+        public void SetNumberOfIsTalkative(int isTalkativeCount)
         {
             _numberOfTalkativeDisplay.SetStatsValue(isTalkativeCount);
         }
 
-        public void SetNumberOfTalkingUnits(int isTalkingCount)
+        public void SetNumberOfIsTalking(int isTalkingCount)
         {
             _numberOfTalkingDisplay.SetStatsValue(isTalkingCount);
+        }
+
+        public void SetNumberOfIsSeekingTalkingPartner(int isSeekingTalkingPartnerCount)
+        {
+            _numberOfIsSeekingTalkingPartnerDisplay.SetStatsValue(isSeekingTalkingPartnerCount);
         }
 
         public void SetNumberOfIsAttemptingMurder(int isAttemptingMurderCount)

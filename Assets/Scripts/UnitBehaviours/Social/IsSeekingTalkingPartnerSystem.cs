@@ -1,4 +1,5 @@
 ﻿using UnitAgency;
+using UnitBehaviours.Targeting;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
@@ -21,6 +22,7 @@ namespace UnitBehaviours.Talking
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
         }
@@ -28,8 +30,10 @@ namespace UnitBehaviours.Talking
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecb = GetEntityCommandBuffer(ref state);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
 
             foreach (var (localTransform, relationships, pathFollow, seekingTalkingPartner, entity) in SystemAPI
                          .Query<RefRO<LocalTransform>, RefRW<SocialRelationships>, RefRO<PathFollow>,
@@ -50,26 +54,27 @@ namespace UnitBehaviours.Talking
                 }
 
                 // I havent started moving yet...
-                // Find a random person to walk to (this will be biased towards populated areas)
-                var index = gridManager.Random.NextInt(0, relationships.ValueRO.Relationships.Count);
-                var otherUnit = relationships.ValueRW.Relationships.GetKeyArray(Allocator.Temp)[index];
-
-                var targetWorldPosition = SystemAPI.GetComponent<LocalTransform>(otherUnit).Position;
+                // Find a random nearby person to walk to.
                 var startWorldPosition = localTransform.ValueRO.Position;
 
-                var startPosition = GridHelpers.GetXY(startWorldPosition);
-                var targetPosition = GridHelpers.GetXY(targetWorldPosition);
+                var hashMapKey = QuadrantSystem.GetPositionHashMapKey(startWorldPosition);
+                // TODO: Check if seeker entity and target entity are in the same Section
+                if (!QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap, hashMapKey,
+                        startWorldPosition, entity, out var otherUnit, out _))
+                {
+                    // No people nearby. I'll find a random person to walk to.
+                    var index = gridManager.Random.NextInt(0, relationships.ValueRO.Relationships.Count);
+                    otherUnit = relationships.ValueRW.Relationships.GetKeyArray(Allocator.Temp)[index];
+                }
 
-                PathHelpers.TrySetPath(ecb, entity, startPosition, targetPosition);
+                var targetPosition = SystemAPI.GetComponent<LocalTransform>(otherUnit).Position;
+
+                var startCell = GridHelpers.GetXY(startWorldPosition);
+                var targetCell = GridHelpers.GetXY(targetPosition);
+
+                PathHelpers.TrySetPath(ecb, entity, startCell, targetCell);
                 seekingTalkingPartner.ValueRW.HasStartedMoving = true;
             }
-        }
-
-        [BurstCompile]
-        private EntityCommandBuffer GetEntityCommandBuffer(ref SystemState state)
-        {
-            var ecbSingleton = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>();
-            return ecbSingleton.CreateCommandBuffer(state.WorldUnmanaged);
         }
     }
 }

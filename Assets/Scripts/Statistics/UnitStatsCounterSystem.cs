@@ -58,11 +58,15 @@ namespace Statistics
 
             var isTalkativeCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsTalkative>().Build(this)
                 .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfTalkativeUnits(isTalkativeCount);
+            UnitStatsDisplayManager.Instance.SetNumberOfIsTalkative(isTalkativeCount);
 
             var isTalkingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsTalking>().Build(this)
                 .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfTalkingUnits(isTalkingCount);
+            UnitStatsDisplayManager.Instance.SetNumberOfIsTalking(isTalkingCount);
+
+            var isSeekingTalkingPartnerCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingTalkingPartner>().Build(this)
+                .CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfIsSeekingTalkingPartner(isSeekingTalkingPartnerCount);
 
             var isAttemptingMurderCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsAttemptingMurder>()
                 .Build(this)

@@ -49,16 +49,23 @@ namespace UnitAgency
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            foreach (var (_, pathFollow, inventory, moodSleepiness, moodLoneliness, socialRelationships, entity)
+            foreach (var (_, pathFollow,
+                         inventory,
+                         socialRelationships,
+                         moodSleepiness,
+                         moodLoneliness,
+                         moodInitiative,
+                         entity)
                      in SystemAPI
-                         .Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<MoodSleepiness>,
+                         .Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<SocialRelationships>,
+                             RefRO<MoodSleepiness>,
                              RefRO<MoodLoneliness>,
-                             RefRO<SocialRelationships>>()
+                             RefRW<MoodInitiative>>()
                          .WithEntityAccess().WithNone<Pathfinding>().WithNone<AttackAnimation>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
-                DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, moodSleepiness,
-                    moodLoneliness, socialRelationships, entity);
+                DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, socialRelationships,
+                    moodSleepiness, moodLoneliness, moodInitiative, entity);
             }
         }
 
@@ -67,9 +74,10 @@ namespace UnitAgency
             EntityCommandBuffer ecb,
             RefRO<PathFollow> pathFollow,
             RefRO<Inventory> inventory,
+            RefRO<SocialRelationships> socialRelationships,
             RefRO<MoodSleepiness> moodSleepiness,
             RefRO<MoodLoneliness> moodLoneliness,
-            RefRO<SocialRelationships> socialRelationships,
+            RefRW<MoodInitiative> moodInitiative,
             Entity entity)
         {
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
@@ -145,6 +153,11 @@ namespace UnitAgency
                         Initiator = entity,
                         Target = neighbourEntity
                     });
+                }
+                else if (moodInitiative.ValueRO.HasInitiative())
+                {
+                    moodInitiative.ValueRW.UseInitiative();
+                    ecb.AddComponent(entity, new IsSeekingTalkingPartner());
                 }
                 else
                 {

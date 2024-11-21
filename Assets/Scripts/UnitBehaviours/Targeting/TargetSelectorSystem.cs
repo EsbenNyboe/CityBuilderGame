@@ -77,61 +77,15 @@ namespace UnitBehaviours.Pathing
                 var position = Positions[index];
                 var entity = Entities[index];
                 var hashMapKey = QuadrantSystem.GetPositionHashMapKey(position);
-                var closestTargetEntity = Entity.Null;
-                var closestTargetDistance = float.MaxValue;
 
-                // First check center
-                FindTarget(hashMapKey, position, ref closestTargetEntity,
-                    ref closestTargetDistance, entity);
-                // Then search neighbours
-                FindTarget(hashMapKey + 1, position, ref closestTargetEntity,
-                    ref closestTargetDistance, entity);
-                FindTarget(hashMapKey - 1, position, ref closestTargetEntity,
-                    ref closestTargetDistance, entity);
-                FindTarget(hashMapKey + QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance, entity);
-                FindTarget(hashMapKey - QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance, entity);
-                // Then search corners
-                FindTarget(hashMapKey + 1 + QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance, entity);
-                FindTarget(hashMapKey - 1 + QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance, entity);
-                FindTarget(hashMapKey + 1 - QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance, entity);
-                FindTarget(hashMapKey - 1 - QuadrantSystem.QuadrantYMultiplier, position, ref closestTargetEntity,
-                    ref closestTargetDistance, entity);
+                QuadrantSystem.TryFindClosestEntity(QuadrantMultiHashMap, hashMapKey, position,
+                    entity, out var closestTargetEntity, out var closestTargetDistance);
 
                 TargetFollows[entity] = new TargetFollow
                 {
                     Target = closestTargetEntity,
                     CurrentDistanceToTarget = closestTargetDistance
                 };
-            }
-
-            private void FindTarget(int hashMapKey, float3 position, ref Entity closestTargetEntity,
-                ref float closestTargetDistance, Entity entity)
-            {
-                QuadrantData quadrantData;
-                NativeParallelMultiHashMapIterator<int> nativeParallelMultiHashMapIterator;
-                if (QuadrantMultiHashMap.TryGetFirstValue(hashMapKey, out quadrantData,
-                        out nativeParallelMultiHashMapIterator))
-                {
-                    do
-                    {
-                        var distance = math.distance(position, quadrantData.Position);
-                        if (distance < closestTargetDistance)
-                        {
-                            // Don't kill yourself, plz
-                            if (entity != quadrantData.Entity)
-                            {
-                                closestTargetDistance = distance;
-                                closestTargetEntity = quadrantData.Entity;
-                            }
-                        }
-                    } while (QuadrantMultiHashMap.TryGetNextValue(out quadrantData,
-                                 ref nativeParallelMultiHashMapIterator));
-                }
             }
         }
     }

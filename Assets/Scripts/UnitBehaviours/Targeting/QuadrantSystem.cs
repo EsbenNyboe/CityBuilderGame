@@ -125,5 +125,73 @@ namespace UnitBehaviours.Targeting
                 });
             }
         }
+
+        public static bool TryFindClosestEntity(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
+            int hashMapKey, float3 position, Entity entity,
+            out Entity closestTargetEntity, out float closestTargetDistance)
+        {
+            closestTargetEntity = Entity.Null;
+            closestTargetDistance = float.MaxValue;
+            // First check center
+            FindTarget(quadrantMultiHashMap, hashMapKey, position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+
+            if (closestTargetEntity != Entity.Null)
+            {
+                // No need to search neighbours
+                return true;
+            }
+
+            // Then search neighbours
+            FindTarget(quadrantMultiHashMap, hashMapKey + 1, position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindTarget(quadrantMultiHashMap, hashMapKey - 1, position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindTarget(quadrantMultiHashMap, hashMapKey + QuadrantYMultiplier,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindTarget(quadrantMultiHashMap, hashMapKey - QuadrantYMultiplier,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            // Then search corners
+            FindTarget(quadrantMultiHashMap, hashMapKey + 1 + QuadrantYMultiplier,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindTarget(quadrantMultiHashMap, hashMapKey - 1 + QuadrantYMultiplier,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindTarget(quadrantMultiHashMap, hashMapKey + 1 - QuadrantYMultiplier,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindTarget(quadrantMultiHashMap, hashMapKey - 1 - QuadrantYMultiplier,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+
+            return closestTargetEntity != Entity.Null;
+        }
+
+        private static void FindTarget(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
+            int hashMapKey,
+            float3 position, ref Entity closestTargetEntity,
+            ref float closestTargetDistance, Entity entity)
+        {
+            if (quadrantMultiHashMap.TryGetFirstValue(hashMapKey, out var quadrantData,
+                    out var nativeParallelMultiHashMapIterator))
+            {
+                do
+                {
+                    var distance = math.distance(position, quadrantData.Position);
+                    if (distance < closestTargetDistance)
+                    {
+                        if (entity != quadrantData.Entity)
+                        {
+                            closestTargetDistance = distance;
+                            closestTargetEntity = quadrantData.Entity;
+                        }
+                    }
+                } while (quadrantMultiHashMap.TryGetNextValue(out quadrantData,
+                             ref nativeParallelMultiHashMapIterator));
+            }
+        }
     }
 }
