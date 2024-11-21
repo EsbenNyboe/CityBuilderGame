@@ -4257,6 +4257,7 @@ MonoBehaviour:
   _damageEffectPools:
   - {fileID: 2076110021}
   - {fileID: 645176232}
+  _randomPositionFactor: 0.417
 --- !u!4 &1151511537
 Transform:
   m_ObjectHideFlags: 0
@@ -7153,7 +7154,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   AnimationDuration: 2
-  AnimationSize: 0.7
+  AnimationSize: 1.6
   AnimationIdleTime: 0.729
 --- !u!114 &2042965570
 MonoBehaviour:
