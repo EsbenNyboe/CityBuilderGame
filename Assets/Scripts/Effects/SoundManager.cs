@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using Audio;
 using Unity.Mathematics;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class SoundManager : MonoBehaviour
+public class SoundManager : PoolManager<AudioSource>
 {
-    [SerializeField] private AudioSource _template;
+    [SerializeField] private GameObject _defaultTemplate;
 
     [SerializeField] private SoundConfig _chopSound;
     [SerializeField] private SoundConfig _destroyTreeSound;
@@ -15,66 +14,11 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private MultiSoundConfigObject _damageSound;
 
     [SerializeField] private SoundConfigObject _previewSound;
-
-    [Min(1)] [SerializeField] private int _preferredPoolSize;
-
-    [Min(0)] [SerializeField] private float _poolCleanupInterval;
-
-    private Queue<AudioSource> _pool;
-    private float _timeOfLatestPoolCleanup;
-
     public static SoundManager Instance { get; private set; }
 
     private void Awake()
     {
         Instance = this;
-
-        _pool = new Queue<AudioSource>();
-        var newPoolItem = CreatePoolItem();
-        InitializePoolItem(ref newPoolItem, _template);
-        _pool.Enqueue(newPoolItem);
-    }
-
-    private void Update()
-    {
-        if (_timeOfLatestPoolCleanup + _poolCleanupInterval > Time.time)
-        {
-            return;
-        }
-
-        _timeOfLatestPoolCleanup = Time.time;
-        var poolSizeBeforeCleanup = _pool.Count;
-        var numOfItemsToDestroy =
-            poolSizeBeforeCleanup <= _preferredPoolSize ? 0 : poolSizeBeforeCleanup - _preferredPoolSize;
-        var numOfItemsToCleanup = poolSizeBeforeCleanup;
-        while (numOfItemsToCleanup > 0)
-        {
-            numOfItemsToCleanup--;
-            var poolItem = _pool.Dequeue();
-            if (poolItem.isPlaying)
-            {
-                _pool.Enqueue(poolItem);
-                continue;
-            }
-
-            if (numOfItemsToDestroy <= 0)
-            {
-                poolItem.transform.position = Vector3.zero;
-                _pool.Enqueue(poolItem);
-            }
-            else
-            {
-                numOfItemsToDestroy--;
-                Destroy(poolItem.gameObject);
-            }
-        }
-
-        if (numOfItemsToDestroy > 0)
-        {
-            Debug.LogError("Pool size is too small. It's preferred size is " + _preferredPoolSize +
-                           ", but its required size is " + _pool.Count +
-                           ". Overflow: " + numOfItemsToDestroy);
-        }
     }
 
     public void PlayPreviewSound()
@@ -118,23 +62,12 @@ public class SoundManager : MonoBehaviour
 
     private void PlayAtPosition(AudioClip clip, float volume, float pitchCenter, float pitchVariance, Vector3 position)
     {
-        AudioSource poolItem;
-        if (_pool.TryPeek(out var nextItem) && !nextItem.isPlaying)
-        {
-            poolItem = _pool.Dequeue();
-        }
-        else
-        {
-            poolItem = CreatePoolItem();
-            InitializePoolItem(ref poolItem, _template);
-        }
+        var poolItem = GetOrCreatePoolItem(_defaultTemplate);
 
         ApplySoundConfig(ref poolItem, clip, volume, pitchCenter, pitchVariance);
         ApplyDebugInfo(ref poolItem, clip);
 
-        poolItem.transform.position = position;
-        poolItem.Play();
-        _pool.Enqueue(poolItem);
+        EnqueuePoolItem(poolItem, position);
     }
 
     private void ApplyDebugInfo(ref AudioSource poolItem, AudioClip clip)
@@ -152,40 +85,14 @@ public class SoundManager : MonoBehaviour
         poolItem.pitch = Random.Range(pitchMin, pitchMax);
     }
 
-    private AudioSource CreatePoolItem()
+    protected override bool IsActive(AudioSource poolItem)
     {
-        var audioSourceObject = new GameObject();
-        audioSourceObject.transform.SetParent(transform);
-        var audioSource = audioSourceObject.AddComponent<AudioSource>();
-        return audioSource;
+        return poolItem.isPlaying;
     }
 
-    private void InitializePoolItem(ref AudioSource poolItem, AudioSource template)
+    protected override void Play(AudioSource poolItem)
     {
-        poolItem.dopplerLevel = template.dopplerLevel;
-        poolItem.bypassReverbZones = template.bypassReverbZones;
-        poolItem.clip = template.clip;
-        poolItem.ignoreListenerPause = template.ignoreListenerPause;
-        poolItem.ignoreListenerVolume = template.ignoreListenerVolume;
-        poolItem.loop = template.loop;
-        poolItem.maxDistance = template.maxDistance;
-        poolItem.minDistance = template.minDistance;
-        poolItem.mute = template.mute;
-        poolItem.outputAudioMixerGroup = template.outputAudioMixerGroup;
-        poolItem.panStereo = template.panStereo;
-        poolItem.pitch = template.pitch;
-        poolItem.playOnAwake = template.playOnAwake;
-        poolItem.priority = template.priority;
-        poolItem.reverbZoneMix = template.reverbZoneMix;
-        poolItem.rolloffMode = template.rolloffMode;
-        poolItem.SetCustomCurve(AudioSourceCurveType.CustomRolloff,
-            template.GetCustomCurve(AudioSourceCurveType.CustomRolloff));
-        poolItem.spatialBlend = template.spatialBlend;
-        poolItem.spatialize = template.spatialize;
-        poolItem.spatializePostEffects = template.spatializePostEffects;
-        poolItem.spread = template.spread;
-        poolItem.velocityUpdateMode = template.velocityUpdateMode;
-        poolItem.volume = template.volume;
+        poolItem.Play();
     }
 
     [Serializable]
