@@ -1,3 +1,4 @@
+using UnitBehaviours.Talking;
 using Unity.Burst;
 using Unity.Entities;
 
@@ -27,22 +28,29 @@ public partial struct UnitAnimationSelectionSystem : ISystem
         var walkAnimation = unitAnimationManager.WalkAnimation.SpriteRow;
         var idleAnimation = unitAnimationManager.IdleAnimation.SpriteRow;
 
-        foreach (var (unitAnimator, pathFollow) in SystemAPI.Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>>()
-                     .WithNone<IsSleeping>())
+        foreach (var (unitAnimationSelection, pathFollow) in SystemAPI
+                     .Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>>()
+                     .WithNone<IsSleeping>().WithNone<IsTalking>())
         {
             if (pathFollow.ValueRO.PathIndex < 0)
             {
-                unitAnimator.ValueRW.SelectedAnimation = idleAnimation;
+                unitAnimationSelection.ValueRW.SelectedAnimation = idleAnimation;
             }
             else
             {
-                unitAnimator.ValueRW.SelectedAnimation = walkAnimation;
+                unitAnimationSelection.ValueRW.SelectedAnimation = walkAnimation;
             }
         }
 
-        foreach (var unitAnimator in SystemAPI.Query<RefRW<UnitAnimationSelection>>().WithPresent<IsSleeping>())
+        foreach (var unitAnimationSelection in SystemAPI.Query<RefRW<UnitAnimationSelection>>()
+                     .WithPresent<IsSleeping>())
         {
-            unitAnimator.ValueRW.SelectedAnimation = sleepAnimation;
+            unitAnimationSelection.ValueRW.SelectedAnimation = sleepAnimation;
+        }
+
+        foreach (var unitAnimationSelection in SystemAPI.Query<RefRW<UnitAnimationSelection>>().WithAll<IsTalking>())
+        {
+            unitAnimationSelection.ValueRW.SelectedAnimation = talkAnimation;
         }
     }
 }

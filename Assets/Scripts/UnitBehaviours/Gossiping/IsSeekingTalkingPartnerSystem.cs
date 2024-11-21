@@ -1,17 +1,14 @@
 ﻿using UnitAgency;
-using UnitBehaviours.Sleeping;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Jobs;
-using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace UnitBehaviours.Gossiping
+namespace UnitBehaviours.Talking
 {
     /// <summary>
-    /// Indicates that we are pathfinding to someone else, usually if we wanted to be social, but there was no one close by
+    ///     Indicates that we are pathfinding to someone else, usually if we wanted to be social, but there was no one close by
     /// </summary>
     public struct IsSeekingTalkingPartner : IComponentData
     {
@@ -35,7 +32,8 @@ namespace UnitBehaviours.Gossiping
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
             foreach (var (localTransform, relationships, pathFollow, seekingTalkingPartner, entity) in SystemAPI
-                         .Query<RefRO<LocalTransform>, RefRW<SocialRelationships>, RefRO<PathFollow>, RefRW<IsSeekingTalkingPartner>>()
+                         .Query<RefRO<LocalTransform>, RefRW<SocialRelationships>, RefRO<PathFollow>,
+                             RefRW<IsSeekingTalkingPartner>>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())

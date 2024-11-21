@@ -1,6 +1,7 @@
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
+using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
 using UnitState;
 using Unity.Burst;
@@ -25,6 +26,8 @@ namespace UnitAgency
         private SystemHandle _gridManagerSystemHandle;
         private EntityQuery _query;
         private AttackAnimationManager _attackAnimationManager;
+        private ComponentLookup<IsTalking> _isTalkingLookup;
+        private ComponentLookup<IsTalkative> _isTalkativeLookup;
 
         public void OnCreate(ref SystemState state)
         {
@@ -33,24 +36,29 @@ namespace UnitAgency
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
             _query = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<IsDeciding>());
+            _isTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>();
+            _isTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            _isTalkingLookup.Update(ref state);
+            _isTalkativeLookup.Update(ref state);
             _attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            foreach (var (_, pathFollow, inventory, moodSleepiness, socialRelationships, entity)
+            foreach (var (_, pathFollow, inventory, moodSleepiness, moodLoneliness, socialRelationships, entity)
                      in SystemAPI
                          .Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<MoodSleepiness>,
+                             RefRO<MoodLoneliness>,
                              RefRO<SocialRelationships>>()
                          .WithEntityAccess().WithNone<Pathfinding>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
                 DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, moodSleepiness,
-                    socialRelationships, entity);
+                    moodLoneliness, socialRelationships, entity);
             }
         }
 
@@ -60,6 +68,7 @@ namespace UnitAgency
             RefRO<PathFollow> pathFollow,
             RefRO<Inventory> inventory,
             RefRO<MoodSleepiness> moodSleepiness,
+            RefRO<MoodLoneliness> moodLoneliness,
             RefRO<SocialRelationships> socialRelationships,
             Entity entity)
         {
@@ -70,6 +79,7 @@ namespace UnitAgency
             var isMoving = pathFollow.ValueRO.IsMoving();
             var annoyingDude = socialRelationships.ValueRO.AnnoyingDude;
             var isAnnoyedAtSomeone = annoyingDude != Entity.Null;
+            var isLonely = moodLoneliness.ValueRO.Loneliness > 1f;
 
             if (HasLogOfWood(inventory.ValueRO))
             {
@@ -118,6 +128,31 @@ namespace UnitAgency
             {
                 ecb.AddComponent(entity, new IsHarvesting());
                 ecb.AddComponent(entity, new AttackAnimation(tree));
+            }
+            else if (isLonely)
+            {
+                if (TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkativeLookup,
+                        out var neighbour) ||
+                    TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkingLookup, out neighbour))
+                {
+                    ecb.AddComponent(entity, new IsTalking());
+                    ecb.SetComponentEnabled<IsTalking>(entity, false);
+
+                    // TODO: Clean up:
+                    gridManager.TryGetOccupant(neighbour, out var neighbourEntity);
+                    ecb.AddComponent(ecb.CreateEntity(), new ConversationEvent
+                    {
+                        Initiator = entity,
+                        Target = neighbourEntity
+                    });
+                }
+                else
+                {
+                    ecb.AddComponent(entity, new IsTalkative
+                    {
+                        Patience = 1
+                    });
+                }
             }
             else
             {

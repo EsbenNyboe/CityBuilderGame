@@ -1,6 +1,7 @@
 using UnitAgency;
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Sleeping;
+using UnitBehaviours.Talking;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -47,6 +48,14 @@ namespace Statistics
             var isIdleCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsIdle>().Build(this)
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfIdleUnits(isIdleCount);
+
+            var isTalkativeCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsTalkative>().Build(this)
+                .CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfTalkativeUnits(isTalkativeCount);
+
+            var isTalkingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsTalking>().Build(this)
+                .CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfTalkingUnits(isTalkingCount);
         }
     }
 }
