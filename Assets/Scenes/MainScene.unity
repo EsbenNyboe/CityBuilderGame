@@ -1132,6 +1132,8 @@ MonoBehaviour:
     PitchVariance: 0.06
   _damageSound: {fileID: 11400000, guid: ac94ad132e7a6174aabaa128246ac099, type: 2}
   _previewSound: {fileID: 11400000, guid: ac94ad132e7a6174aabaa128246ac099, type: 2}
+  _preferredPoolSize: 100
+  _poolCleanupInterval: 1
 --- !u!4 &219774712
 Transform:
   m_ObjectHideFlags: 0
@@ -1342,52 +1344,6 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 251901966}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &255465614
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 255465616}
-  - component: {fileID: 255465615}
-  m_Layer: 0
-  m_Name: UnitAnimationManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &255465615
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 255465614}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac2e507f0ce144d99ef96c400f480c3f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UnitMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
-  UnitMaterial: {fileID: 2100000, guid: 15344670bae78d74881afe584ca526b0, type: 2}
---- !u!4 &255465616
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 255465614}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -4417,7 +4373,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DrawRelations: 1
-  IncludeNonSelections: 1
+  IncludeNonSelections: 0
   ApplyFilter: 1
   FilterSetting:
     MinFondnessDrawn: -2
@@ -7024,6 +6980,7 @@ GameObject:
   - component: {fileID: 2042965569}
   - component: {fileID: 2042965572}
   - component: {fileID: 2042965573}
+  - component: {fileID: 2042965574}
   m_Layer: 0
   m_Name: UnitManager
   m_TagString: Untagged
@@ -7106,6 +7063,20 @@ MonoBehaviour:
   OnUnitAttackTree:
     InfluenceAmount: 1
     InfluenceRadius: 10
+--- !u!114 &2042965574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2042965568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac2e507f0ce144d99ef96c400f480c3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UnitMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  UnitMaterial: {fileID: 2100000, guid: 15344670bae78d74881afe584ca526b0, type: 2}
 --- !u!1 &2052204910
 GameObject:
   m_ObjectHideFlags: 0
@@ -8167,9 +8138,8 @@ SceneRoots:
   - {fileID: 1898750971}
   - {fileID: 1762969891}
   - {fileID: 219774712}
+  - {fileID: 1281426571}
   - {fileID: 1226287100}
   - {fileID: 2042965571}
-  - {fileID: 255465616}
   - {fileID: 419742546}
-  - {fileID: 1281426571}
   - {fileID: 1176266414}

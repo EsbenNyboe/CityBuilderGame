@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace Events
 {
-    public class UnitEventManager : MonoBehaviour
+    public class ParticleEffectManager : MonoBehaviour
     {
-        public static UnitEventManager Instance;
+        public static ParticleEffectManager Instance;
         [SerializeField] private GameObject _deathEffectPrefab;
         [SerializeField] private GameObject _damageEffectPrefab;
 

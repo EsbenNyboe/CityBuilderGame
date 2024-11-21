@@ -16,7 +16,12 @@ public class SoundManager : MonoBehaviour
 
     [SerializeField] private SoundConfigObject _previewSound;
 
+    [Min(1)] [SerializeField] private int _preferredPoolSize;
+
+    [Min(0)] [SerializeField] private float _poolCleanupInterval;
+
     private Queue<AudioSource> _pool;
+    private float _timeOfLatestPoolCleanup;
 
     public static SoundManager Instance { get; private set; }
 
@@ -28,6 +33,48 @@ public class SoundManager : MonoBehaviour
         var newPoolItem = CreatePoolItem();
         InitializePoolItem(ref newPoolItem, _template);
         _pool.Enqueue(newPoolItem);
+    }
+
+    private void Update()
+    {
+        if (_timeOfLatestPoolCleanup + _poolCleanupInterval > Time.time)
+        {
+            return;
+        }
+
+        _timeOfLatestPoolCleanup = Time.time;
+        var poolSizeBeforeCleanup = _pool.Count;
+        var numOfItemsToDestroy =
+            poolSizeBeforeCleanup <= _preferredPoolSize ? 0 : poolSizeBeforeCleanup - _preferredPoolSize;
+        var numOfItemsToCleanup = poolSizeBeforeCleanup;
+        while (numOfItemsToCleanup > 0)
+        {
+            numOfItemsToCleanup--;
+            var poolItem = _pool.Dequeue();
+            if (poolItem.isPlaying)
+            {
+                _pool.Enqueue(poolItem);
+                continue;
+            }
+
+            if (numOfItemsToDestroy <= 0)
+            {
+                poolItem.transform.position = Vector3.zero;
+                _pool.Enqueue(poolItem);
+            }
+            else
+            {
+                numOfItemsToDestroy--;
+                Destroy(poolItem.gameObject);
+            }
+        }
+
+        if (numOfItemsToDestroy > 0)
+        {
+            Debug.LogError("Pool size is too small. It's preferred size is " + _preferredPoolSize +
+                           ", but its required size is " + _pool.Count +
+                           ". Overflow: " + numOfItemsToDestroy);
+        }
     }
 
     public void PlayPreviewSound()
