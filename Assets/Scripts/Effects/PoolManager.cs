@@ -58,7 +58,7 @@ public abstract class PoolManager<T> : MonoBehaviour where T : Component
 
         if (numOfItemsToDestroy > 0)
         {
-            Debug.LogError("Pool cleanup failed. Items that were not destroyed: " + numOfItemsToDestroy);
+            Debug.LogError("Pool cleanup failed. Items that were not destroyed: " + numOfItemsToDestroy, gameObject);
         }
     }
 

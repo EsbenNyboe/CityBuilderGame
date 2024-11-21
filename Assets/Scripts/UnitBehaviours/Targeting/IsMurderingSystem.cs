@@ -52,15 +52,11 @@ namespace UnitBehaviours.Targeting
                     continue;
                 }
 
-                var targetPosition = SystemAPI.GetComponentLookup<LocalTransform>()[target].Position;
-                var targetPositionOffset = SystemAPI.GetComponentLookup<SpriteTransform>()[target].Position;
-                attackAnimation.ValueRW.Target = new float2(
-                    targetPosition.x + targetPositionOffset.x,
-                    targetPosition.y + targetPositionOffset.y);
+                var targetTransformPosition = SystemAPI.GetComponentLookup<LocalTransform>()[target].Position;
 
                 if (attackAnimation.ValueRO.TimeLeft <= 0)
                 {
-                    if (math.distance(localTransform.ValueRO.Position, targetPosition) > MaxRange)
+                    if (math.distance(localTransform.ValueRO.Position, targetTransformPosition) > MaxRange)
                     {
                         // The target moved away! I cannot attack!! 
                         RemoveBehaviour(ecb, entity, attackAnimation);
@@ -68,6 +64,9 @@ namespace UnitBehaviours.Targeting
                     }
 
                     // I can now attack my target!
+                    var targetSpritePosition = SystemAPI.GetComponentLookup<SpriteTransform>()[target].Position;
+                    var targetPosition = targetTransformPosition + targetSpritePosition;
+                    attackAnimation.ValueRW.Target = new float2(targetPosition.x, targetPosition.y);
                     attackAnimation.ValueRW.TimeLeft = attackAnimationManager.AttackDuration;
                     ecb.AddComponent(ecb.CreateEntity(), new DamageEvent
                     {
