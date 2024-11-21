@@ -6,11 +6,12 @@ namespace UnitBehaviours
     {
         public static SocialDynamicsManagerConfig Instance;
 
-        [Header("Social thresholds")] public float ThresholdForBecomingAnnoying = -1f;
+        [Range(0.000000001f, 0.1f)] public float NeutralizationFactor = 0.01f;
 
-        [Header("Social actions")] public float ImpactOnBedBeingOccupied = -1f;
+        public float ThresholdForBecomingAnnoying = -1f;
 
-        [Header("Social events")]
+        public float ImpactOnBedBeingOccupied = -1f;
+
         public SocialEventConfig OnUnitAttackTree = new() { InfluenceAmount = 1f, InfluenceRadius = 10f };
 
         private void Awake()

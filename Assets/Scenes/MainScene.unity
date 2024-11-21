@@ -4357,11 +4357,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DrawRelations: 1
-  IncludeNonSelections: 0
+  IncludeNonSelections: 1
   ApplyFilter: 1
   FilterSetting:
-    MinFondnessDrawn: -2
-    MaxFondnessDrawn: 2
+    MinFondnessDrawn: -3
+    MaxFondnessDrawn: -0.1
 --- !u!114 &1176266412
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7044,10 +7044,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2641ebf8149e436cb0c3859aa7f81e77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  NeutralizationFactor: 0.0106
   ThresholdForBecomingAnnoying: -1
-  ImpactOnBedBeingOccupied: -1
+  ImpactOnBedBeingOccupied: -2
   OnUnitAttackTree:
-    InfluenceAmount: 1
+    InfluenceAmount: 0.1
     InfluenceRadius: 10
 --- !u!114 &2042965574
 MonoBehaviour:

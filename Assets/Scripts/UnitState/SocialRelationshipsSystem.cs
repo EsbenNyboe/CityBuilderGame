@@ -21,7 +21,6 @@ namespace UnitState
         private const float EvaluationInterval = 0.1f;
         private const float MinimumFondness = -2f;
         private const float MaximumFondness = 2f;
-        private const float NeutralizationFactor = 0.01f;
 
         private EntityQuery _existingUnitsQuery;
         private EntityQuery _spawnedUnitsQuery;
@@ -72,7 +71,7 @@ namespace UnitState
             var evaluateAllRelationshipsJob = new EvaluateAllRelationshipsJob
             {
                 ExistingUnits = existingUnits,
-                NeutralizationAmount = NeutralizationFactor * timeSinceLastEvaluation,
+                NeutralizationAmount = socialDynamicsManager.NeutralizationFactor * timeSinceLastEvaluation,
                 SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
             }.Schedule(existingUnits.Length, 10);
             evaluateAllRelationshipsJob.Complete();
