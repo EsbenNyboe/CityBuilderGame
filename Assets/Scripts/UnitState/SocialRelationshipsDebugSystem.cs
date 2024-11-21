@@ -6,30 +6,18 @@ using UnityEngine;
 
 namespace UnitState
 {
-    public struct SocialRelationshipsDebugSystemData : IComponentData
-    {
-        public bool DrawRelations;
-    }
-
     public partial struct SocialRelationshipsDebugSystem : ISystem
     {
         public void OnCreate(ref SystemState state)
         {
-            state.EntityManager.AddComponent<SocialRelationshipsDebugSystemData>(state.SystemHandle);
+            state.RequireForUpdate<SocialDebugManager>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var settings =
-                state.EntityManager.GetComponentDataRW<SocialRelationshipsDebugSystemData>(state.SystemHandle);
-
-            if (Input.GetKeyDown(KeyCode.KeypadMultiply))
-            {
-                settings.ValueRW.DrawRelations = !settings.ValueRO.DrawRelations;
-            }
-
-            if (!settings.ValueRO.DrawRelations)
+            var settings = SystemAPI.GetSingleton<SocialDebugManager>();
+            if (!settings.DrawRelations)
             {
                 return;
             }

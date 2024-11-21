@@ -4385,6 +4385,88 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1762969891}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1176266410
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1176266414}
+  - component: {fileID: 1176266413}
+  - component: {fileID: 1176266412}
+  - component: {fileID: 1176266411}
+  m_Layer: 0
+  m_Name: DebugManagers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1176266411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1176266410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5def1c83eae243e58352b75f264f26d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DrawRelations: 1
+--- !u!114 &1176266412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1176266410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 181ec7a00cf94e87a4fcff7233e95927, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DebugSectionSorting: 0
+  DebugPathfinding: 0
+  DebugPathSearchEmptyCells: 0
+  DebugBedOccupation: 0
+  DebugBedSeeking: 0
+  DebugTreeSeeking: 0
+  DebugPathInvalidation: 0
+  DebugTargetFollow: 0
+--- !u!114 &1176266413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1176266410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a6756d81dbd32014bbe35442b31baf53, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _showOccupiableGrid: 0
+  _showWalkableGrid: 0
+  _showInteractableGrid: 0
+--- !u!4 &1176266414
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1176266410}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.287932, y: 2.2398734, z: 97.65977}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1226287098
 GameObject:
   m_ObjectHideFlags: 0
@@ -5858,8 +5940,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1762969891}
   - component: {fileID: 1762969889}
-  - component: {fileID: 1762969888}
-  - component: {fileID: 1762969892}
   m_Layer: 0
   m_Name: GridManager
   m_TagString: Untagged
@@ -5867,21 +5947,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1762969888
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1762969887}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a6756d81dbd32014bbe35442b31baf53, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _showOccupiableGrid: 0
-  _showWalkableGrid: 0
-  _showInteractableGrid: 0
 --- !u!114 &1762969889
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5921,26 +5986,6 @@ Transform:
   - {fileID: 1173363239}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1762969892
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1762969887}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 181ec7a00cf94e87a4fcff7233e95927, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DebugSectionSorting: 0
-  DebugPathfinding: 0
-  DebugPathSearchEmptyCells: 0
-  DebugBedOccupation: 0
-  DebugBedSeeking: 0
-  DebugTreeSeeking: 0
-  DebugPathInvalidation: 0
-  DebugTargetFollow: 0
 --- !u!1 &1791895148
 GameObject:
   m_ObjectHideFlags: 0
@@ -8122,3 +8167,4 @@ SceneRoots:
   - {fileID: 255465616}
   - {fileID: 419742546}
   - {fileID: 1281426571}
+  - {fileID: 1176266414}
