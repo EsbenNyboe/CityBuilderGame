@@ -94,14 +94,13 @@ public partial struct PathfindingSystem : ISystem
             EcbParallelWriter = ecb.AsParallelWriter(),
             IsDebugging = isDebugging
         };
-        var jobHandle = findPathJobParallel.Schedule(entities.Length, 10);
-        jobHandle.Complete();
-
-        startCells.Dispose();
-        endCells.Dispose();
-        entities.Dispose();
 
         SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+
+        state.Dependency = findPathJobParallel.Schedule(entities.Length, 1);
+        startCells.Dispose(state.Dependency);
+        endCells.Dispose(state.Dependency);
+        entities.Dispose(state.Dependency);
     }
 
     private static NativeArray<PathNode> GetPathNodeArray(int2 gridSize, NativeArray<WalkableCell> grid)
