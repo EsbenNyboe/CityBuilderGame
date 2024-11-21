@@ -5,6 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 public struct Pathfinding : IComponentData
 {
@@ -45,8 +46,8 @@ public partial struct PathfindingSystem : ISystem
 
         var currentAmountOfSchedules = 0;
 
-        foreach (var (pathfindingParams, pathPosition, pathFollow, entity) in SystemAPI
-                     .Query<RefRO<Pathfinding>, DynamicBuffer<PathPosition>, RefRW<PathFollow>>()
+        foreach (var (pathfindingParams, pathPosition, pathFollow, localTransform, entity) in SystemAPI
+                     .Query<RefRO<Pathfinding>, DynamicBuffer<PathPosition>, RefRW<PathFollow>, RefRO<LocalTransform>>()
                      .WithEntityAccess())
         {
             if (currentAmountOfSchedules > MaxPathfindingSchedulesPerFrame)
@@ -56,23 +57,38 @@ public partial struct PathfindingSystem : ISystem
 
             currentAmountOfSchedules++;
 
-            var startPosition = pathfindingParams.ValueRO.StartPosition;
-            var endPosition = pathfindingParams.ValueRO.EndPosition;
-            var findPathJob = new FindPathJob
-            {
-                WalkableGrid = walkableGrid,
-                GridSize = gridSize,
-                StartPosition = startPosition,
-                EndPosition = endPosition,
-                Entity = entity,
-                PathFollowLookup = SystemAPI.GetComponentLookup<PathFollow>(),
-                PathPositionLookup = SystemAPI.GetBufferLookup<PathPosition>(),
-                IsDebugging = isDebugging
-            };
-            findPathJobList.Add(findPathJob);
-            jobHandleList.Add(findPathJob.Schedule());
+            var startCell = pathfindingParams.ValueRO.StartPosition;
+            var endCell = pathfindingParams.ValueRO.EndPosition;
 
-            gridManager.TryClearOccupant(startPosition, entity);
+            if (startCell.x == endCell.x && startCell.y == endCell.y)
+            {
+                // No need for pathfinding. We'll just set our current cell as the path-target.
+                pathPosition.Clear();
+                pathPosition.Add(new PathPosition
+                {
+                    Position = endCell
+                });
+                pathFollow.ValueRW.PathIndex = 0;
+            }
+            else
+            {
+                var findPathJob = new FindPathJob
+                {
+                    WalkableGrid = walkableGrid,
+                    GridSize = gridSize,
+                    StartPosition = startCell,
+                    EndPosition = endCell,
+                    Entity = entity,
+                    PathFollowLookup = SystemAPI.GetComponentLookup<PathFollow>(),
+                    PathPositionLookup = SystemAPI.GetBufferLookup<PathPosition>(),
+                    IsDebugging = isDebugging
+                };
+                findPathJobList.Add(findPathJob);
+                jobHandleList.Add(findPathJob.Schedule());
+
+                gridManager.TryClearOccupant(startCell, entity);
+            }
+
             entityCommandBuffer.RemoveComponent<Pathfinding>(entity);
         }
 

@@ -9044,9 +9044,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NeutralizationFactor: 0.0106
   ThresholdForBecomingAnnoying: -1
-  ImpactOnBedBeingOccupied: -2
+  ImpactOnBedBeingOccupied: -0.5
   OnUnitAttackTree:
-    InfluenceAmount: -3.24
+    InfluenceAmount: 0.1
     InfluenceRadius: 10
 --- !u!114 &2042965574
 MonoBehaviour:
