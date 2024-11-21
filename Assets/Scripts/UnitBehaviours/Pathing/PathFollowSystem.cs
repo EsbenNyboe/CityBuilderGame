@@ -1,4 +1,5 @@
 using Debugging;
+using UnitBehaviours;
 using UnitState;
 using Unity.Burst;
 using Unity.Entities;
@@ -33,11 +34,11 @@ public partial struct PathFollow
 public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
-    private const float AnnoyanceFromBedOccupant = 10f;
     private const float BaseSpeed = 5f;
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<SocialDynamicsManager>();
         state.RequireForUpdate<DebugToggleManager>();
         state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
@@ -49,6 +50,7 @@ public partial struct PathFollowSystem : ISystem
         var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
         var isDebuggingPath = debugToggleManager.DebugPathfinding;
         var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
+        var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
 
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
@@ -97,7 +99,11 @@ public partial struct PathFollowSystem : ISystem
                     // I have reached my destination.
                     moveAmount = 0;
                     distanceToTarget = 0;
-                    EndPathFollowing(ref state, ecb, entity, socialRelationships, targetPosition, isDebuggingSearch,
+                    EndPathFollowing(ref state, ecb, entity,
+                        socialRelationships,
+                        socialDynamicsManager,
+                        targetPosition,
+                        isDebuggingSearch,
                         isDebuggingPath);
                 }
                 else
@@ -135,7 +141,8 @@ public partial struct PathFollowSystem : ISystem
     }
 
     private void EndPathFollowing(ref SystemState state, EntityCommandBuffer ecb, Entity entity,
-        RefRW<SocialRelationships> socialRelationships, float3 targetPosition,
+        RefRW<SocialRelationships> socialRelationships, SocialDynamicsManager socialDynamicsManager,
+        float3 targetPosition,
         bool isDebuggingSearch, bool isDebuggingPath)
     {
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
@@ -152,9 +159,9 @@ public partial struct PathFollowSystem : ISystem
             {
                 gridManager.TryGetOccupant(targetPosition, out var occupant);
                 var fondnessOfBedOccupant = socialRelationships.ValueRO.Relationships[occupant];
-                fondnessOfBedOccupant -= AnnoyanceFromBedOccupant;
+                fondnessOfBedOccupant += socialDynamicsManager.ImpactOnBedBeingOccupied;
                 socialRelationships.ValueRW.Relationships[occupant] = fondnessOfBedOccupant;
-                if (fondnessOfBedOccupant < -1)
+                if (fondnessOfBedOccupant < socialDynamicsManager.ThresholdForBecomingAnnoying)
                 {
                     socialRelationships.ValueRW.AnnoyingDude = occupant;
                 }

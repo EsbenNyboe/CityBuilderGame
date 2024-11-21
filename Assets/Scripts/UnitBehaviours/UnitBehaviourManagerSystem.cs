@@ -18,12 +18,12 @@ namespace UnitBehaviours
 
         protected override void OnUpdate()
         {
-            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
-            unitBehaviourManager.DamagePerChop = UnitBehaviourManagerConfig.Instance.DamagePerChop;
-            unitBehaviourManager.DamagePerAttack = UnitBehaviourManagerConfig.Instance.DamagePerAttack;
-            unitBehaviourManager.MoveSpeedWhenAttemptingMurder =
-                UnitBehaviourManagerConfig.Instance.MoveSpeedWhenAttemptingMurder;
-            SystemAPI.SetSingleton(unitBehaviourManager);
+            var singleton = SystemAPI.GetSingleton<UnitBehaviourManager>();
+            var config = UnitBehaviourManagerConfig.Instance;
+            singleton.DamagePerChop = config.DamagePerChop;
+            singleton.DamagePerAttack = config.DamagePerAttack;
+            singleton.MoveSpeedWhenAttemptingMurder = config.MoveSpeedWhenAttemptingMurder;
+            SystemAPI.SetSingleton(singleton);
         }
     }
 }

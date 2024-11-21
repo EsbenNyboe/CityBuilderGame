@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using UnitBehaviours;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
@@ -28,6 +29,7 @@ namespace UnitState
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<SocialDynamicsManager>();
             state.RequireForUpdate<EndInitializationEntityCommandBufferSystem.Singleton>();
             _existingUnitsQuery = state.GetEntityQuery(ComponentType.ReadWrite(typeof(SocialRelationships)));
             _spawnedUnitsQuery = state.GetEntityQuery(ComponentType.ReadOnly(typeof(SpawnedUnit)));
@@ -36,9 +38,10 @@ namespace UnitState
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var existingUnits = _existingUnitsQuery.ToEntityArray(Allocator.TempJob);
             // EVALUATE EXISTING SOCIAL RELATIONSHIPS
-            EvaluateExistingRelationships(ref state, existingUnits);
+            EvaluateExistingRelationships(ref state, existingUnits, socialDynamicsManager);
 
             // SETUP NEW SOCIAL RELATIONSHIPS
             var ecb = SystemAPI.GetSingleton<EndInitializationEntityCommandBufferSystem.Singleton>()
@@ -48,12 +51,14 @@ namespace UnitState
             existingUnits.Dispose();
         }
 
-        private void EvaluateExistingRelationships(ref SystemState state, NativeArray<Entity> existingUnits)
+        private void EvaluateExistingRelationships(ref SystemState state, NativeArray<Entity> existingUnits,
+            SocialDynamicsManager socialDynamicsManager)
         {
             var annoyingDudeJob = new EvaluateAnnoyingDudeJob
             {
                 ExistingUnits = existingUnits,
-                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
+                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
+                ThresholdForBecomingAnnoying = socialDynamicsManager.ThresholdForBecomingAnnoying
             }.Schedule(existingUnits.Length, 200);
             annoyingDudeJob.Complete();
             var currentTime = (float)SystemAPI.Time.ElapsedTime;
@@ -145,13 +150,15 @@ namespace UnitState
             [NativeDisableContainerSafetyRestriction]
             public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
 
+            [ReadOnly] public float ThresholdForBecomingAnnoying;
+
             public void Execute(int index)
             {
                 var socialRelationships = SocialRelationshipsLookup[ExistingUnits[index]];
 
                 var relationships = socialRelationships.Relationships;
                 var annoyingDude = socialRelationships.AnnoyingDude;
-                if (annoyingDude != Entity.Null && relationships[annoyingDude] > -1)
+                if (annoyingDude != Entity.Null && relationships[annoyingDude] >= ThresholdForBecomingAnnoying)
                 {
                     // He's not annoying anymore
                     socialRelationships.AnnoyingDude = Entity.Null;

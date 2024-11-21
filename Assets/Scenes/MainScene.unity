@@ -6973,6 +6973,7 @@ GameObject:
   - component: {fileID: 2042965570}
   - component: {fileID: 2042965569}
   - component: {fileID: 2042965572}
+  - component: {fileID: 2042965573}
   m_Layer: 0
   m_Name: UnitManager
   m_TagString: Untagged
@@ -7038,6 +7039,23 @@ MonoBehaviour:
   DamagePerChop: 15
   DamagePerAttack: 10
   MoveSpeedWhenAttemptingMurder: 1.1
+--- !u!114 &2042965573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2042965568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2641ebf8149e436cb0c3859aa7f81e77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ThresholdForBecomingAnnoying: -1
+  ImpactOnBedBeingOccupied: -1
+  OnUnitAttackTree:
+    InfluenceAmount: 1
+    InfluenceRadius: 10
 --- !u!1 &2052204910
 GameObject:
   m_ObjectHideFlags: 0
