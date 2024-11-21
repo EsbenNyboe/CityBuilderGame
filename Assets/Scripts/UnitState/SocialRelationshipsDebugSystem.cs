@@ -44,7 +44,7 @@ namespace UnitState
                 SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
                 SocialDebugManager = socialDebugManager
             };
-            var jobHandle = drawRelationsJob.Schedule(entities.Length, 200);
+            var jobHandle = drawRelationsJob.Schedule(entities.Length, 1);
             jobHandle.Complete();
             entities.Dispose();
         }
