@@ -9081,7 +9081,7 @@ MonoBehaviour:
     FrameInterval: 0.8
   SpriteColumns: 3
   SpriteRows: 4
-  _previewSelection: 1
+  _previewSelection: 0
 --- !u!1 &2052204910
 GameObject:
   m_ObjectHideFlags: 0

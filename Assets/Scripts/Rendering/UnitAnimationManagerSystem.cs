@@ -1,5 +1,6 @@
 using System;
 using Unity.Entities;
+using UnityEngine;
 
 public struct UnitAnimationManager : IComponentData
 {
@@ -15,9 +16,9 @@ public struct UnitAnimationManager : IComponentData
 public struct AnimationConfig
 {
     public AnimationId Identifier;
-    public int SpriteRow;
-    public int FrameCount;
-    public float FrameInterval;
+    [Min(0)] public int SpriteRow;
+    [Min(0)] public int FrameCount;
+    [Min(0.01f)] public float FrameInterval;
 }
 
 public enum AnimationId
@@ -34,40 +35,39 @@ public partial class UnitAnimationManagerSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        var unitAnimationManager = new UnitAnimationManager
-        {
-            TalkAnimation = new AnimationConfig
-            {
-                SpriteRow = 0,
-                FrameCount = 2,
-                FrameInterval = 0.4f
-            },
-            SleepAnimation = new AnimationConfig
-            {
-                SpriteRow = 1,
-                FrameCount = 3,
-                FrameInterval = 0.4f
-            },
-            WalkAnimation = new AnimationConfig
-            {
-                SpriteRow = 2,
-                FrameCount = 2,
-                FrameInterval = 0.11f
-            },
-            IdleAnimation = new AnimationConfig
-            {
-                SpriteRow = 3,
-                FrameCount = 2,
-                FrameInterval = 0.8f
-            },
-            SpriteColumns = 3,
-            SpriteRows = 4
-        };
-        EntityManager.AddComponent<UnitAnimationManager>(SystemHandle);
-        SystemAPI.SetComponent(SystemHandle, unitAnimationManager);
+        EntityManager.CreateSingleton<UnitAnimationManager>();
     }
 
     protected override void OnUpdate()
     {
+        var singleton = SystemAPI.GetSingleton<UnitAnimationManager>();
+        var config = SpriteSheetRendererManager.Instance;
+
+        singleton.SpriteColumns = config.SpriteColumns;
+        singleton.SpriteRows = config.SpriteRows;
+        foreach (var animationConfig in config.AnimationConfigs)
+        {
+            switch (animationConfig.Identifier)
+            {
+                case AnimationId.None:
+                    break;
+                case AnimationId.Talk:
+                    singleton.TalkAnimation = animationConfig;
+                    break;
+                case AnimationId.Sleep:
+                    singleton.SleepAnimation = animationConfig;
+                    break;
+                case AnimationId.Walk:
+                    singleton.WalkAnimation = animationConfig;
+                    break;
+                case AnimationId.Idle:
+                    singleton.IdleAnimation = animationConfig;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        SystemAPI.SetSingleton(singleton);
     }
 }

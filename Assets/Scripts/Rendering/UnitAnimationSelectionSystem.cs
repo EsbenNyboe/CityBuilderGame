@@ -12,17 +12,15 @@ public struct UnitAnimationSelection : IComponentData
 [UpdateAfter(typeof(UnitAnimationManagerSystem))]
 public partial struct UnitAnimationSelectionSystem : ISystem
 {
-    private SystemHandle _unitAnimationManagerSystem;
-
     public void OnCreate(ref SystemState state)
     {
-        _unitAnimationManagerSystem = state.World.GetExistingSystem(typeof(UnitAnimationManagerSystem));
+        state.RequireForUpdate<UnitAnimationManager>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        var unitAnimationManager = SystemAPI.GetComponent<UnitAnimationManager>(_unitAnimationManagerSystem);
+        var unitAnimationManager = SystemAPI.GetSingleton<UnitAnimationManager>();
         var talkAnimation = unitAnimationManager.TalkAnimation.SpriteRow;
         var sleepAnimation = unitAnimationManager.SleepAnimation.SpriteRow;
         var walkAnimation = unitAnimationManager.WalkAnimation.SpriteRow;
