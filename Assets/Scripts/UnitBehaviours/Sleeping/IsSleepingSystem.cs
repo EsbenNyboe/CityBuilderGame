@@ -40,8 +40,14 @@ public partial struct IsSleepingSystem : ISystem
         var sleepinessPerSecWhenSleeping = -0.2f * SystemAPI.Time.DeltaTime;
         var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
 
-        foreach (var (isSleeping, localTransform, pathFollow, moodSleepiness, entity) in SystemAPI
-                     .Query<RefRW<IsSleeping>, RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodSleepiness>>()
+        foreach (var (isSleeping,
+                     localTransform,
+                     pathFollow,
+                     moodSleepiness,
+                     spriteTransform,
+                     entity) in SystemAPI
+                     .Query<RefRW<IsSleeping>, RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodSleepiness>,
+                         RefRW<SpriteTransform>>()
                      .WithEntityAccess())
         {
             if (pathFollow.ValueRO.IsMoving())
@@ -50,6 +56,8 @@ public partial struct IsSleepingSystem : ISystem
                 ecb.AddComponent<IsDeciding>(entity);
                 continue;
             }
+
+            spriteTransform.ValueRW.Rotation = quaternion.EulerZXY(0, 0, 0);
 
             var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
 
