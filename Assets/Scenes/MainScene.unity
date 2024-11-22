@@ -9062,6 +9062,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UnitMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   UnitMaterial: {fileID: 2100000, guid: 15344670bae78d74881afe584ca526b0, type: 2}
+  AnimationConfigs:
+  - Identifier: 1
+    SpriteRow: 0
+    FrameCount: 2
+    FrameInterval: 0.4
+  - Identifier: 2
+    SpriteRow: 1
+    FrameCount: 3
+    FrameInterval: 0.4
+  - Identifier: 3
+    SpriteRow: 2
+    FrameCount: 2
+    FrameInterval: 0.11
+  - Identifier: 4
+    SpriteRow: 3
+    FrameCount: 2
+    FrameInterval: 0.8
+  SpriteColumns: 3
+  SpriteRows: 4
+  _previewSelection: 0
 --- !u!1 &2052204910
 GameObject:
   m_ObjectHideFlags: 0

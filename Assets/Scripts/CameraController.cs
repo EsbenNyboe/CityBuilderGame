@@ -79,4 +79,9 @@ public class CameraController : MonoBehaviour
 
         transform.position = new Vector3(transform.position.x, transform.position.y, listenerProximity);
     }
+
+    public void SetMaxSize(float maxSize)
+    {
+        _maxSize = maxSize;
+    }
 }

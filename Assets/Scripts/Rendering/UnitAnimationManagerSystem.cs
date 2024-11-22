@@ -14,9 +14,19 @@ public struct UnitAnimationManager : IComponentData
 [Serializable]
 public struct AnimationConfig
 {
+    public AnimationId Identifier;
     public int SpriteRow;
     public int FrameCount;
     public float FrameInterval;
+}
+
+public enum AnimationId
+{
+    None,
+    Talk,
+    Sleep,
+    Walk,
+    Idle
 }
 
 [UpdateInGroup(typeof(AnimationSystemGroup))]

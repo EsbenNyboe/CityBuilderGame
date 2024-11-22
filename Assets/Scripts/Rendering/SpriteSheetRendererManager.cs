@@ -1,5 +1,3 @@
-using CodeMonkey.Utils;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -9,54 +7,80 @@ public class SpriteSheetRendererManager : MonoBehaviour
 
     public Mesh UnitMesh;
     public Material UnitMaterial;
+    public AnimationConfig[] AnimationConfigs;
 
-    [SerializeField] private AnimationConfig _animationConfig;
+    public int SpriteColumns = 3;
+    public int SpriteRows = 4;
 
-    private SystemHandle _unitAnimationManagerSystem;
+    [SerializeField] private AnimationId _previewSelection;
+
+    private CameraController _cameraController;
 
     private void Awake()
     {
         Instance = this;
     }
 
-    private void Start()
-    {
-        _unitAnimationManagerSystem =
-            World.DefaultGameObjectInjectionWorld.GetExistingSystem(typeof(UnitAnimationManagerSystem));
-    }
-
     private void Update()
     {
-        var unitAnimationManager =
-            World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<UnitAnimationManager>(
-                _unitAnimationManagerSystem);
+        if (_previewSelection == AnimationId.None)
+        {
+            return;
+        }
 
-        var uvScaleX = 1f / unitAnimationManager.SpriteColumns;
-        var uvScaleY = 1f / unitAnimationManager.SpriteRows;
+        if (_cameraController == default)
+        {
+            _cameraController = FindObjectOfType<CameraController>();
+            _cameraController.SetMaxSize(1.8f);
+        }
 
-        var uv = new Vector4(uvScaleX, uvScaleY, 0, 0);
+        var selectionIndex = -1;
+        for (var i = 0; i < AnimationConfigs.Length; i++)
+        {
+            if (_previewSelection == AnimationConfigs[i].Identifier)
+            {
+                selectionIndex = i;
+            }
+        }
+
+        if (selectionIndex < 0)
+        {
+            return;
+        }
+
+        GetMeshConfiguration(SpriteColumns, SpriteRows, AnimationConfigs[selectionIndex], out var uv,
+            out var matrix4X4);
+
+        DrawMesh(UnitMesh, UnitMaterial, new [] { uv }, new [] { matrix4X4 });
+    }
+
+    private static void GetMeshConfiguration(int spriteColumns, int spriteRows, AnimationConfig animationConfig,
+        out Vector4 uv,
+        out Matrix4x4 matrix4X4)
+    {
+        var uvScaleX = 1f / spriteColumns;
+        var uvScaleY = 1f / spriteRows;
+
+        uv = new Vector4(uvScaleX, uvScaleY, 0, 0);
         var uvOffsetX = uvScaleX * 0;
-        var uvOffsetY = uvScaleY * _animationConfig.SpriteRow;
+        var uvOffsetY = uvScaleY * animationConfig.SpriteRow;
         uv.z = uvOffsetX;
         uv.w = uvOffsetY;
 
-        var position = UtilsClass.GetMouseWorldPosition();
+        var position = Camera.main.transform.position;
+        position.z = 0;
         var rotation = quaternion.identity;
 
-        var matrix4X4 = Matrix4x4.TRS(position, rotation, Vector3.one);
-
-        DrawMesh(UnitMesh, UnitMaterial, uv, matrix4X4);
+        matrix4X4 = Matrix4x4.TRS(position, rotation, Vector3.one);
     }
 
-    private static void DrawMesh(Mesh mesh, Material material, Vector4 uv,
-        Matrix4x4 matrix4X4)
+    private static void DrawMesh(Mesh mesh, Material material, Vector4[] uvArray,
+        Matrix4x4[] matrix4X4Array)
     {
-        var uvInstancedArray = new [] { uv };
-        var matrixInstancedArray = new [] { matrix4X4 };
         var mainTexUV = Shader.PropertyToID("_MainTex_UV");
         var materialPropertyBlock = new MaterialPropertyBlock();
 
-        materialPropertyBlock.SetVectorArray(mainTexUV, uvInstancedArray);
-        Graphics.DrawMeshInstanced(mesh, 0, material, matrixInstancedArray, 1, materialPropertyBlock);
+        materialPropertyBlock.SetVectorArray(mainTexUV, uvArray);
+        Graphics.DrawMeshInstanced(mesh, 0, material, matrix4X4Array, uvArray.Length, materialPropertyBlock);
     }
 }
