@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -12,9 +13,12 @@ public class SpriteSheetRendererManager : MonoBehaviour
     public int SpriteColumns = 3;
     public int SpriteRows = 4;
 
-    [SerializeField] private AnimationId _previewSelection;
+    [SerializeField] private AnimationId _previewAnimation;
+    [SerializeField] private AnimationId[] _previewInventoryItems;
 
     [HideInInspector] public bool IsDirty = true;
+
+    [SerializeField] private float _stackOffsetFactor;
 
     private CameraController _cameraController;
     private int _currentFrame;
@@ -27,7 +31,7 @@ public class SpriteSheetRendererManager : MonoBehaviour
 
     private void Update()
     {
-        if (_previewSelection == AnimationId.None)
+        if (_previewAnimation == AnimationId.None)
         {
             return;
         }
@@ -41,7 +45,7 @@ public class SpriteSheetRendererManager : MonoBehaviour
         var selectionIndex = -1;
         for (var i = 0; i < AnimationConfigs.Length; i++)
         {
-            if (_previewSelection == AnimationConfigs[i].Identifier)
+            if (_previewAnimation == AnimationConfigs[i].Identifier)
             {
                 selectionIndex = i;
             }
@@ -52,15 +56,50 @@ public class SpriteSheetRendererManager : MonoBehaviour
             return;
         }
 
-        var currentFrame = CalculateCurrentFrame(AnimationConfigs[selectionIndex]);
-        GetMeshConfiguration(SpriteColumns, SpriteRows, currentFrame, AnimationConfigs[selectionIndex], out var uv,
-            out var matrix4X4);
-        DrawMesh(UnitMesh, UnitMaterial, new [] { uv }, new [] { matrix4X4 });
+        var uvList = new List<Vector4>();
+        var matrix4X4List = new List<Matrix4x4>();
+
+        AddAnimationInfo(selectionIndex, ref uvList, ref matrix4X4List);
+
+        var stackAmount = 0;
+        foreach (var previewInventoryItem in _previewInventoryItems)
+        {
+            for (var i = 0; i < AnimationConfigs.Length; i++)
+            {
+                if (previewInventoryItem == AnimationConfigs[i].Identifier)
+                {
+                    selectionIndex = i;
+                }
+            }
+
+            AddInventoryInfo(selectionIndex, ref uvList, ref matrix4X4List, stackAmount);
+            stackAmount++;
+        }
+
+        DrawMesh(UnitMesh, UnitMaterial, uvList.ToArray(), matrix4X4List.ToArray());
     }
 
     private void OnValidate()
     {
         IsDirty = true;
+    }
+
+    private void AddAnimationInfo(int selectionIndex, ref List<Vector4> uvList, ref List<Matrix4x4> matrix4X4List)
+    {
+        var currentFrame = CalculateCurrentFrame(AnimationConfigs[selectionIndex]);
+        GetMeshConfiguration(SpriteColumns, SpriteRows, currentFrame, AnimationConfigs[selectionIndex], 0,
+            out var uv, out var matrix4X4);
+        uvList.Add(uv);
+        matrix4X4List.Add(matrix4X4);
+    }
+
+    private void AddInventoryInfo(int selectionIndex, ref List<Vector4> uvList, ref List<Matrix4x4> matrix4X4List,
+        int stackAmount)
+    {
+        GetMeshConfiguration(SpriteColumns, SpriteRows, 0, AnimationConfigs[selectionIndex], stackAmount,
+            out var uv, out var matrix4X4);
+        uvList.Add(uv);
+        matrix4X4List.Add(matrix4X4);
     }
 
     private int CalculateCurrentFrame(AnimationConfig animationConfig)
@@ -80,8 +119,9 @@ public class SpriteSheetRendererManager : MonoBehaviour
         return _currentFrame;
     }
 
-    private static void GetMeshConfiguration(int spriteColumns, int spriteRows, int currentFrame,
+    private void GetMeshConfiguration(int spriteColumns, int spriteRows, int currentFrame,
         AnimationConfig animationConfig,
+        int stackOffset,
         out Vector4 uv,
         out Matrix4x4 matrix4X4)
     {
@@ -95,6 +135,7 @@ public class SpriteSheetRendererManager : MonoBehaviour
         uv.w = uvOffsetY;
 
         var position = Camera.main.transform.position;
+        position.y += stackOffset * _stackOffsetFactor;
         position.z = 0;
         var rotation = quaternion.identity;
 

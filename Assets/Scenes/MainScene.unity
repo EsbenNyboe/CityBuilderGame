@@ -9176,8 +9176,10 @@ MonoBehaviour:
     FrameInterval: 1
   SpriteColumns: 3
   SpriteRows: 9
-  _previewSelection: 0
+  _previewAnimation: 0
+  _previewInventoryItems: 070000000700000007000000
   IsDirty: 1
+  _stackOffsetFactor: 0.23
 --- !u!1 &2052204910
 GameObject:
   m_ObjectHideFlags: 0
