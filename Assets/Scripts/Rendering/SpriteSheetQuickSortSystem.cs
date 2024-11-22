@@ -119,45 +119,6 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         return newDependency;
     }
 
-    private struct MergeSortedArrayWithInventoryDataJob : IJob
-    {
-        public NativeArray<RenderData> MergedArray;
-        [ReadOnly] public NativeParallelHashMap<Entity, InventoryRenderData> InventoryRenderDataHashMap;
-        [ReadOnly] public UnitAnimationManager UnitAnimationManager;
-        [ReadOnly] public NativeArray<RenderData> SortedArray;
-
-        public void Execute()
-        {
-            var mergedArrayIndex = 0;
-            for (var i = 0; i < SortedArray.Length; i++)
-            {
-                var renderData = SortedArray[i];
-                MergedArray[mergedArrayIndex] = renderData;
-                mergedArrayIndex++;
-
-                if (InventoryRenderDataHashMap.TryGetValue(renderData.Entity, out var itemData))
-                {
-                    var uvScaleX = 1f / UnitAnimationManager.SpriteColumns;
-                    var uvScaleY = 1f / UnitAnimationManager.SpriteRows;
-                    var inventoryUv = new Vector4(uvScaleX, uvScaleY, 0, 0)
-                    {
-                        w = uvScaleY * UnitAnimationManager.GetSpriteRowOfInventoryItem(itemData.Item)
-                    };
-                    // TODO: Is it possible to modify the y-position of a matrix? (for stacking the inventory items)
-                    var inventoryMatrix = renderData.Matrix;
-                    var itemRenderData = new RenderData
-                    {
-                        Matrix = inventoryMatrix,
-                        Uv = inventoryUv
-                    };
-
-                    MergedArray[mergedArrayIndex] = itemRenderData;
-                    mergedArrayIndex++;
-                }
-            }
-        }
-    }
-
     private NativeQueue<RenderData> GetDataToSort(ref SystemState state, out float yTop, out float yBottom,
         out NativeQueue<InventoryRenderData> inventoryRenderDataQueue)
     {
@@ -500,6 +461,46 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
                         // Swap
                         (SharedNativeArray[i], SharedNativeArray[j]) = (SharedNativeArray[j], SharedNativeArray[i]);
                     }
+                }
+            }
+        }
+    }
+
+    [BurstCompile]
+    private struct MergeSortedArrayWithInventoryDataJob : IJob
+    {
+        public NativeArray<RenderData> MergedArray;
+        [ReadOnly] public NativeParallelHashMap<Entity, InventoryRenderData> InventoryRenderDataHashMap;
+        [ReadOnly] public UnitAnimationManager UnitAnimationManager;
+        [ReadOnly] public NativeArray<RenderData> SortedArray;
+
+        public void Execute()
+        {
+            var mergedArrayIndex = 0;
+            for (var i = 0; i < SortedArray.Length; i++)
+            {
+                var renderData = SortedArray[i];
+                MergedArray[mergedArrayIndex] = renderData;
+                mergedArrayIndex++;
+
+                if (InventoryRenderDataHashMap.TryGetValue(renderData.Entity, out var itemData))
+                {
+                    var uvScaleX = 1f / UnitAnimationManager.SpriteColumns;
+                    var uvScaleY = 1f / UnitAnimationManager.SpriteRows;
+                    var inventoryUv = new Vector4(uvScaleX, uvScaleY, 0, 0)
+                    {
+                        w = uvScaleY * UnitAnimationManager.GetSpriteRowOfInventoryItem(itemData.Item)
+                    };
+                    // TODO: Is it possible to modify the y-position of a matrix? (for stacking the inventory items)
+                    var inventoryMatrix = renderData.Matrix;
+                    var itemRenderData = new RenderData
+                    {
+                        Matrix = inventoryMatrix,
+                        Uv = inventoryUv
+                    };
+
+                    MergedArray[mergedArrayIndex] = itemRenderData;
+                    mergedArrayIndex++;
                 }
             }
         }
