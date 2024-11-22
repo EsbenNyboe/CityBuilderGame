@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using CodeMonkey.Utils;
-using UnitBehaviours.Pathing;
 using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -61,7 +60,7 @@ public partial class SpawnManagerSystem : SystemBase
             case SpawnItemType.Unit:
                 foreach (var cell in cellList)
                 {
-                    TrySpawnUnit(ecb, ref gridManager, cell, spawnManager.UnitPrefab, true);
+                    TrySpawnUnit(ecb, ref gridManager, cell, spawnManager.UnitPrefab, false);
                 }
 
                 break;
@@ -136,13 +135,11 @@ public partial class SpawnManagerSystem : SystemBase
             !gridManager.IsOccupied(position))
         {
             var entity = InstantiateAtPosition(prefab, position);
-            if (hasHierarchy)
+            gridManager.SetOccupant(position, entity);
+
+            if (!hasHierarchy)
             {
-                gridManager.SetOccupant(position, entity);
-            }
-            else
-            {
-                // If the unit doesn't have a hierarchy, we don't need to have a LinkedEntityGroup
+                // If the unit doesn't have a hierarchy, it doesn't need a LinkedEntityGroup
                 ecb.RemoveComponent<LinkedEntityGroup>(entity);
             }
         }

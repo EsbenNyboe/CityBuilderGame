@@ -5754,7 +5754,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6756d81dbd32014bbe35442b31baf53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _showOccupiableGrid: 1
+  _showOccupiableGrid: 0
   _showWalkableGrid: 0
   _showInteractableGrid: 0
 --- !u!4 &1176266414
