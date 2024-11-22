@@ -1,4 +1,5 @@
 using UnitBehaviours.Talking;
+using UnitState;
 using Unity.Burst;
 using Unity.Entities;
 
@@ -15,17 +16,18 @@ public partial struct UnitAnimationSelectionSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        foreach (var (unitAnimationSelection, pathFollow) in SystemAPI
-                     .Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>>()
+        foreach (var (unitAnimationSelection, pathFollow, inventory) in SystemAPI
+                     .Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>, RefRO<Inventory>>()
                      .WithNone<IsSleeping>().WithNone<IsTalking>())
         {
+            var hasItem = inventory.ValueRO.CurrentItem != InventoryItem.None;
             if (pathFollow.ValueRO.PathIndex < 0)
             {
-                unitAnimationSelection.ValueRW.SelectedAnimation = AnimationId.Idle;
+                unitAnimationSelection.ValueRW.SelectedAnimation = hasItem ? AnimationId.IdleHolding : AnimationId.Idle;
             }
             else
             {
-                unitAnimationSelection.ValueRW.SelectedAnimation = AnimationId.Walk;
+                unitAnimationSelection.ValueRW.SelectedAnimation = hasItem ? AnimationId.WalkHolding : AnimationId.Walk;
             }
         }
 
