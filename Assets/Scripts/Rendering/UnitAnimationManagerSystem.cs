@@ -1,20 +1,33 @@
+using System;
+using System.Linq;
+using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 
 public struct UnitAnimationManager : IComponentData
 {
-    public AnimationConfig TalkAnimation;
-    public AnimationConfig SleepAnimation;
-    public AnimationConfig WalkAnimation;
-    public AnimationConfig IdleAnimation;
     public int SpriteColumns;
     public int SpriteRows;
+
+    public NativeArray<AnimationConfig> AnimationConfigs;
 }
 
+[Serializable]
 public struct AnimationConfig
 {
-    public int SpriteRow;
-    public int FrameCount;
-    public float FrameInterval;
+    public AnimationId Identifier;
+    [Min(0)] public int SpriteRow;
+    [Min(0)] public int FrameCount;
+    [Min(0.01f)] public float FrameInterval;
+}
+
+public enum AnimationId
+{
+    None,
+    Talk,
+    Sleep,
+    Walk,
+    Idle
 }
 
 [UpdateInGroup(typeof(AnimationSystemGroup))]
@@ -22,40 +35,68 @@ public partial class UnitAnimationManagerSystem : SystemBase
 {
     protected override void OnCreate()
     {
-        var unitAnimationManager = new UnitAnimationManager
-        {
-            TalkAnimation = new AnimationConfig
-            {
-                SpriteRow = 0,
-                FrameCount = 2,
-                FrameInterval = 0.4f
-            },
-            SleepAnimation = new AnimationConfig
-            {
-                SpriteRow = 1,
-                FrameCount = 3,
-                FrameInterval = 0.4f
-            },
-            WalkAnimation = new AnimationConfig
-            {
-                SpriteRow = 2,
-                FrameCount = 2,
-                FrameInterval = 0.11f
-            },
-            IdleAnimation = new AnimationConfig
-            {
-                SpriteRow = 3,
-                FrameCount = 2,
-                FrameInterval = 0.8f
-            },
-            SpriteColumns = 3,
-            SpriteRows = 4
-        };
-        EntityManager.AddComponent<UnitAnimationManager>(SystemHandle);
-        SystemAPI.SetComponent(SystemHandle, unitAnimationManager);
+        EntityManager.CreateSingleton<UnitAnimationManager>();
     }
 
     protected override void OnUpdate()
     {
+        var config = SpriteSheetRendererManager.Instance;
+        if (!config.IsDirty)
+        {
+            return;
+        }
+
+        config.IsDirty = false;
+
+        var singleton = SystemAPI.GetSingleton<UnitAnimationManager>();
+
+        singleton.SpriteColumns = config.SpriteColumns;
+        singleton.SpriteRows = config.SpriteRows;
+        if (singleton.AnimationConfigs.IsCreated)
+        {
+            singleton.AnimationConfigs.Dispose();
+        }
+
+        var maxEnum = GetMaxEnumValue<AnimationId>();
+        singleton.AnimationConfigs =
+            new NativeArray<AnimationConfig>(maxEnum + 1, Allocator.Persistent);
+        foreach (var animationConfig in config.AnimationConfigs)
+        {
+            switch (animationConfig.Identifier)
+            {
+                case AnimationId.None:
+                    break;
+                case AnimationId.Talk:
+                    singleton.AnimationConfigs[(int)AnimationId.Talk] = animationConfig;
+                    break;
+                case AnimationId.Sleep:
+                    singleton.AnimationConfigs[(int)AnimationId.Sleep] = animationConfig;
+                    break;
+                case AnimationId.Walk:
+                    singleton.AnimationConfigs[(int)AnimationId.Walk] = animationConfig;
+                    break;
+                case AnimationId.Idle:
+                    singleton.AnimationConfigs[(int)AnimationId.Idle] = animationConfig;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        SystemAPI.SetSingleton(singleton);
+    }
+
+    protected override void OnDestroy()
+    {
+        var singleton = SystemAPI.GetSingleton<UnitAnimationManager>();
+        singleton.AnimationConfigs.Dispose();
+        SystemAPI.SetSingleton(singleton);
+    }
+
+    private static int GetMaxEnumValue<T>() where T : Enum
+    {
+        return Enum.GetValues(typeof(T))
+            .Cast<int>()  // Cast the enum values to integers
+            .Max();       // Get the maximum value
     }
 }
