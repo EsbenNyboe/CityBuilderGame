@@ -49,10 +49,15 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
     {
         state.Dependency.Complete();
         var unitAnimationManager = SystemAPI.GetSingleton<UnitAnimationManager>();
+        if (!unitAnimationManager.AnimationConfigs.IsCreated)
+        {
+            return;
+        }
 
         var spriteSheetsToSort =
             GetDataToSort(ref state, out var yTop, out var yBottom, out var inventoryRenderDataQueue);
-        var visibleUnitsTotal = spriteSheetsToSort.Count;
+        var visibleUnitsCount = spriteSheetsToSort.Count;
+        var visibleItemsCount = inventoryRenderDataQueue.Count;
 
         var splitTimes = 4;
         var splitJobCount = (int)math.pow(2, splitTimes) - 1;
@@ -65,28 +70,31 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         QuickSortQueuesToVerticalSections(arrayOfQueues, quickPivots, jobBatchSizes);
         var arrayOfArrays = ConvertQueuesToArrays(arrayOfQueues);
 
-        var sharedSortingArray = MergeArraysIntoOneSharedArray(visibleUnitsTotal, arrayOfArrays,
+        var sharedSortingArray = MergeArraysIntoOneSharedArray(visibleUnitsCount, arrayOfArrays,
             out var startIndexes,
             out var endIndexes);
 
         var dependency = ScheduleBubbleSortingOfEachSection(sharedSortingArray, startIndexes, endIndexes);
 
-        var allEntitiesToRenderArray =
-            MergeSortedArrayWithInventoryData(sharedSortingArray, inventoryRenderDataQueue, unitAnimationManager);
-        GetSingletonDataContainers(ref state, visibleUnitsTotal, out var spriteMatrixArray, out var spriteUvArray);
-        dependency = ScheduleWritingToDataContainers(sharedSortingArray, spriteMatrixArray, spriteUvArray, dependency,
-            visibleUnitsTotal);
-        allEntitiesToRenderArray.Dispose();
+        dependency = MergeSortedArrayWithInventoryData(dependency, sharedSortingArray, inventoryRenderDataQueue,
+            unitAnimationManager, out var allEntitiesToRenderArray);
+        GetSingletonDataContainers(ref state, visibleUnitsCount + visibleItemsCount,
+            out var spriteMatrixArray, out var spriteUvArray);
+        dependency = ScheduleWritingToDataContainers(allEntitiesToRenderArray, spriteMatrixArray, spriteUvArray,
+            dependency, visibleUnitsCount + visibleItemsCount);
         state.Dependency = dependency;
     }
 
-    private NativeArray<RenderData> MergeSortedArrayWithInventoryData(NativeArray<RenderData> sharedSortingArray,
+    private JobHandle MergeSortedArrayWithInventoryData(JobHandle dependency,
+        NativeArray<RenderData> sharedSortingArray,
         NativeQueue<InventoryRenderData> inventoryRenderDataQueue,
-        UnitAnimationManager unitAnimationManager)
+        UnitAnimationManager unitAnimationManager, out NativeArray<RenderData> mergedArray)
     {
+        // Convert this to a job
         var inventoryItemsToRender = inventoryRenderDataQueue.Count;
         var inventoryRenderDataHashMap =
-            new NativeHashMap<Entity, InventoryRenderData>(inventoryItemsToRender, Allocator.TempJob);
+            new NativeParallelHashMap<Entity, InventoryRenderData>(inventoryItemsToRender, Allocator.TempJob);
+
         while (inventoryRenderDataQueue.Count > 0)
         {
             var inventoryRenderData = inventoryRenderDataQueue.Dequeue();
@@ -95,38 +103,59 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
 
         inventoryRenderDataQueue.Dispose();
 
-        var mergedArray =
+        mergedArray =
             new NativeArray<RenderData>(sharedSortingArray.Length + inventoryItemsToRender, Allocator.TempJob);
-        var mergedArrayIndex = 0;
-        for (var i = 0; i < sharedSortingArray.Length; i++)
+        var newDependency = new MergeSortedArrayWithInventoryDataJob
         {
-            var renderData = sharedSortingArray[i];
-            mergedArray[mergedArrayIndex] = renderData;
-            mergedArrayIndex++;
+            MergedArray = mergedArray,
+            InventoryRenderDataHashMap = inventoryRenderDataHashMap,
+            UnitAnimationManager = unitAnimationManager,
+            SortedArray = sharedSortingArray
+        }.Schedule(dependency);
 
-            if (inventoryRenderDataHashMap.TryGetValue(renderData.Entity, out var itemData))
+        inventoryRenderDataHashMap.Dispose(newDependency);
+        sharedSortingArray.Dispose(newDependency);
+
+        return newDependency;
+    }
+
+    private struct MergeSortedArrayWithInventoryDataJob : IJob
+    {
+        public NativeArray<RenderData> MergedArray;
+        [ReadOnly] public NativeParallelHashMap<Entity, InventoryRenderData> InventoryRenderDataHashMap;
+        [ReadOnly] public UnitAnimationManager UnitAnimationManager;
+        [ReadOnly] public NativeArray<RenderData> SortedArray;
+
+        public void Execute()
+        {
+            var mergedArrayIndex = 0;
+            for (var i = 0; i < SortedArray.Length; i++)
             {
-                var uvScaleX = 1f / unitAnimationManager.SpriteColumns;
-                var uvScaleY = 1f / unitAnimationManager.SpriteRows;
-                var inventoryUv = new Vector4(uvScaleX, uvScaleY, 0, 0)
-                {
-                    w = uvScaleY * unitAnimationManager.AnimationConfigs[(int)itemData.Item].SpriteRow
-                };
-                // TODO: Is it possible to modify the y-position of a matrix? (for stacking the inventory items)
-                var inventoryMatrix = renderData.Matrix;
-                var itemRenderData = new RenderData
-                {
-                    Matrix = inventoryMatrix,
-                    Uv = inventoryUv
-                };
-
-                mergedArray[mergedArrayIndex] = itemRenderData;
+                var renderData = SortedArray[i];
+                MergedArray[mergedArrayIndex] = renderData;
                 mergedArrayIndex++;
+
+                if (InventoryRenderDataHashMap.TryGetValue(renderData.Entity, out var itemData))
+                {
+                    var uvScaleX = 1f / UnitAnimationManager.SpriteColumns;
+                    var uvScaleY = 1f / UnitAnimationManager.SpriteRows;
+                    var inventoryUv = new Vector4(uvScaleX, uvScaleY, 0, 0)
+                    {
+                        w = uvScaleY * UnitAnimationManager.GetSpriteRowOfInventoryItem(itemData.Item)
+                    };
+                    // TODO: Is it possible to modify the y-position of a matrix? (for stacking the inventory items)
+                    var inventoryMatrix = renderData.Matrix;
+                    var itemRenderData = new RenderData
+                    {
+                        Matrix = inventoryMatrix,
+                        Uv = inventoryUv
+                    };
+
+                    MergedArray[mergedArrayIndex] = itemRenderData;
+                    mergedArrayIndex++;
+                }
             }
         }
-
-        inventoryRenderDataHashMap.Dispose();
-        return mergedArray;
     }
 
     private NativeQueue<RenderData> GetDataToSort(ref SystemState state, out float yTop, out float yBottom,
@@ -387,6 +416,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
 
             var renderData = new RenderData
             {
+                Entity = Entity,
                 Position = localToWorld.Position,
                 Matrix = animationData.Matrix,
                 Uv = animationData.Uv

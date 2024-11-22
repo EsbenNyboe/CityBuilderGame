@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using UnitState;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
@@ -10,6 +11,16 @@ public struct UnitAnimationManager : IComponentData
     public int SpriteRows;
 
     public NativeArray<AnimationConfig> AnimationConfigs;
+
+    public int GetSpriteRowOfInventoryItem(InventoryItem item)
+    {
+        return item switch
+        {
+            InventoryItem.None => -1,
+            InventoryItem.LogOfWood => AnimationConfigs[(int)AnimationId.ItemWood].SpriteRow,
+            _ => throw new ArgumentOutOfRangeException(nameof(item), item, null)
+        };
+    }
 }
 
 [Serializable]
