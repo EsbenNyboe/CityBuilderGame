@@ -15,6 +15,8 @@ public class SpriteSheetRendererManager : MonoBehaviour
     [SerializeField] private AnimationId _previewSelection;
 
     private CameraController _cameraController;
+    private int _currentFrame;
+    private float _frameTimer;
 
     private void Awake()
     {
@@ -48,13 +50,31 @@ public class SpriteSheetRendererManager : MonoBehaviour
             return;
         }
 
-        GetMeshConfiguration(SpriteColumns, SpriteRows, AnimationConfigs[selectionIndex], out var uv,
+        var currentFrame = CalculateCurrentFrame(AnimationConfigs[selectionIndex]);
+        GetMeshConfiguration(SpriteColumns, SpriteRows, currentFrame, AnimationConfigs[selectionIndex], out var uv,
             out var matrix4X4);
-
         DrawMesh(UnitMesh, UnitMaterial, new [] { uv }, new [] { matrix4X4 });
     }
 
-    private static void GetMeshConfiguration(int spriteColumns, int spriteRows, AnimationConfig animationConfig,
+    private int CalculateCurrentFrame(AnimationConfig animationConfig)
+    {
+        if (_currentFrame >= animationConfig.FrameCount)
+        {
+            _currentFrame = 0;
+        }
+
+        _frameTimer += Time.deltaTime;
+        while (_frameTimer > animationConfig.FrameInterval)
+        {
+            _frameTimer -= animationConfig.FrameInterval;
+            _currentFrame = (_currentFrame + 1) % animationConfig.FrameCount;
+        }
+
+        return _currentFrame;
+    }
+
+    private static void GetMeshConfiguration(int spriteColumns, int spriteRows, int currentFrame,
+        AnimationConfig animationConfig,
         out Vector4 uv,
         out Matrix4x4 matrix4X4)
     {
@@ -62,7 +82,7 @@ public class SpriteSheetRendererManager : MonoBehaviour
         var uvScaleY = 1f / spriteRows;
 
         uv = new Vector4(uvScaleX, uvScaleY, 0, 0);
-        var uvOffsetX = uvScaleX * 0;
+        var uvOffsetX = uvScaleX * currentFrame;
         var uvOffsetY = uvScaleY * animationConfig.SpriteRow;
         uv.z = uvOffsetX;
         uv.w = uvOffsetY;
