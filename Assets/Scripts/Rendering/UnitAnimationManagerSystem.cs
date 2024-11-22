@@ -24,10 +24,15 @@ public struct AnimationConfig
 public enum AnimationId
 {
     None,
+    Idle,
+    Walk,
+    IdleHolding,
+    WalkHolding,
     Talk,
     Sleep,
-    Walk,
-    Idle
+    ItemWood,
+    ItemMeat,
+    ItemBerries
 }
 
 [UpdateInGroup(typeof(AnimationSystemGroup))]
@@ -51,7 +56,7 @@ public partial class UnitAnimationManagerSystem : SystemBase
         var singleton = SystemAPI.GetSingleton<UnitAnimationManager>();
 
         singleton.SpriteColumns = config.SpriteColumns;
-        singleton.SpriteRows = config.SpriteRows;
+        var rowCount = singleton.SpriteRows = config.SpriteRows;
         if (singleton.AnimationConfigs.IsCreated)
         {
             singleton.AnimationConfigs.Dispose();
@@ -67,23 +72,53 @@ public partial class UnitAnimationManagerSystem : SystemBase
                 case AnimationId.None:
                     break;
                 case AnimationId.Talk:
-                    singleton.AnimationConfigs[(int)AnimationId.Talk] = animationConfig;
+                    singleton.AnimationConfigs[(int)AnimationId.Talk] = ReverseSpriteRow(animationConfig, rowCount);
                     break;
                 case AnimationId.Sleep:
-                    singleton.AnimationConfigs[(int)AnimationId.Sleep] = animationConfig;
+                    singleton.AnimationConfigs[(int)AnimationId.Sleep] = ReverseSpriteRow(animationConfig, rowCount);
+                    break;
+                case AnimationId.IdleHolding:
+                    singleton.AnimationConfigs[(int)AnimationId.IdleHolding] =
+                        ReverseSpriteRow(animationConfig, rowCount);
+                    break;
+                case AnimationId.WalkHolding:
+                    singleton.AnimationConfigs[(int)AnimationId.WalkHolding] =
+                        ReverseSpriteRow(animationConfig, rowCount);
                     break;
                 case AnimationId.Walk:
-                    singleton.AnimationConfigs[(int)AnimationId.Walk] = animationConfig;
+                    singleton.AnimationConfigs[(int)AnimationId.Walk] = ReverseSpriteRow(animationConfig, rowCount);
                     break;
                 case AnimationId.Idle:
-                    singleton.AnimationConfigs[(int)AnimationId.Idle] = animationConfig;
+                    singleton.AnimationConfigs[(int)AnimationId.Idle] = ReverseSpriteRow(animationConfig, rowCount);
+                    break;
+                case AnimationId.ItemWood:
+                    singleton.AnimationConfigs[(int)AnimationId.ItemWood] = ReverseSpriteRow(animationConfig, rowCount);
+                    break;
+                case AnimationId.ItemMeat:
+                    singleton.AnimationConfigs[(int)AnimationId.ItemMeat] = ReverseSpriteRow(animationConfig, rowCount);
+                    break;
+                case AnimationId.ItemBerries:
+                    singleton.AnimationConfigs[(int)AnimationId.ItemBerries] =
+                        ReverseSpriteRow(animationConfig, rowCount);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            switch (animationConfig.Identifier)
+            {
+                case AnimationId.None:
+                    break;
+            }
         }
 
         SystemAPI.SetSingleton(singleton);
+    }
+
+    private AnimationConfig ReverseSpriteRow(AnimationConfig animationConfig, int rowCount)
+    {
+        animationConfig.SpriteRow = rowCount - animationConfig.SpriteRow - 1;
+        return animationConfig;
     }
 
     protected override void OnDestroy()

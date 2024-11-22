@@ -90,7 +90,7 @@ public class SpriteSheetRendererManager : MonoBehaviour
 
         uv = new Vector4(uvScaleX, uvScaleY, 0, 0);
         var uvOffsetX = uvScaleX * currentFrame;
-        var uvOffsetY = uvScaleY * animationConfig.SpriteRow;
+        var uvOffsetY = uvScaleY * GetReversedSpriteRow(animationConfig, spriteRows);
         uv.z = uvOffsetX;
         uv.w = uvOffsetY;
 
@@ -99,6 +99,12 @@ public class SpriteSheetRendererManager : MonoBehaviour
         var rotation = quaternion.identity;
 
         matrix4X4 = Matrix4x4.TRS(position, rotation, Vector3.one);
+    }
+
+    private static int GetReversedSpriteRow(AnimationConfig animationConfig, int rowCount)
+    {
+        animationConfig.SpriteRow = rowCount - animationConfig.SpriteRow - 1;
+        return animationConfig.SpriteRow;
     }
 
     private static void DrawMesh(Mesh mesh, Material material, Vector4[] uvArray,
