@@ -34,6 +34,19 @@ namespace UnitState
             _spawnedUnitsQuery = state.GetEntityQuery(ComponentType.ReadOnly(typeof(SpawnedUnit)));
         }
 
+        public void OnDestroy(ref SystemState state)
+        {
+            foreach (var socialRelationships in
+                     SystemAPI.Query<RefRO<SocialRelationships>>().WithDisabled<IsAlive>())
+            {
+                var relationships = socialRelationships.ValueRO.Relationships;
+                if (relationships.IsCreated)
+                {
+                    relationships.Dispose();
+                }
+            }
+        }
+
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
