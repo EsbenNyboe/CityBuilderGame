@@ -14,6 +14,8 @@ public class SpriteSheetRendererManager : MonoBehaviour
 
     [SerializeField] private AnimationId _previewSelection;
 
+    [HideInInspector] public bool IsDirty = true;
+
     private CameraController _cameraController;
     private int _currentFrame;
     private float _frameTimer;
@@ -54,6 +56,11 @@ public class SpriteSheetRendererManager : MonoBehaviour
         GetMeshConfiguration(SpriteColumns, SpriteRows, currentFrame, AnimationConfigs[selectionIndex], out var uv,
             out var matrix4X4);
         DrawMesh(UnitMesh, UnitMaterial, new [] { uv }, new [] { matrix4X4 });
+    }
+
+    private void OnValidate()
+    {
+        IsDirty = true;
     }
 
     private int CalculateCurrentFrame(AnimationConfig animationConfig)

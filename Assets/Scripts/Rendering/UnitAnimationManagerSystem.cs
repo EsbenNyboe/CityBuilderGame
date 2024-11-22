@@ -1,15 +1,15 @@
 using System;
+using System.Linq;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
 public struct UnitAnimationManager : IComponentData
 {
-    public AnimationConfig TalkAnimation;
-    public AnimationConfig SleepAnimation;
-    public AnimationConfig WalkAnimation;
-    public AnimationConfig IdleAnimation;
     public int SpriteColumns;
     public int SpriteRows;
+
+    public NativeArray<AnimationConfig> AnimationConfigs;
 }
 
 [Serializable]
@@ -40,11 +40,26 @@ public partial class UnitAnimationManagerSystem : SystemBase
 
     protected override void OnUpdate()
     {
-        var singleton = SystemAPI.GetSingleton<UnitAnimationManager>();
         var config = SpriteSheetRendererManager.Instance;
+        if (!config.IsDirty)
+        {
+            return;
+        }
+
+        config.IsDirty = false;
+
+        var singleton = SystemAPI.GetSingleton<UnitAnimationManager>();
 
         singleton.SpriteColumns = config.SpriteColumns;
         singleton.SpriteRows = config.SpriteRows;
+        if (singleton.AnimationConfigs.IsCreated)
+        {
+            singleton.AnimationConfigs.Dispose();
+        }
+
+        var maxEnum = GetMaxEnumValue<AnimationId>();
+        singleton.AnimationConfigs =
+            new NativeArray<AnimationConfig>(maxEnum + 1, Allocator.Persistent);
         foreach (var animationConfig in config.AnimationConfigs)
         {
             switch (animationConfig.Identifier)
@@ -52,16 +67,16 @@ public partial class UnitAnimationManagerSystem : SystemBase
                 case AnimationId.None:
                     break;
                 case AnimationId.Talk:
-                    singleton.TalkAnimation = animationConfig;
+                    singleton.AnimationConfigs[(int)AnimationId.Talk] = animationConfig;
                     break;
                 case AnimationId.Sleep:
-                    singleton.SleepAnimation = animationConfig;
+                    singleton.AnimationConfigs[(int)AnimationId.Sleep] = animationConfig;
                     break;
                 case AnimationId.Walk:
-                    singleton.WalkAnimation = animationConfig;
+                    singleton.AnimationConfigs[(int)AnimationId.Walk] = animationConfig;
                     break;
                 case AnimationId.Idle:
-                    singleton.IdleAnimation = animationConfig;
+                    singleton.AnimationConfigs[(int)AnimationId.Idle] = animationConfig;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -69,5 +84,19 @@ public partial class UnitAnimationManagerSystem : SystemBase
         }
 
         SystemAPI.SetSingleton(singleton);
+    }
+
+    protected override void OnDestroy()
+    {
+        var singleton = SystemAPI.GetSingleton<UnitAnimationManager>();
+        singleton.AnimationConfigs.Dispose();
+        SystemAPI.SetSingleton(singleton);
+    }
+
+    private static int GetMaxEnumValue<T>() where T : Enum
+    {
+        return Enum.GetValues(typeof(T))
+            .Cast<int>()  // Cast the enum values to integers
+            .Max();       // Get the maximum value
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
@@ -25,30 +24,18 @@ public partial struct SpriteSheetAnimationSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         var unitAnimationManager = SystemAPI.GetSingleton<UnitAnimationManager>();
+        var animationConfigs = unitAnimationManager.AnimationConfigs;
 
         var uvScaleX = 1f / unitAnimationManager.SpriteColumns;
         var uvScaleY = 1f / unitAnimationManager.SpriteRows;
         var uvTemplate = new Vector4(uvScaleX, uvScaleY, 0, 0);
-
-        var talkAnimation = unitAnimationManager.TalkAnimation;
-        var sleepAnimation = unitAnimationManager.SleepAnimation;
-        var walkAnimation = unitAnimationManager.WalkAnimation;
-        var idleAnimation = unitAnimationManager.IdleAnimation;
-
 
         foreach (var (spriteSheetAnimationData, localToWorld, spriteTransform, unitAnimator) in SystemAPI
                      .Query<RefRW<SpriteSheetAnimation>, RefRO<LocalToWorld>, RefRO<SpriteTransform>,
                          RefRW<UnitAnimationSelection>>())
         {
             var selectedAnimation = unitAnimator.ValueRO.SelectedAnimation;
-            var animationConfig = selectedAnimation switch
-            {
-                0 => talkAnimation,
-                1 => sleepAnimation,
-                2 => walkAnimation,
-                3 => idleAnimation,
-                _ => throw new ArgumentOutOfRangeException()
-            };
+            var animationConfig = animationConfigs[(int)selectedAnimation];
 
             if (unitAnimator.ValueRO.CurrentAnimation != selectedAnimation)
             {
