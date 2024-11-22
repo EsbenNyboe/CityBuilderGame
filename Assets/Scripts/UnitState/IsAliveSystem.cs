@@ -24,8 +24,7 @@ namespace UnitState
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<IsAlive>();
 
-            _deadUnits = new EntityQueryBuilder(Allocator.Temp)
-                .WithDisabled<IsAlive>().WithAll<Child>().Build(ref state);
+            _deadUnits = new EntityQueryBuilder(Allocator.Temp).WithDisabled<IsAlive>().Build(ref state);
             _gridManagerSystemHandle = state.World.GetOrCreateSystem<GridManagerSystem>();
         }
 
@@ -114,16 +113,8 @@ namespace UnitState
                 }
             }
 
-            // Mark child-entities as dead
-            using var deadLogs = new NativeList<Entity>(deadUnits.Length, Allocator.Temp);
-            foreach (var child in SystemAPI.Query<DynamicBuffer<Child>>().WithDisabled<IsAlive>())
-            {
-                deadLogs.Add(child[0].Value);
-            }
-
             // Destroy dead units
             state.EntityManager.DestroyEntity(deadUnits);
-            state.EntityManager.DestroyEntity(deadLogs.AsArray());
             state.EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
         }
     }
