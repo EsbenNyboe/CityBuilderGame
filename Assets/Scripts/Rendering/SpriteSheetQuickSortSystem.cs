@@ -1,4 +1,5 @@
 using Rendering;
+using UnitState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -22,6 +23,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<UnitAnimationManager>();
         state.RequireForUpdate<CameraInformation>();
         var singletonEntity = state.EntityManager.CreateSingleton<SpriteSheetSortingManager>();
         SystemAPI.SetComponent(singletonEntity, new SpriteSheetSortingManager
@@ -30,7 +32,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             SpriteUvArray = new NativeArray<Vector4>(1, Allocator.TempJob)
         });
         _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<SpriteSheetAnimation>(),
-            ComponentType.ReadOnly<LocalToWorld>());
+            ComponentType.ReadOnly<LocalToWorld>(), ComponentType.ReadOnly<Inventory>());
 
         state.RequireForUpdate<BeginPresentationEntityCommandBufferSystem.Singleton>();
         state.RequireForUpdate<SpriteSheetSortingManager>();
@@ -43,13 +45,14 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         singleton.ValueRW.SpriteUvArray.Dispose();
     }
 
-    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         state.Dependency.Complete();
+        var unitAnimationManager = SystemAPI.GetSingleton<UnitAnimationManager>();
 
-        var spriteSheetsToSort = GetDataToSort(ref state, out var yTop, out var yBottom);
-        var visibleEntitiesTotal = spriteSheetsToSort.Count;
+        var spriteSheetsToSort =
+            GetDataToSort(ref state, out var yTop, out var yBottom, out var inventoryRenderDataQueue);
+        var visibleUnitsTotal = spriteSheetsToSort.Count;
 
         var splitTimes = 4;
         var splitJobCount = (int)math.pow(2, splitTimes) - 1;
@@ -62,20 +65,72 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         QuickSortQueuesToVerticalSections(arrayOfQueues, quickPivots, jobBatchSizes);
         var arrayOfArrays = ConvertQueuesToArrays(arrayOfQueues);
 
-        GetSingletonDataContainers(ref state, visibleEntitiesTotal, out var spriteMatrixArray, out var spriteUvArray);
-
-        var sharedNativeArray = MergeArraysIntoOneSharedArray(visibleEntitiesTotal, arrayOfArrays,
+        var sharedSortingArray = MergeArraysIntoOneSharedArray(visibleUnitsTotal, arrayOfArrays,
             out var startIndexes,
             out var endIndexes);
 
-        var dependency = ScheduleBubbleSortingOfEachSection(sharedNativeArray, startIndexes, endIndexes);
-        dependency = ScheduleWritingToDataContainers(sharedNativeArray, spriteMatrixArray, spriteUvArray, dependency,
-            visibleEntitiesTotal);
+        var dependency = ScheduleBubbleSortingOfEachSection(sharedSortingArray, startIndexes, endIndexes);
+
+        var allEntitiesToRenderArray =
+            MergeSortedArrayWithInventoryData(sharedSortingArray, inventoryRenderDataQueue, unitAnimationManager);
+        GetSingletonDataContainers(ref state, visibleUnitsTotal, out var spriteMatrixArray, out var spriteUvArray);
+        dependency = ScheduleWritingToDataContainers(sharedSortingArray, spriteMatrixArray, spriteUvArray, dependency,
+            visibleUnitsTotal);
+        allEntitiesToRenderArray.Dispose();
         state.Dependency = dependency;
     }
 
+    private NativeArray<RenderData> MergeSortedArrayWithInventoryData(NativeArray<RenderData> sharedSortingArray,
+        NativeQueue<InventoryRenderData> inventoryRenderDataQueue,
+        UnitAnimationManager unitAnimationManager)
+    {
+        var inventoryItemsToRender = inventoryRenderDataQueue.Count;
+        var inventoryRenderDataHashMap =
+            new NativeHashMap<Entity, InventoryRenderData>(inventoryItemsToRender, Allocator.TempJob);
+        while (inventoryRenderDataQueue.Count > 0)
+        {
+            var inventoryRenderData = inventoryRenderDataQueue.Dequeue();
+            inventoryRenderDataHashMap.Add(inventoryRenderData.Entity, inventoryRenderData);
+        }
 
-    private NativeQueue<RenderData> GetDataToSort(ref SystemState state, out float yTop, out float yBottom)
+        inventoryRenderDataQueue.Dispose();
+
+        var mergedArray =
+            new NativeArray<RenderData>(sharedSortingArray.Length + inventoryItemsToRender, Allocator.TempJob);
+        var mergedArrayIndex = 0;
+        for (var i = 0; i < sharedSortingArray.Length; i++)
+        {
+            var renderData = sharedSortingArray[i];
+            mergedArray[mergedArrayIndex] = renderData;
+            mergedArrayIndex++;
+
+            if (inventoryRenderDataHashMap.TryGetValue(renderData.Entity, out var itemData))
+            {
+                var uvScaleX = 1f / unitAnimationManager.SpriteColumns;
+                var uvScaleY = 1f / unitAnimationManager.SpriteRows;
+                var inventoryUv = new Vector4(uvScaleX, uvScaleY, 0, 0)
+                {
+                    w = uvScaleY * unitAnimationManager.AnimationConfigs[(int)itemData.Item].SpriteRow
+                };
+                // TODO: Is it possible to modify the y-position of a matrix? (for stacking the inventory items)
+                var inventoryMatrix = renderData.Matrix;
+                var itemRenderData = new RenderData
+                {
+                    Matrix = inventoryMatrix,
+                    Uv = inventoryUv
+                };
+
+                mergedArray[mergedArrayIndex] = itemRenderData;
+                mergedArrayIndex++;
+            }
+        }
+
+        inventoryRenderDataHashMap.Dispose();
+        return mergedArray;
+    }
+
+    private NativeQueue<RenderData> GetDataToSort(ref SystemState state, out float yTop, out float yBottom,
+        out NativeQueue<InventoryRenderData> inventoryRenderDataQueue)
     {
         var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
         var cameraPosition = cameraInformation.CameraPosition;
@@ -93,13 +148,15 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
 
         // Filter out all units that are outside the field of view
         var spriteSheetsToSort = new NativeQueue<RenderData>(Allocator.TempJob);
+        inventoryRenderDataQueue = new NativeQueue<InventoryRenderData>(Allocator.TempJob);
         new CullJob
         {
             XLeft = xLeft,
             XRight = xRight,
             YTop = yTop,
             YBottom = yBottom,
-            NativeQueue = spriteSheetsToSort
+            NativeQueue = spriteSheetsToSort,
+            InventoryRenderDataQueue = inventoryRenderDataQueue
         }.Run(_entityQuery);
 
         return spriteSheetsToSort;
@@ -309,8 +366,10 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         public float YBottom; // Bottom most cull position
 
         public NativeQueue<RenderData> NativeQueue;
+        public NativeQueue<InventoryRenderData> InventoryRenderDataQueue;
 
-        public void Execute(ref LocalToWorld localToWorld, ref SpriteSheetAnimation animationData)
+        public void Execute(in Entity Entity, in LocalToWorld localToWorld, in SpriteSheetAnimation animationData,
+            in Inventory inventory)
         {
             var positionX = localToWorld.Position.x;
             if (!(positionX > XLeft) || !(positionX < XRight))
@@ -334,6 +393,15 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
             };
 
             NativeQueue.Enqueue(renderData);
+            if (inventory.CurrentItem != InventoryItem.None)
+            {
+                InventoryRenderDataQueue.Enqueue(new InventoryRenderData
+                {
+                    Entity = Entity,
+                    Item = inventory.CurrentItem,
+                    Amount = 1
+                });
+            }
         }
     }
 
@@ -428,8 +496,17 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
 
     private struct RenderData
     {
+        public Entity Entity;
         public float3 Position;
         public Matrix4x4 Matrix;
         public Vector4 Uv;
+        public InventoryItem InventoryItem;
+    }
+
+    private struct InventoryRenderData
+    {
+        public Entity Entity;
+        public InventoryItem Item;
+        public int Amount;
     }
 }
