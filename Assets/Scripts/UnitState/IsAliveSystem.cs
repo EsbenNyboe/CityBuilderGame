@@ -9,7 +9,9 @@ using Unity.Transforms;
 
 namespace UnitState
 {
-    public struct IsAlive : IComponentData, IEnableableComponent { }
+    public struct IsAlive : IComponentData, IEnableableComponent
+    {
+    }
 
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial struct IsAliveSystem : ISystem
@@ -19,6 +21,7 @@ namespace UnitState
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<SocialEvaluationManager>();
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<IsAlive>();
 
@@ -93,6 +96,30 @@ namespace UnitState
                 foreach (var deadUnit in deadUnits)
                 {
                     socialRelationships.ValueRW.Relationships.Remove(deadUnit);
+                }
+            }
+
+            // Cleanup SocialEvaluation-queue
+            var socialEvaluationManager = SystemAPI.GetSingleton<SocialEvaluationManager>();
+            var queueLength = socialEvaluationManager.SocialEvaluationQueue.Count;
+            var queueIndex = 0;
+            while (queueIndex < queueLength)
+            {
+                queueIndex++;
+                var socialEvaluationEntry = socialEvaluationManager.SocialEvaluationQueue.Dequeue();
+                var isDead = false;
+                foreach (var deadUnit in deadUnits)
+                {
+                    if (deadUnit == socialEvaluationEntry)
+                    {
+                        isDead = true;
+                        break;
+                    }
+                }
+
+                if (!isDead)
+                {
+                    socialEvaluationManager.SocialEvaluationQueue.Enqueue(socialEvaluationEntry);
                 }
             }
 
