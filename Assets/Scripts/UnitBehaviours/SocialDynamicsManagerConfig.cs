@@ -13,6 +13,7 @@ namespace UnitBehaviours
         public float ImpactOnBedBeingOccupied = -1f;
 
         public SocialEventConfig OnUnitAttackTree = new() { InfluenceAmount = 1f, InfluenceRadius = 10f };
+        public SocialEventConfig OnUnitAttackUnit = new() { InfluenceAmount = -1f, InfluenceRadius = 10f };
 
         private void Awake()
         {

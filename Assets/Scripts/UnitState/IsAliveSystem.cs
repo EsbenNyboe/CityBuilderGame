@@ -9,9 +9,7 @@ using Unity.Transforms;
 
 namespace UnitState
 {
-    public struct IsAlive : IComponentData, IEnableableComponent
-    {
-    }
+    public struct IsAlive : IComponentData, IEnableableComponent { }
 
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial struct IsAliveSystem : ISystem
@@ -36,6 +34,7 @@ namespace UnitState
             var gridManagerRW = state.EntityManager.GetComponentDataRW<GridManager>(_gridManagerSystemHandle);
             using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
             using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
+            using var invalidSocialEventsWithVictim = new NativeList<Entity>(Allocator.Temp);
             var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
@@ -47,6 +46,20 @@ namespace UnitState
                     if (socialEvent.ValueRO.Perpetrator == deadUnits[i])
                     {
                         invalidSocialEvents.Add(entity);
+                    }
+                }
+            }
+
+            // Cleanup social events with victim
+            foreach (var (socialEventWithVictim, entity) in SystemAPI.Query<RefRO<SocialEventWithVictim>>()
+                         .WithEntityAccess())
+            {
+                for (var i = 0; i < deadUnits.Length; i++)
+                {
+                    if (socialEventWithVictim.ValueRO.Perpetrator == deadUnits[i] ||
+                        socialEventWithVictim.ValueRO.Victim == deadUnits[i])
+                    {
+                        invalidSocialEventsWithVictim.Add(entity);
                     }
                 }
             }
@@ -112,6 +125,7 @@ namespace UnitState
             // Destroy dead units
             state.EntityManager.DestroyEntity(deadUnits);
             state.EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
+            state.EntityManager.DestroyEntity(invalidSocialEventsWithVictim.AsArray());
         }
     }
 }

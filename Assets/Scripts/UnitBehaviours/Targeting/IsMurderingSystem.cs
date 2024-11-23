@@ -26,6 +26,7 @@ namespace UnitBehaviours.Targeting
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<SocialDynamicsManager>();
             state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -36,6 +37,7 @@ namespace UnitBehaviours.Targeting
         {
             var attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
             var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
+            var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
@@ -72,6 +74,15 @@ namespace UnitBehaviours.Targeting
                     {
                         Position = targetPosition
                     });
+                    ecb.AddComponent(ecb.CreateEntity(), new SocialEventWithVictim
+                    {
+                        Position = targetPosition,
+                        Perpetrator = entity,
+                        Victim = target,
+                        InfluenceAmount = socialDynamicsManager.OnUnitAttackUnit.InfluenceAmount,
+                        InfluenceRadius = socialDynamicsManager.OnUnitAttackUnit.InfluenceRadius
+                    });
+                    
                     var targetHealth = SystemAPI.GetComponentLookup<Health>()[target];
                     targetHealth.CurrentHealth -= unitBehaviourManager.DamagePerAttack;
                     SystemAPI.SetComponent(target, targetHealth);

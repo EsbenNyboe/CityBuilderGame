@@ -9,6 +9,7 @@ namespace UnitBehaviours
         public float ThresholdForBecomingAnnoying;
         public float ImpactOnBedBeingOccupied;
         public SocialEventConfig OnUnitAttackTree;
+        public SocialEventConfig OnUnitAttackUnit;
     }
 
     [Serializable]
@@ -33,6 +34,7 @@ namespace UnitBehaviours
             singleton.ThresholdForBecomingAnnoying = config.ThresholdForBecomingAnnoying;
             singleton.ImpactOnBedBeingOccupied = config.ImpactOnBedBeingOccupied;
             singleton.OnUnitAttackTree = config.OnUnitAttackTree;
+            singleton.OnUnitAttackUnit = config.OnUnitAttackUnit;
             SystemAPI.SetSingleton(singleton);
         }
     }
