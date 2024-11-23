@@ -85,7 +85,8 @@ namespace UnitAgency
 
             var isSleepy = moodSleepiness.ValueRO.Sleepiness > 0.2f;
             var isMoving = pathFollow.ValueRO.IsMoving();
-            var annoyingDude = socialRelationships.ValueRO.AnnoyingDude;
+            // TODO: How do we find who's the annoying dude? 
+            var annoyingDude = Entity.Null;
             var isAnnoyedAtSomeone = annoyingDude != Entity.Null;
             var isLonely = moodLoneliness.ValueRO.Loneliness > 1f;
 

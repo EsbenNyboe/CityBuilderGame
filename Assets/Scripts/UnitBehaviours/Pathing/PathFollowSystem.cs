@@ -163,10 +163,6 @@ public partial struct PathFollowSystem : ISystem
                 var fondnessOfBedOccupant = socialRelationships.ValueRO.Relationships[occupant];
                 fondnessOfBedOccupant += socialDynamicsManager.ImpactOnBedBeingOccupied;
                 socialRelationships.ValueRW.Relationships[occupant] = fondnessOfBedOccupant;
-                if (fondnessOfBedOccupant < socialDynamicsManager.ThresholdForBecomingAnnoying)
-                {
-                    socialRelationships.ValueRW.AnnoyingDude = occupant;
-                }
             }
 
             GridHelpers.GetXY(targetPosition, out var x, out var y);

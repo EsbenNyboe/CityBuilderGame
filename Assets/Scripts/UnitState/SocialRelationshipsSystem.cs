@@ -11,7 +11,6 @@ namespace UnitState
     public struct SocialRelationships : IComponentData
     {
         public NativeHashMap<Entity, float> Relationships;
-        public Entity AnnoyingDude;
     }
 
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
@@ -66,13 +65,6 @@ namespace UnitState
         private void EvaluateExistingRelationships(ref SystemState state, NativeArray<Entity> existingUnits,
             SocialDynamicsManager socialDynamicsManager)
         {
-            var annoyingDudeJob = new EvaluateAnnoyingDudeJob
-            {
-                ExistingUnits = existingUnits,
-                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
-                ThresholdForBecomingAnnoying = socialDynamicsManager.ThresholdForBecomingAnnoying
-            }.Schedule(existingUnits.Length, 10);
-            annoyingDudeJob.Complete();
             var currentTime = (float)SystemAPI.Time.ElapsedTime;
             var timeSinceLastEvaluation = currentTime - _timeOfLastEvaluation;
             if (timeSinceLastEvaluation < EvaluationInterval)
@@ -151,31 +143,6 @@ namespace UnitState
 
                 socialRelationships.Relationships = relationships;
                 SocialRelationshipsLookup[ExistingUnits[index]] = socialRelationships;
-            }
-        }
-
-        [BurstCompile]
-        private struct EvaluateAnnoyingDudeJob : IJobParallelFor
-        {
-            [ReadOnly] public NativeArray<Entity> ExistingUnits;
-
-            [NativeDisableContainerSafetyRestriction]
-            public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
-
-            [ReadOnly] public float ThresholdForBecomingAnnoying;
-
-            public void Execute(int index)
-            {
-                var socialRelationships = SocialRelationshipsLookup[ExistingUnits[index]];
-
-                var relationships = socialRelationships.Relationships;
-                var annoyingDude = socialRelationships.AnnoyingDude;
-                if (annoyingDude != Entity.Null && relationships[annoyingDude] >= ThresholdForBecomingAnnoying)
-                {
-                    // He's not annoying anymore
-                    socialRelationships.AnnoyingDude = Entity.Null;
-                    SocialRelationshipsLookup[ExistingUnits[index]] = socialRelationships;
-                }
             }
         }
 

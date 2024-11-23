@@ -80,10 +80,6 @@ namespace UnitState
                 foreach (var deadUnit in deadUnits)
                 {
                     socialRelationships.ValueRW.Relationships.Remove(deadUnit);
-                    if (deadUnit == socialRelationships.ValueRO.AnnoyingDude)
-                    {
-                        socialRelationships.ValueRW.AnnoyingDude = Entity.Null;
-                    }
                 }
             }
 
