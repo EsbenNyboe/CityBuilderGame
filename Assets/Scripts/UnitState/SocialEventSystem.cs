@@ -1,4 +1,3 @@
-using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -15,11 +14,11 @@ namespace UnitState
     }
 
     /// <summary>
-    /// For this type of event there is a perpetrator, a victim (in the positive or negative sense :))
-    /// and some amount of observers (including perp and victim).
-    /// Based on how much a given observer (dis)liked the *victim*, their opinion of the *perpetrator*
-    /// will change. This means if you did something bad (e.g. murdered) to someone I like, I will
-    /// dislike you more, but if you did it to someone I hate, I will like you more.
+    ///     For this type of event there is a perpetrator, a victim (in the positive or negative sense :))
+    ///     and some amount of observers (including perp and victim).
+    ///     Based on how much a given observer (dis)liked the *victim*, their opinion of the *perpetrator*
+    ///     will change. This means if you did something bad (e.g. murdered) to someone I like, I will
+    ///     dislike you more, but if you did it to someone I hate, I will like you more.
     /// </summary>
     public struct SocialEventWithVictim : IComponentData
     {
@@ -32,28 +31,27 @@ namespace UnitState
 
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     [UpdateAfter(typeof(IsAliveSystem))]
-    public partial struct SocialEventSystem : ISystem
+    public partial class SocialEventSystem : SystemBase
     {
         private EntityQuery _socialEventQuery;
         private EntityQuery _socialEventWithVictimQuery;
 
-        public void OnCreate(ref SystemState state)
+        protected override void OnCreate()
         {
-            _socialEventQuery = state.GetEntityQuery(ComponentType.ReadOnly<SocialEvent>());
-            _socialEventWithVictimQuery = state.GetEntityQuery(ComponentType.ReadOnly<SocialEvent>());
+            _socialEventQuery = GetEntityQuery(ComponentType.ReadOnly<SocialEvent>());
+            _socialEventWithVictimQuery = GetEntityQuery(ComponentType.ReadOnly<SocialEventWithVictim>());
         }
 
-        [BurstCompile]
-        public void OnUpdate(ref SystemState state)
+        protected override void OnUpdate()
         {
-            HandleSocialEvents(ref state);
-            HandleSocialEventsWithVictim(ref state);
+            HandleSocialEvents();
+            HandleSocialEventsWithVictim();
 
-            state.EntityManager.DestroyEntity(_socialEventQuery);
-            state.EntityManager.DestroyEntity(_socialEventWithVictimQuery);
+            EntityManager.DestroyEntity(_socialEventQuery);
+            EntityManager.DestroyEntity(_socialEventWithVictimQuery);
         }
 
-        private void HandleSocialEvents(ref SystemState state)
+        private void HandleSocialEvents()
         {
             foreach (var socialEventRefRO in SystemAPI.Query<RefRO<SocialEvent>>())
             {
@@ -61,17 +59,21 @@ namespace UnitState
                 foreach (var (socialRelationships, localTransform) in SystemAPI
                              .Query<RefRW<SocialRelationships>, RefRO<LocalTransform>>())
                 {
-                    var distance = Vector3.Distance(localTransform.ValueRO.Position, socialEvent.Position);
+                    var eventPosition = socialEvent.Position;
+                    var distance = Vector3.Distance(localTransform.ValueRO.Position, eventPosition);
                     if (distance < socialEvent.InfluenceRadius)
                     {
+                        var influenceAmount = socialEvent.InfluenceAmount;
                         socialRelationships.ValueRW.Relationships[socialEvent.Perpetrator] +=
-                            socialEvent.InfluenceAmount;
+                            influenceAmount;
+
+                        PlayVisualEffect(influenceAmount, localTransform.ValueRO.Position);
                     }
                 }
             }
         }
 
-        private void HandleSocialEventsWithVictim(ref SystemState state)
+        private void HandleSocialEventsWithVictim()
         {
             foreach (var socialEventWithVictimRefRO in SystemAPI.Query<RefRO<SocialEventWithVictim>>())
             {
@@ -82,12 +84,26 @@ namespace UnitState
                     var distance = Vector3.Distance(localTransform.ValueRO.Position, socialEventWithVictim.Position);
                     if (distance < socialEventWithVictim.InfluenceRadius)
                     {
-                        float friendFactor = socialRelationships.ValueRO.Relationships[socialEventWithVictim.Victim];
-                        float finalInfluenceAmount = socialEventWithVictim.InfluenceAmount * friendFactor;
+                        var friendFactor = socialRelationships.ValueRO.Relationships[socialEventWithVictim.Victim];
+                        var finalInfluenceAmount = socialEventWithVictim.InfluenceAmount * friendFactor;
                         socialRelationships.ValueRW.Relationships[socialEventWithVictim.Perpetrator] +=
                             finalInfluenceAmount;
+
+                        PlayVisualEffect(finalInfluenceAmount, localTransform.ValueRO.Position);
                     }
                 }
+            }
+        }
+
+        private static void PlayVisualEffect(float influenceAmount, float3 eventPosition)
+        {
+            if (influenceAmount > 0)
+            {
+                SpriteEffectManager.Instance.PlaySocialPlusEffect(eventPosition);
+            }
+            else if (influenceAmount < 0)
+            {
+                SpriteEffectManager.Instance.PlaySocialMinusEffect(eventPosition);
             }
         }
     }
