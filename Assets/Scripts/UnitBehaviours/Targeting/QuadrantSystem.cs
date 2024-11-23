@@ -73,7 +73,7 @@ namespace UnitBehaviours.Targeting
             {
                 QuadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(),
                 GridManager = gridManager
-            }.Schedule(_entityQuery);
+            }.ScheduleParallel(_entityQuery);
         }
 
         private static void DebugDrawQuadrant(float3 position)
