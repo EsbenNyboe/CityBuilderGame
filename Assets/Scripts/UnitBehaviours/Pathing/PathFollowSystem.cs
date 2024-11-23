@@ -34,10 +34,10 @@ public partial struct PathFollow
 public partial struct PathFollowSystem : ISystem
 {
     private SystemHandle _gridManagerSystemHandle;
-    private const float BaseSpeed = 5f;
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<UnitBehaviourManager>();
         state.RequireForUpdate<SocialDynamicsManager>();
         state.RequireForUpdate<DebugToggleManager>();
         state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -51,6 +51,7 @@ public partial struct PathFollowSystem : ISystem
         var isDebuggingPath = debugToggleManager.DebugPathfinding;
         var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
         var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
+        var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
 
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
@@ -85,7 +86,9 @@ public partial struct PathFollowSystem : ISystem
                 }
             }
 
-            var moveAmount = BaseSpeed * pathFollow.ValueRO.MoveSpeedMultiplier * SystemAPI.Time.DeltaTime;
+            var moveAmount = unitBehaviourManager.MoveSpeed *
+                             pathFollow.ValueRO.MoveSpeedMultiplier *
+                             SystemAPI.Time.DeltaTime;
 
             while (distanceToTarget - moveAmount < 0)
             {
