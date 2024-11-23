@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 public static class DebugHelper
@@ -67,5 +68,30 @@ public static class DebugHelper
         FixedString128Bytes messageFixedString = messageString;
         messageFixedString.Append(entity.ToFixedString());
         return messageFixedString;
+    }
+
+    public static void DebugDrawCell(int2 cell, Color color)
+    {
+        var padding = 0f;
+        var offset = 1f - padding;
+        var debugPosition = new Vector3(cell.x - 0.5f + padding, cell.y - 0.5f + padding, 0);
+        Debug.DrawLine(debugPosition,
+            debugPosition + new Vector3(+offset, +0), color);
+        Debug.DrawLine(debugPosition,
+            debugPosition + new Vector3(+0, +offset), color);
+        Debug.DrawLine(debugPosition + new Vector3(+offset, +0),
+            debugPosition + new Vector3(+offset, +offset), color);
+        Debug.DrawLine(debugPosition + new Vector3(+0, +offset),
+            debugPosition + new Vector3(+offset, +offset), color);
+    }
+
+    public static void DebugDrawCross(int2 cell, Color color)
+    {
+        var padding = 0.2f;
+        var offset = 1f - padding;
+        var debugPosition = new Vector3(cell.x - 0.5f + padding, cell.y - 0.5f + padding, 0);
+        Debug.DrawLine(debugPosition, debugPosition + new Vector3(+offset, +offset), color);
+        Debug.DrawLine(debugPosition + new Vector3(+offset, +0), debugPosition + new Vector3(0, +offset),
+            color);
     }
 }

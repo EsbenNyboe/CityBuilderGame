@@ -80,6 +80,11 @@ namespace UnitState
                     var cross = math.cross(direction, new float3(0, 0, 0.1f));
                     Debug.DrawLine(position + cross, otherPosition + cross, GetRelationshipColor(relationship.Value));
                 }
+
+                var relationshipToSelf = socialRelationships.Relationships[Entities[index]];
+
+                DebugHelper.DebugDrawCell(GridHelpers.GetXY(position), GetRelationshipColor(relationshipToSelf));
+                DebugHelper.DebugDrawCross(GridHelpers.GetXY(position), GetRelationshipColor(relationshipToSelf));
             }
 
             private static Color GetRelationshipColor(float relationshipValue)
