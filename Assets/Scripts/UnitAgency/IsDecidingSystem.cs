@@ -1,3 +1,4 @@
+using UnitBehaviours;
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
@@ -5,6 +6,7 @@ using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
 using UnitState;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -31,6 +33,8 @@ namespace UnitAgency
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<QuadrantDataManager>();
+            state.RequireForUpdate<SocialDynamicsManager>();
             state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
@@ -47,6 +51,8 @@ namespace UnitAgency
             _isTalkativeLookup.Update(ref state);
             _attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
+            var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (_, pathFollow,
@@ -64,13 +70,16 @@ namespace UnitAgency
                          .WithEntityAccess().WithNone<Pathfinding>().WithNone<AttackAnimation>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
-                DecideNextBehaviour(ref state, gridManager, ecb, pathFollow, inventory, socialRelationships,
+                DecideNextBehaviour(ref state, gridManager, socialDynamicsManager, quadrantDataManager, ecb, pathFollow, inventory, 
+                    socialRelationships,
                     moodSleepiness, moodLoneliness, moodInitiative, entity);
             }
         }
 
         private void DecideNextBehaviour(ref SystemState state,
             GridManager gridManager,
+            SocialDynamicsManager socialDynamicsManager,
+            QuadrantDataManager quadrantDataManager,
             EntityCommandBuffer ecb,
             RefRO<PathFollow> pathFollow,
             RefRO<Inventory> inventory,
@@ -78,7 +87,8 @@ namespace UnitAgency
             RefRO<MoodSleepiness> moodSleepiness,
             RefRO<MoodLoneliness> moodLoneliness,
             RefRW<MoodInitiative> moodInitiative,
-            Entity entity)
+            Entity entity
+        )
         {
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
             var cell = GridHelpers.GetXY(unitPosition);
@@ -86,8 +96,6 @@ namespace UnitAgency
             var isSleepy = moodSleepiness.ValueRO.Sleepiness > 0.2f;
             var isMoving = pathFollow.ValueRO.IsMoving();
             // TODO: How do we find who's the annoying dude? 
-            var annoyingDude = Entity.Null;
-            var isAnnoyedAtSomeone = annoyingDude != Entity.Null;
             var isLonely = moodLoneliness.ValueRO.Loneliness > 1f;
 
             if (HasLogOfWood(inventory.ValueRO))
@@ -98,7 +106,14 @@ namespace UnitAgency
             {
                 ecb.AddComponent(entity, new IsIdle());
             }
-            else if (isAnnoyedAtSomeone)
+            else if (IsAnnoyedAtSomeone(
+                         ref state,
+                         entity,
+                         socialRelationships.ValueRO.Relationships,
+                         socialDynamicsManager.ThresholdForBecomingAnnoying,
+                         unitPosition,
+                         quadrantDataManager,
+                         out var annoyingDude))
             {
                 var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
                 var annoyingDudePosition = transformLookup[annoyingDude].Position;
@@ -172,6 +187,49 @@ namespace UnitAgency
             {
                 ecb.AddComponent(entity, new IsSeekingTree());
             }
+        }
+
+        private bool IsAnnoyedAtSomeone(
+            ref SystemState state,
+            Entity self,
+            NativeHashMap<Entity, float> relationships,
+            float thresholdForBecomingAnnoying,
+            float3 position,
+            QuadrantDataManager quadrantDataManager,
+            out Entity annoyingDude
+        )
+        {
+            var quadrant = QuadrantSystem.GetPositionHashMapKey(position);
+            if (!quadrantDataManager.QuadrantMultiHashMap.TryGetFirstValue(quadrant, out var data, out var iterator))
+            {
+                annoyingDude = Entity.Null;
+                return false;
+            }
+            
+            // We check some fixed amount of people in our quadrant as a semi-random way to get some sample
+            int peopleLeftToCheck = 5;
+            do
+            {
+                // If self, skip without 
+                if (data.Entity == self)
+                {
+                    continue;
+                }
+
+                // Are we mad with this person
+                // TODO: Don't consider folks not in our section on the grid
+                if (relationships[data.Entity] < thresholdForBecomingAnnoying)
+                {
+                    annoyingDude = data.Entity;
+                    return true;
+                }
+
+                peopleLeftToCheck--;
+            } while (peopleLeftToCheck > 0 &&
+                     quadrantDataManager.QuadrantMultiHashMap.TryGetNextValue(out data, ref iterator));
+            
+            annoyingDude = Entity.Null;
+            return false;
         }
 
         private bool HasLogOfWood(Inventory inventory)
