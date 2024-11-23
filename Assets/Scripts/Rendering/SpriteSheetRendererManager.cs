@@ -61,19 +61,23 @@ public class SpriteSheetRendererManager : MonoBehaviour
 
         AddAnimationInfo(selectionIndex, ref uvList, ref matrix4X4List);
 
-        var stackAmount = 0;
-        foreach (var previewInventoryItem in _previewInventoryItems)
+        if (AnimationConfigs[selectionIndex].Identifier == AnimationId.IdleHolding ||
+            AnimationConfigs[selectionIndex].Identifier == AnimationId.WalkHolding)
         {
-            for (var i = 0; i < AnimationConfigs.Length; i++)
+            var stackAmount = 0;
+            foreach (var previewInventoryItem in _previewInventoryItems)
             {
-                if (previewInventoryItem == AnimationConfigs[i].Identifier)
+                for (var i = 0; i < AnimationConfigs.Length; i++)
                 {
-                    selectionIndex = i;
+                    if (previewInventoryItem == AnimationConfigs[i].Identifier)
+                    {
+                        selectionIndex = i;
+                    }
                 }
-            }
 
-            AddInventoryInfo(selectionIndex, ref uvList, ref matrix4X4List, stackAmount);
-            stackAmount++;
+                AddInventoryInfo(selectionIndex, ref uvList, ref matrix4X4List, stackAmount);
+                stackAmount++;
+            }
         }
 
         DrawMesh(UnitMesh, UnitMaterial, uvList.ToArray(), matrix4X4List.ToArray());

@@ -41,9 +41,16 @@ namespace Grid
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugSectionSorting;
 
-            if (!gridManager.WalkableGridIsDirty && !isDebugging)
+            var isDirty = gridManager.WalkableGridIsDirty;
+            if (!isDirty && !isDebugging)
             {
                 return;
+            }
+
+            if (isDebugging && isDirty)
+            {
+                _debugListCurrent = 0;
+                _debugListSuccessHitsCurrent = 0;
             }
 
             if (!TryGetWalkableCells(gridManager, out var walkableNodeQueue))
@@ -291,10 +298,10 @@ namespace Grid
                 color = Color.green;
             }
 
-            DebugDrawCell(_debugList[_debugListCurrent], color);
+            DebugDrawCell(_debugList[_debugListCurrent], color, true);
         }
 
-        private static void DebugDrawCell(int2 cell, Color color)
+        private static void DebugDrawCell(int2 cell, Color color, bool withCross = false)
         {
             var padding = 0.2f;
             var offset = 1f - padding;
@@ -305,6 +312,12 @@ namespace Grid
                 color);
             Debug.DrawLine(debugPosition + new Vector3(+0, +offset), debugPosition + new Vector3(+offset, +offset),
                 color);
+            if (withCross)
+            {
+                Debug.DrawLine(debugPosition, debugPosition + new Vector3(+offset, +offset), color);
+                Debug.DrawLine(debugPosition + new Vector3(+offset, +0), debugPosition + new Vector3(0, +offset),
+                    color);
+            }
         }
 
         private Color GetSectionColor(int sectionKey)
