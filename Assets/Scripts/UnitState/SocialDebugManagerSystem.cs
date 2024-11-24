@@ -9,7 +9,6 @@ namespace UnitState
         public bool IncludeNonSelections;
         public bool ApplyFilter;
         public DrawRelationsFilter FilterSetting;
-        public bool DebugBadPerformanceEvents;
     }
 
     [Serializable]
@@ -35,7 +34,6 @@ namespace UnitState
             singleton.IncludeNonSelections = config.IncludeNonSelections;
             singleton.ApplyFilter = config.ApplyFilter;
             singleton.FilterSetting = config.FilterSetting;
-            singleton.DebugBadPerformanceEvents = config.DebugBadPerformanceEvents;
 
             SystemAPI.SetSingleton(singleton);
         }
