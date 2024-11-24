@@ -1,4 +1,5 @@
 using Debugging;
+using UnitBehaviours;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
@@ -17,6 +18,7 @@ namespace Grid
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<SocialDynamicsManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
@@ -30,6 +32,7 @@ namespace Grid
             var isDebuggingPath = debugToggleManager.DebugPathfinding;
             var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
 
+            var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
@@ -56,8 +59,10 @@ namespace Grid
                 invalidatedCells.Add(invalidatedCellsQueue.Dequeue());
             }
 
-            foreach (var (localTransform, pathFollow, pathPositions, moodInitiative, entity) in SystemAPI
+            foreach (var (localTransform, pathFollow, pathPositions, socialRelationships, moodInitiative, entity) in
+                     SystemAPI
                          .Query<RefRW<LocalTransform>, RefRW<PathFollow>, DynamicBuffer<PathPosition>,
+                             RefRW<SocialRelationships>,
                              RefRW<MoodInitiative>>()
                          .WithEntityAccess())
             {
@@ -67,7 +72,8 @@ namespace Grid
                 }
 
                 InvalidatePath(ecb, gridManager, entity, localTransform, pathFollow, pathPositions,
-                    moodInitiative, isDebuggingPathInvalidation, isDebuggingPath, isDebuggingSearch);
+                    socialDynamicsManager, socialRelationships, moodInitiative, isDebuggingPathInvalidation,
+                    isDebuggingPath, isDebuggingSearch);
             }
         }
 
@@ -85,10 +91,12 @@ namespace Grid
             return false;
         }
 
-        private static void InvalidatePath(EntityCommandBuffer ecb, GridManager gridManager, Entity entity,
+        private static void InvalidatePath(  EntityCommandBuffer ecb, GridManager gridManager, Entity entity,
             RefRW<LocalTransform> localTransform, RefRW<PathFollow> pathFollow,
-            DynamicBuffer<PathPosition> pathPositions, RefRW<MoodInitiative> moodInitiative,
-            bool isDebuggingPathInvalidation, bool isDebuggingPath, bool isDebuggingSearch)
+            DynamicBuffer<PathPosition> pathPositions, SocialDynamicsManager socialDynamicsManager,
+            RefRW<SocialRelationships> socialRelationships,
+            RefRW<MoodInitiative> moodInitiative, bool isDebuggingPathInvalidation, bool isDebuggingPath,
+            bool isDebuggingSearch)
         {
             var pathIndex = pathFollow.ValueRO.PathIndex;
             var nextPathNode = pathPositions[pathIndex].Position;
@@ -118,6 +126,12 @@ namespace Grid
             else
             {
                 // My target is no longer reachable. I'll try and find a place close to my target...
+
+                if (InvalidationCausedUnitToLoseAccessToBeds(gridManager, entity, targetCell))
+                {
+                    GetAngryAtOccupant(gridManager, socialDynamicsManager, socialRelationships, targetCell);
+                }
+
                 if (currentCellIsWalkable &&
                     gridManager.TryGetNearbyEmptyCellSemiRandom(targetCell, out targetCell, isDebuggingSearch))
                 {
@@ -140,7 +154,8 @@ namespace Grid
                     moodInitiative.ValueRW.Initiative += 1f;
                 }
                 else if (!currentCellIsWalkable &&
-                         (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out targetCell, isDebuggingSearch, true,
+                         (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out targetCell, isDebuggingSearch,
+                              true,
                               10) ||
                           gridManager.TryGetClosestWalkableCell(currentCell, out targetCell)))
                 {
@@ -168,6 +183,22 @@ namespace Grid
                     pathFollow.ValueRW.PathIndex = 0;
                 }
             }
+        }
+
+        private static void GetAngryAtOccupant(GridManager gridManager, SocialDynamicsManager socialDynamicsManager,
+            RefRW<SocialRelationships> socialRelationships, int2 targetCell)
+        {
+            var occupant = gridManager.GetOccupant(targetCell);
+            var fondnessOfBedOccupant = socialRelationships.ValueRO.Relationships[occupant];
+            fondnessOfBedOccupant += socialDynamicsManager.ImpactOnBedBeingOccupied;
+            socialRelationships.ValueRW.Relationships[occupant] = fondnessOfBedOccupant;
+        }
+
+        private static bool InvalidationCausedUnitToLoseAccessToBeds(GridManager gridManager, Entity entity,
+            int2 targetCell)
+        {
+            return gridManager.IsBed(targetCell) && gridManager.IsOccupied(targetCell, entity) &&
+                   !gridManager.TryGetClosestBedSemiRandom(targetCell, out _, true);
         }
     }
 }

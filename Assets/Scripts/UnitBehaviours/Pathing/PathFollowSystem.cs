@@ -1,6 +1,5 @@
 using Debugging;
 using UnitBehaviours;
-using UnitState;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -50,16 +49,15 @@ public partial struct PathFollowSystem : ISystem
         var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
         var isDebuggingPath = debugToggleManager.DebugPathfinding;
         var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
-        var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
         var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
 
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
 
-        foreach (var (localTransform, pathPositionBuffer, pathFollow, spriteTransform, socialRelationships, entity) in
+        foreach (var (localTransform, pathPositionBuffer, pathFollow, spriteTransform, entity) in
                  SystemAPI
                      .Query<RefRW<LocalTransform>, DynamicBuffer<PathPosition>, RefRW<PathFollow>,
-                         RefRW<SpriteTransform>, RefRW<SocialRelationships>>().WithEntityAccess())
+                         RefRW<SpriteTransform>>().WithEntityAccess())
         {
             var pathIndex = pathFollow.ValueRO.PathIndex;
             if (pathIndex < 0)
@@ -103,8 +101,6 @@ public partial struct PathFollowSystem : ISystem
                     moveAmount = 0;
                     distanceToTarget = 0;
                     EndPathFollowing(ref state, ecb, entity,
-                        socialRelationships,
-                        socialDynamicsManager,
                         targetPosition,
                         isDebuggingSearch,
                         isDebuggingPath);
@@ -143,7 +139,6 @@ public partial struct PathFollowSystem : ISystem
     }
 
     private void EndPathFollowing(ref SystemState state, EntityCommandBuffer ecb, Entity entity,
-        RefRW<SocialRelationships> socialRelationships, SocialDynamicsManager socialDynamicsManager,
         float3 targetPosition,
         bool isDebuggingSearch, bool isDebuggingPath)
     {
@@ -157,14 +152,6 @@ public partial struct PathFollowSystem : ISystem
         }
         else
         {
-            if (gridManager.IsBed(targetPosition) && gridManager.IsOccupied(targetPosition, entity))
-            {
-                gridManager.TryGetOccupant(targetPosition, out var occupant);
-                var fondnessOfBedOccupant = socialRelationships.ValueRO.Relationships[occupant];
-                fondnessOfBedOccupant += socialDynamicsManager.ImpactOnBedBeingOccupied;
-                socialRelationships.ValueRW.Relationships[occupant] = fondnessOfBedOccupant;
-            }
-
             GridHelpers.GetXY(targetPosition, out var x, out var y);
             if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell, isDebuggingSearch))
             {

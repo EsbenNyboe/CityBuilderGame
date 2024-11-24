@@ -37,6 +37,18 @@ public partial struct GridManager
         return occupant != Entity.Null;
     }
 
+    public Entity GetOccupant(Vector3 position)
+    {
+        var cell = GridHelpers.GetXY(position);
+        return GetOccupant(cell);
+    }
+
+    public Entity GetOccupant(int2 cell)
+    {
+        var i = GetIndex(cell);
+        return GetOccupant(i);
+    }
+
     private Entity GetOccupant(int i)
     {
         return OccupiableGrid[i].Occupant;
