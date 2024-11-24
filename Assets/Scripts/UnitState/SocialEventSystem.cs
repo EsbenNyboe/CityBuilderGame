@@ -1,3 +1,5 @@
+using Effects.SocialEffectsRendering;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -31,27 +33,31 @@ namespace UnitState
 
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     [UpdateAfter(typeof(IsAliveSystem))]
-    public partial class SocialEventSystem : SystemBase
+    public partial struct SocialEventSystem : ISystem
     {
         private EntityQuery _socialEventQuery;
         private EntityQuery _socialEventWithVictimQuery;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
-            _socialEventQuery = GetEntityQuery(ComponentType.ReadOnly<SocialEvent>());
-            _socialEventWithVictimQuery = GetEntityQuery(ComponentType.ReadOnly<SocialEventWithVictim>());
+            state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
+            _socialEventQuery = state.GetEntityQuery(ComponentType.ReadOnly<SocialEvent>());
+            _socialEventWithVictimQuery = state.GetEntityQuery(ComponentType.ReadOnly<SocialEventWithVictim>());
         }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            HandleSocialEvents();
-            HandleSocialEventsWithVictim();
+            var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
+            HandleSocialEvents(ref state, ecb);
+            HandleSocialEventsWithVictim(ref state, ecb);
 
-            EntityManager.DestroyEntity(_socialEventQuery);
-            EntityManager.DestroyEntity(_socialEventWithVictimQuery);
+            state.EntityManager.DestroyEntity(_socialEventQuery);
+            state.EntityManager.DestroyEntity(_socialEventWithVictimQuery);
         }
 
-        private void HandleSocialEvents()
+        private void HandleSocialEvents(ref SystemState state, EntityCommandBuffer ecb)
         {
             foreach (var socialEventRefRO in SystemAPI.Query<RefRO<SocialEvent>>())
             {
@@ -67,13 +73,22 @@ namespace UnitState
                         socialRelationships.ValueRW.Relationships[socialEvent.Perpetrator] +=
                             influenceAmount;
 
-                        PlayVisualEffect(influenceAmount, localTransform.ValueRO.Position);
+                        if (influenceAmount != 0)
+                        {
+                            ecb.AddComponent(ecb.CreateEntity(), new SocialEffect
+                            {
+                                Position = localTransform.ValueRO.Position,
+                                Type = influenceAmount > 0
+                                    ? SocialEffectType.Positive
+                                    : SocialEffectType.Negative
+                            });
+                        }
                     }
                 }
             }
         }
 
-        private void HandleSocialEventsWithVictim()
+        private void HandleSocialEventsWithVictim(ref SystemState state, EntityCommandBuffer ecb)
         {
             foreach (var socialEventWithVictimRefRO in SystemAPI.Query<RefRO<SocialEventWithVictim>>())
             {
@@ -89,21 +104,18 @@ namespace UnitState
                         socialRelationships.ValueRW.Relationships[socialEventWithVictim.Perpetrator] +=
                             finalInfluenceAmount;
 
-                        PlayVisualEffect(finalInfluenceAmount, localTransform.ValueRO.Position);
+                        if (finalInfluenceAmount != 0)
+                        {
+                            ecb.AddComponent(ecb.CreateEntity(), new SocialEffect
+                            {
+                                Position = localTransform.ValueRO.Position,
+                                Type = finalInfluenceAmount > 0
+                                    ? SocialEffectType.Positive
+                                    : SocialEffectType.Negative
+                            });
+                        }
                     }
                 }
-            }
-        }
-
-        private static void PlayVisualEffect(float influenceAmount, float3 eventPosition)
-        {
-            if (influenceAmount > 0)
-            {
-                SpriteEffectManager.Instance.PlaySocialPlusEffect(eventPosition);
-            }
-            else if (influenceAmount < 0)
-            {
-                SpriteEffectManager.Instance.PlaySocialMinusEffect(eventPosition);
             }
         }
     }

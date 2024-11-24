@@ -7,8 +7,6 @@ public class SpriteEffectManager : MonoBehaviour
     [SerializeField] private TimedImagePoolManager[] _damageEffectPools;
     [Range(0, 0.5f)] [SerializeField] private float _randomPositionFactor;
 
-    [SerializeField] private TimedImagePoolManager _socialPlusEffectPool;
-    [SerializeField] private TimedImagePoolManager _socialMinusEffectPool;
     private int _currentSelection;
 
     private void Awake()
@@ -28,17 +26,5 @@ public class SpriteEffectManager : MonoBehaviour
         position.x += Random.Range(-_randomPositionFactor, _randomPositionFactor);
         position.y += Random.Range(-_randomPositionFactor, _randomPositionFactor);
         _damageEffectPools[_currentSelection].EnqueuePoolItem(poolItem, position);
-    }
-
-    public void PlaySocialPlusEffect(Vector3 position)
-    {
-        var poolItem = _socialPlusEffectPool.GetOrCreatePoolItem();
-        _socialPlusEffectPool.EnqueuePoolItem(poolItem, position);
-    }
-
-    public void PlaySocialMinusEffect(Vector3 position)
-    {
-        var poolItem = _socialMinusEffectPool.GetOrCreatePoolItem();
-        _socialMinusEffectPool.EnqueuePoolItem(poolItem, position);
     }
 }
