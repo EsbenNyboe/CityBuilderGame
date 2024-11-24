@@ -11,6 +11,8 @@ namespace UnitState
         public bool ApplyFilter;
         public DrawRelationsFilter FilterSetting;
 
+        public bool DebugBadPerformanceEvents;
+
         private void Awake()
         {
             Instance = this;
