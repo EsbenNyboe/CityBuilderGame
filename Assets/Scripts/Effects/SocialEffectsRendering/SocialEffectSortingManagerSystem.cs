@@ -10,6 +10,10 @@ namespace Effects.SocialEffectsRendering
         public NativeQueue<SocialEffectData> SocialEffectQueue;
         public NativeArray<Matrix4x4> SpriteMatrixArray;
         public NativeArray<Vector4> SpriteUvArray;
+        public float Scale;
+        public float Offset;
+        public float Lifetime;
+        public float MoveSpeed;
     }
 
     public struct SocialEffectData
@@ -21,8 +25,6 @@ namespace Effects.SocialEffectsRendering
 
     public partial struct SocialEffectSortingManagerSystem : ISystem
     {
-        private const float Lifetime = 1f;
-
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -46,7 +48,7 @@ namespace Effects.SocialEffectsRendering
                 socialEffectSortingManager.SocialEffectQueue = new NativeQueue<SocialEffectData>(Allocator.Persistent);
             }
 
-            var killThreshold = (float)SystemAPI.Time.ElapsedTime - Lifetime;
+            var killThreshold = (float)SystemAPI.Time.ElapsedTime - socialEffectSortingManager.Lifetime;
             var queueIsDirty = true;
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
@@ -90,8 +92,12 @@ namespace Effects.SocialEffectsRendering
             for (var i = 0; i < length; i++)
             {
                 var socialEffectData = socialEffectSortingManager.SocialEffectQueue.Dequeue();
+                var position = lookup[socialEffectData.Entity].Position;
+                position.y += socialEffectSortingManager.Offset;
+                position.z -= 1;
+                var scale = Vector3.one * socialEffectSortingManager.Scale;
                 socialEffectSortingManager.SpriteMatrixArray[i] =
-                    Matrix4x4.TRS(lookup[socialEffectData.Entity].Position, quaternion.identity, Vector3.one);
+                    Matrix4x4.TRS(position, quaternion.identity, scale);
 
                 var spriteColumns = 1;
                 var spriteRows = 2;

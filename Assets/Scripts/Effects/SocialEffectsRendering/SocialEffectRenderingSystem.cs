@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace Effects.SocialEffectsRendering
 {
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial class SocialEffectRenderingSystem : SystemBase
     {
         private static readonly Vector4[] UVInstancedArray = new Vector4[SliceCount];
@@ -15,6 +16,11 @@ namespace Effects.SocialEffectsRendering
         protected override void OnUpdate()
         {
             var socialEffectSortingManager = SystemAPI.GetSingleton<SocialEffectSortingManager>();
+            socialEffectSortingManager.Scale = SocialEffectRendererManager.Instance.Scale;
+            socialEffectSortingManager.Offset = SocialEffectRendererManager.Instance.Offset;
+            socialEffectSortingManager.Lifetime = SocialEffectRendererManager.Instance.Lifetime;
+            socialEffectSortingManager.MoveSpeed = SocialEffectRendererManager.Instance.MoveSpeed;
+            SystemAPI.SetSingleton(socialEffectSortingManager);
             var mesh = SocialEffectRendererManager.Instance.Mesh;
             var material = SocialEffectRendererManager.Instance.Material;
 

@@ -24,8 +24,6 @@ namespace Effects.SocialEffectsRendering
             state.RequireForUpdate<SocialEffectSortingManager>();
         }
 
-        private const float MoveSpeed = 0.5f;
-
         public void OnUpdate(ref SystemState state)
         {
             var socialEffectSortingManager = SystemAPI.GetSingleton<SocialEffectSortingManager>();
@@ -44,7 +42,7 @@ namespace Effects.SocialEffectsRendering
 
             foreach (var socialEffect in SystemAPI.Query<RefRW<SocialEffect>>().WithDisabled<SocialEffect>())
             {
-                socialEffect.ValueRW.Position.y += MoveSpeed * SystemAPI.Time.DeltaTime;
+                socialEffect.ValueRW.Position.y += socialEffectSortingManager.MoveSpeed * SystemAPI.Time.DeltaTime;
             }
         }
     }
