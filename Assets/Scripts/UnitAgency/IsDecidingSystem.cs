@@ -185,9 +185,14 @@ namespace UnitAgency
                     });
                 }
             }
+            else if (moodInitiative.ValueRO.HasInitiative())
+            {
+                moodInitiative.ValueRW.UseInitiative();
+                ecb.AddComponent(entity, new IsSeekingTree());
+            }
             else
             {
-                ecb.AddComponent(entity, new IsSeekingTree());
+                ecb.AddComponent<IsIdle>(entity);
             }
         }
 
