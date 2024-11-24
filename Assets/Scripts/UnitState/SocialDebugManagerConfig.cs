@@ -10,6 +10,7 @@ namespace UnitState
         public bool IncludeNonSelections = true;
         public bool ApplyFilter;
         public DrawRelationsFilter FilterSetting;
+        public bool ShowEventEffects;
 
         private void Awake()
         {

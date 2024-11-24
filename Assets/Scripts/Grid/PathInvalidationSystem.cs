@@ -1,4 +1,5 @@
 using Debugging;
+using Effects.SocialEffectsRendering;
 using UnitBehaviours;
 using UnitState;
 using Unity.Burst;
@@ -18,6 +19,7 @@ namespace Grid
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<SocialDebugManager>();
             state.RequireForUpdate<SocialDynamicsManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -33,6 +35,7 @@ namespace Grid
             var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
 
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
+            var socialDebugManager = SystemAPI.GetSingleton<SocialDebugManager>();
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
@@ -59,11 +62,18 @@ namespace Grid
                 invalidatedCells.Add(invalidatedCellsQueue.Dequeue());
             }
 
-            foreach (var (localTransform, pathFollow, pathPositions, socialRelationships, moodInitiative, entity) in
-                     SystemAPI
-                         .Query<RefRW<LocalTransform>, RefRW<PathFollow>, DynamicBuffer<PathPosition>,
+            foreach (var (localTransform,
+                         pathFollow,
+                         pathPositions,
+                         socialRelationships,
+                         moodInitiative,
+                         moodSleepiness,
+                         entity) in SystemAPI.Query<RefRW<LocalTransform>,
+                             RefRW<PathFollow>,
+                             DynamicBuffer<PathPosition>,
                              RefRW<SocialRelationships>,
-                             RefRW<MoodInitiative>>()
+                             RefRW<MoodInitiative>,
+                             RefRO<MoodSleepiness>>()
                          .WithEntityAccess())
             {
                 if (!CurrentPathIsInvalidated(pathPositions, invalidatedCells, pathFollow.ValueRO.PathIndex))
@@ -72,7 +82,8 @@ namespace Grid
                 }
 
                 InvalidatePath(ecb, gridManager, entity, localTransform, pathFollow, pathPositions,
-                    socialDynamicsManager, socialRelationships, moodInitiative, isDebuggingPathInvalidation,
+                    socialDynamicsManager, socialDebugManager, socialRelationships, moodInitiative, moodSleepiness,
+                    isDebuggingPathInvalidation,
                     isDebuggingPath, isDebuggingSearch);
             }
         }
@@ -91,11 +102,13 @@ namespace Grid
             return false;
         }
 
-        private static void InvalidatePath(  EntityCommandBuffer ecb, GridManager gridManager, Entity entity,
+        private static void InvalidatePath(EntityCommandBuffer ecb, GridManager gridManager, Entity entity,
             RefRW<LocalTransform> localTransform, RefRW<PathFollow> pathFollow,
             DynamicBuffer<PathPosition> pathPositions, SocialDynamicsManager socialDynamicsManager,
+            SocialDebugManager socialDebugManager,
             RefRW<SocialRelationships> socialRelationships,
-            RefRW<MoodInitiative> moodInitiative, bool isDebuggingPathInvalidation, bool isDebuggingPath,
+            RefRW<MoodInitiative> moodInitiative, RefRO<MoodSleepiness> moodSleepiness,
+            bool isDebuggingPathInvalidation, bool isDebuggingPath,
             bool isDebuggingSearch)
         {
             var pathIndex = pathFollow.ValueRO.PathIndex;
@@ -129,7 +142,9 @@ namespace Grid
 
                 if (InvalidationCausedUnitToLoseAccessToBeds(gridManager, entity, targetCell))
                 {
-                    GetAngryAtOccupant(gridManager, socialDynamicsManager, socialRelationships, targetCell);
+                    GetAngryAtOccupant(ecb, gridManager, socialDynamicsManager, socialDebugManager, socialRelationships,
+                        moodSleepiness,
+                        localTransform.ValueRO.Position, targetCell);
                 }
 
                 if (currentCellIsWalkable &&
@@ -185,13 +200,31 @@ namespace Grid
             }
         }
 
-        private static void GetAngryAtOccupant(GridManager gridManager, SocialDynamicsManager socialDynamicsManager,
-            RefRW<SocialRelationships> socialRelationships, int2 targetCell)
+        private static void GetAngryAtOccupant(  EntityCommandBuffer ecb, GridManager gridManager,
+            SocialDynamicsManager socialDynamicsManager,
+            SocialDebugManager socialDebugManager,
+            RefRW<SocialRelationships> socialRelationships, RefRO<MoodSleepiness> moodSleepiness, float3 position,
+            int2 targetCell)
         {
             var occupant = gridManager.GetOccupant(targetCell);
             var fondnessOfBedOccupant = socialRelationships.ValueRO.Relationships[occupant];
-            fondnessOfBedOccupant += socialDynamicsManager.ImpactOnBedBeingOccupied;
+            var influenceAmount = socialDynamicsManager.ImpactOnBedBeingOccupied * moodSleepiness.ValueRO.Sleepiness;
+            fondnessOfBedOccupant += influenceAmount;
             socialRelationships.ValueRW.Relationships[occupant] = fondnessOfBedOccupant;
+
+            if (socialDebugManager.ShowEventEffects)
+            {
+                if (influenceAmount != 0)
+                {
+                    ecb.AddComponent(ecb.CreateEntity(), new SocialEffect
+                    {
+                        Position = position,
+                        Type = influenceAmount > 0
+                            ? SocialEffectType.Positive
+                            : SocialEffectType.Negative
+                    });
+                }
+            }
         }
 
         private static bool InvalidationCausedUnitToLoseAccessToBeds(GridManager gridManager, Entity entity,
