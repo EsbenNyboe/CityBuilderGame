@@ -85,11 +85,14 @@ public partial class UnitControlSystem : SystemBase
 
             using var ecb = new EntityCommandBuffer(Allocator.Temp);
 
-            DeselectAllUnits(ecb);
+            if (!Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift))
+            {
+                DeselectAllUnits();
+            }
 
             var selectedEntityCount = 0;
             foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<Selectable>, RefRO<LocalTransform>>()
-                         .WithEntityAccess())
+                         .WithEntityAccess().WithNone<UnitSelection>())
             {
                 if (selectOnlyOneEntity && selectedEntityCount > 0)
                 {
@@ -136,8 +139,10 @@ public partial class UnitControlSystem : SystemBase
         ecb.Playback(EntityManager);
     }
 
-    private void DeselectAllUnits(EntityCommandBuffer ecb)
+    private void DeselectAllUnits()
     {
+        using var ecb = new EntityCommandBuffer(Allocator.Temp);
+
         foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
         {
             var currentName = EntityManager.GetName(entity);
@@ -149,6 +154,8 @@ public partial class UnitControlSystem : SystemBase
 
             ecb.RemoveComponent(entity, typeof(UnitSelection));
         }
+
+        ecb.Playback(EntityManager);
     }
 
     private void OrderPathFindingForSelectedUnits()
