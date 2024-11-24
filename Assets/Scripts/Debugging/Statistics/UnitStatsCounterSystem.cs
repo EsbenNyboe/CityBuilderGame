@@ -4,12 +4,13 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
+using UnitState;
 using Unity.Collections;
 using Unity.Entities;
 
 namespace Statistics
 {
-    [UpdateInGroup(typeof(UnitStateSystemGroup), OrderFirst = true)]
+    [UpdateInGroup(typeof(PresentationSystemGroup))]
     public partial class UnitStatsCounterSystem : SystemBase
     {
         protected override void OnUpdate()
@@ -30,6 +31,15 @@ namespace Statistics
             var conversationEventCount = new EntityQueryBuilder(Allocator.Temp).WithAll<ConversationEvent>().Build(this)
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfConversationEvents(conversationEventCount);
+
+            var socialEventCount = new EntityQueryBuilder(Allocator.Temp).WithAll<SocialEvent>().Build(this)
+                .CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfSocialEvent(socialEventCount);
+
+            var socialEventWithVictimCount = new EntityQueryBuilder(Allocator.Temp).WithAll<SocialEventWithVictim>()
+                .Build(this)
+                .CalculateEntityCount();
+            UnitStatsDisplayManager.Instance.SetNumberOfSocialEventWithVictim(socialEventWithVictimCount);
 
             var isSeekingBedCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingBed>().Build(this)
                 .CalculateEntityCount();
@@ -64,7 +74,8 @@ namespace Statistics
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfIsTalking(isTalkingCount);
 
-            var isSeekingTalkingPartnerCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingTalkingPartner>().Build(this)
+            var isSeekingTalkingPartnerCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingTalkingPartner>()
+                .Build(this)
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfIsSeekingTalkingPartner(isSeekingTalkingPartnerCount);
 

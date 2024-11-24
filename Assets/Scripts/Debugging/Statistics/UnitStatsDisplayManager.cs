@@ -9,6 +9,9 @@ namespace Statistics
         [SerializeField] private bool _showNumberOfDecisions;
         [SerializeField] private bool _showNumberOfPathfindings;
         [SerializeField] private bool _showNumberOfConversations;
+        [SerializeField] private bool _showNumberOfSocialEvent;
+        [SerializeField] private bool _showNumberOfSocialEventWithVictim;
+
         [SerializeField] private bool _showNumberOfBedSeekers;
         [SerializeField] private bool _showNumberOfTreeSeekers;
         [SerializeField] private bool _showNumberOfDropPointsSeekers;
@@ -25,6 +28,10 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _numberOfDecisionsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfPathfindingsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfConversationsDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfSocialEventDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfSocialEventWithVictimDisplay;
+
+
         [SerializeField] private UnitStatsDisplay _numberOfBedSeekersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfTreeSeekersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfDropPointSeekersDisplay;
@@ -37,6 +44,7 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _numberOfIsAttemptingMurderDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfIsMurderingDisplay;
 
+
         private void Awake()
         {
             Instance = this;
@@ -48,6 +56,9 @@ namespace Statistics
             _numberOfDecisionsDisplay.gameObject.SetActive(_showNumberOfDecisions);
             _numberOfPathfindingsDisplay.gameObject.SetActive(_showNumberOfPathfindings);
             _numberOfConversationsDisplay.gameObject.SetActive(_showNumberOfConversations);
+            _numberOfSocialEventDisplay.gameObject.SetActive(_showNumberOfSocialEvent);
+            _numberOfSocialEventWithVictimDisplay.gameObject.SetActive(_showNumberOfSocialEventWithVictim);
+
             _numberOfBedSeekersDisplay.gameObject.SetActive(_showNumberOfBedSeekers);
             _numberOfTreeSeekersDisplay.gameObject.SetActive(_showNumberOfTreeSeekers);
             _numberOfDropPointSeekersDisplay.gameObject.SetActive(_showNumberOfDropPointsSeekers);
@@ -135,6 +146,16 @@ namespace Statistics
         public void SetNumberOfIsMurdering(int isMurderingCount)
         {
             _numberOfIsMurderingDisplay.SetStatsValue(isMurderingCount);
+        }
+
+        public void SetNumberOfSocialEvent(int socialEventCount)
+        {
+            _numberOfSocialEventDisplay.SetStatsValue(socialEventCount);
+        }
+
+        public void SetNumberOfSocialEventWithVictim(int socialEventWithVictimCount)
+        {
+            _numberOfSocialEventWithVictimDisplay.SetStatsValue(socialEventWithVictimCount);
         }
     }
 }
