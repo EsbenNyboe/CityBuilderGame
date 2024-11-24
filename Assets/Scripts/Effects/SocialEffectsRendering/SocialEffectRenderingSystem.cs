@@ -40,7 +40,6 @@ namespace Effects.SocialEffectsRendering
                 NativeArray<Vector4>.Copy(uvArray, i, UVInstancedArray, 0, sliceSize);
 
                 materialPropertyBlock.SetVectorArray(MainTexUV, UVInstancedArray);
-                materialPropertyBlock.SetVectorArray(MainTexUV, UVInstancedArray);
                 Graphics.DrawMeshInstanced(mesh, 0, material, MatrixInstancedArray, sliceSize, materialPropertyBlock);
             }
         }
