@@ -5642,8 +5642,6 @@ MonoBehaviour:
   - {fileID: 2076110021}
   - {fileID: 645176232}
   _randomPositionFactor: 0.417
-  _socialPlusEffectPool: {fileID: 0}
-  _socialMinusEffectPool: {fileID: 0}
 --- !u!4 &1151511537
 Transform:
   m_ObjectHideFlags: 0
@@ -5960,13 +5958,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5def1c83eae243e58352b75f264f26d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DrawRelations: 0
+  DrawRelations: 1
   IncludeNonSelections: 1
   ApplyFilter: 1
   FilterSetting:
     MinFondnessDrawn: -3
     MaxFondnessDrawn: -0.1
-  DebugBadPerformanceEvents: 1
 --- !u!114 &1176266412
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9740,14 +9737,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2641ebf8149e436cb0c3859aa7f81e77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  NeutralizationFactor: 0.0106
+  NeutralizationFactor: 0.0016
   ThresholdForBecomingAnnoying: -1
-  ImpactOnBedBeingOccupied: -0.3
+  ImpactOnBedBeingOccupied: -0.8
   OnUnitAttackTree:
     InfluenceAmount: 0.01
     InfluenceRadius: 3
   OnUnitAttackUnit:
-    InfluenceAmount: -0.6
+    InfluenceAmount: -0.8
     InfluenceRadius: 7
 --- !u!114 &2042965574
 MonoBehaviour:

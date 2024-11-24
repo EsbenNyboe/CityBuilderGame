@@ -93,14 +93,20 @@ namespace UnitState
             foreach (var socialEventWithVictimRefRO in SystemAPI.Query<RefRO<SocialEventWithVictim>>())
             {
                 var socialEventWithVictim = socialEventWithVictimRefRO.ValueRO;
-                foreach (var (socialRelationships, localTransform) in SystemAPI
-                             .Query<RefRW<SocialRelationships>, RefRO<LocalTransform>>())
+                foreach (var (socialRelationships, localTransform, entity) in SystemAPI
+                             .Query<RefRW<SocialRelationships>, RefRO<LocalTransform>>().WithEntityAccess())
                 {
                     var distance = Vector3.Distance(localTransform.ValueRO.Position, socialEventWithVictim.Position);
                     if (distance < socialEventWithVictim.InfluenceRadius)
                     {
                         var friendFactor = socialRelationships.ValueRO.Relationships[socialEventWithVictim.Victim];
                         var finalInfluenceAmount = socialEventWithVictim.InfluenceAmount * friendFactor;
+                        if (entity == socialEventWithVictim.Victim)
+                        {
+                            // If it's happening to me, I take it more personal than others.
+                            finalInfluenceAmount += socialEventWithVictim.InfluenceAmount;
+                        }
+
                         socialRelationships.ValueRW.Relationships[socialEventWithVictim.Perpetrator] +=
                             finalInfluenceAmount;
 
