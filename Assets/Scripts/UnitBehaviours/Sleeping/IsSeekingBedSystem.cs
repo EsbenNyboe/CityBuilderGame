@@ -16,6 +16,7 @@ namespace UnitBehaviours.Sleeping
 {
     public struct IsSeekingBed : IComponentData
     {
+        public int Attempts;
     }
 
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
@@ -26,6 +27,7 @@ namespace UnitBehaviours.Sleeping
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
@@ -35,16 +37,17 @@ namespace UnitBehaviours.Sleeping
         public void OnUpdate(ref SystemState state)
         {
             var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var isDebuggingSeek = debugToggleManager.DebugBedSeeking;
             var isDebuggingPath = debugToggleManager.DebugPathfinding;
             var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
 
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
+            var ecb = GetEntityCommandBuffer(ref state);
 
-            foreach (var (localTransform, pathFollow, moodInitiative, entity) in SystemAPI
-                         .Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodInitiative>>()
-                         .WithAll<IsSeekingBed>()
+            foreach (var (isSeekingBed, localTransform, pathFollow, moodInitiative, entity) in SystemAPI
+                         .Query<RefRW<IsSeekingBed>, RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodInitiative>>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
@@ -58,7 +61,6 @@ namespace UnitBehaviours.Sleeping
                 if (gridManager.IsBedAvailableToUnit(currentCell, entity))
                 {
                     // Ahhhh, I found my bed!
-                    var ecb = GetEntityCommandBuffer(ref state);
                     ecb.RemoveComponent<IsSeekingBed>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     continue;
@@ -70,6 +72,16 @@ namespace UnitBehaviours.Sleeping
                 }
 
                 moodInitiative.ValueRW.UseInitiative();
+
+                if (isSeekingBed.ValueRO.Attempts > unitBehaviourManager.MaxSeekAttempts)
+                {
+                    // I'll take a break from this activity...
+                    ecb.RemoveComponent<IsSeekingBed>(entity);
+                    ecb.AddComponent<IsDeciding>(entity);
+                    continue;
+                }
+
+                isSeekingBed.ValueRW.Attempts++;
 
                 // I'm not on a bed... I will seek the closest bed.
                 jobHandleList.Add(new SeekBedJob

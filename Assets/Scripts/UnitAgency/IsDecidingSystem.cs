@@ -97,7 +97,6 @@ namespace UnitAgency
 
             var isSleepy = moodSleepiness.ValueRO.Sleepiness > 0.2f;
             var isMoving = pathFollow.ValueRO.IsMoving();
-            // TODO: How do we find who's the annoying dude? 
             var isLonely = moodLoneliness.ValueRO.Loneliness > 1f;
             const float friendFactor = 1f;
 
@@ -140,16 +139,13 @@ namespace UnitAgency
                     });
                 }
             }
-            else if (isSleepy)
+            else if (isSleepy && gridManager.IsBedAvailableToUnit(unitPosition, entity))
             {
-                if (gridManager.IsBedAvailableToUnit(unitPosition, entity))
-                {
-                    ecb.AddComponent(entity, new IsSleeping());
-                }
-                else
-                {
-                    ecb.AddComponent(entity, new IsSeekingBed());
-                }
+                ecb.AddComponent(entity, new IsSleeping());
+            }
+            else if (isSleepy && moodInitiative.ValueRO.HasInitiative())
+            {
+                ecb.AddComponent(entity, new IsSeekingBed());
             }
             else if (IsAdjacentToTree(ref state, gridManager, cell, out var tree))
             {

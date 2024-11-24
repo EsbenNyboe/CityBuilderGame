@@ -9,6 +9,7 @@ namespace UnitBehaviours
         public float DamagePerAttack = 10f;
         public float MoveSpeed = 5f;
         public float MoveSpeedWhenAttemptingMurder = 0.5f;
+        public int MaxSeekAttempts = 3;
 
         private void Awake()
         {
