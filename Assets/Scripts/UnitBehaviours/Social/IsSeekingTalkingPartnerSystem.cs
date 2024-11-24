@@ -36,7 +36,7 @@ namespace UnitBehaviours.Talking
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
 
-            foreach (var (localTransform, relationships, pathFollow, seekingTalkingPartner, entity) in SystemAPI
+            foreach (var (localTransform, socialRelationships, pathFollow, seekingTalkingPartner, entity) in SystemAPI
                          .Query<RefRO<LocalTransform>, RefRW<SocialRelationships>, RefRO<PathFollow>,
                              RefRW<IsSeekingTalkingPartner>>()
                          .WithEntityAccess())
@@ -55,20 +55,20 @@ namespace UnitBehaviours.Talking
                 }
 
                 // I havent started moving yet...
-                // Find a random nearby person to walk to.
+                // Find a nearby friend to walk to.
                 var position = localTransform.ValueRO.Position;
                 var cell = GridHelpers.GetXY(position);
 
                 var hashMapKey = QuadrantSystem.GetPositionHashMapKey(position);
 
-                // TODO: Check if seeker entity and target entity are in the same Section
                 var section = gridManager.GetSection(cell);
-                if (!QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap, hashMapKey,
+                if (!QuadrantSystem.TryFindClosestFriend(socialRelationships.ValueRO,
+                        quadrantDataManager.QuadrantMultiHashMap, hashMapKey,
                         section, position, entity, out var otherUnit, out _))
                 {
-                    // No people nearby. I'll find a random person to walk to.
-                    var index = gridManager.Random.NextInt(0, relationships.ValueRO.Relationships.Count);
-                    otherUnit = relationships.ValueRW.Relationships.GetKeyArray(Allocator.Temp)[index];
+                    // No friends nearby. I'll find a random person to walk to.
+                    var index = gridManager.Random.NextInt(0, socialRelationships.ValueRO.Relationships.Count);
+                    otherUnit = socialRelationships.ValueRW.Relationships.GetKeyArray(Allocator.Temp)[index];
                 }
 
                 var targetPosition = SystemAPI.GetComponent<LocalTransform>(otherUnit).Position;

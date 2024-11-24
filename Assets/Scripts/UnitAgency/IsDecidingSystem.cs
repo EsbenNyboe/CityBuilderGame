@@ -70,7 +70,8 @@ namespace UnitAgency
                          .WithEntityAccess().WithNone<Pathfinding>().WithNone<AttackAnimation>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
-                DecideNextBehaviour(ref state, gridManager, socialDynamicsManager, quadrantDataManager, ecb, pathFollow, inventory, 
+                DecideNextBehaviour(ref state, gridManager, socialDynamicsManager, quadrantDataManager, ecb, pathFollow,
+                    inventory,
                     socialRelationships,
                     moodSleepiness, moodLoneliness, moodInitiative, entity);
             }
@@ -92,11 +93,13 @@ namespace UnitAgency
         {
             var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
             var cell = GridHelpers.GetXY(unitPosition);
+            var section = gridManager.GetSection(cell);
 
             var isSleepy = moodSleepiness.ValueRO.Sleepiness > 0.2f;
             var isMoving = pathFollow.ValueRO.IsMoving();
             // TODO: How do we find who's the annoying dude? 
             var isLonely = moodLoneliness.ValueRO.Loneliness > 1f;
+            const float friendFactor = 1f;
 
             if (HasLogOfWood(inventory.ValueRO))
             {
@@ -155,15 +158,18 @@ namespace UnitAgency
             }
             else if (isLonely)
             {
-                if (TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkativeLookup,
-                        out var neighbour) ||
-                    TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkingLookup, out neighbour))
+                if ((TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkativeLookup,
+                         out var neighbour) ||
+                     TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkingLookup, out neighbour)) &&
+                    gridManager.TryGetOccupant(neighbour, out var neighbourEntity) &&
+                    (socialRelationships.ValueRO.Relationships[neighbourEntity] > friendFactor ||
+                     !QuadrantSystem.TryFindClosestFriend(socialRelationships.ValueRO,
+                         quadrantDataManager.QuadrantMultiHashMap, QuadrantSystem.GetPositionHashMapKey(unitPosition),
+                         section, unitPosition, entity, out _, out _)))
                 {
                     ecb.AddComponent(entity, new IsTalking());
                     ecb.SetComponentEnabled<IsTalking>(entity, false);
 
-                    // TODO: Clean up:
-                    gridManager.TryGetOccupant(neighbour, out var neighbourEntity);
                     ecb.AddComponent(ecb.CreateEntity(), new ConversationEvent
                     {
                         Initiator = entity,
@@ -205,9 +211,9 @@ namespace UnitAgency
                 annoyingDude = Entity.Null;
                 return false;
             }
-            
+
             // We check some fixed amount of people in our quadrant as a semi-random way to get some sample
-            int peopleLeftToCheck = 5;
+            var peopleLeftToCheck = 5;
             do
             {
                 // If self, skip without 
@@ -227,7 +233,7 @@ namespace UnitAgency
                 peopleLeftToCheck--;
             } while (peopleLeftToCheck > 0 &&
                      quadrantDataManager.QuadrantMultiHashMap.TryGetNextValue(out data, ref iterator));
-            
+
             annoyingDude = Entity.Null;
             return false;
         }

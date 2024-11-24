@@ -13,6 +13,7 @@ namespace Debugging
         public bool DebugTreeSeeking;
         public bool DebugPathInvalidation;
         public bool DebugTargetFollow;
+        public bool DebugQuadrantSystem;
 
         private void Awake()
         {

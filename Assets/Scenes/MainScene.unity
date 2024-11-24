@@ -5960,7 +5960,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DrawRelations: 1
   IncludeNonSelections: 1
-  ApplyFilter: 1
+  ApplyFilter: 0
   FilterSetting:
     MinFondnessDrawn: -3
     MaxFondnessDrawn: -0.1
@@ -5985,6 +5985,7 @@ MonoBehaviour:
   DebugTreeSeeking: 0
   DebugPathInvalidation: 0
   DebugTargetFollow: 0
+  DebugQuadrantSystem: 0
 --- !u!114 &1176266413
 MonoBehaviour:
   m_ObjectHideFlags: 0

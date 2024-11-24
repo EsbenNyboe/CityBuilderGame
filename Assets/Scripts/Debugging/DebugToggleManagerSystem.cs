@@ -38,6 +38,9 @@ namespace Debugging
 
             debugToggleManager.ValueRW.DebugTargetFollow =
                 debugToggleManagerInterface.DebugTargetFollow;
+
+            debugToggleManager.ValueRW.DebugQuadrantSystem =
+                debugToggleManagerInterface.DebugQuadrantSystem;
         }
     }
 
@@ -51,5 +54,6 @@ namespace Debugging
         public bool DebugBedSeeking;
         public bool DebugTreeSeeking;
         public bool DebugTargetFollow;
+        public bool DebugQuadrantSystem;
     }
 }

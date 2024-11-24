@@ -1,3 +1,6 @@
+using CodeMonkey.Utils;
+using Debugging;
+using UnitState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -29,10 +32,11 @@ namespace UnitBehaviours.Targeting
         private EntityQuery _entityQuery;
         private SystemHandle _gridManagerSystemHandle;
         public const int QuadrantYMultiplier = 1000;
-        public const int QuadrantCellSize = 5;
+        public const int QuadrantCellSize = 10;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<DebugToggleManager>();
             _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<QuadrantEntity>());
             _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
@@ -52,16 +56,20 @@ namespace UnitBehaviours.Targeting
             quadrantDataManager.QuadrantMultiHashMap.Dispose();
         }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugQuadrantSystem;
+
             var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
             var quadrantMultiHashMap =
                 SystemAPI.GetComponent<QuadrantDataManager>(state.SystemHandle).QuadrantMultiHashMap;
 
-            // DebugDrawQuadrant(UtilsClass.GetMouseWorldPosition());
-            // DebugHelper.Log(GetEntityCountInHashmap(quadrantMultiHashMap,
-            //     GetPositionHashMapKey(UtilsClass.GetMouseWorldPosition())));
+            if (isDebugging)
+            {
+                DebugDrawQuadrant(UtilsClass.GetMouseWorldPosition());
+                DebugHelper.Log(GetEntityCountInHashmap(quadrantMultiHashMap,
+                    GetPositionHashMapKey(UtilsClass.GetMouseWorldPosition())));
+            }
 
             quadrantMultiHashMap.Clear();
             if (_entityQuery.CalculateEntityCount() > quadrantMultiHashMap.Capacity)
@@ -135,7 +143,55 @@ namespace UnitBehaviours.Targeting
             }
         }
 
-        public static bool TryFindClosestEntity( NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
+        public static bool TryFindClosestFriend(SocialRelationships socialRelationships,
+            NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
+            int hashMapKey, int section, float3 position, Entity entity,
+            out Entity closestTargetEntity, out float closestTargetDistance)
+        {
+            closestTargetEntity = Entity.Null;
+            closestTargetDistance = float.MaxValue;
+            // First check center
+            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey, section, position,
+                ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+
+            if (closestTargetEntity != Entity.Null)
+            {
+                // No need to search neighbours
+                return true;
+            }
+
+            // Then search neighbours
+            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey + 1, section, position,
+                ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey - 1, section, position,
+                ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey + QuadrantYMultiplier, section,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey - QuadrantYMultiplier, section,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            // Then search corners
+            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey + 1 + QuadrantYMultiplier, section,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey - 1 + QuadrantYMultiplier, section,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey + 1 - QuadrantYMultiplier, section,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey - 1 - QuadrantYMultiplier, section,
+                position, ref closestTargetEntity,
+                ref closestTargetDistance, entity);
+
+            return closestTargetEntity != Entity.Null;
+        }
+
+        public static bool TryFindClosestEntity(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
             int hashMapKey, int section, float3 position, Entity entity,
             out Entity closestTargetEntity, out float closestTargetDistance)
         {
@@ -177,6 +233,37 @@ namespace UnitBehaviours.Targeting
                 ref closestTargetDistance, entity);
 
             return closestTargetEntity != Entity.Null;
+        }
+
+        private static void FindFriend(SocialRelationships socialRelationships,
+            NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
+            int hashMapKey, int section,
+            float3 position, ref Entity closestTargetEntity,
+            ref float closestTargetDistance, Entity entity)
+        {
+            var relationships = socialRelationships.Relationships;
+            const float friendThreshold = 1f;
+
+            if (quadrantMultiHashMap.TryGetFirstValue(hashMapKey, out var quadrantData,
+                    out var nativeParallelMultiHashMapIterator))
+            {
+                do
+                {
+                    var distance = math.distance(position, quadrantData.Position);
+                    if (distance < closestTargetDistance &&
+                        relationships[quadrantData.Entity] > friendThreshold)
+                    {
+                        // Make sure I'm not targeting myself.
+                        // And that my target and I are in the same walkable section.
+                        if (entity != quadrantData.Entity && section == quadrantData.Section)
+                        {
+                            closestTargetDistance = distance;
+                            closestTargetEntity = quadrantData.Entity;
+                        }
+                    }
+                } while (quadrantMultiHashMap.TryGetNextValue(out quadrantData,
+                             ref nativeParallelMultiHashMapIterator));
+            }
         }
 
         private static void FindTarget(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
