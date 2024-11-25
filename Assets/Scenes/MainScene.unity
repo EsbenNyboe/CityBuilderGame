@@ -10580,7 +10580,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e55bf307695440e68bbb37fe8fdd3a9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DamagePerChop: 15
+  DamagePerChop: 55.6
   DamagePerAttack: 10
   MoveSpeed: 5
   MoveSpeedWhenAttemptingMurder: 1.1
@@ -10648,8 +10648,14 @@ MonoBehaviour:
   - Identifier: 9
     FrameCount: 1
     FrameInterval: 1
+  - Identifier: 10
+    FrameCount: 1
+    FrameInterval: 1
+  - Identifier: 11
+    FrameCount: 1
+    FrameInterval: 1
   ColumnCount: 4
-  RowCount: 4
+  RowCount: 5
   IsDirty: 1
 --- !u!114 &2042965576
 MonoBehaviour:
@@ -10666,6 +10672,9 @@ MonoBehaviour:
   _previewAnimation: 0
   _previewInventoryItems: 08000000
   _stackOffsetFactor: 0.23
+  _previewStructure:
+    EntryTypes: 0b0000000b0000000b0000000b000000
+    Width: 1
 --- !u!1 &2044617179
 GameObject:
   m_ObjectHideFlags: 0

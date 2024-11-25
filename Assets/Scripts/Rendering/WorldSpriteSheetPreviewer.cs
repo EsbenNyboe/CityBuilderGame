@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -11,15 +12,15 @@ namespace Rendering
         [SerializeField] private WorldSpriteSheetEntryType[] _previewInventoryItems;
         [SerializeField] private float _stackOffsetFactor;
 
+        [SerializeField] private StructureConfig _previewStructure;
 
         private CameraController _cameraController;
         private int _currentFrame;
         private float _frameTimer;
 
-
         private void Update()
         {
-            if (_previewAnimation != WorldSpriteSheetEntryType.None)
+            if (_previewAnimation != WorldSpriteSheetEntryType.None || _previewStructure.EntryTypes.Length > 0)
             {
                 PreviewLogic();
             }
@@ -44,19 +45,28 @@ namespace Rendering
             var uvList = new List<Vector4>();
             var matrix4X4List = new List<Matrix4x4>();
 
-            AddAnimationInfo(singleton, singleton.Entries[(int)_previewAnimation], ref uvList, ref matrix4X4List);
-
-            if (_previewAnimation == WorldSpriteSheetEntryType.IdleHolding || _previewAnimation == WorldSpriteSheetEntryType.WalkHolding)
+            if (_previewAnimation != WorldSpriteSheetEntryType.None)
             {
-                var stackAmount = 0;
-                foreach (var previewInventoryItem in _previewInventoryItems)
+                AddAnimationInfo(singleton, singleton.Entries[(int)_previewAnimation], ref uvList, ref matrix4X4List);
+
+                if (_previewAnimation == WorldSpriteSheetEntryType.IdleHolding || _previewAnimation == WorldSpriteSheetEntryType.WalkHolding)
                 {
-                    if (previewInventoryItem != WorldSpriteSheetEntryType.None)
+                    var stackAmount = 0;
+                    foreach (var previewInventoryItem in _previewInventoryItems)
                     {
-                        AddInventoryInfo(singleton, singleton.Entries[(int)previewInventoryItem], stackAmount, ref uvList, ref matrix4X4List);
-                        stackAmount++;
+                        if (previewInventoryItem != WorldSpriteSheetEntryType.None)
+                        {
+                            AddInventoryInfo(singleton, singleton.Entries[(int)previewInventoryItem], stackAmount, ref uvList, ref matrix4X4List);
+                            stackAmount++;
+                        }
                     }
                 }
+            }
+
+            for (var i = 0; i < _previewStructure.EntryTypes.Length; i++)
+            {
+                AddStructureInfo(singleton, singleton.Entries[(int)_previewStructure.EntryTypes[i]], _previewStructure, i, ref uvList,
+                    ref matrix4X4List);
             }
 
             WorldSpriteSheetRendererSystem.DrawMesh(new MaterialPropertyBlock(),
@@ -64,6 +74,14 @@ namespace Rendering
                 WorldSpriteSheetConfig.Instance.UnitMaterial,
                 uvList.ToArray(),
                 matrix4X4List.ToArray(), uvList.Count);
+        }
+
+        private void AddStructureInfo(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry, StructureConfig previewStructure,
+            int i, ref List<Vector4> uvList, ref List<Matrix4x4> matrix4X4List)
+        {
+            GetMeshConfigurationForStructure(singleton, singletonEntry, previewStructure, i, out var uv, out var matrix4X4);
+            uvList.Add(uv);
+            matrix4X4List.Add(matrix4X4);
         }
 
         private void AddAnimationInfo(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry,
@@ -84,6 +102,39 @@ namespace Rendering
             GetMeshConfiguration(singleton, singletonEntry, currentFrame, stackAmount, out var uv, out var matrix4X4);
             uvList.Add(uv);
             matrix4X4List.Add(matrix4X4);
+        }
+
+        private void GetMeshConfigurationForStructure(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry,
+            StructureConfig previewStructure, int i, out Vector4 uv, out Matrix4x4 matrix4X4)
+        {
+            var uvScaleX = singleton.ColumnScale;
+            var uvScaleY = singleton.RowScale;
+
+            uv = new Vector4(uvScaleX, uvScaleY, 0, 0);
+            var uvOffsetX = uvScaleX * singletonEntry.EntryColumns[0];
+            var uvOffsetY = uvScaleY * singletonEntry.EntryRows[0];
+            uv.z = uvOffsetX;
+            uv.w = uvOffsetY;
+
+            var position = Camera.main.transform.position;
+            var xOffset = 0;
+            var yOffset = 0;
+            for (var j = 0; j < i; j++)
+            {
+                xOffset++;
+                if (xOffset > previewStructure.Width)
+                {
+                    xOffset = 0;
+                    yOffset++;
+                }
+            }
+
+            position.x += xOffset;
+            position.y += yOffset;
+            position.z = 0;
+            var rotation = quaternion.identity;
+
+            matrix4X4 = Matrix4x4.TRS(position, rotation, Vector3.one);
         }
 
         private void GetMeshConfiguration(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry, int currentFrame, int stackAmount,
@@ -121,6 +172,13 @@ namespace Rendering
             }
 
             return _currentFrame;
+        }
+
+        [Serializable]
+        private struct StructureConfig
+        {
+            public WorldSpriteSheetEntryType[] EntryTypes;
+            [Min(1)] public int Width;
         }
     }
 }

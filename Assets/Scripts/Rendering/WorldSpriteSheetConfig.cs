@@ -49,6 +49,8 @@ namespace Rendering
         Sleep,
         ItemWood,
         ItemMeat,
-        ItemBerries
+        ItemBerries,
+        BuildingStorageA,
+        BuildingStorageB
     }
 }
