@@ -108,7 +108,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         mergedArray =
             new NativeArray<RenderData>(sharedSortingArray.Length + inventoryItemsToRender, Allocator.TempJob);
 
-        var enumLength = EnumHelpers.GetMaxEnumValue<InventoryItem>();
+        var enumLength = EnumHelpers.GetMaxEnumValue<InventoryItem>() + 1;
 
         var inventoryItemSpriteSheetColumnLookup = new NativeArray<int>(enumLength, Allocator.TempJob);
         var inventoryItemSpriteSheetRowLookup = new NativeArray<int>(enumLength, Allocator.TempJob);
