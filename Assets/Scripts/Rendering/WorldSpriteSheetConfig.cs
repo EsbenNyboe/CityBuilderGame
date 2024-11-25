@@ -36,7 +36,7 @@ namespace Rendering
         public WorldSpriteSheetEntryType Identifier;
         [Min(1)] public int FrameCount;
         [Min(0.001f)] public float FrameInterval;
-    } //
+    }
 
     public enum WorldSpriteSheetEntryType
     {

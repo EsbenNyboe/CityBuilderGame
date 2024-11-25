@@ -10516,7 +10516,6 @@ GameObject:
   - component: {fileID: 2042965569}
   - component: {fileID: 2042965572}
   - component: {fileID: 2042965573}
-  - component: {fileID: 2042965574}
   - component: {fileID: 2042965575}
   - component: {fileID: 2042965576}
   m_Layer: 0
@@ -10607,63 +10606,6 @@ MonoBehaviour:
   OnUnitAttackUnit:
     InfluenceAmount: -0.8
     InfluenceRadius: 7
---- !u!114 &2042965574
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2042965568}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac2e507f0ce144d99ef96c400f480c3f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UnitMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
-  UnitMaterial: {fileID: 2100000, guid: 15344670bae78d74881afe584ca526b0, type: 2}
-  AnimationConfigs:
-  - Identifier: 1
-    SpriteRow: 0
-    FrameCount: 2
-    FrameInterval: 0.8
-  - Identifier: 2
-    SpriteRow: 0
-    FrameCount: 2
-    FrameInterval: 0.11
-  - Identifier: 6
-    SpriteRow: 0
-    FrameCount: 3
-    FrameInterval: 0.4
-  - Identifier: 5
-    SpriteRow: 0
-    FrameCount: 2
-    FrameInterval: 0.4
-  - Identifier: 3
-    SpriteRow: 0
-    FrameCount: 2
-    FrameInterval: 0.8
-  - Identifier: 4
-    SpriteRow: 0
-    FrameCount: 2
-    FrameInterval: 0.11
-  - Identifier: 7
-    SpriteRow: 0
-    FrameCount: 1
-    FrameInterval: 1
-  - Identifier: 8
-    SpriteRow: 0
-    FrameCount: 1
-    FrameInterval: 1
-  - Identifier: 9
-    SpriteRow: 0
-    FrameCount: 1
-    FrameInterval: 1
-  SpriteColumns: 4
-  SpriteRows: 4
-  _previewAnimation: 0
-  _previewInventoryItems: 070000000700000007000000
-  IsDirty: 1
-  _stackOffsetFactor: 0.23
 --- !u!114 &2042965575
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10721,7 +10663,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 295cec2b697c4b8d87e1d7ba4edbe60a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _previewAnimation: 3
+  _previewAnimation: 0
   _previewInventoryItems: 08000000
   _stackOffsetFactor: 0.23
 --- !u!1 &2044617179

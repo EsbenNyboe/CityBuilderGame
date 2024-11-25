@@ -8,6 +8,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using Utilities;
 
 public struct WorldSpriteSheetSortingManager : IComponentData
 {
@@ -23,7 +24,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate<UnitAnimationManager>();
+        state.RequireForUpdate<WorldSpriteSheetManager>();
         state.RequireForUpdate<CameraInformation>();
         var singletonEntity = state.EntityManager.CreateSingleton<WorldSpriteSheetSortingManager>();
         SystemAPI.SetComponent(singletonEntity, new WorldSpriteSheetSortingManager
@@ -40,6 +41,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
     public void OnDestroy(ref SystemState state)
     {
+        state.Dependency.Complete();
         var singleton = SystemAPI.GetSingletonRW<WorldSpriteSheetSortingManager>();
         singleton.ValueRW.SpriteMatrixArray.Dispose();
         singleton.ValueRW.SpriteUvArray.Dispose();
@@ -48,8 +50,8 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     public void OnUpdate(ref SystemState state)
     {
         state.Dependency.Complete();
-        var unitAnimationManager = SystemAPI.GetSingleton<UnitAnimationManager>();
-        if (!unitAnimationManager.AnimationConfigs.IsCreated)
+        var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
+        if (!worldSpriteSheetManager.IsInitialized())
         {
             return;
         }
@@ -77,7 +79,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         var dependency = ScheduleBubbleSortingOfEachSection(sharedSortingArray, startIndexes, endIndexes);
 
         dependency = MergeSortedArrayWithInventoryData(dependency, sharedSortingArray, inventoryRenderDataQueue,
-            unitAnimationManager, out var allEntitiesToRenderArray);
+            worldSpriteSheetManager, out var allEntitiesToRenderArray);
         GetSingletonDataContainers(ref state, visibleUnitsCount + visibleItemsCount,
             out var spriteMatrixArray, out var spriteUvArray);
         dependency = ScheduleWritingToDataContainers(allEntitiesToRenderArray, spriteMatrixArray, spriteUvArray,
@@ -88,7 +90,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     private JobHandle MergeSortedArrayWithInventoryData(JobHandle dependency,
         NativeArray<RenderData> sharedSortingArray,
         NativeQueue<InventoryRenderData> inventoryRenderDataQueue,
-        UnitAnimationManager unitAnimationManager, out NativeArray<RenderData> mergedArray)
+        WorldSpriteSheetManager worldSpriteSheetManager, out NativeArray<RenderData> mergedArray)
     {
         // Convert this to a job
         var inventoryItemsToRender = inventoryRenderDataQueue.Count;
@@ -105,16 +107,33 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         mergedArray =
             new NativeArray<RenderData>(sharedSortingArray.Length + inventoryItemsToRender, Allocator.TempJob);
+
+        var enumLength = EnumHelpers.GetMaxEnumValue<InventoryItem>();
+
+        var inventoryItemSpriteSheetColumnLookup = new NativeArray<int>(enumLength, Allocator.TempJob);
+        var inventoryItemSpriteSheetRowLookup = new NativeArray<int>(enumLength, Allocator.TempJob);
+        for (var i = 0; i < enumLength; i++)
+        {
+            worldSpriteSheetManager.GetInventoryItemCoordinates((InventoryItem)i, out var column, out var row);
+            inventoryItemSpriteSheetColumnLookup[i] = column;
+            inventoryItemSpriteSheetRowLookup[i] = row;
+        }
+
         var newDependency = new MergeSortedArrayWithInventoryDataJob
         {
             MergedArray = mergedArray,
             InventoryRenderDataHashMap = inventoryRenderDataHashMap,
-            UnitAnimationManager = unitAnimationManager,
-            SortedArray = sharedSortingArray
+            SortedArray = sharedSortingArray,
+            ColumnScale = worldSpriteSheetManager.ColumnScale,
+            RowScale = worldSpriteSheetManager.RowScale,
+            InventoryItemSpriteSheetColumnLookup = inventoryItemSpriteSheetColumnLookup,
+            InventoryItemSpriteSheetRowLookup = inventoryItemSpriteSheetRowLookup
         }.Schedule(dependency);
 
         inventoryRenderDataHashMap.Dispose(newDependency);
         sharedSortingArray.Dispose(newDependency);
+        inventoryItemSpriteSheetColumnLookup.Dispose(newDependency);
+        inventoryItemSpriteSheetRowLookup.Dispose(newDependency);
 
         return newDependency;
     }
@@ -471,8 +490,11 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     {
         public NativeArray<RenderData> MergedArray;
         [ReadOnly] public NativeParallelHashMap<Entity, InventoryRenderData> InventoryRenderDataHashMap;
-        [ReadOnly] public UnitAnimationManager UnitAnimationManager;
         [ReadOnly] public NativeArray<RenderData> SortedArray;
+        [ReadOnly] public float ColumnScale;
+        [ReadOnly] public float RowScale;
+        [ReadOnly] public NativeArray<int> InventoryItemSpriteSheetColumnLookup;
+        [ReadOnly] public NativeArray<int> InventoryItemSpriteSheetRowLookup;
 
         public void Execute()
         {
@@ -485,11 +507,10 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
                 if (InventoryRenderDataHashMap.TryGetValue(renderData.Entity, out var itemData))
                 {
-                    var uvScaleX = 1f / UnitAnimationManager.SpriteColumns;
-                    var uvScaleY = 1f / UnitAnimationManager.SpriteRows;
-                    var inventoryUv = new Vector4(uvScaleX, uvScaleY, 0, 0)
+                    var inventoryUv = new Vector4(ColumnScale, RowScale, 0, 0)
                     {
-                        w = uvScaleY * UnitAnimationManager.GetSpriteRowOfInventoryItem(itemData.Item)
+                        z = ColumnScale * InventoryItemSpriteSheetColumnLookup[(int)itemData.Item],
+                        w = RowScale * InventoryItemSpriteSheetRowLookup[(int)itemData.Item]
                     };
                     // TODO: Is it possible to modify the y-position of a matrix? (for stacking the inventory items)
                     var inventoryMatrix = renderData.Matrix;

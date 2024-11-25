@@ -30,7 +30,7 @@ namespace Rendering
             var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
             var singletonQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetManager>());
             if (!singletonQuery.TryGetSingleton<WorldSpriteSheetManager>(out var singleton) ||
-                !singleton.Entries.IsCreated)
+                !singleton.IsInitialized())
             {
                 return;
             }
@@ -59,8 +59,11 @@ namespace Rendering
                 }
             }
 
-            WorldSpriteSheetRendererSystem.DrawMesh(WorldSpriteSheetConfig.Instance.UnitMesh, WorldSpriteSheetConfig.Instance.UnitMaterial,
-                uvList.ToArray(), matrix4X4List.ToArray());
+            WorldSpriteSheetRendererSystem.DrawMesh(new MaterialPropertyBlock(),
+                WorldSpriteSheetConfig.Instance.UnitMesh,
+                WorldSpriteSheetConfig.Instance.UnitMaterial,
+                uvList.ToArray(),
+                matrix4X4List.ToArray());
         }
 
         private void AddAnimationInfo(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry,

@@ -11,7 +11,6 @@ public struct UnitAnimationSelection : IComponentData
 }
 
 [UpdateInGroup(typeof(AnimationSystemGroup))]
-[UpdateAfter(typeof(UnitAnimationManagerSystem))]
 public partial struct UnitAnimationSelectionSystem : ISystem
 {
     [BurstCompile]

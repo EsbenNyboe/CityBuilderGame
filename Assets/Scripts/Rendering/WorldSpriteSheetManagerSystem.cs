@@ -1,8 +1,9 @@
 using System;
-using System.Linq;
+using UnitState;
 using Unity.Assertions;
 using Unity.Collections;
 using Unity.Entities;
+using Utilities;
 
 namespace Rendering
 {
@@ -14,6 +15,32 @@ namespace Rendering
         public NativeArray<WorldSpriteSheetEntry> Entries;
         public float ColumnScale;
         public float RowScale;
+
+        public readonly void GetInventoryItemCoordinates(InventoryItem inventoryItem, out int column, out int row)
+        {
+            var entryType = inventoryItem switch
+            {
+                InventoryItem.None => WorldSpriteSheetEntryType.None,
+                InventoryItem.LogOfWood => WorldSpriteSheetEntryType.ItemWood,
+                _ => throw new ArgumentOutOfRangeException(nameof(inventoryItem), inventoryItem, null)
+            };
+
+            var entryIndex = (int)entryType;
+            if (entryIndex <= 0)
+            {
+                column = row = -1;
+            }
+            else
+            {
+                column = Entries[entryIndex].EntryColumns[0];
+                row = Entries[entryIndex].EntryRows[0];
+            }
+        }
+
+        public readonly bool IsInitialized()
+        {
+            return Entries.IsCreated;
+        }
     }
 
     public struct WorldSpriteSheetEntry
@@ -66,7 +93,7 @@ namespace Rendering
             singleton.RowScale = 1f / config.RowCount;
 
             var configEntryCount = config.SpriteSheetEntries.Length;
-            var enumLength = GetMaxEnumValue<WorldSpriteSheetEntryType>() + 1;
+            var enumLength = EnumHelpers.GetMaxEnumValue<WorldSpriteSheetEntryType>() + 1;
 
             if (!singleton.Entries.IsCreated ||
                 configEntryCount != singleton.Entries.Length)
@@ -105,13 +132,6 @@ namespace Rendering
             }
 
             SystemAPI.SetSingleton(singleton);
-        }
-
-        private static int GetMaxEnumValue<T>() where T : Enum
-        {
-            return Enum.GetValues(typeof(T))
-                .Cast<int>() // Cast the enum values to integers
-                .Max(); // Get the maximum value
         }
     }
 }
