@@ -20,7 +20,7 @@ namespace Rendering
         public float FrameInterval;
     }
 
-    public partial class SpriteSheetManagerConfigExperimentSystem : SystemBase
+    public partial class WorldSpriteSheetManagerSystem : SystemBase
     {
         protected override void OnCreate()
         {
@@ -29,7 +29,7 @@ namespace Rendering
 
         protected override void OnUpdate()
         {
-            var config = SpriteSheetManagerConfigExperiment.Instance;
+            var config = WorldSpriteSheetConfig.Instance;
             if (!config.IsDirty)
             {
                 return;

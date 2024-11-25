@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace Rendering
 {
-    public class SpriteSheetManagerConfigExperiment : MonoBehaviour
+    public class WorldSpriteSheetConfig : MonoBehaviour
     {
-        public static SpriteSheetManagerConfigExperiment Instance;
+        public static WorldSpriteSheetConfig Instance;
         public Mesh UnitMesh;
         public Material UnitMaterial;
 
@@ -19,10 +19,9 @@ namespace Rendering
 
         [SerializeField] private AnimationId _previewAnimation;
         [SerializeField] private AnimationId[] _previewInventoryItems;
-
         [SerializeField] private float _stackOffsetFactor;
 
-        public bool IsDirty = true;
+        [HideInInspector] public bool IsDirty = true;
 
         private CameraController _cameraController;
         private int _currentFrame;
