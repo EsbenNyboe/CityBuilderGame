@@ -108,6 +108,12 @@ namespace Rendering
                 var configEntry = config.SpriteSheetEntries[i];
                 var singletonEntryIndex = configEntry.Identifier;
                 var singletonEntry = singleton.Entries[(int)singletonEntryIndex];
+                if (singletonEntry.EntryColumns.IsCreated)
+                {
+                    singletonEntry.EntryColumns.Dispose();
+                    singletonEntry.EntryRows.Dispose();
+                }
+
                 singletonEntry.EntryColumns = new NativeArray<int>(configEntry.FrameCount, Allocator.Persistent);
                 singletonEntry.EntryRows = new NativeArray<int>(configEntry.FrameCount, Allocator.Persistent);
                 singletonEntry.FrameInterval = configEntry.FrameInterval;
