@@ -10680,7 +10680,7 @@ MonoBehaviour:
   SpriteSheetEntries:
   - Identifier: 1
     FrameCount: 2
-    FrameInterval: 0.8
+    FrameInterval: 0.86
     StartColumn: 0
     StartRow: 3
   - Identifier: 2
@@ -10705,7 +10705,7 @@ MonoBehaviour:
     StartRow: 1
   - Identifier: 4
     FrameCount: 2
-    FrameInterval: 0.7
+    FrameInterval: 0.11
     StartColumn: 3
     StartRow: 1
   - Identifier: 7
@@ -10725,9 +10725,10 @@ MonoBehaviour:
     StartRow: 0
   ColumnCount: 4
   RowCount: 4
-  _previewAnimation: 9
-  _previewInventoryItems: 
-  _stackOffsetFactor: 0
+  _previewAnimation: 4
+  _previewInventoryItems: 0700000007000000
+  _stackOffsetFactor: 0.23
+  IsDirty: 1
 --- !u!1 &2044617179
 GameObject:
   m_ObjectHideFlags: 0

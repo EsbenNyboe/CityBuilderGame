@@ -87,15 +87,16 @@ namespace Rendering
         protected override void OnDestroy()
         {
             var singleton = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
-            foreach (var entry in singleton.Entries)
+            for (var index = 0; index < singleton.Entries.Length; index++)
             {
-                var entryColumns = entry.EntryColumns;
+                var entryColumns = singleton.Entries[index].EntryColumns;
                 entryColumns.Dispose();
-                var entryRows = entry.EntryRows;
+                var entryRows = singleton.Entries[index].EntryRows;
                 entryRows.Dispose();
             }
 
             singleton.Entries.Dispose();
+            SystemAPI.SetSingleton(singleton);
         }
 
         private static int GetMaxEnumValue<T>() where T : Enum
