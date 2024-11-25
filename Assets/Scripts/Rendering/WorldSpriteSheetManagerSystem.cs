@@ -6,6 +6,9 @@ using Unity.Entities;
 
 namespace Rendering
 {
+    /// <summary>
+    ///     Entries are ordered by the enum-ID they belong to, UNLIKE the entry-ordering of <see cref="WorldSpriteSheetConfig" />
+    /// </summary>
     public struct WorldSpriteSheetManager : IComponentData
     {
         public NativeArray<WorldSpriteSheetEntry> Entries;
@@ -37,6 +40,26 @@ namespace Rendering
 
             config.IsDirty = false;
 
+            ApplyConfigToSingleton(config);
+        }
+
+        protected override void OnDestroy()
+        {
+            var singleton = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
+            for (var index = 0; index < singleton.Entries.Length; index++)
+            {
+                var entry = singleton.Entries[index];
+                entry.EntryColumns.Dispose();
+                entry.EntryRows.Dispose();
+                singleton.Entries[index] = entry;
+            }
+
+            singleton.Entries.Dispose();
+            SystemAPI.SetSingleton(singleton);
+        }
+
+        private void ApplyConfigToSingleton(WorldSpriteSheetConfig config)
+        {
             var singleton = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
 
             singleton.ColumnScale = 1f / config.ColumnCount;
@@ -81,21 +104,6 @@ namespace Rendering
                 singleton.Entries[(int)singletonEntryIndex] = singletonEntry;
             }
 
-            SystemAPI.SetSingleton(singleton);
-        }
-
-        protected override void OnDestroy()
-        {
-            var singleton = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
-            for (var index = 0; index < singleton.Entries.Length; index++)
-            {
-                var entry = singleton.Entries[index];
-                entry.EntryColumns.Dispose();
-                entry.EntryRows.Dispose();
-                singleton.Entries[index] = entry;
-            }
-
-            singleton.Entries.Dispose();
             SystemAPI.SetSingleton(singleton);
         }
 
