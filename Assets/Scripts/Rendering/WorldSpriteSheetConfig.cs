@@ -33,12 +33,12 @@ namespace Rendering
     [Serializable]
     public struct SpriteSheetEntry
     {
-        public AnimationId Identifier;
+        public WorldSpriteSheetEntryType Identifier;
         [Min(1)] public int FrameCount;
         [Min(0.001f)] public float FrameInterval;
-    }
+    } //
 
-    public enum AnimationId
+    public enum WorldSpriteSheetEntryType
     {
         None,
         Idle,

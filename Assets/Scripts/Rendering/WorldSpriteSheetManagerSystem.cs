@@ -66,7 +66,7 @@ namespace Rendering
             singleton.RowScale = 1f / config.RowCount;
 
             var configEntryCount = config.SpriteSheetEntries.Length;
-            var enumLength = GetMaxEnumValue<AnimationId>() + 1;
+            var enumLength = GetMaxEnumValue<WorldSpriteSheetEntryType>() + 1;
 
             if (!singleton.Entries.IsCreated ||
                 configEntryCount != singleton.Entries.Length)

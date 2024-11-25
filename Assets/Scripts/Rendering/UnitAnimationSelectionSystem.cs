@@ -6,8 +6,8 @@ using Unity.Entities;
 
 public struct UnitAnimationSelection : IComponentData
 {
-    public AnimationId SelectedAnimation;
-    public AnimationId CurrentAnimation;
+    public WorldSpriteSheetEntryType SelectedAnimation;
+    public WorldSpriteSheetEntryType CurrentAnimation;
 }
 
 [UpdateInGroup(typeof(AnimationSystemGroup))]
@@ -24,23 +24,23 @@ public partial struct UnitAnimationSelectionSystem : ISystem
             var hasItem = inventory.ValueRO.CurrentItem != InventoryItem.None;
             if (pathFollow.ValueRO.PathIndex < 0)
             {
-                unitAnimationSelection.ValueRW.SelectedAnimation = hasItem ? AnimationId.IdleHolding : AnimationId.Idle;
+                unitAnimationSelection.ValueRW.SelectedAnimation = hasItem ? WorldSpriteSheetEntryType.IdleHolding : WorldSpriteSheetEntryType.Idle;
             }
             else
             {
-                unitAnimationSelection.ValueRW.SelectedAnimation = hasItem ? AnimationId.WalkHolding : AnimationId.Walk;
+                unitAnimationSelection.ValueRW.SelectedAnimation = hasItem ? WorldSpriteSheetEntryType.WalkHolding : WorldSpriteSheetEntryType.Walk;
             }
         }
 
         foreach (var unitAnimationSelection in SystemAPI.Query<RefRW<UnitAnimationSelection>>()
                      .WithPresent<IsSleeping>())
         {
-            unitAnimationSelection.ValueRW.SelectedAnimation = AnimationId.Sleep;
+            unitAnimationSelection.ValueRW.SelectedAnimation = WorldSpriteSheetEntryType.Sleep;
         }
 
         foreach (var unitAnimationSelection in SystemAPI.Query<RefRW<UnitAnimationSelection>>().WithAll<IsTalking>())
         {
-            unitAnimationSelection.ValueRW.SelectedAnimation = AnimationId.Talk;
+            unitAnimationSelection.ValueRW.SelectedAnimation = WorldSpriteSheetEntryType.Talk;
         }
     }
 }

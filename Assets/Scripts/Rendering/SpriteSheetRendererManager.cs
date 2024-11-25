@@ -14,8 +14,8 @@ public class SpriteSheetRendererManager : MonoBehaviour
     public int SpriteColumns = 3;
     public int SpriteRows = 4;
 
-    [SerializeField] private AnimationId _previewAnimation;
-    [SerializeField] private AnimationId[] _previewInventoryItems;
+    [SerializeField] private WorldSpriteSheetEntryType _previewAnimation;
+    [SerializeField] private WorldSpriteSheetEntryType[] _previewInventoryItems;
 
     [HideInInspector] public bool IsDirty = true;
 
@@ -32,7 +32,7 @@ public class SpriteSheetRendererManager : MonoBehaviour
 
     private void Update()
     {
-        if (_previewAnimation == AnimationId.None)
+        if (_previewAnimation == WorldSpriteSheetEntryType.None)
         {
             return;
         }
@@ -62,8 +62,8 @@ public class SpriteSheetRendererManager : MonoBehaviour
 
         AddAnimationInfo(selectionIndex, ref uvList, ref matrix4X4List);
 
-        if (AnimationConfigs[selectionIndex].Identifier == AnimationId.IdleHolding ||
-            AnimationConfigs[selectionIndex].Identifier == AnimationId.WalkHolding)
+        if (AnimationConfigs[selectionIndex].Identifier == WorldSpriteSheetEntryType.IdleHolding ||
+            AnimationConfigs[selectionIndex].Identifier == WorldSpriteSheetEntryType.WalkHolding)
         {
             var stackAmount = 0;
             foreach (var previewInventoryItem in _previewInventoryItems)

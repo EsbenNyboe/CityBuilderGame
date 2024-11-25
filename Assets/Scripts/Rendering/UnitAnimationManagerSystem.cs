@@ -18,7 +18,7 @@ public struct UnitAnimationManager : IComponentData
         return item switch
         {
             InventoryItem.None => -1,
-            InventoryItem.LogOfWood => AnimationConfigs[(int)AnimationId.ItemWood].SpriteRow,
+            InventoryItem.LogOfWood => AnimationConfigs[(int)WorldSpriteSheetEntryType.ItemWood].SpriteRow,
             _ => throw new ArgumentOutOfRangeException(nameof(item), item, null)
         };
     }
@@ -27,7 +27,7 @@ public struct UnitAnimationManager : IComponentData
 [Serializable]
 public struct AnimationConfig
 {
-    public AnimationId Identifier;
+    public WorldSpriteSheetEntryType Identifier;
     [Min(0)] public int SpriteRow;
     [Min(0)] public int FrameCount;
     [Min(0.01f)] public float FrameInterval;
@@ -60,43 +60,43 @@ public partial class UnitAnimationManagerSystem : SystemBase
             singleton.AnimationConfigs.Dispose();
         }
 
-        var maxEnum = GetMaxEnumValue<AnimationId>();
+        var maxEnum = GetMaxEnumValue<WorldSpriteSheetEntryType>();
         singleton.AnimationConfigs =
             new NativeArray<AnimationConfig>(maxEnum + 1, Allocator.Persistent);
         foreach (var animationConfig in config.AnimationConfigs)
         {
             switch (animationConfig.Identifier)
             {
-                case AnimationId.None:
+                case WorldSpriteSheetEntryType.None:
                     break;
-                case AnimationId.Talk:
-                    singleton.AnimationConfigs[(int)AnimationId.Talk] = ReverseSpriteRow(animationConfig, rowCount);
+                case WorldSpriteSheetEntryType.Talk:
+                    singleton.AnimationConfigs[(int)WorldSpriteSheetEntryType.Talk] = ReverseSpriteRow(animationConfig, rowCount);
                     break;
-                case AnimationId.Sleep:
-                    singleton.AnimationConfigs[(int)AnimationId.Sleep] = ReverseSpriteRow(animationConfig, rowCount);
+                case WorldSpriteSheetEntryType.Sleep:
+                    singleton.AnimationConfigs[(int)WorldSpriteSheetEntryType.Sleep] = ReverseSpriteRow(animationConfig, rowCount);
                     break;
-                case AnimationId.IdleHolding:
-                    singleton.AnimationConfigs[(int)AnimationId.IdleHolding] =
+                case WorldSpriteSheetEntryType.IdleHolding:
+                    singleton.AnimationConfigs[(int)WorldSpriteSheetEntryType.IdleHolding] =
                         ReverseSpriteRow(animationConfig, rowCount);
                     break;
-                case AnimationId.WalkHolding:
-                    singleton.AnimationConfigs[(int)AnimationId.WalkHolding] =
+                case WorldSpriteSheetEntryType.WalkHolding:
+                    singleton.AnimationConfigs[(int)WorldSpriteSheetEntryType.WalkHolding] =
                         ReverseSpriteRow(animationConfig, rowCount);
                     break;
-                case AnimationId.Walk:
-                    singleton.AnimationConfigs[(int)AnimationId.Walk] = ReverseSpriteRow(animationConfig, rowCount);
+                case WorldSpriteSheetEntryType.Walk:
+                    singleton.AnimationConfigs[(int)WorldSpriteSheetEntryType.Walk] = ReverseSpriteRow(animationConfig, rowCount);
                     break;
-                case AnimationId.Idle:
-                    singleton.AnimationConfigs[(int)AnimationId.Idle] = ReverseSpriteRow(animationConfig, rowCount);
+                case WorldSpriteSheetEntryType.Idle:
+                    singleton.AnimationConfigs[(int)WorldSpriteSheetEntryType.Idle] = ReverseSpriteRow(animationConfig, rowCount);
                     break;
-                case AnimationId.ItemWood:
-                    singleton.AnimationConfigs[(int)AnimationId.ItemWood] = ReverseSpriteRow(animationConfig, rowCount);
+                case WorldSpriteSheetEntryType.ItemWood:
+                    singleton.AnimationConfigs[(int)WorldSpriteSheetEntryType.ItemWood] = ReverseSpriteRow(animationConfig, rowCount);
                     break;
-                case AnimationId.ItemMeat:
-                    singleton.AnimationConfigs[(int)AnimationId.ItemMeat] = ReverseSpriteRow(animationConfig, rowCount);
+                case WorldSpriteSheetEntryType.ItemMeat:
+                    singleton.AnimationConfigs[(int)WorldSpriteSheetEntryType.ItemMeat] = ReverseSpriteRow(animationConfig, rowCount);
                     break;
-                case AnimationId.ItemBerries:
-                    singleton.AnimationConfigs[(int)AnimationId.ItemBerries] =
+                case WorldSpriteSheetEntryType.ItemBerries:
+                    singleton.AnimationConfigs[(int)WorldSpriteSheetEntryType.ItemBerries] =
                         ReverseSpriteRow(animationConfig, rowCount);
                     break;
                 default:
@@ -105,7 +105,7 @@ public partial class UnitAnimationManagerSystem : SystemBase
 
             switch (animationConfig.Identifier)
             {
-                case AnimationId.None:
+                case WorldSpriteSheetEntryType.None:
                     break;
             }
         }
@@ -129,7 +129,7 @@ public partial class UnitAnimationManagerSystem : SystemBase
     private static int GetMaxEnumValue<T>() where T : Enum
     {
         return Enum.GetValues(typeof(T))
-            .Cast<int>()  // Cast the enum values to integers
-            .Max();       // Get the maximum value
+            .Cast<int>() // Cast the enum values to integers
+            .Max(); // Get the maximum value
     }
 }

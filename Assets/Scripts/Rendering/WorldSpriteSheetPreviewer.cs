@@ -7,8 +7,8 @@ namespace Rendering
 {
     public class WorldSpriteSheetPreviewer : MonoBehaviour
     {
-        [SerializeField] private AnimationId _previewAnimation;
-        [SerializeField] private AnimationId[] _previewInventoryItems;
+        [SerializeField] private WorldSpriteSheetEntryType _previewAnimation;
+        [SerializeField] private WorldSpriteSheetEntryType[] _previewInventoryItems;
         [SerializeField] private float _stackOffsetFactor;
 
 
@@ -19,7 +19,7 @@ namespace Rendering
 
         private void Update()
         {
-            if (_previewAnimation != AnimationId.None)
+            if (_previewAnimation != WorldSpriteSheetEntryType.None)
             {
                 PreviewLogic();
             }
@@ -46,12 +46,12 @@ namespace Rendering
 
             AddAnimationInfo(singleton, singleton.Entries[(int)_previewAnimation], ref uvList, ref matrix4X4List);
 
-            if (_previewAnimation == AnimationId.IdleHolding || _previewAnimation == AnimationId.WalkHolding)
+            if (_previewAnimation == WorldSpriteSheetEntryType.IdleHolding || _previewAnimation == WorldSpriteSheetEntryType.WalkHolding)
             {
                 var stackAmount = 0;
                 foreach (var previewInventoryItem in _previewInventoryItems)
                 {
-                    if (previewInventoryItem != AnimationId.None)
+                    if (previewInventoryItem != WorldSpriteSheetEntryType.None)
                     {
                         AddInventoryInfo(singleton, singleton.Entries[(int)previewInventoryItem], stackAmount, ref uvList, ref matrix4X4List);
                         stackAmount++;
