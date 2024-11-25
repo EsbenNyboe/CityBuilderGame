@@ -72,7 +72,7 @@ namespace Rendering
 
             for (var i = 0; i < _previewStorage.EntryTypes.Length; i++)
             {
-                AddStorageInfo(singleton, singleton.Entries[(int)_previewStorage.EntryTypes[i]], _previewStorage, i, ref uvList,
+                AddStorageInfo(singleton, singleton.Entries[(int)_previewStorage.EntryTypes[i]], i, ref uvList,
                     ref matrix4X4List);
             }
 
@@ -83,10 +83,10 @@ namespace Rendering
                 matrix4X4List.ToArray(), uvList.Count);
         }
 
-        private void AddStorageInfo(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry, StorageConfig previewStorage, int i,
+        private void AddStorageInfo(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry, int i,
             ref List<Vector4> uvList, ref List<Matrix4x4> matrix4X4List)
         {
-            GetMeshConfigurationForStorage(singleton, singletonEntry, previewStorage, i, out var uv, out var matrix4X4);
+            GetMeshConfigurationForStorage(singleton, singletonEntry, i, out var uv, out var matrix4X4);
             uvList.Add(uv);
             matrix4X4List.Add(matrix4X4);
         }
@@ -119,8 +119,8 @@ namespace Rendering
             matrix4X4List.Add(matrix4X4);
         }
 
-        private void GetMeshConfigurationForStorage(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry,
-            StorageConfig previewStorage, int i, out Vector4 uv, out Matrix4x4 matrix4X4)
+        private void GetMeshConfigurationForStorage(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry, int i, out Vector4 uv,
+            out Matrix4x4 matrix4X4)
         {
             var uvScaleX = singleton.ColumnScale;
             var uvScaleY = singleton.RowScale;
@@ -132,23 +132,42 @@ namespace Rendering
             uv.w = uvOffsetY;
 
             var position = Camera.main.transform.position;
-            var xOffset = previewStorage.Padding.x;
-            var yOffset = previewStorage.Padding.y;
+            var xOffset = _previewStorage.Padding.x;
+            var yOffset = _previewStorage.Padding.y;
+            var structureOffsetX = 0;
+            var structureOffsetY = 0;
+            var storageIndex = 0;
             var stackIndex = 0;
             for (var j = 0; j < i; j++)
             {
+                storageIndex++;
                 stackIndex++;
-                yOffset += previewStorage.Spacing.y;
-                if (stackIndex > previewStorage.MaxPerStack)
+                yOffset += _previewStorage.Spacing.y;
+                if (storageIndex >= _previewStorage.MaxPerStructure)
+                {
+                    structureOffsetX++;
+                    if (structureOffsetX >= _previewStructure.Width)
+                    {
+                        structureOffsetX = 0;
+                        structureOffsetY++;
+                    }
+
+                    storageIndex = 0;
+                    stackIndex = 0;
+                    yOffset = _previewStorage.Padding.y;
+                    xOffset = _previewStorage.Padding.x;
+                }
+
+                if (stackIndex >= _previewStorage.MaxPerStack)
                 {
                     stackIndex = 0;
-                    yOffset = previewStorage.Padding.y;
-                    xOffset += previewStorage.Spacing.x;
+                    yOffset = _previewStorage.Padding.y;
+                    xOffset += _previewStorage.Spacing.x;
                 }
             }
 
-            position.x += xOffset;
-            position.y += yOffset;
+            position.x += structureOffsetX + xOffset;
+            position.y += structureOffsetY + yOffset;
             position.z = 0;
             var rotation = quaternion.identity;
 
@@ -173,7 +192,7 @@ namespace Rendering
             for (var j = 0; j < i; j++)
             {
                 xOffset++;
-                if (xOffset > previewStructure.Width)
+                if (xOffset >= previewStructure.Width)
                 {
                     xOffset = 0;
                     yOffset++;
@@ -239,6 +258,7 @@ namespace Rendering
             public float2 Padding;
             public float2 Spacing;
             public int MaxPerStack;
+            public int MaxPerStructure;
         }
     }
 }
