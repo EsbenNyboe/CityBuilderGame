@@ -51,6 +51,8 @@ namespace Rendering
                 singleton.Entries = new NativeArray<WorldSpriteSheetEntry>(enumLength, Allocator.Persistent);
             }
 
+            var columnIndex = 0;
+            var rowIndex = config.RowCount - 1;
             for (var i = 0; i < configEntryCount; i++)
             {
                 var configEntry = config.SpriteSheetEntries[i];
@@ -60,8 +62,6 @@ namespace Rendering
                 singletonEntry.EntryRows = new NativeArray<int>(configEntry.FrameCount, Allocator.Persistent);
                 singletonEntry.FrameInterval = configEntry.FrameInterval;
 
-                var columnIndex = configEntry.StartColumn;
-                var rowIndex = configEntry.StartRow;
                 var frameIndex = 0;
                 while (frameIndex < configEntry.FrameCount)
                 {

@@ -35,8 +35,6 @@ namespace Rendering
 
         private void Update()
         {
-            AssignStartColumnsAndRows();
-
             if (_previewAnimation != AnimationId.None)
             {
                 PreviewLogic();
@@ -46,28 +44,6 @@ namespace Rendering
         private void OnValidate()
         {
             IsDirty = true;
-        }
-
-        private void AssignStartColumnsAndRows()
-        {
-            var currentColumn = 0;
-            var currentRow = RowCount - 1;
-            for (var i = 0; i < SpriteSheetEntries.Length; i++)
-            {
-                SpriteSheetEntries[i].StartColumn = currentColumn;
-                SpriteSheetEntries[i].StartRow = currentRow;
-                var frameCount = SpriteSheetEntries[i].FrameCount;
-                currentColumn += frameCount;
-                if (currentColumn >= ColumnCount)
-                {
-                    currentColumn = currentColumn % ColumnCount;
-                    currentRow--;
-                    if (currentRow < 0 && i == 0)
-                    {
-                        Debug.LogError("SpriteSheetEntry has invalid setup: Not enough rows!");
-                    }
-                }
-            }
         }
 
         private void PreviewLogic()
@@ -96,8 +72,11 @@ namespace Rendering
                 var stackAmount = 0;
                 foreach (var previewInventoryItem in _previewInventoryItems)
                 {
-                    AddInventoryInfo(singleton, singleton.Entries[(int)previewInventoryItem], stackAmount, ref uvList, ref matrix4X4List);
-                    stackAmount++;
+                    if (previewInventoryItem != AnimationId.None)
+                    {
+                        AddInventoryInfo(singleton, singleton.Entries[(int)previewInventoryItem], stackAmount, ref uvList, ref matrix4X4List);
+                        stackAmount++;
+                    }
                 }
             }
 
@@ -178,8 +157,5 @@ namespace Rendering
         public AnimationId Identifier;
         [Min(1)] public int FrameCount;
         [Min(0.001f)] public float FrameInterval;
-
-        [HideInInspector] public int StartColumn;
-        [HideInInspector] public int StartRow;
     }
 }
