@@ -36,29 +36,24 @@ namespace Rendering
         private static void DrawSlicedMesh(Mesh mesh, Material material, NativeArray<Vector4> uvArray,
             NativeArray<Matrix4x4> matrixArray)
         {
-            var materialPropertyBlock = new MaterialPropertyBlock();
-
             for (var i = 0; i < matrixArray.Length; i += SliceCount)
             {
+                var materialPropertyBlock = new MaterialPropertyBlock();
+
                 var sliceSize = math.min(matrixArray.Length - i, SliceCount);
-                for (var j = sliceSize; j < SliceCount; j++)
-                {
-                    // Do not render any unupdated UVs from previous frames:
-                    _uvInstancedArray[j] = Vector4.zero;
-                }
 
                 NativeArray<Matrix4x4>.Copy(matrixArray, i, _matrixInstancedArray, 0, sliceSize);
                 NativeArray<Vector4>.Copy(uvArray, i, _uvInstancedArray, 0, sliceSize);
 
-                DrawMesh(materialPropertyBlock, mesh, material, _uvInstancedArray, _matrixInstancedArray);
+                DrawMesh(materialPropertyBlock, mesh, material, _uvInstancedArray, _matrixInstancedArray, sliceSize);
             }
         }
 
         public static void DrawMesh(MaterialPropertyBlock materialPropertyBlock, Mesh mesh, Material material, Vector4[] uvArray,
-            Matrix4x4[] matrix4X4Array)
+            Matrix4x4[] matrix4X4Array, int count)
         {
             materialPropertyBlock.SetVectorArray(MainTexUV, uvArray);
-            Graphics.DrawMeshInstanced(mesh, 0, material, matrix4X4Array, uvArray.Length, materialPropertyBlock);
+            Graphics.DrawMeshInstanced(mesh, 0, material, matrix4X4Array, count, materialPropertyBlock);
         }
     }
 }

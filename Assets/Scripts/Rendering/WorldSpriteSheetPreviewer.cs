@@ -63,7 +63,7 @@ namespace Rendering
                 WorldSpriteSheetConfig.Instance.UnitMesh,
                 WorldSpriteSheetConfig.Instance.UnitMaterial,
                 uvList.ToArray(),
-                matrix4X4List.ToArray());
+                matrix4X4List.ToArray(), uvList.Count);
         }
 
         private void AddAnimationInfo(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry,
