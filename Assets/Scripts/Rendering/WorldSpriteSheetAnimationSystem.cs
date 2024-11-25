@@ -37,6 +37,7 @@ public partial struct WorldSpriteSheetAnimationSystem : ISystem
             var selectedAnimation = unitAnimator.ValueRO.SelectedAnimation;
             var entry = worldSpriteSheetManager.Entries[(int)selectedAnimation];
 
+            UpdateAnimation(ref state, spriteSheetAnimationData, entry, out var updateUv);
             if (unitAnimator.ValueRO.CurrentAnimation != selectedAnimation)
             {
                 unitAnimator.ValueRW.CurrentAnimation = selectedAnimation;
@@ -45,7 +46,6 @@ public partial struct WorldSpriteSheetAnimationSystem : ISystem
             }
             else
             {
-                UpdateAnimation(ref state, spriteSheetAnimationData, entry, out var updateUv);
                 SetMatrix(spriteSheetAnimationData, localToWorld, spriteTransform);
                 if (updateUv)
                 {
