@@ -89,10 +89,10 @@ namespace Rendering
             var singleton = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
             for (var index = 0; index < singleton.Entries.Length; index++)
             {
-                var entryColumns = singleton.Entries[index].EntryColumns;
-                entryColumns.Dispose();
-                var entryRows = singleton.Entries[index].EntryRows;
-                entryRows.Dispose();
+                var entry = singleton.Entries[index];
+                entry.EntryColumns.Dispose();
+                entry.EntryRows.Dispose();
+                singleton.Entries[index] = entry;
             }
 
             singleton.Entries.Dispose();
