@@ -37,15 +37,16 @@ public partial struct WorldSpriteSheetAnimationSystem : ISystem
             var selectedAnimation = unitAnimator.ValueRO.SelectedAnimation;
             var entry = worldSpriteSheetManager.Entries[(int)selectedAnimation];
 
-            UpdateAnimation(ref state, spriteSheetAnimationData, entry, out var updateUv);
             if (unitAnimator.ValueRO.CurrentAnimation != selectedAnimation)
             {
                 unitAnimator.ValueRW.CurrentAnimation = selectedAnimation;
+                ResetAnimation(spriteSheetAnimationData);
                 SetMatrix(spriteSheetAnimationData, localToWorld, spriteTransform);
                 SetUv(spriteSheetAnimationData, entry, uvTemplate);
             }
             else
             {
+                UpdateAnimation(ref state, spriteSheetAnimationData, entry, out var updateUv);
                 SetMatrix(spriteSheetAnimationData, localToWorld, spriteTransform);
                 if (updateUv)
                 {
@@ -53,6 +54,12 @@ public partial struct WorldSpriteSheetAnimationSystem : ISystem
                 }
             }
         }
+    }
+
+    private static void ResetAnimation(RefRW<WorldSpriteSheetAnimation> spriteSheetAnimationData)
+    {
+        spriteSheetAnimationData.ValueRW.FrameTimer = 0;
+        spriteSheetAnimationData.ValueRW.CurrentFrame = 0;
     }
 
     private void UpdateAnimation(ref SystemState state, RefRW<WorldSpriteSheetAnimation> spriteSheetAnimationData,

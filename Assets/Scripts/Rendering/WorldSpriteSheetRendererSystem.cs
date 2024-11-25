@@ -8,14 +8,16 @@ namespace Rendering
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial class WorldSpriteSheetRendererSystem : SystemBase
     {
-        private static readonly Vector4[] UVInstancedArray = new Vector4[SliceCount];
-        private static readonly Matrix4x4[] MatrixInstancedArray = new Matrix4x4[SliceCount];
+        private static Vector4[] _uvInstancedArray;
+        private static Matrix4x4[] _matrixInstancedArray;
         private static readonly int MainTexUV = Shader.PropertyToID("_MainTex_UV");
         private static int SliceCount => 1023;
 
         protected override void OnCreate()
         {
             RequireForUpdate<WorldSpriteSheetSortingManager>();
+            _uvInstancedArray = new Vector4[SliceCount];
+            _matrixInstancedArray = new Matrix4x4[SliceCount];
         }
 
         protected override void OnUpdate()
@@ -39,10 +41,16 @@ namespace Rendering
             for (var i = 0; i < matrixArray.Length; i += SliceCount)
             {
                 var sliceSize = math.min(matrixArray.Length - i, SliceCount);
-                NativeArray<Matrix4x4>.Copy(matrixArray, i, MatrixInstancedArray, 0, sliceSize);
-                NativeArray<Vector4>.Copy(uvArray, i, UVInstancedArray, 0, sliceSize);
+                for (var j = sliceSize; j < SliceCount; j++)
+                {
+                    // Do not render any unupdated UVs from previous frames:
+                    _uvInstancedArray[j] = Vector4.zero;
+                }
 
-                DrawMesh(materialPropertyBlock, mesh, material, UVInstancedArray, MatrixInstancedArray);
+                NativeArray<Matrix4x4>.Copy(matrixArray, i, _matrixInstancedArray, 0, sliceSize);
+                NativeArray<Vector4>.Copy(uvArray, i, _uvInstancedArray, 0, sliceSize);
+
+                DrawMesh(materialPropertyBlock, mesh, material, _uvInstancedArray, _matrixInstancedArray);
             }
         }
 
