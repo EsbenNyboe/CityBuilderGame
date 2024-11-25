@@ -10675,6 +10675,15 @@ MonoBehaviour:
   _previewStructure:
     EntryTypes: 0b0000000b0000000b0000000b000000
     Width: 1
+  _previewStorage:
+    EntryTypes: 090000000900000009000000090000000900000009000000090000000900000009000000090000000900000009000000090000000900000009000000
+    Padding:
+      x: -0.43
+      y: -0.13
+    Spacing:
+      x: 0.5
+      y: 0.25
+    MaxPerStack: 3
 --- !u!1 &2044617179
 GameObject:
   m_ObjectHideFlags: 0
