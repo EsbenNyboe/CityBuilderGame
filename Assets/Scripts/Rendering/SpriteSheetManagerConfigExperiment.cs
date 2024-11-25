@@ -7,6 +7,7 @@ namespace Rendering
 {
     public class SpriteSheetManagerConfigExperiment : MonoBehaviour
     {
+        public static SpriteSheetManagerConfigExperiment Instance;
         public Mesh UnitMesh;
         public Material UnitMaterial;
 
@@ -20,9 +21,16 @@ namespace Rendering
 
         [SerializeField] private float _stackOffsetFactor;
 
+        public bool IsDirty = true;
+
         private CameraController _cameraController;
         private int _currentFrame;
         private float _frameTimer;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
 
         private void Update()
         {
@@ -95,6 +103,11 @@ namespace Rendering
             }
 
             DrawMesh(UnitMesh, UnitMaterial, uvList.ToArray(), matrix4X4List.ToArray());
+        }
+
+        private void OnValidate()
+        {
+            IsDirty = true;
         }
 
         private void AddAnimationInfo(int selectionIndex, ref List<Vector4> uvList, ref List<Matrix4x4> matrix4X4List)
