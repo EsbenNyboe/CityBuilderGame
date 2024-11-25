@@ -37,4 +37,18 @@ namespace Rendering
         [Min(1)] public int FrameCount;
         [Min(0.001f)] public float FrameInterval;
     }
+
+    public enum AnimationId
+    {
+        None,
+        Idle,
+        Walk,
+        IdleHolding,
+        WalkHolding,
+        Talk,
+        Sleep,
+        ItemWood,
+        ItemMeat,
+        ItemBerries
+    }
 }

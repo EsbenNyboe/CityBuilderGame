@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Rendering;
 using UnitState;
 using Unity.Collections;
 using Unity.Entities;
@@ -30,20 +31,6 @@ public struct AnimationConfig
     [Min(0)] public int SpriteRow;
     [Min(0)] public int FrameCount;
     [Min(0.01f)] public float FrameInterval;
-}
-
-public enum AnimationId
-{
-    None,
-    Idle,
-    Walk,
-    IdleHolding,
-    WalkHolding,
-    Talk,
-    Sleep,
-    ItemWood,
-    ItemMeat,
-    ItemBerries
 }
 
 [UpdateInGroup(typeof(AnimationSystemGroup))]
