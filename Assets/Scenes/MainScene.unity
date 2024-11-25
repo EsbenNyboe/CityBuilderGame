@@ -10517,6 +10517,7 @@ GameObject:
   - component: {fileID: 2042965572}
   - component: {fileID: 2042965573}
   - component: {fileID: 2042965574}
+  - component: {fileID: 2042965575}
   m_Layer: 0
   m_Name: UnitManager
   m_TagString: Untagged
@@ -10625,43 +10626,108 @@ MonoBehaviour:
     FrameCount: 2
     FrameInterval: 0.8
   - Identifier: 2
-    SpriteRow: 1
+    SpriteRow: 0
     FrameCount: 2
     FrameInterval: 0.11
   - Identifier: 6
-    SpriteRow: 2
+    SpriteRow: 0
     FrameCount: 3
     FrameInterval: 0.4
   - Identifier: 5
-    SpriteRow: 3
+    SpriteRow: 0
     FrameCount: 2
     FrameInterval: 0.4
   - Identifier: 3
-    SpriteRow: 4
+    SpriteRow: 0
     FrameCount: 2
     FrameInterval: 0.8
   - Identifier: 4
-    SpriteRow: 5
+    SpriteRow: 0
     FrameCount: 2
     FrameInterval: 0.11
   - Identifier: 7
-    SpriteRow: 6
+    SpriteRow: 0
     FrameCount: 1
     FrameInterval: 1
   - Identifier: 8
-    SpriteRow: 7
+    SpriteRow: 0
     FrameCount: 1
     FrameInterval: 1
   - Identifier: 9
-    SpriteRow: 8
+    SpriteRow: 0
     FrameCount: 1
     FrameInterval: 1
-  SpriteColumns: 3
-  SpriteRows: 9
+  SpriteColumns: 4
+  SpriteRows: 4
   _previewAnimation: 0
   _previewInventoryItems: 070000000700000007000000
   IsDirty: 1
   _stackOffsetFactor: 0.23
+--- !u!114 &2042965575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2042965568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0710b39153c247ee80de5b7f66a2fd39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UnitMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+  UnitMaterial: {fileID: 2100000, guid: d3323248df7d7bd4bad55e56adfa7f38, type: 2}
+  SpriteSheetEntries:
+  - Identifier: 1
+    FrameCount: 2
+    FrameInterval: 0.8
+    StartColumn: 0
+    StartRow: 3
+  - Identifier: 2
+    FrameCount: 2
+    FrameInterval: 0.11
+    StartColumn: 2
+    StartRow: 3
+  - Identifier: 6
+    FrameCount: 3
+    FrameInterval: 0.8
+    StartColumn: 0
+    StartRow: 2
+  - Identifier: 5
+    FrameCount: 2
+    FrameInterval: 0.7
+    StartColumn: 3
+    StartRow: 2
+  - Identifier: 3
+    FrameCount: 2
+    FrameInterval: 0.7
+    StartColumn: 1
+    StartRow: 1
+  - Identifier: 4
+    FrameCount: 2
+    FrameInterval: 0.7
+    StartColumn: 3
+    StartRow: 1
+  - Identifier: 7
+    FrameCount: 1
+    FrameInterval: 1
+    StartColumn: 1
+    StartRow: 0
+  - Identifier: 8
+    FrameCount: 1
+    FrameInterval: 1
+    StartColumn: 2
+    StartRow: 0
+  - Identifier: 9
+    FrameCount: 1
+    FrameInterval: 1
+    StartColumn: 3
+    StartRow: 0
+  ColumnCount: 4
+  RowCount: 4
+  _previewAnimation: 9
+  _previewInventoryItems: 
+  _stackOffsetFactor: 0
 --- !u!1 &2044617179
 GameObject:
   m_ObjectHideFlags: 0
