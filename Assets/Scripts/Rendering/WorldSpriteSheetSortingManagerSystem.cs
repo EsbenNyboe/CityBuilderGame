@@ -9,7 +9,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public struct SpriteSheetSortingManager : IComponentData
+public struct WorldSpriteSheetSortingManager : IComponentData
 {
     public NativeArray<Matrix4x4> SpriteMatrixArray;
     public NativeArray<Vector4> SpriteUvArray;
@@ -17,7 +17,7 @@ public struct SpriteSheetSortingManager : IComponentData
 
 [UpdateInGroup(typeof(PreRenderingSystemGroup), OrderLast = true)]
 [BurstCompile]
-public partial struct SpriteSheetQuickSortSystem : ISystem
+public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 {
     private EntityQuery _entityQuery;
 
@@ -25,22 +25,22 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
     {
         state.RequireForUpdate<UnitAnimationManager>();
         state.RequireForUpdate<CameraInformation>();
-        var singletonEntity = state.EntityManager.CreateSingleton<SpriteSheetSortingManager>();
-        SystemAPI.SetComponent(singletonEntity, new SpriteSheetSortingManager
+        var singletonEntity = state.EntityManager.CreateSingleton<WorldSpriteSheetSortingManager>();
+        SystemAPI.SetComponent(singletonEntity, new WorldSpriteSheetSortingManager
         {
             SpriteMatrixArray = new NativeArray<Matrix4x4>(1, Allocator.TempJob),
             SpriteUvArray = new NativeArray<Vector4>(1, Allocator.TempJob)
         });
-        _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<SpriteSheetAnimation>(),
+        _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetAnimation>(),
             ComponentType.ReadOnly<LocalToWorld>(), ComponentType.ReadOnly<Inventory>());
 
         state.RequireForUpdate<BeginPresentationEntityCommandBufferSystem.Singleton>();
-        state.RequireForUpdate<SpriteSheetSortingManager>();
+        state.RequireForUpdate<WorldSpriteSheetSortingManager>();
     }
 
     public void OnDestroy(ref SystemState state)
     {
-        var singleton = SystemAPI.GetSingletonRW<SpriteSheetSortingManager>();
+        var singleton = SystemAPI.GetSingletonRW<WorldSpriteSheetSortingManager>();
         singleton.ValueRW.SpriteMatrixArray.Dispose();
         singleton.ValueRW.SpriteUvArray.Dispose();
     }
@@ -271,7 +271,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         out NativeArray<Vector4> spriteUvArray)
     {
         // Clear data
-        var singleton = SystemAPI.GetSingletonRW<SpriteSheetSortingManager>();
+        var singleton = SystemAPI.GetSingletonRW<WorldSpriteSheetSortingManager>();
         singleton.ValueRW.SpriteMatrixArray.Dispose();
         singleton.ValueRW.SpriteUvArray.Dispose();
         singleton.ValueRW.SpriteMatrixArray = new NativeArray<Matrix4x4>(visibleEntitiesTotal, Allocator.TempJob);
@@ -358,7 +358,7 @@ public partial struct SpriteSheetQuickSortSystem : ISystem
         public NativeQueue<RenderData> NativeQueue;
         public NativeQueue<InventoryRenderData> InventoryRenderDataQueue;
 
-        public void Execute(in Entity Entity, in LocalToWorld localToWorld, in SpriteSheetAnimation animationData,
+        public void Execute(in Entity Entity, in LocalToWorld localToWorld, in WorldSpriteSheetAnimation animationData,
             in Inventory inventory)
         {
             var positionX = localToWorld.Position.x;

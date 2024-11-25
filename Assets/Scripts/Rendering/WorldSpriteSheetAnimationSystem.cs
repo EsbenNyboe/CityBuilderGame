@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-public struct SpriteSheetAnimation : IComponentData
+public struct WorldSpriteSheetAnimation : IComponentData
 {
     public int CurrentFrame;
     public float FrameTimer;
@@ -13,7 +13,7 @@ public struct SpriteSheetAnimation : IComponentData
 
 [UpdateInGroup(typeof(AnimationSystemGroup))]
 [UpdateAfter(typeof(UnitAnimationSelectionSystem))]
-public partial struct SpriteSheetAnimationSystem : ISystem
+public partial struct WorldSpriteSheetAnimationSystem : ISystem
 {
     public void OnCreate(ref SystemState state)
     {
@@ -31,7 +31,7 @@ public partial struct SpriteSheetAnimationSystem : ISystem
         var uvTemplate = new Vector4(uvScaleX, uvScaleY, 0, 0);
 
         foreach (var (spriteSheetAnimationData, localToWorld, spriteTransform, unitAnimator) in SystemAPI
-                     .Query<RefRW<SpriteSheetAnimation>, RefRO<LocalToWorld>, RefRO<SpriteTransform>,
+                     .Query<RefRW<WorldSpriteSheetAnimation>, RefRO<LocalToWorld>, RefRO<SpriteTransform>,
                          RefRW<UnitAnimationSelection>>())
         {
             var selectedAnimation = unitAnimator.ValueRO.SelectedAnimation;
@@ -55,7 +55,7 @@ public partial struct SpriteSheetAnimationSystem : ISystem
         }
     }
 
-    private void UpdateAnimation(ref SystemState state, RefRW<SpriteSheetAnimation> spriteSheetAnimationData,
+    private void UpdateAnimation(ref SystemState state, RefRW<WorldSpriteSheetAnimation> spriteSheetAnimationData,
         AnimationConfig animationConfig,
         out bool updateUv)
     {
@@ -70,7 +70,7 @@ public partial struct SpriteSheetAnimationSystem : ISystem
         }
     }
 
-    private static void SetMatrix(RefRW<SpriteSheetAnimation> spriteSheetAnimationData,
+    private static void SetMatrix(RefRW<WorldSpriteSheetAnimation> spriteSheetAnimationData,
         RefRO<LocalToWorld> localToWorld,
         RefRO<SpriteTransform> spriteTransform)
     {
@@ -80,7 +80,7 @@ public partial struct SpriteSheetAnimationSystem : ISystem
         spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
     }
 
-    private static void SetUv(RefRW<SpriteSheetAnimation> spriteSheetAnimationData, AnimationConfig animationConfig,
+    private static void SetUv(RefRW<WorldSpriteSheetAnimation> spriteSheetAnimationData, AnimationConfig animationConfig,
         Vector4 uv)
     {
         var uvScaleX = uv.x;

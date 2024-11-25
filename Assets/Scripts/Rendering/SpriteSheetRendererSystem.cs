@@ -15,14 +15,14 @@ namespace Rendering
 
         protected override void OnCreate()
         {
-            RequireForUpdate<SpriteSheetSortingManager>();
+            RequireForUpdate<WorldSpriteSheetSortingManager>();
         }
 
         protected override void OnUpdate()
         {
-            World.Unmanaged.GetExistingSystemState<SpriteSheetQuickSortSystem>().CompleteDependency();
+            World.Unmanaged.GetExistingSystemState<WorldSpriteSheetSortingManagerSystem>().CompleteDependency();
 
-            var spriteSheetSortingManager = SystemAPI.GetSingleton<SpriteSheetSortingManager>();
+            var spriteSheetSortingManager = SystemAPI.GetSingleton<WorldSpriteSheetSortingManager>();
             var unitMesh = SpriteSheetRendererManager.Instance.UnitMesh;
             var unitMaterial = SpriteSheetRendererManager.Instance.UnitMaterial;
 
