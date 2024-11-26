@@ -199,7 +199,7 @@ namespace UnitAgency
         private bool IsAnnoyedAtSomeone(
             ref SystemState state,
             Entity self,
-            NativeHashMap<Entity, float> relationships,
+            NativeParallelHashMap<Entity, float> relationships,
             float thresholdForBecomingAnnoying,
             float3 position,
             QuadrantDataManager quadrantDataManager,

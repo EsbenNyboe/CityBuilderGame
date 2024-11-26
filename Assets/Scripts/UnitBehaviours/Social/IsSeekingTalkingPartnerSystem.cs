@@ -67,7 +67,8 @@ namespace UnitBehaviours.Talking
                         section, position, entity, out var otherUnit, out _))
                 {
                     // No friends nearby. I'll find a random person to walk to.
-                    var index = gridManager.Random.NextInt(0, socialRelationships.ValueRO.Relationships.Count);
+                    var relationships = socialRelationships.ValueRO.Relationships;
+                    var index = gridManager.Random.NextInt(0, relationships.Count());
                     otherUnit = socialRelationships.ValueRW.Relationships.GetKeyArray(Allocator.Temp)[index];
                 }
 

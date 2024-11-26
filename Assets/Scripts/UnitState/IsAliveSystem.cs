@@ -83,10 +83,11 @@ namespace UnitState
             }
 
             // Cleanup dead units relationships
-            foreach (var socialRelationships in
-                     SystemAPI.Query<RefRW<SocialRelationships>>().WithDisabled<IsAlive>())
+            foreach (var (socialRelationships, entity) in
+                     SystemAPI.Query<RefRW<SocialRelationships>>().WithDisabled<IsAlive>().WithEntityAccess())
             {
                 socialRelationships.ValueRW.Relationships.Dispose();
+                ecb.RemoveComponent<SocialRelationships>(entity);
             }
 
             // Cleanup alive units relationships

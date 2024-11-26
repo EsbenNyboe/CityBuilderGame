@@ -7,9 +7,9 @@ using Unity.Jobs;
 
 namespace UnitState
 {
-    public struct SocialRelationships : IComponentData
+    public struct SocialRelationships : ICleanupComponentData
     {
-        public NativeHashMap<Entity, float> Relationships;
+        public NativeParallelHashMap<Entity, float> Relationships;
         public float TimeOfLastEvaluation;
     }
 
@@ -33,12 +33,12 @@ namespace UnitState
         public void OnDestroy(ref SystemState state)
         {
             foreach (var socialRelationships in
-                     SystemAPI.Query<RefRO<SocialRelationships>>().WithDisabled<IsAlive>())
+                     SystemAPI.Query<RefRW<SocialRelationships>>())
             {
-                var relationships = socialRelationships.ValueRO.Relationships;
-                if (relationships.IsCreated)
+                if (socialRelationships.ValueRO.Relationships.IsCreated)
                 {
-                    relationships.Dispose();
+                    socialRelationships.ValueRW.Relationships.Clear();
+                    socialRelationships.ValueRW.Relationships.Dispose();
                 }
             }
         }
@@ -61,11 +61,19 @@ namespace UnitState
         {
             var spawnedUnits = _spawnedUnitsQuery.ToEntityArray(Allocator.TempJob);
 
+            var newSocialRelationships = new NativeArray<NativeParallelHashMap<Entity, float>>(spawnedUnits.Length, Allocator.TempJob);
+            for (var i = 0; i < newSocialRelationships.Length; i++)
+            {
+                newSocialRelationships[i] =
+                    new NativeParallelHashMap<Entity, float>(spawnedUnits.Length + existingUnits.Length, Allocator.Persistent);
+            }
+
             var spawnedUnitJobs = new SetupSpawnedUnitRelationshipsJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 ExistingUnits = existingUnits,
-                SpawnedUnits = spawnedUnits
+                SpawnedUnits = spawnedUnits,
+                NewSocialRelationships = newSocialRelationships
             }.Schedule(spawnedUnits.Length, 10);
 
             var existingUnitJobs = new UpdateExistingRelationshipsJob
@@ -77,8 +85,8 @@ namespace UnitState
 
             spawnedUnitJobs.Complete();
             existingUnitJobs.Complete();
-
             spawnedUnits.Dispose();
+            newSocialRelationships.Dispose();
         }
 
         [BurstCompile]
@@ -92,13 +100,10 @@ namespace UnitState
 
             public void Execute(int index)
             {
-                var socialRelationships = SocialRelationshipsLookup[ExistingUnits[index]];
                 foreach (var spawnedUnit in SpawnedUnits)
                 {
-                    socialRelationships.Relationships.Add(spawnedUnit, 0);
+                    SocialRelationshipsLookup[ExistingUnits[index]].Relationships.Add(spawnedUnit, 0);
                 }
-
-                SocialRelationshipsLookup[ExistingUnits[index]] = socialRelationships;
             }
         }
 
@@ -109,9 +114,12 @@ namespace UnitState
             [ReadOnly] public NativeArray<Entity> ExistingUnits;
             [ReadOnly] public NativeArray<Entity> SpawnedUnits;
 
+            [NativeDisableContainerSafetyRestriction]
+            public NativeArray<NativeParallelHashMap<Entity, float>> NewSocialRelationships;
+
             public void Execute(int index)
             {
-                var relationships = new NativeHashMap<Entity, float>(InitialCapacity, Allocator.Persistent);
+                var relationships = NewSocialRelationships[index];
 
                 foreach (var existingUnit in ExistingUnits)
                 {
