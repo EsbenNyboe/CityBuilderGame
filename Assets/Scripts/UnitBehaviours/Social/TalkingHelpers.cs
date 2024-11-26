@@ -10,14 +10,16 @@ namespace UnitBehaviours.Talking
         {
             var leftNeighbour = new int2(cell.x - 1, cell.y);
             var rightNeighbour = new int2(cell.x + 1, cell.y);
-            if (gridManager.TryGetOccupant(leftNeighbour, out var neighbourEntity) &&
+            if (gridManager.IsPositionInsideGrid(leftNeighbour) &&
+                gridManager.TryGetOccupant(leftNeighbour, out var neighbourEntity) &&
                 lookup.HasComponent(neighbourEntity))
             {
                 neighbour = leftNeighbour;
                 return true;
             }
 
-            if (gridManager.TryGetOccupant(rightNeighbour, out neighbourEntity) &&
+            if (gridManager.IsPositionInsideGrid(rightNeighbour) &&
+                gridManager.TryGetOccupant(rightNeighbour, out neighbourEntity) &&
                 lookup.HasComponent(neighbourEntity))
             {
                 neighbour = rightNeighbour;
