@@ -4,7 +4,9 @@ using UnitBehaviours;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
@@ -62,29 +64,167 @@ namespace Grid
                 invalidatedCells.Add(invalidatedCellsQueue.Dequeue());
             }
 
-            foreach (var (localTransform,
-                         pathFollow,
-                         pathPositions,
-                         socialRelationships,
-                         moodInitiative,
-                         moodSleepiness,
-                         entity) in SystemAPI.Query<RefRW<LocalTransform>,
-                             RefRW<PathFollow>,
-                             DynamicBuffer<PathPosition>,
-                             RefRW<SocialRelationships>,
-                             RefRW<MoodInitiative>,
-                             RefRO<MoodSleepiness>>()
-                         .WithEntityAccess())
-            {
-                if (!CurrentPathIsInvalidated(pathPositions, invalidatedCells, pathFollow.ValueRO.PathIndex))
-                {
-                    continue;
-                }
+            var invalidatedPathfindingEntities = new NativeList<Entity>(Allocator.TempJob);
 
-                InvalidatePath(ecb, gridManager, entity, localTransform, pathFollow, pathPositions,
-                    socialDynamicsManager, socialDebugManager, socialRelationships, moodInitiative, moodSleepiness,
-                    isDebuggingPathInvalidation,
-                    isDebuggingPath, isDebuggingSearch);
+            foreach (var (pathFollow, pathPositions, entity) in SystemAPI.Query<RefRO<PathFollow>, DynamicBuffer<PathPosition>>().WithEntityAccess())
+            {
+                if (CurrentPathIsInvalidated(pathPositions, invalidatedCells, pathFollow.ValueRO.PathIndex))
+                {
+                    invalidatedPathfindingEntities.Add(entity);
+                }
+            }
+
+            var validatePathJobHandle = new ValidatePathJob
+            {
+                EcbParallelWriter = ecb.AsParallelWriter(),
+                GridManager = gridManager,
+                SocialDynamicsManager = socialDynamicsManager,
+                SocialDebugManager = socialDebugManager,
+                IsDebuggingPathInvalidation = isDebuggingPathInvalidation,
+                IsDebuggingPath = isDebuggingPath,
+                IsDebuggingSearch = isDebuggingSearch,
+                Entities = invalidatedPathfindingEntities.AsArray(),
+                LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),
+                PathFollowLookup = SystemAPI.GetComponentLookup<PathFollow>(),
+                PathPositionLookup = SystemAPI.GetBufferLookup<PathPosition>(),
+                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
+                MoodInitiativeLookup = SystemAPI.GetComponentLookup<MoodInitiative>(),
+                MoodSleepinessLookup = SystemAPI.GetComponentLookup<MoodSleepiness>()
+            }.Schedule(invalidatedPathfindingEntities.Length, 1);
+            validatePathJobHandle.Complete();
+
+            invalidatedPathfindingEntities.Dispose();
+        }
+
+        [BurstCompile]
+        private struct ValidatePathJob : IJobParallelFor
+        {
+            public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
+            [ReadOnly] public GridManager GridManager;
+            [ReadOnly] public SocialDynamicsManager SocialDynamicsManager;
+            [ReadOnly] public SocialDebugManager SocialDebugManager;
+            [ReadOnly] public bool IsDebuggingPathInvalidation;
+            [ReadOnly] public bool IsDebuggingPath;
+            [ReadOnly] public bool IsDebuggingSearch;
+            [ReadOnly] public NativeArray<Entity> Entities;
+
+            [NativeDisableContainerSafetyRestriction]
+            public ComponentLookup<LocalTransform> LocalTransformLookup;
+
+            [NativeDisableContainerSafetyRestriction]
+            public ComponentLookup<PathFollow> PathFollowLookup;
+
+            [NativeDisableContainerSafetyRestriction]
+            public BufferLookup<PathPosition> PathPositionLookup;
+
+            [NativeDisableContainerSafetyRestriction]
+            public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
+
+            [NativeDisableContainerSafetyRestriction]
+            public ComponentLookup<MoodInitiative> MoodInitiativeLookup;
+
+            [ReadOnly] public ComponentLookup<MoodSleepiness> MoodSleepinessLookup;
+
+            public void Execute(int index)
+            {
+                var entity = Entities[index];
+                var pathFollow = PathFollowLookup[entity];
+                var pathPosition = PathPositionLookup[entity];
+                var localTransform = LocalTransformLookup[entity];
+                var socialRelationships = SocialRelationshipsLookup[entity];
+                var moodInitiative = MoodInitiativeLookup[entity];
+                var moodSleepiness = MoodSleepinessLookup[entity];
+
+                var nextPathNode = pathPosition[pathFollow.PathIndex].Position;
+                var nextPathNodeIsWalkable = GridManager.IsWalkable(nextPathNode);
+                var currentCell = GridHelpers.GetXY(localTransform.Position);
+                var currentCellIsWalkable = GridManager.IsWalkable(currentCell);
+
+                var targetCell = pathPosition[0].Position;
+                var targetCellIsWalkable = GridManager.IsWalkable(targetCell);
+
+                var pathIsPossible = GridManager.IsMatchingSection(currentCell, targetCell);
+
+                if (currentCellIsWalkable && targetCellIsWalkable && pathIsPossible)
+                {
+                    // My target is still reachable. I'll find a better path.
+                    if (nextPathNodeIsWalkable)
+                    {
+                        // I can keep my momentum, and adjust my path, after the next step!
+                        PathHelpers.TrySetPath(EcbParallelWriter, index, entity, nextPathNode, targetCell, IsDebuggingPath);
+                    }
+                    else
+                    {
+                        // I'll need to do a hard stop, and pivot.
+                        PathHelpers.TrySetPath(EcbParallelWriter, index, entity, currentCell, targetCell, IsDebuggingPath);
+                    }
+                }
+                else
+                {
+                    // My target is no longer reachable. I'll try and find a place close to my target...
+
+                    if (InvalidationCausedUnitToLoseAccessToBeds(GridManager, entity, targetCell))
+                    {
+                        GetAngryAtOccupant(EcbParallelWriter, index, GridManager, SocialDynamicsManager, SocialDebugManager, ref socialRelationships,
+                            moodSleepiness,
+                            localTransform.Position, targetCell);
+                        SocialRelationshipsLookup[entity] = socialRelationships;
+                    }
+
+                    if (currentCellIsWalkable &&
+                        GridManager.TryGetNearbyEmptyCellSemiRandom(targetCell, out targetCell, IsDebuggingSearch))
+                    {
+                        if (IsDebuggingPathInvalidation)
+                        {
+                            Debug.Log("Invalidation: I'll walk to a nearby spot");
+                        }
+
+                        // I'll walk to a nearby spot...
+                        if (nextPathNodeIsWalkable)
+                        {
+                            PathHelpers.TrySetPath(EcbParallelWriter, index, entity, nextPathNode, targetCell, IsDebuggingPath);
+                        }
+                        else
+                        {
+                            PathHelpers.TrySetPath(EcbParallelWriter, index, entity, currentCell, targetCell, IsDebuggingPath);
+                        }
+
+                        // I should do a new search ASAP.
+                        moodInitiative.Initiative += 1f;
+                        MoodInitiativeLookup[entity] = moodInitiative;
+                    }
+                    else if (!currentCellIsWalkable &&
+                             (GridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out targetCell, IsDebuggingSearch,
+                                  true,
+                                  10) ||
+                              GridManager.TryGetClosestWalkableCell(currentCell, out targetCell)))
+                    {
+                        if (IsDebuggingPathInvalidation)
+                        {
+                            Debug.Log("Invalidation: I'll DEFY PHYSICS");
+                        }
+
+                        // I'll defy physics, and move to a nearby spot.
+                        pathPosition.Clear();
+                        pathPosition.Add(new PathPosition { Position = targetCell }); // TODO: Necessary to set lookup?
+                        pathFollow.PathIndex = 0;
+                        PathFollowLookup[entity] = pathFollow;
+                    }
+                    else
+                    {
+                        if (IsDebuggingPathInvalidation)
+                        {
+                            Debug.Log("Invalidation: I'm stuck here...");
+                        }
+
+                        // I'm stuck... I guess, I'll just stand here, then...
+                        var newTarget = pathPosition[0].Position;
+                        pathPosition.Clear();
+                        pathPosition.Add(new PathPosition { Position = newTarget });
+                        pathFollow.PathIndex = 0;
+                        PathFollowLookup[entity] = pathFollow;
+                    }
+                }
             }
         }
 
@@ -102,121 +242,23 @@ namespace Grid
             return false;
         }
 
-        private static void InvalidatePath(EntityCommandBuffer ecb, GridManager gridManager, Entity entity,
-            RefRW<LocalTransform> localTransform, RefRW<PathFollow> pathFollow,
-            DynamicBuffer<PathPosition> pathPositions, SocialDynamicsManager socialDynamicsManager,
-            SocialDebugManager socialDebugManager,
-            RefRW<SocialRelationships> socialRelationships,
-            RefRW<MoodInitiative> moodInitiative, RefRO<MoodSleepiness> moodSleepiness,
-            bool isDebuggingPathInvalidation, bool isDebuggingPath,
-            bool isDebuggingSearch)
-        {
-            var pathIndex = pathFollow.ValueRO.PathIndex;
-            var nextPathNode = pathPositions[pathIndex].Position;
-            var nextPathNodeIsWalkable = gridManager.IsWalkable(nextPathNode);
-            var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
-            var currentCellIsWalkable = gridManager.IsWalkable(currentCell);
-
-            var targetCell = pathPositions[0].Position;
-            var targetCellIsWalkable = gridManager.IsWalkable(targetCell);
-
-            var pathIsPossible = gridManager.IsMatchingSection(currentCell, targetCell);
-
-            if (currentCellIsWalkable && targetCellIsWalkable && pathIsPossible)
-            {
-                // My target is still reachable. I'll find a better path.
-                if (nextPathNodeIsWalkable)
-                {
-                    // I can keep my momentum, and adjust my path, after the next step!
-                    PathHelpers.TrySetPath(ecb, entity, nextPathNode, targetCell, isDebuggingPath);
-                }
-                else
-                {
-                    // I'll need to do a hard stop, and pivot.
-                    PathHelpers.TrySetPath(ecb, entity, currentCell, targetCell, isDebuggingPath);
-                }
-            }
-            else
-            {
-                // My target is no longer reachable. I'll try and find a place close to my target...
-
-                if (InvalidationCausedUnitToLoseAccessToBeds(gridManager, entity, targetCell))
-                {
-                    GetAngryAtOccupant(ecb, gridManager, socialDynamicsManager, socialDebugManager, socialRelationships,
-                        moodSleepiness,
-                        localTransform.ValueRO.Position, targetCell);
-                }
-
-                if (currentCellIsWalkable &&
-                    gridManager.TryGetNearbyEmptyCellSemiRandom(targetCell, out targetCell, isDebuggingSearch))
-                {
-                    if (isDebuggingPathInvalidation)
-                    {
-                        Debug.Log("Invalidation: I'll walk to a nearby spot");
-                    }
-
-                    // I'll walk to a nearby spot...
-                    if (nextPathNodeIsWalkable)
-                    {
-                        PathHelpers.TrySetPath(ecb, entity, nextPathNode, targetCell, isDebuggingPath);
-                    }
-                    else
-                    {
-                        PathHelpers.TrySetPath(ecb, entity, currentCell, targetCell, isDebuggingPath);
-                    }
-
-                    // I should do a new search ASAP.
-                    moodInitiative.ValueRW.Initiative += 1f;
-                }
-                else if (!currentCellIsWalkable &&
-                         (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out targetCell, isDebuggingSearch,
-                              true,
-                              10) ||
-                          gridManager.TryGetClosestWalkableCell(currentCell, out targetCell)))
-                {
-                    if (isDebuggingPathInvalidation)
-                    {
-                        Debug.Log("Invalidation: I'll DEFY PHYSICS");
-                    }
-
-                    // I'll defy physics, and move to a nearby spot.
-                    pathPositions.Clear();
-                    pathPositions.Add(new PathPosition { Position = targetCell });
-                    pathFollow.ValueRW.PathIndex = 0;
-                }
-                else
-                {
-                    if (isDebuggingPathInvalidation)
-                    {
-                        Debug.Log("Invalidation: I'm stuck here...");
-                    }
-
-                    // I'm stuck... I guess, I'll just stand here, then...
-                    var newTarget = pathPositions[0].Position;
-                    pathPositions.Clear();
-                    pathPositions.Add(new PathPosition { Position = newTarget });
-                    pathFollow.ValueRW.PathIndex = 0;
-                }
-            }
-        }
-
-        private static void GetAngryAtOccupant(  EntityCommandBuffer ecb, GridManager gridManager,
+        private static void GetAngryAtOccupant(EntityCommandBuffer.ParallelWriter ecbParallelWriter, int index, GridManager gridManager,
             SocialDynamicsManager socialDynamicsManager,
             SocialDebugManager socialDebugManager,
-            RefRW<SocialRelationships> socialRelationships, RefRO<MoodSleepiness> moodSleepiness, float3 position,
+            ref SocialRelationships socialRelationships, MoodSleepiness moodSleepiness, float3 position,
             int2 targetCell)
         {
             var occupant = gridManager.GetOccupant(targetCell);
-            var fondnessOfBedOccupant = socialRelationships.ValueRO.Relationships[occupant];
-            var influenceAmount = socialDynamicsManager.ImpactOnBedBeingOccupied * moodSleepiness.ValueRO.Sleepiness;
+            var fondnessOfBedOccupant = socialRelationships.Relationships[occupant];
+            var influenceAmount = socialDynamicsManager.ImpactOnBedBeingOccupied * moodSleepiness.Sleepiness;
             fondnessOfBedOccupant += influenceAmount;
-            socialRelationships.ValueRW.Relationships[occupant] = fondnessOfBedOccupant;
+            socialRelationships.Relationships[occupant] = fondnessOfBedOccupant;
 
             if (socialDebugManager.ShowEventEffects)
             {
                 if (influenceAmount != 0)
                 {
-                    ecb.AddComponent(ecb.CreateEntity(), new SocialEffect
+                    ecbParallelWriter.AddComponent(index, ecbParallelWriter.CreateEntity(index), new SocialEffect
                     {
                         Position = position,
                         Type = influenceAmount > 0
