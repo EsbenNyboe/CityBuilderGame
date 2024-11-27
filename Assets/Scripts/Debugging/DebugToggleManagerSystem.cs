@@ -44,6 +44,9 @@ namespace Debugging
 
             debugToggleManager.ValueRW.CountPathInvalidation =
                 debugToggleManagerInterface.CountPathInvalidation;
+
+            debugToggleManager.ValueRW.CountSocialEffects =
+                debugToggleManagerInterface.CountSocialEffects;
         }
     }
 
@@ -59,5 +62,6 @@ namespace Debugging
         public bool DebugTargetFollow;
         public bool DebugQuadrantSystem;
         public bool CountPathInvalidation;
+        public bool CountSocialEffects;
     }
 }

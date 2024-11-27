@@ -12,6 +12,8 @@ namespace Statistics
         [SerializeField] private bool _showNumberOfConversations;
         [SerializeField] private bool _showNumberOfSocialEvent;
         [SerializeField] private bool _showNumberOfSocialEventWithVictim;
+        [SerializeField] private bool _showNumberOfPositiveSocialEffects;
+        [SerializeField] private bool _showNumberOfNegativeSocialEffects;
 
         [SerializeField] private bool _showNumberOfBedSeekers;
         [SerializeField] private bool _showNumberOfTreeSeekers;
@@ -32,6 +34,8 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _numberOfConversationsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfSocialEventDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfSocialEventWithVictimDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfPositiveSocialEffectsDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfNegativeSocialEffectsDisplay;
 
 
         [SerializeField] private UnitStatsDisplay _numberOfBedSeekersDisplay;
@@ -61,6 +65,8 @@ namespace Statistics
             _numberOfConversationsDisplay.gameObject.SetActive(_showNumberOfConversations);
             _numberOfSocialEventDisplay.gameObject.SetActive(_showNumberOfSocialEvent);
             _numberOfSocialEventWithVictimDisplay.gameObject.SetActive(_showNumberOfSocialEventWithVictim);
+            _numberOfPositiveSocialEffectsDisplay.gameObject.SetActive(_showNumberOfPositiveSocialEffects);
+            _numberOfNegativeSocialEffectsDisplay.gameObject.SetActive(_showNumberOfNegativeSocialEffects);
 
             _numberOfBedSeekersDisplay.gameObject.SetActive(_showNumberOfBedSeekers);
             _numberOfTreeSeekersDisplay.gameObject.SetActive(_showNumberOfTreeSeekers);
@@ -163,6 +169,16 @@ namespace Statistics
         public void SetNumberOfSocialEventWithVictim(int socialEventWithVictimCount)
         {
             _numberOfSocialEventWithVictimDisplay.SetStatsValue(socialEventWithVictimCount);
+        }
+
+        public void SetNumberOfPositiveSocialEffects(int count)
+        {
+            _numberOfPositiveSocialEffectsDisplay.SetStatsValue(count);
+        }
+
+        public void SetNumberOfNegativeSocialEffects(int count)
+        {
+            _numberOfNegativeSocialEffectsDisplay.SetStatsValue(count);
         }
     }
 }
