@@ -11,12 +11,12 @@ public class GridDebugUI : MonoBehaviour
     [Range(0, 1)] [SerializeField] private float _offsetPercentX;
     [Range(0, 1)] [SerializeField] private float _offsetPercentY;
 
-    private SystemHandle _gridManagerSystemHandle;
-
     private Text[] _debugTextArrayX;
     private Text[] _debugTextArrayY;
 
     private Transform _uiParent;
+
+    private bool _isInitialized;
 
     private void Awake()
     {
@@ -39,12 +39,16 @@ public class GridDebugUI : MonoBehaviour
         var xLeft = cameraPosition.x - cameraSizeX + cameraSizeY * _offsetPercentX;
         var yTop = cameraPosition.y + cameraSizeY - cameraSizeY * _offsetPercentY;
 
-        if (_gridManagerSystemHandle == default)
+        if (!World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<GridManager>())
+                .TryGetSingleton<GridManager>(out var gridManager) ||
+            !gridManager.IsInitialized())
         {
-            _gridManagerSystemHandle = World.DefaultGameObjectInjectionWorld.GetExistingSystem<GridManagerSystem>();
-            var gridManager =
-                World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(
-                    _gridManagerSystemHandle);
+            return;
+        }
+
+        if (!_isInitialized)
+        {
+            _isInitialized = true;
 
             _debugTextArrayX = new Text[gridManager.Width];
             _debugTextArrayY = new Text[gridManager.Height];
@@ -62,8 +66,6 @@ public class GridDebugUI : MonoBehaviour
                 _debugTextArrayY[y] = UtilsClass.DrawTextUI(y.ToString(), _uiParent, uiPosition, 20, _font);
                 _debugTextArrayX[y].alignment = TextAnchor.MiddleCenter;
             }
-
-            return;
         }
 
         for (var x = 0; x < _debugTextArrayX.Length; x++)

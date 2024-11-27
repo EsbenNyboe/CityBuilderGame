@@ -23,13 +23,11 @@ namespace UnitBehaviours.Pathing
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct TargetFollowSystem : ISystem
     {
-        private SystemHandle _gridManagerSystemHandle;
-
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
         }
 
         [BurstCompile]
@@ -37,7 +35,7 @@ namespace UnitBehaviours.Pathing
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugTargetFollow;
 

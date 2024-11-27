@@ -19,7 +19,8 @@ public class GridVisualsManager : MonoBehaviour
 
     private bool _hasUpdatedOnce;
 
-    private SystemHandle _gridManagerSystemHandle;
+    private bool _isInitialized;
+    private EntityQuery _gridManagerQuery;
 
     private void Awake()
     {
@@ -31,15 +32,25 @@ public class GridVisualsManager : MonoBehaviour
         _occupationDebugMeshFilter.mesh = _occupationDebugGridVisual.CreateMesh();
     }
 
+    private void Start()
+    {
+        _gridManagerQuery = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(ComponentType.ReadWrite<GridManager>());
+    }
+
     private void LateUpdate()
     {
-        // HACK: This is done in late-update to make sure, the GridManagerSystem has been created. Not sure, if it's necessary though...
-        if (_gridManagerSystemHandle == default)
+        if (!_gridManagerQuery
+                .TryGetSingleton<GridManager>(out var gridManager) ||
+            !gridManager.IsInitialized())
         {
-            _gridManagerSystemHandle = World.DefaultGameObjectInjectionWorld.GetExistingSystem<GridManagerSystem>();
-            var gridManagerTemp = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerSystemHandle);
+            return;
+        }
 
-            var gridSize = gridManagerTemp.WalkableGrid.Length;
+        if (!_isInitialized)
+        {
+            _isInitialized = true;
+
+            var gridSize = gridManager.WalkableGrid.Length;
             _pathGridVisual.InitializeMesh(gridSize);
             _pathGridDebugVisual.InitializeMesh(gridSize);
             _treeGridVisual.InitializeMesh(gridSize);
@@ -49,7 +60,6 @@ public class GridVisualsManager : MonoBehaviour
         }
 
         var wasDirty = false;
-        var gridManager = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<GridManager>(_gridManagerSystemHandle);
 
         TryUpdateWalkableGridVisuals(ref gridManager, ref wasDirty);
         TryUpdateDamageableGridVisuals(ref gridManager, ref wasDirty);
@@ -58,7 +68,7 @@ public class GridVisualsManager : MonoBehaviour
 
         if (wasDirty)
         {
-            World.DefaultGameObjectInjectionWorld.EntityManager.SetComponentData(_gridManagerSystemHandle, gridManager);
+            _gridManagerQuery.SetSingleton(gridManager);
         }
 
         _hasUpdatedOnce = true;

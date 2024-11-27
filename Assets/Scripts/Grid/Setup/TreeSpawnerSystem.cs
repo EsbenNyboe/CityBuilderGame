@@ -8,17 +8,15 @@ namespace Grid.Setup
     {
         private static bool _shouldSpawnTreesOnMouseDown;
         private static bool _isInitialized;
-        private SystemHandle _gridManagerSystemHandle;
 
         protected override void OnCreate()
         {
             _isInitialized = false;
-            _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
         }
 
         protected override void OnUpdate()
         {
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var gridWidth = gridManager.Width;
             var gridHeight = gridManager.Height;
 
@@ -74,7 +72,7 @@ namespace Grid.Setup
         {
             gridManager.SetIsWalkable(gridIndex, false);
             gridManager.SetHealthToMax(gridIndex);
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+            SystemAPI.SetSingleton(gridManager);
         }
     }
 }

@@ -9,7 +9,6 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using ISystem = Unity.Entities.ISystem;
 using SystemAPI = Unity.Entities.SystemAPI;
-using SystemHandle = Unity.Entities.SystemHandle;
 using SystemState = Unity.Entities.SystemState;
 
 namespace UnitBehaviours.Sleeping
@@ -23,14 +22,12 @@ namespace UnitBehaviours.Sleeping
     [BurstCompile]
     public partial struct IsSeekingBedSystem : ISystem
     {
-        private SystemHandle _gridManagerSystemHandle;
-
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
         }
 
         [BurstCompile]
@@ -42,7 +39,7 @@ namespace UnitBehaviours.Sleeping
             var isDebuggingPath = debugToggleManager.DebugPathfinding;
             var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
 
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
             var ecb = GetEntityCommandBuffer(ref state);
 

@@ -10,18 +10,16 @@ using UnityEngine;
 [UpdateInGroup(typeof(LifetimeSystemGroup))]
 public partial class SpawnManagerSystem : SystemBase
 {
-    private SystemHandle _gridManagerSystemHandle;
     private bool _initialized;
 
     protected override void OnCreate()
     {
         RequireForUpdate<SpawnManager>();
-        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
     }
 
     protected override void OnUpdate()
     {
-        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+        var gridManager = SystemAPI.GetSingleton<GridManager>();
         var itemToSpawn = SpawnMenuManager.Instance.ItemToSpawn;
         var itemToDelete = SpawnMenuManager.Instance.ItemToDelete;
         var brushSize = SpawnMenuManager.Instance.GetBrushSize();
@@ -46,7 +44,7 @@ public partial class SpawnManagerSystem : SystemBase
             DeleteProcess(ecb, ref gridManager, cellList, brushSize, itemToDelete);
         }
 
-        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+        SystemAPI.SetSingleton(gridManager);
     }
 
     private void SpawnProcess(EntityCommandBuffer ecb, ref GridManager gridManager, List<int2> cellList,

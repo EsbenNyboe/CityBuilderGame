@@ -30,16 +30,15 @@ namespace UnitBehaviours.Targeting
     public partial struct QuadrantSystem : ISystem
     {
         private EntityQuery _entityQuery;
-        private SystemHandle _gridManagerSystemHandle;
         public const int QuadrantYMultiplier = 1000;
         public const int QuadrantCellSize = 10;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
             _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<QuadrantEntity>());
-            _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
 
             state.EntityManager.AddComponent<QuadrantDataManager>(state.SystemHandle);
             SystemAPI.SetComponent(state.SystemHandle, new QuadrantDataManager
@@ -60,7 +59,7 @@ namespace UnitBehaviours.Targeting
         {
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugQuadrantSystem;
 
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var quadrantMultiHashMap =
                 SystemAPI.GetComponent<QuadrantDataManager>(state.SystemHandle).QuadrantMultiHashMap;
 
@@ -99,9 +98,9 @@ namespace UnitBehaviours.Targeting
 
         public static int GetPositionHashMapKey(float3 position)
         {
-            return (int) (math.floor(position.x / QuadrantCellSize) +
-                          QuadrantYMultiplier *
-                          math.floor(position.y / QuadrantCellSize));
+            return (int)(math.floor(position.x / QuadrantCellSize) +
+                         QuadrantYMultiplier *
+                         math.floor(position.y / QuadrantCellSize));
         }
 
         private static int GetEntityCountInHashmap(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,

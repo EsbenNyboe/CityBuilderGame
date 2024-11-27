@@ -16,13 +16,11 @@ public struct IsSleeping : IComponentData
 [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
 public partial struct IsSleepingSystem : ISystem
 {
-    private SystemHandle _gridManagerSystemHandle;
-
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<GridManager>();
         state.RequireForUpdate<DebugToggleManager>();
         state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-        _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
 
     [BurstCompile]
@@ -38,7 +36,7 @@ public partial struct IsSleepingSystem : ISystem
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(state.WorldUnmanaged);
         var sleepinessPerSecWhenSleeping = -0.2f * SystemAPI.Time.DeltaTime;
-        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+        var gridManager = SystemAPI.GetSingleton<GridManager>();
 
         foreach (var (isSleeping,
                      localTransform,
@@ -86,7 +84,7 @@ public partial struct IsSleepingSystem : ISystem
             }
         }
 
-        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+        SystemAPI.SetSingleton(gridManager);
     }
 
     private void GoAwayFromBed(ref SystemState state, EntityCommandBuffer ecb, ref GridManager gridManager,

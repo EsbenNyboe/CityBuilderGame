@@ -6,12 +6,9 @@ using UnityEngine;
 [UpdateInGroup(typeof(LifetimeSystemGroup))]
 public partial class SpawnUnitsSystem : SystemBase
 {
-    private SystemHandle _gridManagerSystemHandle;
-
     protected override void OnCreate()
     {
         RequireForUpdate<SpawnUnitsConfig>();
-        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
     }
 
     protected override void OnUpdate()
@@ -22,7 +19,7 @@ public partial class SpawnUnitsSystem : SystemBase
         }
 
         var spawnUnitsConfig = SystemAPI.GetSingleton<SpawnUnitsConfig>();
-        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+        var gridManager = SystemAPI.GetSingleton<GridManager>();
 
         var gridIndex = 0;
         for (var i = 0; i < spawnUnitsConfig.AmountToSpawn; i++)
@@ -46,7 +43,7 @@ public partial class SpawnUnitsSystem : SystemBase
             });
 
             gridManager.SetOccupant(x, y, spawnedEntity);
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+            SystemAPI.SetSingleton(gridManager);
         }
     }
 

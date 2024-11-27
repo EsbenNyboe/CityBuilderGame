@@ -17,18 +17,17 @@ namespace UnitBehaviours.Talking
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsTalkingSystem : ISystem
     {
-        private SystemHandle _gridManagerSystemHandle;
         private const float LonelinessReductionFactor = 10f;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
             var isTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>();

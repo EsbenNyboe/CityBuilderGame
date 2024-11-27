@@ -26,12 +26,6 @@ public struct Selectable : IComponentData
 public partial class UnitControlSystem : SystemBase
 {
     private float3 _mouseStartPosition;
-    private SystemHandle _gridManagerSystemHandle;
-
-    protected override void OnCreate()
-    {
-        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
-    }
 
     protected override void OnUpdate()
     {
@@ -160,7 +154,7 @@ public partial class UnitControlSystem : SystemBase
 
     private void OrderPathFindingForSelectedUnits()
     {
-        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+        var gridManager = SystemAPI.GetSingleton<GridManager>();
 
         using var ecb = new EntityCommandBuffer(Allocator.Temp);
 
@@ -188,7 +182,7 @@ public partial class UnitControlSystem : SystemBase
             }
         }
 
-        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+        SystemAPI.SetSingleton(gridManager);
         ecb.Playback(EntityManager);
     }
 

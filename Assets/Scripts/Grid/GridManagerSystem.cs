@@ -36,28 +36,30 @@ public partial class GridManagerSystem : SystemBase
 
     protected override void OnCreate()
     {
-        var gridManager = new GridManager();
-        gridManager.Width = Width;
-        gridManager.Height = Height;
+        var gridManager = new GridManager
+        {
+            Width = Width,
+            Height = Height
+        };
 
         CreateGrids(ref gridManager);
         CreateGridSearchHelpers(ref gridManager);
 
-        EntityManager.AddComponent<GridManager>(SystemHandle);
-        SystemAPI.SetComponent(SystemHandle, gridManager);
+        EntityManager.CreateSingleton<GridManager>();
+        SystemAPI.SetSingleton(gridManager);
     }
 
     protected override void OnUpdate()
     {
-        var gridManager = SystemAPI.GetComponent<GridManager>(SystemHandle);
+        var gridManager = SystemAPI.GetSingleton<GridManager>();
         gridManager.RandomSeed++;
         gridManager.Random = Random.CreateFromIndex(gridManager.RandomSeed);
-        SystemAPI.SetComponent(SystemHandle, gridManager);
+        SystemAPI.SetSingleton(gridManager);
     }
 
     protected override void OnDestroy()
     {
-        var gridManager = SystemAPI.GetComponent<GridManager>(SystemHandle);
+        var gridManager = SystemAPI.GetSingleton<GridManager>();
 
         gridManager.WalkableGrid.Dispose();
         gridManager.DamageableGrid.Dispose();

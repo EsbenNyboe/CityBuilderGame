@@ -20,20 +20,19 @@ public partial struct PathfindingSystem : ISystem
     private const int MoveStraightCost = 10;
     private const int MoveDiagonalCost = 14;
     private const int MaxPathfindingSchedulesPerFrame = 200;
-    private SystemHandle _gridManagerSystemHandle;
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<GridManager>();
         state.RequireForUpdate<DebugToggleManager>();
         state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-        _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
-        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+        var gridManager = SystemAPI.GetSingleton<GridManager>();
         var walkableGrid = gridManager.WalkableGrid;
         var gridWidth = gridManager.Width;
         var gridHeight = gridManager.Height;
@@ -95,7 +94,7 @@ public partial struct PathfindingSystem : ISystem
             IsDebugging = isDebugging
         };
 
-        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+        SystemAPI.SetSingleton(gridManager);
 
         state.Dependency = findPathJobParallel.Schedule(entities.Length, 1);
         startCells.Dispose(state.Dependency);

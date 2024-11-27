@@ -22,15 +22,13 @@ namespace Grid
     [UpdateAfter(typeof(GridManagerSectionSortingSystem))]
     public partial struct PathInvalidationSystem : ISystem
     {
-        private SystemHandle _gridManagerSystemHandle;
-
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<SocialDebugManager>();
             state.RequireForUpdate<SocialDynamicsManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
         }
 
         [BurstCompile]
@@ -44,7 +42,7 @@ namespace Grid
 
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var socialDebugManager = SystemAPI.GetSingleton<SocialDebugManager>();
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 

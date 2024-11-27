@@ -14,13 +14,12 @@ namespace UnitBehaviours.AutonomousHarvesting
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
     public partial struct IsHarvestingSystem : ISystem
     {
-        private SystemHandle _gridManagerSystemHandle;
         private SystemHandle _soundManagerSystemHandle;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
             _soundManagerSystemHandle = state.World.GetExistingSystem<DotsSoundManagerSystem>();
             state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<UnitBehaviourManager>();
@@ -33,7 +32,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             state.CompleteDependency();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var soundManager = SystemAPI.GetComponent<DotsSoundManager>(_soundManagerSystemHandle);
             var attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
             var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
@@ -73,7 +72,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 }
             }
 
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+            SystemAPI.SetSingleton(gridManager);
         }
 
         private void ChopTree(ref SystemState state,

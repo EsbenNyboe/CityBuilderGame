@@ -19,13 +19,11 @@ namespace UnitBehaviours.Talking
 
     public partial struct IsSeekingTalkingPartnerSystem : ISystem
     {
-        private SystemHandle _gridManagerSystemHandle;
-
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
         }
 
         [BurstCompile]
@@ -33,7 +31,7 @@ namespace UnitBehaviours.Talking
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
 
             foreach (var (localTransform, socialRelationships, pathFollow, seekingTalkingPartner, entity) in SystemAPI

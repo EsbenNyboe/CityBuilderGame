@@ -11,8 +11,6 @@ namespace Grid
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup), OrderLast = true)]
     public partial struct GridManagerSectionSortingSystem : ISystem
     {
-        private SystemHandle _gridManagerSystemHandle;
-
         // Debugging
         private int _debugListCurrent;
         private int _debugListSuccessHitsCurrent;
@@ -24,8 +22,8 @@ namespace Grid
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
-            _gridManagerSystemHandle = state.World.GetExistingSystem(typeof(GridManagerSystem));
         }
 
         [BurstCompile]
@@ -38,7 +36,7 @@ namespace Grid
         {
             state.CompleteDependency();
 
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugSectionSorting;
 
             var isDirty = gridManager.WalkableGridIsDirty;
@@ -69,7 +67,7 @@ namespace Grid
             var closedNodes = new NativeParallelHashMap<int2, WalkableSectionNode>(walkablesCount, Allocator.Temp);
             SortWalkableSections(ref gridManager, openNodes, closedNodes, isDebugging);
 
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+            SystemAPI.SetSingleton(gridManager);
 
             if (isDebugging)
             {

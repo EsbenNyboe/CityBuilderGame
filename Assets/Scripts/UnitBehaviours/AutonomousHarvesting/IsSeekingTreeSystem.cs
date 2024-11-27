@@ -18,13 +18,11 @@ namespace UnitBehaviours.AutonomousHarvesting
     [BurstCompile]
     public partial struct IsSeekingTreeSystem : ISystem
     {
-        private SystemHandle _gridManagerSystemHandle;
-
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
         }
 
         [BurstCompile]
@@ -34,7 +32,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             var isDebuggingSeek = debugToggleManager.DebugTreeSeeking;
             var isDebuggingPath = debugToggleManager.DebugPathfinding;
 
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var jobHandleList = new NativeList<JobHandle>(Allocator.Temp);
 
             foreach (var (localTransform, pathFollow, moodInitiative, entity)

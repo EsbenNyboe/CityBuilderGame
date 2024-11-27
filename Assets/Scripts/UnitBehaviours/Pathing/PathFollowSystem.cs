@@ -13,7 +13,7 @@ public partial struct PathFollow : IComponentData
     public int PathIndex;
     public float MoveSpeedMultiplier;
 
-    public PathFollow (int pathIndex, float moveSpeedMultiplier = 1)
+    public PathFollow(int pathIndex, float moveSpeedMultiplier = 1)
     {
         PathIndex = pathIndex;
         MoveSpeedMultiplier = moveSpeedMultiplier;
@@ -32,15 +32,13 @@ public partial struct PathFollow
 [BurstCompile]
 public partial struct PathFollowSystem : ISystem
 {
-    private SystemHandle _gridManagerSystemHandle;
-
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<GridManager>();
         state.RequireForUpdate<UnitBehaviourManager>();
         state.RequireForUpdate<SocialDynamicsManager>();
         state.RequireForUpdate<DebugToggleManager>();
         state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-        _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
     }
 
     [BurstCompile]
@@ -142,13 +140,13 @@ public partial struct PathFollowSystem : ISystem
         float3 targetPosition,
         bool isDebuggingSearch, bool isDebuggingPath)
     {
-        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+        var gridManager = SystemAPI.GetSingleton<GridManager>();
 
         // TODO: If we implement path-invalidation, there's no need to check if the tile is walkable or not
         if (!gridManager.IsOccupied(targetPosition, entity) && gridManager.IsWalkable(targetPosition))
         {
             gridManager.SetOccupant(targetPosition, entity);
-            SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+            SystemAPI.SetSingleton(gridManager);
         }
         else
         {

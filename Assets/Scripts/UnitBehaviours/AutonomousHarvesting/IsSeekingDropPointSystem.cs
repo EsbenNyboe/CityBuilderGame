@@ -16,20 +16,18 @@ namespace UnitBehaviours.AutonomousHarvesting
     [BurstCompile]
     public partial struct IsSeekingDropPointSystem : ISystem
     {
-        private SystemHandle _gridManagerSystemHandle;
-
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (localTransform, pathFollow, inventory, entity)

@@ -25,7 +25,6 @@ namespace UnitAgency
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup), OrderLast = true)]
     internal partial struct IsDecidingSystem : ISystem
     {
-        private SystemHandle _gridManagerSystemHandle;
         private EntityQuery _query;
         private AttackAnimationManager _attackAnimationManager;
         private ComponentLookup<IsTalking> _isTalkingLookup;
@@ -33,12 +32,12 @@ namespace UnitAgency
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<SocialDynamicsManager>();
             state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
-            _gridManagerSystemHandle = state.World.GetExistingSystem<GridManagerSystem>();
             _query = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<IsDeciding>());
             _isTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>();
             _isTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>();
@@ -50,7 +49,7 @@ namespace UnitAgency
             _isTalkingLookup.Update(ref state);
             _isTalkativeLookup.Update(ref state);
             _attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
-            var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()

@@ -7,12 +7,10 @@ using UnityEngine;
 [UpdateInGroup(typeof(UnitStateSystemGroup))]
 public partial class UnitSelectionSystem : SystemBase
 {
-    private SystemHandle _gridManagerSystemHandle;
     private EntityQuery _query;
 
     protected override void OnCreate()
     {
-        _gridManagerSystemHandle = World.GetExistingSystem<GridManagerSystem>();
         _query = GetEntityQuery(typeof(UnitSelection));
     }
 
@@ -45,13 +43,13 @@ public partial class UnitSelectionSystem : SystemBase
     {
         var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
             .CreateCommandBuffer(World.Unmanaged);
-        var gridManager = SystemAPI.GetComponent<GridManager>(_gridManagerSystemHandle);
+        var gridManager = SystemAPI.GetSingleton<GridManager>();
 
         foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
         {
             ecb.SetComponentEnabled<IsAlive>(entity, false);
         }
 
-        SystemAPI.SetComponent(_gridManagerSystemHandle, gridManager);
+        SystemAPI.SetSingleton(gridManager);
     }
 }

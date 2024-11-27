@@ -17,16 +17,15 @@ namespace UnitState
     public partial struct IsAliveSystem : ISystem
     {
         private EntityQuery _deadUnits;
-        private SystemHandle _gridManagerSystemHandle;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<SocialEvaluationManager>();
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<IsAlive>();
 
             _deadUnits = new EntityQueryBuilder(Allocator.Temp).WithDisabled<IsAlive>().Build(ref state);
-            _gridManagerSystemHandle = state.World.GetOrCreateSystem<GridManagerSystem>();
         }
 
         [BurstCompile]
@@ -34,7 +33,7 @@ namespace UnitState
         {
             state.Dependency.Complete();
 
-            var gridManagerRW = state.EntityManager.GetComponentDataRW<GridManager>(_gridManagerSystemHandle);
+            var gridManagerRW = SystemAPI.GetSingletonRW<GridManager>();
             using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
             using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
             using var invalidSocialEventsWithVictim = new NativeList<Entity>(Allocator.Temp);

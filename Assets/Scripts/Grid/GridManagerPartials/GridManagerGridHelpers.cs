@@ -4,6 +4,15 @@ using UnityEngine;
 
 public partial struct GridManager
 {
+    #region MonoBehaviour Helpers
+
+    public bool IsInitialized()
+    {
+        return DamageableGrid.IsCreated;
+    }
+
+    #endregion
+
     #region Generic Grid Helpers
 
     public int2 GetXY(int i)
