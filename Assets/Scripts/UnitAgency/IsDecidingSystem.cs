@@ -66,7 +66,7 @@ namespace UnitAgency
                              RefRO<MoodSleepiness>,
                              RefRO<MoodLoneliness>,
                              RefRW<MoodInitiative>>()
-                         .WithEntityAccess().WithNone<Pathfinding>().WithNone<AttackAnimation>())
+                         .WithEntityAccess().WithNone<Pathfinding>().WithNone<AttackAnimation>().WithAll<Villager>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
                 DecideNextBehaviour(ref state, gridManager, socialDynamicsManager, quadrantDataManager, ecb, pathFollow,

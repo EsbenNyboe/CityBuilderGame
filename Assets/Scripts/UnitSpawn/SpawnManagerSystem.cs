@@ -62,6 +62,13 @@ public partial class SpawnManagerSystem : SystemBase
                 }
 
                 break;
+            case SpawnItemType.Boar:
+                foreach (var cell in cellList)
+                {
+                    TrySpawnUnit(ecb, ref gridManager, cell, spawnManager.BoarPrefab, false);
+                }
+
+                break;
             case SpawnItemType.Tree:
                 foreach (var cell in cellList)
                 {
@@ -98,7 +105,9 @@ public partial class SpawnManagerSystem : SystemBase
                 break;
             case SpawnItemType.Unit:
                 TryDeleteUnits(ecb, cellList[0], brushSize);
-
+                break;
+            case SpawnItemType.Boar:
+                TryDeleteUnits(ecb, cellList[0], brushSize);
                 break;
             case SpawnItemType.Tree:
                 foreach (var cell in cellList)

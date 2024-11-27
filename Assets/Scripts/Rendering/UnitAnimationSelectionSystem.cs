@@ -1,4 +1,5 @@
 using Rendering;
+using UnitBehaviours;
 using UnitBehaviours.Talking;
 using UnitState;
 using Unity.Burst;
@@ -16,18 +17,25 @@ public partial struct UnitAnimationSelectionSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        foreach (var (unitAnimationSelection, pathFollow) in SystemAPI.Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>>().WithAll<Boar>())
+        {
+            unitAnimationSelection.ValueRW.SelectedAnimation = pathFollow.ValueRO.IsMoving()
+                ? WorldSpriteSheetEntryType.BoarRun
+                : WorldSpriteSheetEntryType.BoarStand;
+        }
+
         foreach (var (unitAnimationSelection, pathFollow, inventory) in SystemAPI
                      .Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>, RefRO<Inventory>>()
-                     .WithNone<IsSleeping>().WithNone<IsTalking>())
+                     .WithNone<IsSleeping>().WithNone<IsTalking>().WithAll<Villager>())
         {
             var hasItem = inventory.ValueRO.CurrentItem != InventoryItem.None;
-            if (pathFollow.ValueRO.PathIndex < 0)
+            if (pathFollow.ValueRO.IsMoving())
             {
-                unitAnimationSelection.ValueRW.SelectedAnimation = hasItem ? WorldSpriteSheetEntryType.IdleHolding : WorldSpriteSheetEntryType.Idle;
+                unitAnimationSelection.ValueRW.SelectedAnimation = hasItem ? WorldSpriteSheetEntryType.WalkHolding : WorldSpriteSheetEntryType.Walk;
             }
             else
             {
-                unitAnimationSelection.ValueRW.SelectedAnimation = hasItem ? WorldSpriteSheetEntryType.WalkHolding : WorldSpriteSheetEntryType.Walk;
+                unitAnimationSelection.ValueRW.SelectedAnimation = hasItem ? WorldSpriteSheetEntryType.IdleHolding : WorldSpriteSheetEntryType.Idle;
             }
         }
 
