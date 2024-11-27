@@ -41,6 +41,9 @@ namespace Debugging
 
             debugToggleManager.ValueRW.DebugQuadrantSystem =
                 debugToggleManagerInterface.DebugQuadrantSystem;
+
+            debugToggleManager.ValueRW.CountPathInvalidation =
+                debugToggleManagerInterface.CountPathInvalidation;
         }
     }
 
@@ -55,5 +58,6 @@ namespace Debugging
         public bool DebugTreeSeeking;
         public bool DebugTargetFollow;
         public bool DebugQuadrantSystem;
+        public bool CountPathInvalidation;
     }
 }

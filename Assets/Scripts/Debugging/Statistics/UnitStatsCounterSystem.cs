@@ -1,3 +1,4 @@
+using Grid;
 using UnitAgency;
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Pathing;
@@ -15,6 +16,8 @@ namespace Statistics
     {
         protected override void OnUpdate()
         {
+            var ecb = SystemAPI.GetSingleton<BeginPresentationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
+            
             var unitCount = new EntityQueryBuilder(Allocator.Temp).WithAll<UnitAnimationSelection>().Build(this)
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfUnits(unitCount);
@@ -27,6 +30,12 @@ namespace Statistics
             var isPathfindingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<Pathfinding>().Build(this)
                 .CalculateEntityCount();
             UnitStatsDisplayManager.Instance.SetNumberOfPathfindingUnits(isPathfindingCount);
+
+            foreach (var (pathInvalidationDebugEvent, entity) in SystemAPI.Query<RefRO<PathInvalidationDebugEvent>>().WithEntityAccess())
+            {
+                UnitStatsDisplayManager.Instance.SetNumberOfPathInvalidations(pathInvalidationDebugEvent.ValueRO.Count);
+                ecb.DestroyEntity(entity);
+            }
 
             var conversationEventCount = new EntityQueryBuilder(Allocator.Temp).WithAll<ConversationEvent>().Build(this)
                 .CalculateEntityCount();

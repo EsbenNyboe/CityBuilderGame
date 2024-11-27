@@ -8,6 +8,7 @@ namespace Statistics
         [SerializeField] private bool _showNumberOfUnits;
         [SerializeField] private bool _showNumberOfDecisions;
         [SerializeField] private bool _showNumberOfPathfindings;
+        [SerializeField] private bool _showNumberOfPathInvalidations;
         [SerializeField] private bool _showNumberOfConversations;
         [SerializeField] private bool _showNumberOfSocialEvent;
         [SerializeField] private bool _showNumberOfSocialEventWithVictim;
@@ -27,6 +28,7 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _numberOfUnitsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfDecisionsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfPathfindingsDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfPathInvalidationsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfConversationsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfSocialEventDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfSocialEventWithVictimDisplay;
@@ -55,6 +57,7 @@ namespace Statistics
             _numberOfUnitsDisplay.gameObject.SetActive(_showNumberOfUnits);
             _numberOfDecisionsDisplay.gameObject.SetActive(_showNumberOfDecisions);
             _numberOfPathfindingsDisplay.gameObject.SetActive(_showNumberOfPathfindings);
+            _numberOfPathInvalidationsDisplay.gameObject.SetActive(_showNumberOfPathInvalidations);
             _numberOfConversationsDisplay.gameObject.SetActive(_showNumberOfConversations);
             _numberOfSocialEventDisplay.gameObject.SetActive(_showNumberOfSocialEvent);
             _numberOfSocialEventWithVictimDisplay.gameObject.SetActive(_showNumberOfSocialEventWithVictim);
@@ -87,6 +90,10 @@ namespace Statistics
             _numberOfPathfindingsDisplay.SetStatsValue(isPathfindingCount);
         }
 
+        public void SetNumberOfPathInvalidations(int count)
+        {
+            _numberOfPathInvalidationsDisplay.SetStatsValue(count);
+        }
 
         public void SetNumberOfConversationEvents(int conversationEventCount)
         {

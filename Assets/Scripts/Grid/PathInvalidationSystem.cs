@@ -13,6 +13,11 @@ using UnityEngine;
 
 namespace Grid
 {
+    public struct PathInvalidationDebugEvent : IComponentData
+    {
+        public int Count;
+    }
+
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup), OrderLast = true)]
     [UpdateAfter(typeof(GridManagerSectionSortingSystem))]
     public partial struct PathInvalidationSystem : ISystem
@@ -32,6 +37,7 @@ namespace Grid
         public void OnUpdate(ref SystemState state)
         {
             var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
+            var isCountingPathInvalidation = debugToggleManager.CountPathInvalidation;
             var isDebuggingPathInvalidation = debugToggleManager.DebugPathInvalidation;
             var isDebuggingPath = debugToggleManager.DebugPathfinding;
             var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
@@ -72,6 +78,14 @@ namespace Grid
                 {
                     invalidatedPathfindingEntities.Add(entity);
                 }
+            }
+
+            if (isCountingPathInvalidation)
+            {
+                ecb.AddComponent(ecb.CreateEntity(), new PathInvalidationDebugEvent
+                {
+                    Count = invalidatedPathfindingEntities.Length
+                });
             }
 
             var validatePathJobHandle = new ValidatePathJob

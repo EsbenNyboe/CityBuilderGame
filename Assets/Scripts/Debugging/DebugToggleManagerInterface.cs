@@ -14,6 +14,7 @@ namespace Debugging
         public bool DebugPathInvalidation;
         public bool DebugTargetFollow;
         public bool DebugQuadrantSystem;
+        public bool CountPathInvalidation;
 
         private void Awake()
         {
