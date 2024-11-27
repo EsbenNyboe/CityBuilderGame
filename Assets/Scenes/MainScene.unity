@@ -11622,7 +11622,13 @@ MonoBehaviour:
   - Identifier: 11
     FrameCount: 1
     FrameInterval: 1
-  ColumnCount: 4
+  - Identifier: 12
+    FrameCount: 1
+    FrameInterval: 1
+  - Identifier: 13
+    FrameCount: 2
+    FrameInterval: 0.11
+  ColumnCount: 5
   RowCount: 5
   IsDirty: 1
 --- !u!114 &2042965576
@@ -11632,7 +11638,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2042965568}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 295cec2b697c4b8d87e1d7ba4edbe60a, type: 3}
   m_Name: 
@@ -11641,10 +11647,10 @@ MonoBehaviour:
   _previewInventoryItems: 08000000
   _stackOffsetFactor: 0.23
   _previewStructure:
-    EntryTypes: 0b0000000b0000000b0000000b000000
+    EntryTypes: 
     Width: 2
   _previewStorage:
-    EntryTypes: 080000000800000008000000080000000800000008000000080000000800000008000000080000000800000008000000080000000800000008000000080000000800000008000000080000000800000008000000080000000800000008000000080000000800000008000000080000000800000008000000
+    EntryTypes: 
     Padding:
       x: -0.51
       y: -0.13

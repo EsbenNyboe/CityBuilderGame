@@ -51,6 +51,8 @@ namespace Rendering
         ItemMeat,
         ItemBerries,
         BuildingStorageA,
-        BuildingStorageB
+        BuildingStorageB,
+        BoarStand,
+        BoarRun
     }
 }
