@@ -63,7 +63,7 @@ public partial struct AttackAnimationSystem : ISystem
             }
 
             spriteTransform.ValueRW.Position = 0;
-            spriteTransform.ValueRW.Rotation = quaternion.identity;
+            // spriteTransform.ValueRW.Rotation = quaternion.identity;
             ecb.RemoveComponent<AttackAnimation>(entity);
         }
     }
@@ -96,12 +96,15 @@ public partial struct AttackAnimationSystem : ISystem
         var attackDirection = ((Vector3)(targetPosition - localTransformPosition)).normalized;
 
         var spritePositionOffset = positionDistanceFromOrigin * attackDirection;
-        var angleInDegrees = 0f; // TODO: Set animation-direction here?
+        var angleInDegrees = spritePositionOffset.x > 0 ? 0f : 180f;
         var spriteRotationOffset = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
 
         // Apply animation output:
         spriteTransform.ValueRW.Position = spritePositionOffset;
-        spriteTransform.ValueRW.Rotation = spriteRotationOffset;
+        if (spritePositionOffset.x != 0)
+        {
+            spriteTransform.ValueRW.Rotation = spriteRotationOffset;
+        }
 
         isIdling = timeLeftBeforeIdlingNormalized == 0;
         return true;
