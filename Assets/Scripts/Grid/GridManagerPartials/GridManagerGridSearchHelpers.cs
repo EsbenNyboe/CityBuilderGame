@@ -11,15 +11,19 @@ public partial struct GridManager
     {
         var leftNeighbour = new int2(cell.x - 1, cell.y);
         var rightNeighbour = new int2(cell.x + 1, cell.y);
-        if (IsVacantCell(leftNeighbour))
+
+        var checkLeftFirst = Random.NextBool();
+        var firstNeighbour = checkLeftFirst ? leftNeighbour : rightNeighbour;
+        if (IsVacantCell(firstNeighbour))
         {
-            neighbour = leftNeighbour;
+            neighbour = firstNeighbour;
             return true;
         }
 
-        if (IsVacantCell(rightNeighbour))
+        var secondNeighbour = checkLeftFirst ? rightNeighbour : leftNeighbour;
+        if (IsVacantCell(secondNeighbour))
         {
-            neighbour = rightNeighbour;
+            neighbour = secondNeighbour;
             return true;
         }
 

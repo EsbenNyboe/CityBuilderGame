@@ -6,6 +6,8 @@ using UnityEngine;
 public static class DebugHelper
 {
     private const bool EnableDebugLog = true;
+    private static readonly FixedString32Bytes IsTrue = "true";
+    private static readonly FixedString32Bytes IsFalse = "false";
 
     public static void Log(string message)
     {
@@ -20,6 +22,14 @@ public static class DebugHelper
         if (EnableDebugLog)
         {
             Debug.Log(intMessage.ToString());
+        }
+    }
+
+    public static void Log(string message, bool value)
+    {
+        if (EnableDebugLog)
+        {
+            Debug.Log(ConvertToFixedString(message, value));
         }
     }
 
@@ -61,6 +71,13 @@ public static class DebugHelper
         {
             Debug.LogError(ConvertToFixedString(message, entity));
         }
+    }
+
+    private static FixedString128Bytes ConvertToFixedString(string messageString, bool value)
+    {
+        FixedString128Bytes messageFixedString = messageString;
+        messageFixedString.Append(value ? IsTrue : IsFalse);
+        return messageFixedString;
     }
 
     private static FixedString128Bytes ConvertToFixedString(string messageString, Entity entity)
