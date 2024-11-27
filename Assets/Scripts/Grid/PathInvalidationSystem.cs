@@ -177,7 +177,7 @@ namespace Grid
                 {
                     // My target is no longer reachable. I'll try and find a place close to my target...
 
-                    if (InvalidationCausedUnitToLoseAccessToBeds(GridManager, entity, targetCell))
+                    if (InvalidationCausedUnitToLoseAccessToBeds(GridManager, entity, targetCell, IsDebuggingPathInvalidation))
                     {
                         GetAngryAtOccupant(EcbParallelWriter, index, GridManager, SocialDynamicsManager, SocialDebugManager, ref socialRelationships,
                             moodSleepiness,
@@ -284,10 +284,10 @@ namespace Grid
         }
 
         private static bool InvalidationCausedUnitToLoseAccessToBeds(GridManager gridManager, Entity entity,
-            int2 targetCell)
+            int2 targetCell, bool isDebuggingPathInvalidation)
         {
             return gridManager.IsBed(targetCell) && gridManager.IsOccupied(targetCell, entity) &&
-                   !gridManager.TryGetClosestBedSemiRandom(targetCell, out _, true);
+                   !gridManager.TryGetClosestBedSemiRandom(targetCell, out _, isDebuggingPathInvalidation);
         }
     }
 }
