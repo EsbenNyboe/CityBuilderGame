@@ -70,7 +70,18 @@ namespace Grid
 
             var invalidatedPathfindingEntities = new NativeList<Entity>(Allocator.TempJob);
 
-            foreach (var (pathFollow, pathPositions, entity) in SystemAPI.Query<RefRO<PathFollow>, DynamicBuffer<PathPosition>>().WithEntityAccess())
+            foreach (var (pathFollow, pathPositions, entity) in SystemAPI.Query<RefRW<PathFollow>, DynamicBuffer<PathPosition>>().WithEntityAccess()
+                         .WithAll<Boar>())
+            {
+                if (CurrentPathIsInvalidated(pathPositions, invalidatedCells, pathFollow.ValueRO.PathIndex))
+                {
+                    pathPositions.Clear();
+                    pathFollow.ValueRW.PathIndex = -1;
+                }
+            }
+
+            foreach (var (pathFollow, pathPositions, entity) in SystemAPI.Query<RefRO<PathFollow>, DynamicBuffer<PathPosition>>().WithEntityAccess()
+                         .WithAll<Villager>())
             {
                 if (CurrentPathIsInvalidated(pathPositions, invalidatedCells, pathFollow.ValueRO.PathIndex))
                 {
