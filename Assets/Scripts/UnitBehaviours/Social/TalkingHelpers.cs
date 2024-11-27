@@ -11,23 +11,19 @@ namespace UnitBehaviours.Talking
             var leftNeighbour = new int2(cell.x - 1, cell.y);
             var rightNeighbour = new int2(cell.x + 1, cell.y);
 
-            var checkLeftFirst = gridManager.Random.NextBool();
-            var firstNeighbourToCheck = checkLeftFirst ? leftNeighbour : rightNeighbour;
-            var secondNeighbourToCheck = checkLeftFirst ? rightNeighbour : leftNeighbour;
-
-            if (gridManager.IsPositionInsideGrid(firstNeighbourToCheck) &&
-                gridManager.TryGetOccupant(firstNeighbourToCheck, out var neighbourEntity) &&
+            if (gridManager.IsPositionInsideGrid(leftNeighbour) &&
+                gridManager.TryGetOccupant(leftNeighbour, out var neighbourEntity) &&
                 lookup.HasComponent(neighbourEntity))
             {
-                neighbour = firstNeighbourToCheck;
+                neighbour = leftNeighbour;
                 return true;
             }
 
-            if (gridManager.IsPositionInsideGrid(secondNeighbourToCheck) &&
-                gridManager.TryGetOccupant(secondNeighbourToCheck, out neighbourEntity) &&
+            if (gridManager.IsPositionInsideGrid(rightNeighbour) &&
+                gridManager.TryGetOccupant(rightNeighbour, out neighbourEntity) &&
                 lookup.HasComponent(neighbourEntity))
             {
-                neighbour = secondNeighbourToCheck;
+                neighbour = rightNeighbour;
                 return true;
             }
 
