@@ -1,4 +1,5 @@
 using Effects.SocialEffectsRendering;
+using UnitBehaviours;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -53,13 +54,13 @@ namespace UnitState
                 .CreateCommandBuffer(state.WorldUnmanaged);
             var socialDebugManager = SystemAPI.GetSingleton<SocialDebugManager>();
             HandleSocialEvents(ref state, ecb, socialDebugManager);
-            HandleSocialEventsWithVictim(ref state, ecb, socialDebugManager);
+            HandleSocialEventsWithVictim(ref state, ecb, socialDebugManager, SystemAPI.GetComponentLookup<Boar>());
 
             state.EntityManager.DestroyEntity(_socialEventQuery);
             state.EntityManager.DestroyEntity(_socialEventWithVictimQuery);
         }
 
-        private void HandleSocialEvents( ref SystemState state, EntityCommandBuffer ecb,
+        private void HandleSocialEvents(ref SystemState state, EntityCommandBuffer ecb,
             SocialDebugManager socialDebugManager)
         {
             foreach (var socialEventRefRO in SystemAPI.Query<RefRO<SocialEvent>>())
@@ -96,12 +97,18 @@ namespace UnitState
             }
         }
 
-        private void HandleSocialEventsWithVictim( ref SystemState state, EntityCommandBuffer ecb,
-            SocialDebugManager socialDebugManager)
+        private void HandleSocialEventsWithVictim(ref SystemState state, EntityCommandBuffer ecb,
+            SocialDebugManager socialDebugManager, ComponentLookup<Boar> boarLookup)
         {
             foreach (var socialEventWithVictimRefRO in SystemAPI.Query<RefRO<SocialEventWithVictim>>())
             {
                 var socialEventWithVictim = socialEventWithVictimRefRO.ValueRO;
+                if (boarLookup.HasComponent(socialEventWithVictim.Perpetrator))
+                {
+                    // Boars are not social creatures! They will have no effect for now...
+                    continue;
+                }
+
                 foreach (var (socialRelationships, localTransform, entity) in SystemAPI
                              .Query<RefRW<SocialRelationships>, RefRO<LocalTransform>>().WithEntityAccess())
                 {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CodeMonkey.Utils;
+using UnitBehaviours;
 using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -107,7 +108,7 @@ public partial class SpawnManagerSystem : SystemBase
                 TryDeleteUnits(ecb, cellList[0], brushSize);
                 break;
             case SpawnItemType.Boar:
-                TryDeleteUnits(ecb, cellList[0], brushSize);
+                TryDeleteBoars(ecb, cellList[0], brushSize);
                 break;
             case SpawnItemType.Tree:
                 foreach (var cell in cellList)
@@ -155,7 +156,20 @@ public partial class SpawnManagerSystem : SystemBase
     private void TryDeleteUnits(EntityCommandBuffer ecb, int2 center, int brushSize)
     {
         foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
-                     .WithAll<SocialRelationships>())
+                     .WithAll<Villager>())
+        {
+            var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+            if (math.distance(center, cell) <= brushSize)
+            {
+                ecb.SetComponentEnabled<IsAlive>(entity, false);
+            }
+        }
+    }
+
+    private void TryDeleteBoars(EntityCommandBuffer ecb, int2 center, int brushSize)
+    {
+        foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
+                     .WithAll<Boar>())
         {
             var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
             if (math.distance(center, cell) <= brushSize)

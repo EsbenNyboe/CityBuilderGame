@@ -40,7 +40,7 @@ namespace UnitBehaviours.Pathing
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
-                         .WithAll<TargetFollow>())
+                         .WithAll<TargetSelector>())
             {
                 entities.Add(entity);
                 positions.Add(localTransform.ValueRO.Position);
@@ -80,7 +80,7 @@ namespace UnitBehaviours.Pathing
 
                 // section not implemented..
                 QuadrantSystem.TryFindClosestEntity(QuadrantMultiHashMap, hashMapKey, -1, position,
-                    entity,  out var closestTargetEntity, out var closestTargetDistance);
+                    entity, out var closestTargetEntity, out var closestTargetDistance);
 
                 TargetFollows[entity] = new TargetFollow
                 {

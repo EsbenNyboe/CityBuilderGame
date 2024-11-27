@@ -1,3 +1,4 @@
+using UnitAgency;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using UnitState;
@@ -14,6 +15,7 @@ namespace UnitBehaviours
     public class BoarAuthoring : MonoBehaviour
     {
         [SerializeField] private float _maxHealth;
+        [SerializeField] private float _restlessness;
 
         public class BoarBaker : Baker<BoarAuthoring>
         {
@@ -45,6 +47,13 @@ namespace UnitBehaviours
                 {
                     CurrentHealth = authoring._maxHealth,
                     MaxHealth = authoring._maxHealth
+                });
+
+                AddComponent<IsDeciding>(entity);
+
+                AddComponent(entity, new MoodRestlessness
+                {
+                    Restlessness = authoring._restlessness
                 });
             }
         }
