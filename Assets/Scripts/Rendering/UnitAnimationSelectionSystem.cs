@@ -1,6 +1,7 @@
 using Rendering;
 using UnitBehaviours;
 using UnitBehaviours.Talking;
+using UnitBehaviours.Targeting;
 using UnitState;
 using Unity.Burst;
 using Unity.Entities;
@@ -24,9 +25,21 @@ public partial struct UnitAnimationSelectionSystem : ISystem
                 : WorldSpriteSheetEntryType.BoarStand;
         }
 
+        foreach (var (unitAnimationSelection, _) in
+                 SystemAPI.Query<RefRW<UnitAnimationSelection>, RefRO<IsThrowingSpear>>().WithAll<IsHoldingSpear>())
+        {
+            unitAnimationSelection.ValueRW.SelectedAnimation = WorldSpriteSheetEntryType.SpearHolding;
+        }
+
+        foreach (var (unitAnimationSelection, _) in SystemAPI.Query<RefRW<UnitAnimationSelection>, RefRO<IsThrowingSpear>>()
+                     .WithNone<IsHoldingSpear>())
+        {
+            unitAnimationSelection.ValueRW.SelectedAnimation = WorldSpriteSheetEntryType.SpearThrowing;
+        }
+
         foreach (var (unitAnimationSelection, pathFollow, inventory) in SystemAPI
                      .Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>, RefRO<Inventory>>()
-                     .WithNone<IsSleeping>().WithNone<IsTalking>().WithAll<Villager>())
+                     .WithNone<IsSleeping>().WithNone<IsTalking>().WithNone<IsThrowingSpear>().WithAll<Villager>())
         {
             var hasItem = inventory.ValueRO.CurrentItem != InventoryItem.None;
             if (pathFollow.ValueRO.IsMoving())

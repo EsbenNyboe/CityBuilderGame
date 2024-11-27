@@ -99,7 +99,16 @@ namespace UnitAgency
             var isLonely = moodLoneliness.ValueRO.Loneliness > 1f;
             const float friendFactor = 1f;
 
-            if (HasLogOfWood(inventory.ValueRO))
+
+            if (BoarIsNearby(ref state, unitPosition, out var nearbyBoar))
+            {
+                ecb.AddComponent<IsHoldingSpear>(entity);
+                ecb.AddComponent(entity, new IsThrowingSpear
+                {
+                    Target = nearbyBoar
+                });
+            }
+            else if (HasLogOfWood(inventory.ValueRO))
             {
                 ecb.AddComponent(entity, new IsSeekingDropPoint());
             }
@@ -193,6 +202,24 @@ namespace UnitAgency
             {
                 ecb.AddComponent<IsIdle>(entity);
             }
+        }
+
+        private bool BoarIsNearby(ref SystemState state, float3 unitPosition, out Entity nearbyBoar)
+        {
+            var threshold = 20f;
+            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<Boar>, RefRO<LocalTransform>>().WithEntityAccess())
+            {
+                var boarPosition = localTransform.ValueRO.Position;
+                var distance = math.distance(unitPosition, boarPosition);
+                if (distance < threshold)
+                {
+                    nearbyBoar = entity;
+                    return true;
+                }
+            }
+
+            nearbyBoar = Entity.Null;
+            return false;
         }
 
         private bool IsAnnoyedAtSomeone(
