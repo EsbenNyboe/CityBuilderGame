@@ -1,6 +1,9 @@
+using Events;
 using Rendering;
+using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 
 namespace UnitBehaviours.Targeting
@@ -25,6 +28,8 @@ namespace UnitBehaviours.Targeting
         }
 
         private const float SpearSpeed = 5f;
+        private const float SpearDamageRadius = 0.5f;
+        private const float SpearDamage = 10f;
 
         public void OnUpdate(ref SystemState state)
         {
@@ -63,6 +68,34 @@ namespace UnitBehaviours.Targeting
                 if (distanceBeforeMoving < distanceAfterMoving)
                 {
                     ecb.DestroyEntity(entity);
+
+                    var spearPosition2D = spear.ValueRO.CurrentPosition;
+                    var spearPosition = new float3(spearPosition2D.x, spearPosition2D.y, 0);
+
+                    foreach (var (_, localTransform, health, boarEntity) in SystemAPI.Query
+                                 <RefRO<Boar>, RefRO<LocalTransform>, RefRW<Health>>().WithEntityAccess())
+                    {
+                        var boarPosition = localTransform.ValueRO.Position;
+                        if (math.distance(spearPosition, boarPosition) > SpearDamageRadius)
+                        {
+                            continue;
+                        }
+
+                        health.ValueRW.CurrentHealth -= SpearDamage;
+                        if (health.ValueRO.CurrentHealth < 0)
+                        {
+                            SystemAPI.SetComponentEnabled<IsAlive>(boarEntity, false);
+                        }
+                        else
+                        {
+                            ecb.AddComponent(ecb.CreateEntity(), new DamageEvent
+                            {
+                                Position = spearPosition
+                            });
+                        }
+
+                        break;
+                    }
                 }
             }
 
