@@ -1,3 +1,4 @@
+using System;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -6,11 +7,25 @@ namespace Events
     public struct DamageEvent : IComponentData
     {
         public float3 Position;
+        public UnitType TargetType;
     }
 
     public struct DeathEvent : IComponentData
     {
         public float3 Position;
+        public UnitType TargetType;
+    }
+
+    public enum AttackType
+    {
+        Punch,
+        Stab
+    }
+
+    public enum UnitType
+    {
+        Villager,
+        Boar
     }
 
     public partial class UnitEventSystem : SystemBase
@@ -24,17 +39,35 @@ namespace Events
                          .WithEntityAccess())
             {
                 ParticleEffectManager.Instance.PlayDeathEffect(deathEvent.ValueRO.Position);
-                SoundManager.Instance.PlayDeathSound(deathEvent.ValueRO.Position);
                 ecb.DestroyEntity(entity);
+                switch (deathEvent.ValueRO.TargetType)
+                {
+                    case UnitType.Villager:
+                        SoundManager.Instance.PlayDeathSound(deathEvent.ValueRO.Position);
+                        break;
+                    case UnitType.Boar:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
 
             foreach (var (damageEvent, entity) in SystemAPI.Query<RefRO<DamageEvent>>()
                          .WithEntityAccess())
             {
+                ecb.DestroyEntity(entity);
                 ParticleEffectManager.Instance.PlayDamageEffect(damageEvent.ValueRO.Position);
                 SpriteEffectManager.Instance.PlayDamageEffect(damageEvent.ValueRO.Position);
-                SoundManager.Instance.PlayDamageSound(damageEvent.ValueRO.Position);
-                ecb.DestroyEntity(entity);
+                switch (damageEvent.ValueRO.TargetType)
+                {
+                    case UnitType.Villager:
+                        SoundManager.Instance.PlayDamageSound(damageEvent.ValueRO.Position);
+                        break;
+                    case UnitType.Boar:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
         }
     }

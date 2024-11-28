@@ -90,7 +90,8 @@ namespace UnitBehaviours.Targeting
                         {
                             ecb.AddComponent(ecb.CreateEntity(), new DamageEvent
                             {
-                                Position = spearPosition
+                                Position = spearPosition,
+                                TargetType = UnitType.Boar
                             });
                         }
 

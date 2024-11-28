@@ -1,4 +1,5 @@
 using Events;
+using UnitBehaviours;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using Unity.Burst;
@@ -67,10 +68,24 @@ namespace UnitState
             }
 
             // Play death effect
-            foreach (var localTransform in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>())
+            foreach (var (_, localTransform) in SystemAPI.Query<RefRO<Villager>, RefRO<LocalTransform>>().WithDisabled<IsAlive>())
             {
                 ecb.AddComponent(ecb.CreateEntity(),
-                    new DeathEvent { Position = localTransform.ValueRO.Position });
+                    new DeathEvent
+                    {
+                        Position = localTransform.ValueRO.Position,
+                        TargetType = UnitType.Villager
+                    });
+            }
+
+            foreach (var (_, localTransform) in SystemAPI.Query<RefRO<Boar>, RefRO<LocalTransform>>().WithDisabled<IsAlive>())
+            {
+                ecb.AddComponent(ecb.CreateEntity(),
+                    new DeathEvent
+                    {
+                        Position = localTransform.ValueRO.Position,
+                        TargetType = UnitType.Boar
+                    });
             }
 
             // Cleanup grid

@@ -72,7 +72,8 @@ namespace UnitBehaviours.Targeting
                     attackAnimation.ValueRW.TimeLeft = attackAnimationManager.AttackDuration;
                     ecb.AddComponent(ecb.CreateEntity(), new DamageEvent
                     {
-                        Position = targetPosition
+                        Position = targetPosition,
+                        TargetType = UnitType.Villager
                     });
                     ecb.AddComponent(ecb.CreateEntity(), new SocialEventWithVictim
                     {
@@ -82,7 +83,7 @@ namespace UnitBehaviours.Targeting
                         InfluenceAmount = socialDynamicsManager.OnUnitAttackUnit.InfluenceAmount,
                         InfluenceRadius = socialDynamicsManager.OnUnitAttackUnit.InfluenceRadius
                     });
-                    
+
                     var targetHealth = SystemAPI.GetComponentLookup<Health>()[target];
                     targetHealth.CurrentHealth -= unitBehaviourManager.DamagePerAttack;
                     SystemAPI.SetComponent(target, targetHealth);
