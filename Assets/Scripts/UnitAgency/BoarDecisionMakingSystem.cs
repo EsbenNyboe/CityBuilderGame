@@ -1,6 +1,8 @@
+using Audio;
 using UnitBehaviours;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
+using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -22,8 +24,8 @@ namespace UnitAgency
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
-            foreach (var (_, _, pathFollow, localTransform, entity) in SystemAPI
-                         .Query<RefRO<Boar>, RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<LocalTransform>>()
+            foreach (var (_, _, pathFollow, localTransform, moodInitiative, entity) in SystemAPI
+                         .Query<RefRO<Boar>, RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<LocalTransform>, RefRW<MoodInitiative>>()
                          .WithEntityAccess().WithNone<Pathfinding>().WithNone<AttackAnimation>())
             {
                 ecb.RemoveComponent<IsDeciding>(entity);
@@ -46,13 +48,26 @@ namespace UnitAgency
                     }
                     else
                     {
-                        ecb.AddComponent(entity, new IsAttemptingMurder());
-                        ecb.SetComponent(entity, new TargetFollow
+                        if (!moodInitiative.ValueRO.HasInitiative())
                         {
-                            Target = closestTargetEntity,
-                            CurrentDistanceToTarget = closestTargetDistance,
-                            DesiredRange = IsAttemptingMurderSystem.AttackRange
-                        });
+                            ecb.AddComponent<IsIdle>(entity);
+                        }
+                        else
+                        {
+                            moodInitiative.ValueRW.UseInitiative();
+                            ecb.AddComponent(entity, new IsAttemptingMurder());
+                            ecb.SetComponent(entity, new TargetFollow
+                            {
+                                Target = closestTargetEntity,
+                                CurrentDistanceToTarget = closestTargetDistance,
+                                DesiredRange = IsAttemptingMurderSystem.AttackRange
+                            });
+                            ecb.AddComponent(ecb.CreateEntity(), new SoundEvent
+                            {
+                                Position = position,
+                                Type = SoundEventType.BoarCharge
+                            });
+                        }
                     }
                 }
                 else

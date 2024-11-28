@@ -55,6 +55,7 @@ namespace UnitBehaviours
                 {
                     Restlessness = authoring._restlessness
                 });
+                AddComponent(entity, new MoodInitiative());
             }
         }
     }

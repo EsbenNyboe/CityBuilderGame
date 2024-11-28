@@ -1511,6 +1511,10 @@ MonoBehaviour:
     PitchCenter: 1.076
     PitchVariance: 0.06
   _damageSound: {fileID: 11400000, guid: ac94ad132e7a6174aabaa128246ac099, type: 2}
+  _spearDamageSound: {fileID: 11400000, guid: 7c2d7dc7f73ac6044b06b73a0185a04f, type: 2}
+  _spearThrowSound: {fileID: 11400000, guid: 538d0ab8e6c966f41a5ac602b0d61a70, type: 2}
+  _boarDeathSound: {fileID: 11400000, guid: 4b60ff2db53bd284a84b54e050bbee93, type: 2}
+  _boarChargeSound: {fileID: 11400000, guid: 82ecef7cd3672544e8e71562f0390576, type: 2}
   _previewSound: {fileID: 11400000, guid: ac94ad132e7a6174aabaa128246ac099, type: 2}
   _defaultPoolManager: {fileID: 219774713}
 --- !u!4 &219774712

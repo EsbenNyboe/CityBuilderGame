@@ -10,6 +10,10 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private SoundConfig _destroyTreeSound;
     [SerializeField] private SoundConfig _dieSound;
     [SerializeField] private MultiSoundConfigObject _damageSound;
+    public MultiSoundConfigObject _spearDamageSound;
+    public MultiSoundConfigObject _spearThrowSound;
+    public SingleSoundConfigObject _boarDeathSound;
+    public SingleSoundConfigObject _boarChargeSound;
 
     [SerializeField] private SoundConfigObject _previewSound;
 
@@ -44,15 +48,40 @@ public class SoundManager : MonoBehaviour
         PlayAtPosition(_dieSound, position);
     }
 
+    public void PlayBoarDeathSound(float3 position)
+    {
+        PlayAtPosition(_boarDeathSound, position);
+    }
+
     public void PlayDamageSound(float3 position)
     {
         PlayAtPosition(_damageSound, position);
     }
 
-    private void PlayAtPosition(MultiSoundConfigObject sound, Vector3 position)
+    public void PlaySpearDamageSound(float3 position)
+    {
+        PlayAtPosition(_spearDamageSound, position);
+    }
+
+    public void PlaySpearThrowSound(float3 position)
+    {
+        PlayAtPosition(_spearThrowSound, position);
+    }
+
+    public void PlayBoarChargeSound(float3 position)
+    {
+        PlayAtPosition(_boarChargeSound, position);
+    }
+
+    public void PlayAtPosition(MultiSoundConfigObject sound, Vector3 position)
     {
         var clipSelection = Random.Range(0, sound.Clips.Length);
         PlayAtPosition(sound.Clips[clipSelection], sound.Volume, sound.PitchCenter, sound.PitchVariance, position);
+    }
+
+    public void PlayAtPosition(SingleSoundConfigObject sound, Vector3 position)
+    {
+        PlayAtPosition(sound.Clip, sound.Volume, sound.PitchCenter, sound.PitchVariance, position);
     }
 
     private void PlayAtPosition(SoundConfig sound, Vector3 position)

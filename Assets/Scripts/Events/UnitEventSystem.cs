@@ -46,6 +46,7 @@ namespace Events
                         SoundManager.Instance.PlayDeathSound(deathEvent.ValueRO.Position);
                         break;
                     case UnitType.Boar:
+                        SoundManager.Instance.PlayBoarDeathSound(deathEvent.ValueRO.Position);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

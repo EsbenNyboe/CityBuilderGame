@@ -1,3 +1,4 @@
+using Audio;
 using UnitAgency;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -65,13 +66,18 @@ namespace UnitBehaviours.Targeting
 
                 if (isThrowingSpear.ValueRO.TimePassed > ThrowingSpearTime)
                 {
+                    ecb.RemoveComponent<IsHoldingSpear>(entity);
                     ecb.AddComponent(ecb.CreateEntity(), new Spear
                     {
                         Direction = new float2(attackDirection.x, attackDirection.y),
                         CurrentPosition = cell,
                         Target = target
                     });
-                    ecb.RemoveComponent<IsHoldingSpear>(entity);
+                    ecb.AddComponent(ecb.CreateEntity(), new SoundEvent
+                    {
+                        Position = position,
+                        Type = SoundEventType.SpearThrow
+                    });
                 }
             }
         }

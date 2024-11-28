@@ -97,15 +97,19 @@ namespace UnitAgency
             var isSleepy = moodSleepiness.ValueRO.Sleepiness > 0.2f;
             var isMoving = pathFollow.ValueRO.IsMoving();
             var isLonely = moodLoneliness.ValueRO.Loneliness > 1f;
+            var hasInitiative = moodInitiative.ValueRO.HasInitiative();
             const float friendFactor = 1f;
 
+            var randomFloat = gridManager.Random.NextFloat(0, 1);
 
-            if (BoarIsNearby(ref state, unitPosition, out var nearbyBoar))
+            if (hasInitiative && BoarIsNearby(ref state, unitPosition, out var nearbyBoar))
             {
+                moodInitiative.ValueRW.UseInitiative();
                 ecb.AddComponent<IsHoldingSpear>(entity);
                 ecb.AddComponent(entity, new IsThrowingSpear
                 {
-                    Target = nearbyBoar
+                    Target = nearbyBoar,
+                    TimePassed = randomFloat * 0.1f
                 });
             }
             else if (HasLogOfWood(inventory.ValueRO))
@@ -151,56 +155,59 @@ namespace UnitAgency
             {
                 ecb.AddComponent(entity, new IsSleeping());
             }
-            else if (isSleepy && moodInitiative.ValueRO.HasInitiative())
+            else
             {
-                ecb.AddComponent(entity, new IsSeekingBed());
-            }
-            else if (IsAdjacentToTree(ref state, gridManager, cell, out var tree))
-            {
-                ecb.AddComponent(entity, new IsHarvesting());
-                ecb.AddComponent(entity, new AttackAnimation(tree));
-            }
-            else if (isLonely)
-            {
-                if ((TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkativeLookup,
-                         out var neighbour) ||
-                     TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkingLookup, out neighbour)) &&
-                    gridManager.TryGetOccupant(neighbour, out var neighbourEntity) &&
-                    (socialRelationships.ValueRO.Relationships[neighbourEntity] > friendFactor ||
-                     !QuadrantSystem.TryFindClosestFriend(socialRelationships.ValueRO,
-                         quadrantDataManager.QuadrantMultiHashMap, QuadrantSystem.GetPositionHashMapKey(unitPosition),
-                         section, unitPosition, entity, out _, out _)))
+                if (isSleepy && hasInitiative)
                 {
-                    ecb.AddComponent(entity, new IsTalking());
-                    ecb.SetComponentEnabled<IsTalking>(entity, false);
-
-                    ecb.AddComponent(ecb.CreateEntity(), new ConversationEvent
-                    {
-                        Initiator = entity,
-                        Target = neighbourEntity
-                    });
+                    ecb.AddComponent(entity, new IsSeekingBed());
                 }
-                else if (moodInitiative.ValueRO.HasInitiative())
+                else if (IsAdjacentToTree(ref state, gridManager, cell, out var tree))
+                {
+                    ecb.AddComponent(entity, new IsHarvesting());
+                    ecb.AddComponent(entity, new AttackAnimation(tree));
+                }
+                else if (isLonely)
+                {
+                    if ((TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkativeLookup,
+                             out var neighbour) ||
+                         TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkingLookup, out neighbour)) &&
+                        gridManager.TryGetOccupant(neighbour, out var neighbourEntity) &&
+                        (socialRelationships.ValueRO.Relationships[neighbourEntity] > friendFactor ||
+                         !QuadrantSystem.TryFindClosestFriend(socialRelationships.ValueRO,
+                             quadrantDataManager.QuadrantMultiHashMap, QuadrantSystem.GetPositionHashMapKey(unitPosition),
+                             section, unitPosition, entity, out _, out _)))
+                    {
+                        ecb.AddComponent(entity, new IsTalking());
+                        ecb.SetComponentEnabled<IsTalking>(entity, false);
+
+                        ecb.AddComponent(ecb.CreateEntity(), new ConversationEvent
+                        {
+                            Initiator = entity,
+                            Target = neighbourEntity
+                        });
+                    }
+                    else if (hasInitiative)
+                    {
+                        moodInitiative.ValueRW.UseInitiative();
+                        ecb.AddComponent(entity, new IsSeekingTalkingPartner());
+                    }
+                    else
+                    {
+                        ecb.AddComponent(entity, new IsTalkative
+                        {
+                            Patience = 1
+                        });
+                    }
+                }
+                else if (hasInitiative)
                 {
                     moodInitiative.ValueRW.UseInitiative();
-                    ecb.AddComponent(entity, new IsSeekingTalkingPartner());
+                    ecb.AddComponent(entity, new IsSeekingTree());
                 }
                 else
                 {
-                    ecb.AddComponent(entity, new IsTalkative
-                    {
-                        Patience = 1
-                    });
+                    ecb.AddComponent<IsIdle>(entity);
                 }
-            }
-            else if (moodInitiative.ValueRO.HasInitiative())
-            {
-                moodInitiative.ValueRW.UseInitiative();
-                ecb.AddComponent(entity, new IsSeekingTree());
-            }
-            else
-            {
-                ecb.AddComponent<IsIdle>(entity);
             }
         }
 
