@@ -28,9 +28,7 @@ namespace UnitAgency
     internal partial struct IsDecidingSystem : ISystem
     {
         private EntityQuery _query;
-        private ComponentLookup<IsTalking> _isTalkingLookup;
-        private ComponentLookup<IsTalkative> _isTalkativeLookup;
-        private ComponentLookup<LocalTransform> _localTransformLookup;
+        private EntityQuery _boarQuery;
 
         public void OnCreate(ref SystemState state)
         {
@@ -40,6 +38,7 @@ namespace UnitAgency
             state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
+            _boarQuery = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<Boar>(), ComponentType.ReadOnly<LocalTransform>());
             _query = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<Villager>(),
                 ComponentType.ReadOnly<IsDeciding>(),
                 ComponentType.ReadOnly<LocalTransform>(),
@@ -51,40 +50,45 @@ namespace UnitAgency
                 ComponentType.ReadWrite<RandomContainer>(),
                 ComponentType.Exclude<Pathfinding>(),
                 ComponentType.Exclude<AttackAnimation>());
-            _localTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>();
-            _isTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>();
-            _isTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            _localTransformLookup.Update(ref state);
-            _isTalkingLookup.Update(ref state);
-            _isTalkativeLookup.Update(ref state);
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
+            var boarEntities = _boarQuery.ToEntityArray(Allocator.TempJob);
+            var boarTransforms = _boarQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
+
             var decideNextBehaviourJob = new DecideNextBehaviourJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
+                ElapsedTime = (float)SystemAPI.Time.ElapsedTime,
                 GridManager = gridManager,
                 SocialDynamicsManager = socialDynamicsManager,
                 QuadrantDataManager = quadrantDataManager,
-                LocalTransformLookup = _localTransformLookup,
-                IsTalkativeLookup = _isTalkativeLookup,
-                IsTalkingLookup = _isTalkingLookup,
-                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
+                LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),
+                IsTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>(),
+                IsTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>(),
+                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
+                BoarEntities = boarEntities,
+                BoarTransforms = boarTransforms
             };
             decideNextBehaviourJob.Run(_query);
+
+            boarEntities.Dispose();
+            boarTransforms.Dispose();
         }
 
+        [BurstCompile]
         private partial struct DecideNextBehaviourJob : IJobEntity
         {
             public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
+            [ReadOnly] public float ElapsedTime;
             [ReadOnly] public GridManager GridManager;
             [ReadOnly] public SocialDynamicsManager SocialDynamicsManager;
             [ReadOnly] public QuadrantDataManager QuadrantDataManager;
@@ -94,6 +98,9 @@ namespace UnitAgency
 
             [NativeDisableContainerSafetyRestriction]
             public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
+
+            [ReadOnly] public NativeArray<Entity> BoarEntities;
+            [ReadOnly] public NativeArray<LocalTransform> BoarTransforms;
 
             public void Execute([EntityIndexInQuery] int i,
                 in Entity entity,
@@ -119,22 +126,21 @@ namespace UnitAgency
 
                 var socialRelationships = SocialRelationshipsLookup[entity];
 
-                // if (hasInitiative && BoarIsNearby(ref state, unitPosition, out var nearbyBoar))
-                // {
-                //     var randomDelay = randomContainer.Random.NextFloat(0, 1);
-                //     moodInitiative.UseInitiative();
-                //     EcbParallelWriter.AddComponent<IsHoldingSpear>(i, entity);
-                //     EcbParallelWriter.AddComponent(i, entity, new IsThrowingSpear
-                //     {
-                //         Target = nearbyBoar
-                //     });
-                //     EcbParallelWriter.SetComponent(i, entity, new ActionGate
-                //     {
-                //         MinTimeOfAction = (float)SystemAPI.Time.ElapsedTime + randomDelay
-                //     });
-                // }
-                // else 
-                if (HasLogOfWood(inventory))
+                if (hasInitiative && BoarIsNearby(unitPosition, BoarTransforms, BoarEntities, out var nearbyBoar))
+                {
+                    var randomDelay = randomContainer.Random.NextFloat(0, 1);
+                    moodInitiative.UseInitiative();
+                    EcbParallelWriter.AddComponent<IsHoldingSpear>(i, entity);
+                    EcbParallelWriter.AddComponent(i, entity, new IsThrowingSpear
+                    {
+                        Target = nearbyBoar
+                    });
+                    EcbParallelWriter.SetComponent(i, entity, new ActionGate
+                    {
+                        MinTimeOfAction = ElapsedTime + randomDelay
+                    });
+                }
+                else if (HasLogOfWood(inventory))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingDropPoint());
                 }
@@ -232,16 +238,17 @@ namespace UnitAgency
             }
         }
 
-        private bool BoarIsNearby(ref SystemState state, float3 unitPosition, out Entity nearbyBoar)
+        private static bool BoarIsNearby(float3 unitPosition, NativeArray<LocalTransform> boarTransforms, NativeArray<Entity> boarEntities,
+            out Entity nearbyBoar)
         {
             var threshold = 20f;
-            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<Boar>, RefRO<LocalTransform>>().WithEntityAccess())
+            for (var index = 0; index < boarTransforms.Length; index++)
             {
-                var boarPosition = localTransform.ValueRO.Position;
+                var boarPosition = boarTransforms[index].Position;
                 var distance = math.distance(unitPosition, boarPosition);
                 if (distance < threshold)
                 {
-                    nearbyBoar = entity;
+                    nearbyBoar = boarEntities[index];
                     return true;
                 }
             }
