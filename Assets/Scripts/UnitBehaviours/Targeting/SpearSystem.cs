@@ -28,7 +28,7 @@ namespace UnitBehaviours.Targeting
             _query = state.GetEntityQuery(typeof(Spear));
         }
 
-        private const float SpearSpeed = 5f;
+        private const float SpearSpeed = 15f;
         private const float SpearDamageRadius = 0.5f;
         private const float SpearDamage = 10f;
 
