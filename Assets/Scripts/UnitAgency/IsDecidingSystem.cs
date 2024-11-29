@@ -8,6 +8,7 @@ using UnitSpawn;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -27,10 +28,9 @@ namespace UnitAgency
     internal partial struct IsDecidingSystem : ISystem
     {
         private EntityQuery _query;
-        private AttackAnimationManager _attackAnimationManager;
         private ComponentLookup<IsTalking> _isTalkingLookup;
         private ComponentLookup<IsTalkative> _isTalkativeLookup;
-        private ComponentLookup<RandomContainer> _randomContainerLookup;
+        private ComponentLookup<LocalTransform> _localTransformLookup;
 
         public void OnCreate(ref SystemState state)
         {
@@ -40,179 +40,194 @@ namespace UnitAgency
             state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
-            _query = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<IsDeciding>());
+            _query = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<Villager>(),
+                ComponentType.ReadOnly<IsDeciding>(),
+                ComponentType.ReadOnly<LocalTransform>(),
+                ComponentType.ReadOnly<PathFollow>(),
+                ComponentType.ReadOnly<Inventory>(),
+                ComponentType.ReadOnly<MoodSleepiness>(),
+                ComponentType.ReadOnly<MoodLoneliness>(),
+                ComponentType.ReadWrite<MoodInitiative>(),
+                ComponentType.ReadWrite<RandomContainer>(),
+                ComponentType.Exclude<Pathfinding>(),
+                ComponentType.Exclude<AttackAnimation>());
+            _localTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>();
             _isTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>();
             _isTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>();
-            _randomContainerLookup = SystemAPI.GetComponentLookup<RandomContainer>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            _localTransformLookup.Update(ref state);
             _isTalkingLookup.Update(ref state);
             _isTalkativeLookup.Update(ref state);
-            _randomContainerLookup.Update(ref state);
-            _attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            foreach (var (_, pathFollow,
-                         inventory,
-                         socialRelationships,
-                         moodSleepiness,
-                         moodLoneliness,
-                         moodInitiative,
-                         entity)
-                     in SystemAPI
-                         .Query<RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<Inventory>, RefRO<SocialRelationships>,
-                             RefRO<MoodSleepiness>,
-                             RefRO<MoodLoneliness>,
-                             RefRW<MoodInitiative>>()
-                         .WithEntityAccess().WithNone<Pathfinding>().WithNone<AttackAnimation>().WithAll<Villager>())
+
+            var decideNextBehaviourJob = new DecideNextBehaviourJob
             {
-                ecb.RemoveComponent<IsDeciding>(entity);
-                DecideNextBehaviour(ref state, gridManager, socialDynamicsManager, quadrantDataManager, ecb, pathFollow,
-                    inventory,
-                    socialRelationships,
-                    moodSleepiness, moodLoneliness, moodInitiative, entity);
-            }
+                EcbParallelWriter = ecb.AsParallelWriter(),
+                GridManager = gridManager,
+                SocialDynamicsManager = socialDynamicsManager,
+                QuadrantDataManager = quadrantDataManager,
+                LocalTransformLookup = _localTransformLookup,
+                IsTalkativeLookup = _isTalkativeLookup,
+                IsTalkingLookup = _isTalkingLookup,
+                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
+            };
+            decideNextBehaviourJob.Run(_query);
         }
 
-        private void DecideNextBehaviour(ref SystemState state,
-            GridManager gridManager,
-            SocialDynamicsManager socialDynamicsManager,
-            QuadrantDataManager quadrantDataManager,
-            EntityCommandBuffer ecb,
-            RefRO<PathFollow> pathFollow,
-            RefRO<Inventory> inventory,
-            RefRO<SocialRelationships> socialRelationships,
-            RefRO<MoodSleepiness> moodSleepiness,
-            RefRO<MoodLoneliness> moodLoneliness,
-            RefRW<MoodInitiative> moodInitiative,
-            Entity entity
-        )
+        private partial struct DecideNextBehaviourJob : IJobEntity
         {
-            var unitPosition = SystemAPI.GetComponent<LocalTransform>(entity).Position;
-            var cell = GridHelpers.GetXY(unitPosition);
-            var section = gridManager.GetSection(cell);
+            public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
+            [ReadOnly] public GridManager GridManager;
+            [ReadOnly] public SocialDynamicsManager SocialDynamicsManager;
+            [ReadOnly] public QuadrantDataManager QuadrantDataManager;
+            [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
+            [ReadOnly] public ComponentLookup<IsTalkative> IsTalkativeLookup;
+            [ReadOnly] public ComponentLookup<IsTalking> IsTalkingLookup;
 
-            var isSleepy = moodSleepiness.ValueRO.Sleepiness > 0.2f;
-            var isMoving = pathFollow.ValueRO.IsMoving();
-            var isLonely = moodLoneliness.ValueRO.Loneliness > 1f;
-            var hasInitiative = moodInitiative.ValueRO.HasInitiative();
-            const float friendFactor = 1f;
+            [NativeDisableContainerSafetyRestriction]
+            public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
 
-            if (hasInitiative && BoarIsNearby(ref state, unitPosition, out var nearbyBoar))
+            public void Execute([EntityIndexInQuery] int i,
+                in Entity entity,
+                in LocalTransform localTransform,
+                in PathFollow pathFollow,
+                in Inventory inventory,
+                in MoodSleepiness moodSleepiness,
+                in MoodLoneliness moodLoneliness,
+                ref MoodInitiative moodInitiative,
+                ref RandomContainer randomContainer)
             {
-                var randomDelay = _randomContainerLookup[entity].Random.NextFloat(0, 1);
-                moodInitiative.ValueRW.UseInitiative();
-                ecb.AddComponent<IsHoldingSpear>(entity);
-                ecb.AddComponent(entity, new IsThrowingSpear
-                {
-                    Target = nearbyBoar
-                });
-                ecb.SetComponent(entity, new ActionGate
-                {
-                    MinTimeOfAction = (float)SystemAPI.Time.ElapsedTime + randomDelay
-                });
-            }
-            else if (HasLogOfWood(inventory.ValueRO))
-            {
-                ecb.AddComponent(entity, new IsSeekingDropPoint());
-            }
-            else if (isMoving)
-            {
-                ecb.AddComponent(entity, new IsIdle());
-            }
-            else if (IsAnnoyedAtSomeone(
-                         ref state,
-                         entity,
-                         socialRelationships.ValueRO.Relationships,
-                         socialDynamicsManager.ThresholdForBecomingAnnoying,
-                         unitPosition,
-                         quadrantDataManager,
-                         out var annoyingDude))
-            {
-                var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
-                var annoyingDudePosition = transformLookup[annoyingDude].Position;
-                var distanceToTarget = math.distance(unitPosition, annoyingDudePosition);
-                if (distanceToTarget <= IsAttemptingMurderSystem.AttackRange)
-                {
-                    ecb.AddComponent(entity, new IsMurdering
-                    {
-                        Target = annoyingDude
-                    });
-                    ecb.AddComponent(entity, new AttackAnimation(new int2(-1), -1));
-                }
-                else
-                {
-                    ecb.AddComponent(entity, new IsAttemptingMurder());
-                    ecb.SetComponent(entity, new TargetFollow
-                    {
-                        Target = annoyingDude,
-                        CurrentDistanceToTarget = distanceToTarget,
-                        DesiredRange = IsAttemptingMurderSystem.AttackRange
-                    });
-                }
-            }
-            else if (isSleepy && gridManager.IsBedAvailableToUnit(unitPosition, entity))
-            {
-                ecb.AddComponent(entity, new IsSleeping());
-            }
-            else
-            {
-                if (isSleepy && hasInitiative)
-                {
-                    ecb.AddComponent(entity, new IsSeekingBed());
-                }
-                else if (IsAdjacentToTree(ref state, gridManager, cell, out var tree))
-                {
-                    ecb.AddComponent(entity, new IsHarvesting());
-                    ecb.AddComponent(entity, new AttackAnimation(tree));
-                }
-                else if (isLonely)
-                {
-                    if ((TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkativeLookup,
-                             out var neighbour) ||
-                         TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, _isTalkingLookup, out neighbour)) &&
-                        gridManager.TryGetOccupant(neighbour, out var neighbourEntity) &&
-                        (socialRelationships.ValueRO.Relationships[neighbourEntity] > friendFactor ||
-                         !QuadrantSystem.TryFindClosestFriend(socialRelationships.ValueRO,
-                             quadrantDataManager.QuadrantMultiHashMap, QuadrantSystem.GetPositionHashMapKey(unitPosition),
-                             section, unitPosition, entity, out _, out _)))
-                    {
-                        ecb.AddComponent(entity, new IsTalking());
-                        ecb.SetComponentEnabled<IsTalking>(entity, false);
+                EcbParallelWriter.RemoveComponent<IsDeciding>(i, entity);
 
-                        ecb.AddComponent(ecb.CreateEntity(), new ConversationEvent
+                var unitPosition = localTransform.Position;
+                var cell = GridHelpers.GetXY(unitPosition);
+                var section = GridManager.GetSection(cell);
+
+                var isSleepy = moodSleepiness.Sleepiness > 0.2f;
+                var isMoving = pathFollow.IsMoving();
+                var isLonely = moodLoneliness.Loneliness > 1f;
+                var hasInitiative = moodInitiative.HasInitiative();
+                const float friendFactor = 1f;
+
+                var socialRelationships = SocialRelationshipsLookup[entity];
+
+                // if (hasInitiative && BoarIsNearby(ref state, unitPosition, out var nearbyBoar))
+                // {
+                //     var randomDelay = randomContainer.Random.NextFloat(0, 1);
+                //     moodInitiative.UseInitiative();
+                //     EcbParallelWriter.AddComponent<IsHoldingSpear>(i, entity);
+                //     EcbParallelWriter.AddComponent(i, entity, new IsThrowingSpear
+                //     {
+                //         Target = nearbyBoar
+                //     });
+                //     EcbParallelWriter.SetComponent(i, entity, new ActionGate
+                //     {
+                //         MinTimeOfAction = (float)SystemAPI.Time.ElapsedTime + randomDelay
+                //     });
+                // }
+                // else 
+                if (HasLogOfWood(inventory))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDropPoint());
+                }
+                else if (isMoving)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsIdle());
+                }
+                else if (IsAnnoyedAtSomeone(
+                             entity,
+                             socialRelationships.Relationships,
+                             SocialDynamicsManager.ThresholdForBecomingAnnoying,
+                             unitPosition,
+                             QuadrantDataManager,
+                             out var annoyingDude))
+                {
+                    var annoyingDudePosition = LocalTransformLookup[annoyingDude].Position;
+                    var distanceToTarget = math.distance(unitPosition, annoyingDudePosition);
+                    if (distanceToTarget <= IsAttemptingMurderSystem.AttackRange)
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsMurdering
                         {
-                            Initiator = entity,
-                            Target = neighbourEntity
+                            Target = annoyingDude
                         });
-                    }
-                    else if (hasInitiative)
-                    {
-                        moodInitiative.ValueRW.UseInitiative();
-                        ecb.AddComponent(entity, new IsSeekingTalkingPartner());
+                        EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(new int2(-1), -1));
                     }
                     else
                     {
-                        ecb.AddComponent(entity, new IsTalkative
+                        EcbParallelWriter.AddComponent(i, entity, new IsAttemptingMurder());
+                        EcbParallelWriter.SetComponent(i, entity, new TargetFollow
                         {
-                            Patience = 1
+                            Target = annoyingDude,
+                            CurrentDistanceToTarget = distanceToTarget,
+                            DesiredRange = IsAttemptingMurderSystem.AttackRange
                         });
                     }
                 }
-                else if (hasInitiative)
+                else if (isSleepy && GridManager.IsBedAvailableToUnit(unitPosition, entity))
                 {
-                    moodInitiative.ValueRW.UseInitiative();
-                    ecb.AddComponent(entity, new IsSeekingTree());
+                    EcbParallelWriter.AddComponent(i, entity, new IsSleeping());
                 }
                 else
                 {
-                    ecb.AddComponent<IsIdle>(entity);
+                    if (isSleepy && hasInitiative)
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingBed());
+                    }
+                    else if (IsAdjacentToTree(GridManager, cell, out var tree))
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
+                        EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
+                    }
+                    else if (isLonely)
+                    {
+                        if ((TalkingHelpers.TryGetNeighbourWithComponent(GridManager, cell, IsTalkativeLookup,
+                                 out var neighbour) ||
+                             TalkingHelpers.TryGetNeighbourWithComponent(GridManager, cell, IsTalkingLookup, out neighbour)) &&
+                            GridManager.TryGetOccupant(neighbour, out var neighbourEntity) &&
+                            (socialRelationships.Relationships[neighbourEntity] > friendFactor ||
+                             !QuadrantSystem.TryFindClosestFriend(socialRelationships,
+                                 QuadrantDataManager.QuadrantMultiHashMap, QuadrantSystem.GetPositionHashMapKey(unitPosition),
+                                 section, unitPosition, entity, out _, out _)))
+                        {
+                            EcbParallelWriter.AddComponent(i, entity, new IsTalking());
+                            EcbParallelWriter.SetComponentEnabled<IsTalking>(i, entity, false);
+
+                            EcbParallelWriter.AddComponent(i, EcbParallelWriter.CreateEntity(i), new ConversationEvent
+                            {
+                                Initiator = entity,
+                                Target = neighbourEntity
+                            });
+                        }
+                        else if (hasInitiative)
+                        {
+                            moodInitiative.UseInitiative();
+                            EcbParallelWriter.AddComponent(i, entity, new IsSeekingTalkingPartner());
+                        }
+                        else
+                        {
+                            EcbParallelWriter.AddComponent(i, entity, new IsTalkative
+                            {
+                                Patience = 1
+                            });
+                        }
+                    }
+                    else if (hasInitiative)
+                    {
+                        moodInitiative.UseInitiative();
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
+                    }
+                    else
+                    {
+                        EcbParallelWriter.AddComponent<IsIdle>(i, entity);
+                    }
                 }
             }
         }
@@ -235,8 +250,7 @@ namespace UnitAgency
             return false;
         }
 
-        private bool IsAnnoyedAtSomeone(
-            ref SystemState state,
+        private static bool IsAnnoyedAtSomeone(
             Entity self,
             NativeParallelHashMap<Entity, float> relationships,
             float thresholdForBecomingAnnoying,
@@ -278,12 +292,12 @@ namespace UnitAgency
             return false;
         }
 
-        private bool HasLogOfWood(Inventory inventory)
+        private static bool HasLogOfWood(Inventory inventory)
         {
             return inventory.CurrentItem == InventoryItem.LogOfWood;
         }
 
-        private bool IsAdjacentToTree(ref SystemState state, GridManager gridManager, int2 cell, out int2 tree)
+        private static bool IsAdjacentToTree(GridManager gridManager, int2 cell, out int2 tree)
         {
             var foundTree = gridManager.TryGetNeighbouringTreeCell(cell, out tree);
             return foundTree;
