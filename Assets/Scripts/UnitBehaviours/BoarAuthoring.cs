@@ -1,6 +1,7 @@
 using UnitAgency;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
+using UnitSpawn;
 using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -26,6 +27,9 @@ namespace UnitBehaviours
                 // TODO: Cleanup this, so boar is not coupled with unnecessary IsAlive-logic
                 AddComponent<IsAlive>(entity);
                 SetComponentEnabled<IsAlive>(entity, true);
+                AddComponent<RandomContainer>(entity);
+                SetComponentEnabled<RandomContainer>(entity, false);
+                AddComponent<ActionGate>(entity);
 
                 AddComponent<Inventory>(entity); // LOL!!!
 

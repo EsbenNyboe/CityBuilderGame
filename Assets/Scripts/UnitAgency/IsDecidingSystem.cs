@@ -11,7 +11,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace UnitAgency
 {
@@ -108,7 +107,6 @@ namespace UnitAgency
             if (hasInitiative && BoarIsNearby(ref state, unitPosition, out var nearbyBoar))
             {
                 var randomDelay = _randomContainerLookup[entity].Random.NextFloat(0, 1);
-                Debug.Log(randomDelay);
                 moodInitiative.ValueRW.UseInitiative();
                 ecb.AddComponent<IsHoldingSpear>(entity);
                 ecb.AddComponent(entity, new IsThrowingSpear

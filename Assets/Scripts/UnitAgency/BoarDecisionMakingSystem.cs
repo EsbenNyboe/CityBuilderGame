@@ -1,7 +1,7 @@
-using Audio;
 using UnitBehaviours;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
+using UnitSpawn;
 using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -12,15 +12,19 @@ namespace UnitAgency
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup), OrderLast = true)]
     public partial struct BoarDecisionMakingSystem : ISystem
     {
+        private ComponentLookup<RandomContainer> _randomContainerLookup;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            _randomContainerLookup = SystemAPI.GetComponentLookup<RandomContainer>();
         }
 
         public void OnUpdate(ref SystemState state)
         {
+            _randomContainerLookup.Update(ref state);
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
@@ -54,19 +58,13 @@ namespace UnitAgency
                         }
                         else
                         {
+                            var randomDelay = _randomContainerLookup[entity].Random.NextFloat(0, 1);
+                            ecb.SetComponent(entity, new ActionGate
+                            {
+                                MinTimeOfAction = (float)SystemAPI.Time.ElapsedTime + randomDelay
+                            });
                             moodInitiative.ValueRW.UseInitiative();
-                            ecb.AddComponent(entity, new IsAttemptingMurder());
-                            ecb.SetComponent(entity, new TargetFollow
-                            {
-                                Target = closestTargetEntity,
-                                CurrentDistanceToTarget = closestTargetDistance,
-                                DesiredRange = IsAttemptingMurderSystem.AttackRange
-                            });
-                            ecb.AddComponent(ecb.CreateEntity(), new SoundEvent
-                            {
-                                Position = position,
-                                Type = SoundEventType.BoarCharge
-                            });
+                            ecb.AddComponent<BoarIsCharging>(entity);
                         }
                     }
                 }
