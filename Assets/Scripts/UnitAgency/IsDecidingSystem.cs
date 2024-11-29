@@ -4,12 +4,14 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
+using UnitSpawn;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UnitAgency
 {
@@ -29,6 +31,7 @@ namespace UnitAgency
         private AttackAnimationManager _attackAnimationManager;
         private ComponentLookup<IsTalking> _isTalkingLookup;
         private ComponentLookup<IsTalkative> _isTalkativeLookup;
+        private ComponentLookup<RandomContainer> _randomContainerLookup;
 
         public void OnCreate(ref SystemState state)
         {
@@ -41,6 +44,7 @@ namespace UnitAgency
             _query = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<IsDeciding>());
             _isTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>();
             _isTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>();
+            _randomContainerLookup = SystemAPI.GetComponentLookup<RandomContainer>();
         }
 
         [BurstCompile]
@@ -48,6 +52,7 @@ namespace UnitAgency
         {
             _isTalkingLookup.Update(ref state);
             _isTalkativeLookup.Update(ref state);
+            _randomContainerLookup.Update(ref state);
             _attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
@@ -100,16 +105,19 @@ namespace UnitAgency
             var hasInitiative = moodInitiative.ValueRO.HasInitiative();
             const float friendFactor = 1f;
 
-            var randomFloat = gridManager.Random.NextFloat(0, 1);
-
             if (hasInitiative && BoarIsNearby(ref state, unitPosition, out var nearbyBoar))
             {
+                var randomDelay = _randomContainerLookup[entity].Random.NextFloat(0, 1);
+                Debug.Log(randomDelay);
                 moodInitiative.ValueRW.UseInitiative();
                 ecb.AddComponent<IsHoldingSpear>(entity);
                 ecb.AddComponent(entity, new IsThrowingSpear
                 {
-                    Target = nearbyBoar,
-                    TimePassed = randomFloat * 0.1f
+                    Target = nearbyBoar
+                });
+                ecb.SetComponent(entity, new ActionGate
+                {
+                    MinTimeOfAction = (float)SystemAPI.Time.ElapsedTime + randomDelay
                 });
             }
             else if (HasLogOfWood(inventory.ValueRO))

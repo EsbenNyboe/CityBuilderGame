@@ -1,6 +1,7 @@
 using UnitAgency;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
+using UnitSpawn;
 using UnitState;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -30,6 +31,9 @@ namespace UnitBehaviours
                 AddComponent<IsAlive>(entity);
                 SetComponentEnabled<IsAlive>(entity, true);
                 AddComponent<SpawnedUnit>(entity);
+                AddComponent<RandomContainer>(entity);
+                SetComponentEnabled<RandomContainer>(entity, false);
+                AddComponent<ActionGate>(entity);
 
                 AddComponent<Selectable>(entity);
                 AddComponent<PathPosition>(entity);
