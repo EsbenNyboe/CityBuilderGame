@@ -3,6 +3,7 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using UnitSpawn;
 using UnitState;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -22,6 +23,7 @@ namespace UnitAgency
             _randomContainerLookup = SystemAPI.GetComponentLookup<RandomContainer>();
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             _randomContainerLookup.Update(ref state);

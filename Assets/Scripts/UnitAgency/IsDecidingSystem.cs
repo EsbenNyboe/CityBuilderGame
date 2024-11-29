@@ -78,7 +78,7 @@ namespace UnitAgency
                 BoarEntities = boarEntities,
                 BoarTransforms = boarTransforms
             };
-            decideNextBehaviourJob.Run(_query);
+            decideNextBehaviourJob.ScheduleParallel(_query, state.Dependency).Complete();
 
             boarEntities.Dispose();
             boarTransforms.Dispose();
