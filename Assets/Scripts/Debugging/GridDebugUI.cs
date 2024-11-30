@@ -20,7 +20,7 @@ public class GridDebugUI : MonoBehaviour
 
     private void Awake()
     {
-        _uiParent = GetComponentInChildren<Canvas>().transform;
+        _uiParent = GetComponentInChildren<Canvas>(true).transform;
     }
 
     private void LateUpdate()

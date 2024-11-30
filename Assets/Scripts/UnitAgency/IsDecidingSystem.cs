@@ -120,7 +120,7 @@ namespace UnitAgency
 
                 var isSleepy = moodSleepiness.Sleepiness > 0.2f;
                 var isMoving = pathFollow.IsMoving();
-                var isLonely = moodLoneliness.Loneliness > 1f;
+                var isLonely = moodLoneliness.Loneliness > 10f;
                 var hasInitiative = moodInitiative.HasInitiative();
                 const float friendFactor = 1f;
 
