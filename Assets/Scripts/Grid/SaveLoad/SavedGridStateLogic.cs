@@ -2,7 +2,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Grid.SaveLoad
 {
@@ -17,15 +16,24 @@ namespace Grid.SaveLoad
 
         protected override void OnUpdate()
         {
-            if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftControl))
+            if (SavedGridStateManager.Instance.SlotToSave > -1)
             {
                 SaveGridState();
             }
 
-            if (Input.GetKeyDown(KeyCode.L) && Input.GetKey(KeyCode.LeftControl))
+            if (SavedGridStateManager.Instance.SlotToLoad > -1)
             {
                 LoadSavedGridState();
             }
+
+            if (SavedGridStateManager.Instance.SlotToDelete > -1)
+            {
+                SavedGridStateManager.Instance.DeleteDataOnSaveSlot();
+            }
+
+            SavedGridStateManager.Instance.SlotToSave = -1;
+            SavedGridStateManager.Instance.SlotToLoad = -1;
+            SavedGridStateManager.Instance.SlotToDelete = -1;
         }
 
         private void SaveGridState()

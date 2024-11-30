@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1dfb5062a97fb20418c87ccef4d78d79, type: 3}
-  m_Name: SaveSlotA
+  m_Name: SaveSlot1
   m_EditorClassIdentifier: 
   Trees:
   - x: 0
@@ -1514,8 +1514,6 @@ MonoBehaviour:
   - x: 17
     y: 77
   - x: 18
-    y: 10
-  - x: 18
     y: 11
   - x: 18
     y: 12
@@ -1621,10 +1619,6 @@ MonoBehaviour:
     y: 77
   - x: 18
     y: 78
-  - x: 19
-    y: 9
-  - x: 19
-    y: 10
   - x: 19
     y: 11
   - x: 19
@@ -1733,8 +1727,6 @@ MonoBehaviour:
     y: 77
   - x: 19
     y: 78
-  - x: 20
-    y: 9
   - x: 20
     y: 10
   - x: 20
@@ -1847,10 +1839,6 @@ MonoBehaviour:
     y: 77
   - x: 20
     y: 78
-  - x: 21
-    y: 8
-  - x: 21
-    y: 9
   - x: 21
     y: 10
   - x: 21
@@ -1971,10 +1959,6 @@ MonoBehaviour:
     y: 78
   - x: 21
     y: 79
-  - x: 22
-    y: 6
-  - x: 22
-    y: 7
   - x: 22
     y: 8
   - x: 22
@@ -2105,18 +2089,6 @@ MonoBehaviour:
     y: 78
   - x: 22
     y: 79
-  - x: 23
-    y: 0
-  - x: 23
-    y: 1
-  - x: 23
-    y: 2
-  - x: 23
-    y: 3
-  - x: 23
-    y: 4
-  - x: 23
-    y: 5
   - x: 23
     y: 6
   - x: 23
