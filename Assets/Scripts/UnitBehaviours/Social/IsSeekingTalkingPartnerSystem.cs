@@ -62,9 +62,11 @@ namespace UnitBehaviours.Talking
                 var section = gridManager.GetSection(cell);
                 if (!QuadrantSystem.TryFindClosestFriend(socialRelationships.ValueRO,
                         quadrantDataManager.QuadrantMultiHashMap, hashMapKey,
-                        section, position, entity, out var otherUnit, out _))
+                        section, position, entity, out var otherUnit, out _) &&
+                    !QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap, hashMapKey, section, position, entity,
+                        out otherUnit, out _))
                 {
-                    // No friends nearby. I'll find a random person to walk to.
+                    // No units nearby. I'll find a random person to walk to.
                     var relationships = socialRelationships.ValueRO.Relationships;
                     var index = gridManager.Random.NextInt(0, relationships.Count());
                     otherUnit = socialRelationships.ValueRW.Relationships.GetKeyArray(Allocator.Temp)[index];
@@ -72,6 +74,14 @@ namespace UnitBehaviours.Talking
 
                 var targetPosition = SystemAPI.GetComponent<LocalTransform>(otherUnit).Position;
                 var targetCell = GridHelpers.GetXY(targetPosition);
+
+                if (!gridManager.IsMatchingSection(cell, targetCell))
+                {
+                    // I have no one to talk to!
+                    ecb.RemoveComponent<IsSeekingTalkingPartner>(entity);
+                    ecb.AddComponent<IsDeciding>(entity);
+                    continue;
+                }
 
                 if (!gridManager.TryGetVacantHorizontalNeighbour(targetCell, out var pathTargetCell))
                 {
