@@ -43,7 +43,7 @@ public class CameraController : MonoBehaviour
             moveDelta.x += _movementSpeed * Time.deltaTime;
         }
 
-        if (Input.GetKey(KeyCode.S))
+        if (Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.LeftControl))
         {
             moveDelta.y -= _movementSpeed * Time.deltaTime;
         }
