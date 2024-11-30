@@ -112,7 +112,7 @@ namespace Grid.SaveLoad
 
             for (var i = 0; i < beds.Length; i++)
             {
-                gridManager.SetIsWalkable(beds[i], false);
+                gridManager.SetIsWalkable(beds[i], true);
                 gridManager.SetInteractableBed(beds[i]);
             }
 
