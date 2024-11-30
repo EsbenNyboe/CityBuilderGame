@@ -5,6 +5,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
@@ -56,35 +57,39 @@ namespace UnitBehaviours.AutonomousHarvesting
                 {
                     PathHelpers.TrySetPath(ecb, entity, unitGridPosition, closestDropPointEntrance, isDebugging);
                 }
+                else
+                {
+                    Debug.Log("TODO: Drop item on ground");
+                    // Drop item on ground
+                }
             }
         }
 
         private int2 FindClosestDropPoint(ref SystemState state, GridManager gridManager, float3 position,
             Entity selfEntity)
         {
-            var closestDropPoint = new float3(-1);
+            var closestDropPointCell = new int2(-1);
             var shortestDropPointDistance = math.INFINITY;
+            var cell = GridHelpers.GetXY(position);
 
             foreach (var (dropPointTransform, dropPoint) in SystemAPI.Query<RefRO<LocalTransform>, RefRO<DropPoint>>())
             {
                 var dropPointPosition = dropPointTransform.ValueRO.Position;
+                var dropPointCell = GridHelpers.GetXY(dropPointPosition);
                 var dropPointDistance = math.distance(position, dropPointPosition);
-                if (dropPointDistance < shortestDropPointDistance)
+                if (dropPointDistance < shortestDropPointDistance && gridManager.IsMatchingSection(cell, dropPointCell))
                 {
                     shortestDropPointDistance = dropPointDistance;
-                    closestDropPoint = dropPointPosition;
+                    closestDropPointCell = dropPointCell;
                 }
             }
 
-            if (!(closestDropPoint.x > -1))
+            if (closestDropPointCell.x < 0)
             {
                 return -1;
             }
 
-            var dropPointCell = GridHelpers.GetXY(closestDropPoint);
-            var cellPosition = GridHelpers.GetXY(position);
-            // TODO: Make unit select second-closest droppoint, if there's no path to the closest one.
-            gridManager.TryGetClosestValidNeighbourOfTarget(cellPosition, selfEntity, dropPointCell,
+            gridManager.TryGetClosestValidNeighbourOfTarget(cell, selfEntity, closestDropPointCell,
                 out var dropPointEntrance);
 
             return dropPointEntrance;
