@@ -1,28 +1,26 @@
 using Grid.SaveLoad;
 using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.UI;
 
 public class SaveSlotUI : MonoBehaviour
 {
-    [SerializeField] private RectTransform _imageTransform;
+    private static readonly int MainTex = Shader.PropertyToID("_MainTex");
+    [SerializeField] private Image _image;
 
-    private Rect _textureRect;
     private Texture2D _texture2D;
+
+    private void Start()
+    {
+        Assert.IsNotNull(_image);
+        _image.material.SetTexture(MainTex, _texture2D);
+    }
 
     private void OnDestroy()
     {
         if (_texture2D)
         {
             Destroy(_texture2D);
-        }
-    }
-
-    private void OnGUI()
-    {
-        if (_texture2D)
-        {
-            _textureRect = _imageTransform.rect;
-            _textureRect.position = _imageTransform.TransformPoint(_textureRect.position);
-            Graphics.DrawTexture(_textureRect, _texture2D);
         }
     }
 
@@ -57,6 +55,7 @@ public class SaveSlotUI : MonoBehaviour
         }
 
         _texture2D.Apply();
+        _image.material.SetTexture(MainTex, _texture2D);
     }
 
     public void Save()

@@ -307,6 +307,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1024098087}
     m_Modifications:
+    - target: {fileID: 2426691530091814967, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 0aa59c9409a619341af4f7996845cd24, type: 2}
     - target: {fileID: 2707983516421044144, guid: c82e16e2fef67094283903838e098915, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -367,17 +371,13 @@ PrefabInstance:
       propertyPath: m_Name
       value: SaveSlotUI
       objectReference: {fileID: 0}
-    - target: {fileID: 6609032859004351542, guid: c82e16e2fef67094283903838e098915, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6870439915062540264, guid: c82e16e2fef67094283903838e098915, type: 3}
       propertyPath: m_Pivot.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6870439915062540264, guid: c82e16e2fef67094283903838e098915, type: 3}
       propertyPath: m_Pivot.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6870439915062540264, guid: c82e16e2fef67094283903838e098915, type: 3}
       propertyPath: m_AnchorMax.x
@@ -8138,11 +8138,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rectConfig:
-    serializedVersion: 2
     x: 0
     y: 0
     width: 4.58
     height: 4.77
+  _texture2D: {fileID: 0}
 --- !u!4 &1328958405
 Transform:
   m_ObjectHideFlags: 0
