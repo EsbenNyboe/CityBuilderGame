@@ -21,6 +21,7 @@ namespace Grid.SaveLoad
         [HideInInspector] public int SlotToSave = -1;
         [HideInInspector] public int SlotToLoad = -1;
         [HideInInspector] public int SlotToDelete = -1;
+        private SaveSlotUI[] _saveSlotUIs;
 
         private void Awake()
         {
@@ -29,10 +30,18 @@ namespace Grid.SaveLoad
 
         private void Start()
         {
+            for (var i = 0; i < _saveSlotTransformParent.childCount; i++)
+            {
+                Destroy(_saveSlotTransformParent.GetChild(i).gameObject);
+            }
+
+            _saveSlotUIs = new SaveSlotUI[_saveSlots.Length];
             for (var i = 0; i < _saveSlots.Length; i++)
             {
                 var saveSlotUI = Instantiate(_saveSlotUIPrefab, _saveSlotTransformParent);
                 saveSlotUI.GetComponentInChildren<TextMeshProUGUI>().text = "SaveSlot " + i;
+                _saveSlotUIs[i] = saveSlotUI.GetComponent<SaveSlotUI>();
+                _saveSlotUIs[i].Initialize(_saveSlots[i]);
             }
         }
 
@@ -40,24 +49,28 @@ namespace Grid.SaveLoad
         {
             Assert.IsTrue(SlotToSave > -1 && SlotToSave < _saveSlots.Length);
 
-            _saveSlots[SlotToSave].Trees = trees;
-            _saveSlots[SlotToSave].Beds = beds;
-            _saveSlots[SlotToSave].DropPoints = dropPoints;
+            var saveSlot = _saveSlots[SlotToSave];
+            saveSlot.Trees = trees;
+            saveSlot.Beds = beds;
+            saveSlot.DropPoints = dropPoints;
 #if UNITY_EDITOR
-            EditorUtility.SetDirty(_saveSlots[SlotToSave]);
+            EditorUtility.SetDirty(saveSlot);
 #endif
+            _saveSlotUIs[SlotToSave].Initialize(saveSlot);
         }
 
         public void DeleteDataOnSaveSlot()
         {
             Assert.IsTrue(SlotToDelete > -1 && SlotToDelete < _saveSlots.Length);
 
-            _saveSlots[SlotToDelete].Trees = Array.Empty<int2>();
-            _saveSlots[SlotToDelete].Beds = Array.Empty<int2>();
-            _saveSlots[SlotToDelete].DropPoints = Array.Empty<int2>();
+            var saveSlot = _saveSlots[SlotToDelete];
+            saveSlot.Trees = Array.Empty<int2>();
+            saveSlot.Beds = Array.Empty<int2>();
+            saveSlot.DropPoints = Array.Empty<int2>();
 #if UNITY_EDITOR
-            EditorUtility.SetDirty(_saveSlots[SlotToDelete]);
+            EditorUtility.SetDirty(saveSlot);
 #endif
+            _saveSlotUIs[SlotToDelete].Initialize(saveSlot);
         }
 
         public int2[] LoadSavedTrees()
