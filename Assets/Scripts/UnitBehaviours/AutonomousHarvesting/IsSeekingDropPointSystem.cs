@@ -43,8 +43,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 var unitWorldPosition = localTransform.ValueRO.Position;
                 var unitGridPosition = GridHelpers.GetXY(unitWorldPosition);
-                var closestDropPointEntrance =
-                    FindClosestDropPoint(ref state, gridManager, unitWorldPosition, entity);
+                var closestDropPointEntrance = FindClosestDropPointEntrance(ref state, gridManager, unitWorldPosition);
                 if (unitGridPosition.Equals(closestDropPointEntrance))
                 {
                     inventory.ValueRW.CurrentItem = InventoryItem.None;
@@ -65,10 +64,9 @@ namespace UnitBehaviours.AutonomousHarvesting
             }
         }
 
-        private int2 FindClosestDropPoint(ref SystemState state, GridManager gridManager, float3 position,
-            Entity selfEntity)
+        private int2 FindClosestDropPointEntrance(ref SystemState state, GridManager gridManager, float3 position)
         {
-            var closestDropPointCell = new int2(-1);
+            var closestDropPointEntrance = new int2(-1);
             var shortestDropPointDistance = math.INFINITY;
             var cell = GridHelpers.GetXY(position);
 
@@ -77,22 +75,15 @@ namespace UnitBehaviours.AutonomousHarvesting
                 var dropPointPosition = dropPointTransform.ValueRO.Position;
                 var dropPointCell = GridHelpers.GetXY(dropPointPosition);
                 var dropPointDistance = math.distance(position, dropPointPosition);
-                if (dropPointDistance < shortestDropPointDistance && gridManager.IsMatchingSection(cell, dropPointCell))
+                if (dropPointDistance < shortestDropPointDistance &&
+                    gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, dropPointCell, out var dropPointEntrance))
                 {
                     shortestDropPointDistance = dropPointDistance;
-                    closestDropPointCell = dropPointCell;
+                    closestDropPointEntrance = dropPointEntrance;
                 }
             }
 
-            if (closestDropPointCell.x < 0)
-            {
-                return -1;
-            }
-
-            gridManager.TryGetClosestValidNeighbourOfTarget(cell, selfEntity, closestDropPointCell,
-                out var dropPointEntrance);
-
-            return dropPointEntrance;
+            return closestDropPointEntrance;
         }
     }
 }

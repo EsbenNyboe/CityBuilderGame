@@ -58,6 +58,30 @@ public partial struct GridManager
         return false;
     }
 
+    public bool TryGetClosestWalkableNeighbourOfTarget(int2 selfCell, int2 targetCell,
+        out int2 closestNeighbourCell)
+    {
+        var shortestDistance = float.MaxValue;
+        closestNeighbourCell = -1;
+        for (var j = 0; j < 8; j++)
+        {
+            var neighbourCell = GetNeighbourCell(j, targetCell);
+            if (!IsPositionInsideGrid(neighbourCell) || !IsWalkable(neighbourCell) || !IsMatchingSection(selfCell, neighbourCell))
+            {
+                continue;
+            }
+
+            var distance = math.distance(selfCell, neighbourCell);
+            if (distance < shortestDistance)
+            {
+                shortestDistance = distance;
+                closestNeighbourCell = neighbourCell;
+            }
+        }
+
+        return closestNeighbourCell.x > -1;
+    }
+
     public bool TryGetClosestValidNeighbourOfTarget(int2 selfCell, Entity selfEntity, int2 targetCell,
         out int2 closestNeighbourCell)
     {
