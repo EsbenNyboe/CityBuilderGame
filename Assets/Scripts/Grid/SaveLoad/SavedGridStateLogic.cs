@@ -109,6 +109,7 @@ namespace Grid.SaveLoad
             var trees = SavedGridStateManager.Instance.LoadSavedTrees();
             var beds = SavedGridStateManager.Instance.LoadSavedBeds();
             var dropPoints = SavedGridStateManager.Instance.LoadSavedDropPoints();
+            SavedGridStateManager.Instance.OnLoaded();
             // TODO: Convert spawnManager to singleton
             var spawnManager = GetSpawnManager();
 

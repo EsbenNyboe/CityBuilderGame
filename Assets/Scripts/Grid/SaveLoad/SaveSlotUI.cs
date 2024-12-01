@@ -1,6 +1,5 @@
 using Grid.SaveLoad;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.UI;
 
 public class SaveSlotUI : MonoBehaviour
@@ -10,12 +9,6 @@ public class SaveSlotUI : MonoBehaviour
 
     private Texture2D _texture2D;
 
-    private void Start()
-    {
-        Assert.IsNotNull(_image);
-        _image.material.SetTexture(MainTex, _texture2D);
-    }
-
     private void OnDestroy()
     {
         if (_texture2D)
@@ -24,9 +17,13 @@ public class SaveSlotUI : MonoBehaviour
         }
     }
 
-    public void Initialize(SavedGridStateObject _stateObject)
+    public void Initialize(SavedGridStateObject stateObject)
     {
-        // TODO: Save gridManager size in state-object
+        if (_texture2D)
+        {
+            Destroy(_texture2D);
+        }
+
         _texture2D = new Texture2D(GridManagerSystem.Width, GridManagerSystem.Height);
 
         // Black background
@@ -39,19 +36,19 @@ public class SaveSlotUI : MonoBehaviour
             }
         }
 
-        for (var i = 0; i < _stateObject.Trees.Length; i++)
+        for (var i = 0; i < stateObject.Trees.Length; i++)
         {
-            _texture2D.SetPixel(_stateObject.Trees[i].x, _stateObject.Trees[i].y, Color.green);
+            _texture2D.SetPixel(stateObject.Trees[i].x, stateObject.Trees[i].y, Color.green);
         }
 
-        for (var i = 0; i < _stateObject.Beds.Length; i++)
+        for (var i = 0; i < stateObject.Beds.Length; i++)
         {
-            _texture2D.SetPixel(_stateObject.Beds[i].x, _stateObject.Beds[i].y, Color.white);
+            _texture2D.SetPixel(stateObject.Beds[i].x, stateObject.Beds[i].y, Color.white);
         }
 
-        for (var i = 0; i < _stateObject.DropPoints.Length; i++)
+        for (var i = 0; i < stateObject.DropPoints.Length; i++)
         {
-            _texture2D.SetPixel(_stateObject.DropPoints[i].x, _stateObject.DropPoints[i].y, Color.red);
+            _texture2D.SetPixel(stateObject.DropPoints[i].x, stateObject.DropPoints[i].y, Color.red);
         }
 
         _texture2D.Apply();
