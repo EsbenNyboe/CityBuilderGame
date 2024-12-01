@@ -1,3 +1,4 @@
+using UnitState;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -6,7 +7,8 @@ using UnityEngine;
 
 namespace Grid.SaveLoad
 {
-    [UpdateInGroup(typeof(GridSystemGroup), OrderFirst = true)]
+    [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
+    [UpdateBefore(typeof(IsAliveSystem))]
     public partial class SavedGridStateLogic : SystemBase
     {
         private EntityQuery _dropPointQuery;
@@ -125,6 +127,8 @@ namespace Grid.SaveLoad
             GridDimensionsConfig.Instance.Height = gridSize.y;
             GridManagerSystem.TryUpdateGridDimensions(ref gridManager);
 
+            DestroyEntitiesOutsideOfGrid(gridManager);
+
             SavedGridStateManager.Instance.OnLoaded();
             // TODO: Convert spawnManager to singleton
             var spawnManager = GetSpawnManager();
@@ -155,6 +159,20 @@ namespace Grid.SaveLoad
             }
 
             SystemAPI.SetSingleton(gridManager);
+        }
+
+        private void DestroyEntitiesOutsideOfGrid(GridManager gridManager)
+        {
+            using var ecb = new EntityCommandBuffer(Allocator.Temp);
+            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<IsAlive>, RefRO<LocalTransform>>().WithEntityAccess())
+            {
+                if (!gridManager.IsPositionInsideGrid(localTransform.ValueRO.Position))
+                {
+                    ecb.SetComponentEnabled<IsAlive>(entity, false);
+                }
+            }
+
+            ecb.Playback(EntityManager);
         }
 
         private SpawnManager GetSpawnManager()

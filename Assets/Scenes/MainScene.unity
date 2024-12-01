@@ -4539,8 +4539,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4527ded2236c5c419e72c096120e16b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Width: 1
-  Height: 1
+  Width: 100
+  Height: 100
 --- !u!1 &743217675
 GameObject:
   m_ObjectHideFlags: 0
@@ -9254,6 +9254,62 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1024098087}
     m_Modifications:
+    - target: {fileID: 2707983516421044144, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707983516421044144, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707983516421044144, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707983516421044144, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707983516421044144, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4085645785716116787, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4085645785716116787, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4085645785716116787, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4085645785716116787, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4085645785716116787, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5872146453388838668, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5872146453388838668, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5872146453388838668, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5872146453388838668, guid: c82e16e2fef67094283903838e098915, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5876545035094441235, guid: c82e16e2fef67094283903838e098915, type: 3}
       propertyPath: m_Name
       value: SaveSlotUI

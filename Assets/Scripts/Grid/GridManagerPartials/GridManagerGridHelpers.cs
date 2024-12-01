@@ -69,6 +69,11 @@ public partial struct GridManager
             y < Height;
     }
 
+    public bool IsIndexInsideGrid(int index)
+    {
+        return index < Width * Height;
+    }
+
     #endregion
 
     #region Combined Grid Helpers
@@ -129,6 +134,11 @@ public partial struct GridManager
 
     public void OnUnitDestroyed(Entity entity, int i)
     {
+        if (!IsIndexInsideGrid(i))
+        {
+            return;
+        }
+
         if (TryClearOccupant(i, entity))
         {
             TryClearBed(i);
