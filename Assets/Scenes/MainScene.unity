@@ -5521,11 +5521,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97090b27389f47fdb83ccf1708a30868, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _saveSlot: {fileID: 11400000, guid: 6988c21aad6e6bc4ea6bd7f7bdcb424f, type: 2}
   _saveSlotUIPrefab: {fileID: 5876545035094441235, guid: c82e16e2fef67094283903838e098915, type: 3}
   _saveSlots:
   - {fileID: 11400000, guid: 6988c21aad6e6bc4ea6bd7f7bdcb424f, type: 2}
   - {fileID: 11400000, guid: ff3cb76b0e1cc6e49b388640cafb277f, type: 2}
+  - {fileID: 11400000, guid: 71a4f6d5d77dd344bbb779b224a750f1, type: 2}
+  - {fileID: 11400000, guid: 715a922627b45dd4f908d1f9edd5270d, type: 2}
+  - {fileID: 11400000, guid: 47c4c59d86326b94ca1b1282b405dd50, type: 2}
+  - {fileID: 11400000, guid: 2d58e3b13f12708458f4860af0f144fb, type: 2}
+  - {fileID: 11400000, guid: 8ed96aff6939b074a91dc9c4ab113d31, type: 2}
+  - {fileID: 11400000, guid: eeaa3fec27931ff428f33c862d0de061, type: 2}
+  - {fileID: 11400000, guid: 9cb21b7d2a21558418a355f8b57b51cc, type: 2}
+  - {fileID: 11400000, guid: 45551caa5ac797f45b979b7da0da566e, type: 2}
   _saveSlotTransformParent: {fileID: 1024098087}
   SlotToSave: -1
   SlotToLoad: -1
@@ -7945,50 +7952,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 2
   m_TargetDisplay: 0
---- !u!1 &1328958403
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1328958405}
-  - component: {fileID: 1328958404}
-  m_Layer: 0
-  m_Name: Test
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &1328958404
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1328958403}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 699c0aca2d0cfdb448008ecbb20cdbf7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &1328958405
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1328958403}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 100}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1337279597
 GameObject:
   m_ObjectHideFlags: 0
@@ -13694,4 +13657,3 @@ SceneRoots:
   - {fileID: 1226287100}
   - {fileID: 419742546}
   - {fileID: 1974315025}
-  - {fileID: 1328958405}
