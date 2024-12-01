@@ -49,6 +49,12 @@ public partial struct GridManager
         y = math.clamp(y, 0, Height - 1);
     }
 
+    public bool IsPositionInsideGrid(Vector3 position)
+    {
+        var cell = GridHelpers.GetXY(position);
+        return IsPositionInsideGrid(cell.x, cell.y);
+    }
+
     public bool IsPositionInsideGrid(int2 cell)
     {
         return IsPositionInsideGrid(cell.x, cell.y);

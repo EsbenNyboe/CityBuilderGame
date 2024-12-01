@@ -2,9 +2,11 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace Grid.SaveLoad
 {
+    [UpdateInGroup(typeof(GridSystemGroup), OrderFirst = true)]
     public partial class SavedGridStateLogic : SystemBase
     {
         private EntityQuery _dropPointQuery;
@@ -64,8 +66,15 @@ namespace Grid.SaveLoad
             foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<DropPoint>, RefRO<LocalTransform>>()
                          .WithEntityAccess())
             {
-                dropPointList.Add(GridHelpers.GetXY(localTransform.ValueRO.Position));
+                var dropPointCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+                if (gridManager.IsPositionInsideGrid(dropPointCell))
+                {
+                    // TODO: Find a cleaner way to prevent dropPoints from ending up out of bounds
+                    dropPointList.Add(dropPointCell);
+                }
             }
+
+            var gridSize = new int2(gridManager.Width, gridManager.Height);
 
             var trees = new int2[treeList.Length];
             NativeArray<int2>.Copy(treeList.AsArray(), trees);
@@ -76,7 +85,7 @@ namespace Grid.SaveLoad
             var dropPoints = new int2[dropPointList.Length];
             NativeArray<int2>.Copy(dropPointList.AsArray(), dropPoints);
 
-            SavedGridStateManager.Instance.SaveDataToSaveSlot(trees, beds, dropPoints);
+            SavedGridStateManager.Instance.SaveDataToSaveSlot(gridSize, trees, beds, dropPoints);
             treeList.Dispose();
             bedList.Dispose();
             dropPointList.Dispose();
@@ -84,6 +93,8 @@ namespace Grid.SaveLoad
 
         private void LoadSavedGridState()
         {
+            Dependency.Complete();
+
             // DELETE CURRENT STATE
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
@@ -109,6 +120,11 @@ namespace Grid.SaveLoad
             var trees = SavedGridStateManager.Instance.LoadSavedTrees();
             var beds = SavedGridStateManager.Instance.LoadSavedBeds();
             var dropPoints = SavedGridStateManager.Instance.LoadSavedDropPoints();
+            var gridSize = SavedGridStateManager.Instance.TryLoadSavedGridSize(new int2(gridManager.Width, gridManager.Height));
+            GridDimensionsConfig.Instance.Width = gridSize.x;
+            GridDimensionsConfig.Instance.Height = gridSize.y;
+            GridManagerSystem.TryUpdateGridDimensions(ref gridManager);
+
             SavedGridStateManager.Instance.OnLoaded();
             // TODO: Convert spawnManager to singleton
             var spawnManager = GetSpawnManager();
@@ -127,8 +143,15 @@ namespace Grid.SaveLoad
 
             for (var i = 0; i < dropPoints.Length; i++)
             {
-                gridManager.SetIsWalkable(dropPoints[i], false);
-                InstantiateAtPosition(spawnManager.DropPointPrefab, dropPoints[i]);
+                if (!gridManager.IsPositionInsideGrid(dropPoints[i]))
+                {
+                    Debug.Log("Not inside grid bounds");
+                }
+                else
+                {
+                    gridManager.SetIsWalkable(dropPoints[i], false);
+                    InstantiateAtPosition(spawnManager.DropPointPrefab, dropPoints[i]);
+                }
             }
 
             SystemAPI.SetSingleton(gridManager);

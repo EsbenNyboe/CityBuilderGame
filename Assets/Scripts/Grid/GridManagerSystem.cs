@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using Random = Unity.Mathematics.Random;
 
 public partial struct GridManager : IComponentData
@@ -47,37 +48,50 @@ public partial class GridManagerSystem : SystemBase
 
     protected override void OnUpdate()
     {
+        Dependency.Complete();
         var gridManager = SystemAPI.GetSingleton<GridManager>();
         gridManager.RandomSeed++;
         gridManager.Random = Random.CreateFromIndex(gridManager.RandomSeed);
-        TryUpdateGridDimensions(ref gridManager);
+        if (TryUpdateGridDimensions(ref gridManager))
+        {
+            using var ecb = new EntityCommandBuffer(Allocator.Temp);
+            foreach (var (dropPoint, localTransform, entity) in
+                     SystemAPI.Query<RefRO<DropPoint>, RefRO<LocalTransform>>().WithEntityAccess())
+            {
+                if (!gridManager.IsPositionInsideGrid(localTransform.ValueRO.Position))
+                {
+                    ecb.DestroyEntity(entity);
+                }
+            }
+
+            ecb.Playback(EntityManager);
+        }
+
         SystemAPI.SetSingleton(gridManager);
     }
 
-    private bool TryUpdateGridDimensions(ref GridManager gridManager)
+    public static bool TryUpdateGridDimensions(ref GridManager gridManager)
     {
         var config = GridDimensionsConfig.Instance;
-        if (config.GridSize.x <= 0 || config.GridSize.y <= 0)
+        if (config.Width <= 0 || config.Height <= 0)
         {
-            config.GridSize.x = DefaultWidth;
-            config.GridSize.y = DefaultHeight;
+            config.Width = DefaultWidth;
+            config.Height = DefaultHeight;
             return false;
         }
 
-        if (config.GridSize.x == gridManager.Width && config.GridSize.y == gridManager.Height)
+        if (config.Width == gridManager.Width && config.Height == gridManager.Height)
         {
             return false;
         }
 
-        Dependency.Complete();
+        var oldHeight = gridManager.Height;
         var oldWalkableGrid = gridManager.WalkableGrid;
         var oldDamageableGrid = gridManager.DamageableGrid;
         var oldInteractableGrid = gridManager.InteractableGrid;
         var oldOccupiableGrid = gridManager.OccupiableGrid;
-        var oldGridSize = new int2(gridManager.Width, gridManager.Height);
-        var newGridSize = config.GridSize;
-        CreateGrids(ref gridManager, newGridSize.x, newGridSize.y);
-        ReapplyGridState(ref gridManager, oldGridSize, newGridSize, oldWalkableGrid, oldDamageableGrid, oldInteractableGrid, oldOccupiableGrid);
+        CreateGrids(ref gridManager, config.Width, config.Height);
+        ReapplyGridState(ref gridManager, oldHeight, oldWalkableGrid, oldDamageableGrid, oldInteractableGrid, oldOccupiableGrid);
 
         oldWalkableGrid.Dispose();
         oldDamageableGrid.Dispose();
@@ -87,14 +101,19 @@ public partial class GridManagerSystem : SystemBase
         return true;
     }
 
-    private void ReapplyGridState(ref GridManager gridManager, int2 oldGridSize, int2 newGridSize, NativeArray<WalkableCell> oldWalkableGrid,
+    private static void ReapplyGridState(ref GridManager gridManager, int oldHeight, NativeArray<WalkableCell> oldWalkableGrid,
         NativeArray<DamageableCell> oldDamageableGrid, NativeArray<InteractableCell> oldInteractableGrid,
         NativeArray<OccupiableCell> oldOccupiableGrid)
     {
         var length = math.min(gridManager.WalkableGrid.Length, oldWalkableGrid.Length);
         for (var i = 0; i < length; i++)
         {
-            var cell = GetXY(i, oldGridSize.y);
+            var cell = GetXY(i, oldHeight);
+            if (cell.x >= gridManager.Width || cell.y >= gridManager.Height)
+            {
+                continue;
+            }
+
             gridManager.SetIsWalkable(cell, oldWalkableGrid[i].IsWalkable);
             gridManager.SetHealth(cell, oldDamageableGrid[i].Health);
             gridManager.SetInteractableCellType(cell, oldInteractableGrid[i].InteractableCellType);
@@ -102,7 +121,7 @@ public partial class GridManagerSystem : SystemBase
         }
     }
 
-    private int2 GetXY(int i, int height)
+    private static int2 GetXY(int i, int height)
     {
         return new int2(i / height, i % height);
     }

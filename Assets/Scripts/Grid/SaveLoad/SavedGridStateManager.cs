@@ -59,11 +59,12 @@ namespace Grid.SaveLoad
             }
         }
 
-        public void SaveDataToSaveSlot(int2[] trees, int2[] beds, int2[] dropPoints)
+        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] dropPoints)
         {
             Assert.IsTrue(SlotToSave > -1 && SlotToSave < _saveSlots.Length);
 
             var saveSlot = _saveSlots[SlotToSave];
+            saveSlot.GridSize = gridSize;
             saveSlot.Trees = trees;
             saveSlot.Beds = beds;
             saveSlot.DropPoints = dropPoints;
@@ -103,6 +104,17 @@ namespace Grid.SaveLoad
         {
             Assert.IsTrue(SlotToLoad > -1 && SlotToLoad < _saveSlots.Length);
             return _saveSlots[SlotToLoad].DropPoints;
+        }
+
+        public int2 TryLoadSavedGridSize(int2 currentGridSize)
+        {
+            var gridSize = _saveSlots[SlotToLoad].GridSize;
+            if (gridSize.x < 1 || gridSize.y < 1)
+            {
+                return currentGridSize;
+            }
+
+            return gridSize;
         }
 
         public void OnLoaded()
