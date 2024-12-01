@@ -266,7 +266,9 @@ public partial struct GridManager
                 }
 
                 var relativePosition = center + RelativePositionList[currentIndex];
-                if (IsEmptyCell(relativePosition) && (ignoreSection || IsMatchingSection(center, relativePosition)))
+                if (IsPositionInsideGrid(relativePosition) &&
+                    IsEmptyCell(relativePosition) &&
+                    (ignoreSection || IsMatchingSection(center, relativePosition)))
                 {
                     nearbyCell = relativePosition;
                     return true;

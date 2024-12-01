@@ -57,8 +57,43 @@ public partial class GridManagerSystem : SystemBase
 
         if (TryUpdateGridDimensions(ref gridManager))
         {
+            InvalidatePathingOutsideOfGrid(gridManager);
             DestroyEntitiesOutsideOfGrid(gridManager);
         }
+    }
+
+    private void InvalidatePathingOutsideOfGrid(GridManager gridManager)
+    {
+        using var ecb = new EntityCommandBuffer(Allocator.Temp);
+        foreach (var (localTransform, pathPositions, pathFollow, entity) in SystemAPI
+                     .Query<RefRO<LocalTransform>, DynamicBuffer<PathPosition>, RefRO<PathFollow>>().WithEntityAccess())
+        {
+            if (!pathFollow.ValueRO.IsMoving())
+            {
+                continue;
+            }
+
+            if (gridManager.IsPositionInsideGrid(pathPositions[0].Position))
+            {
+                continue;
+            }
+
+            var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+            if (gridManager.TryGetNearbyEmptyCellSemiRandom(cell, out var nearbyEmptyCell))
+            {
+                ecb.AddComponent(entity, new Pathfinding
+                {
+                    StartPosition = cell,
+                    EndPosition = nearbyEmptyCell
+                });
+            }
+            else
+            {
+                ecb.SetComponentEnabled<IsAlive>(entity, false);
+            }
+        }
+
+        ecb.Playback(EntityManager);
     }
 
     private void DestroyEntitiesOutsideOfGrid(GridManager gridManager)
