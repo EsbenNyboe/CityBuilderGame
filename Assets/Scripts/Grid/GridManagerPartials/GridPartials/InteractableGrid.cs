@@ -121,5 +121,17 @@ public partial struct GridManager
         SetInteractableNone(gridIndex);
     }
 
+    public void SetInteractableCellType(Vector3 position, InteractableCellType type)
+    {
+        var cell = GridHelpers.GetXY(position);
+        SetInteractableCellType(cell, type);
+    }
+
+    public void SetInteractableCellType(int2 cell, InteractableCellType type)
+    {
+        var i = GetIndex(cell);
+        SetInteractableCellType(i, type);
+    }
+
     #endregion
 }

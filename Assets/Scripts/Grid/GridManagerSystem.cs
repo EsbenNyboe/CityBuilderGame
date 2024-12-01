@@ -1,6 +1,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Random = Unity.Mathematics.Random;
 
 public partial struct GridManager : IComponentData
 {
@@ -69,12 +70,42 @@ public partial class GridManagerSystem : SystemBase
         }
 
         Dependency.Complete();
-        DisposeGridData(gridManager);
-        CreateGrids(ref gridManager, config.GridSize.x, config.GridSize.y);
+        var oldWalkableGrid = gridManager.WalkableGrid;
+        var oldDamageableGrid = gridManager.DamageableGrid;
+        var oldInteractableGrid = gridManager.InteractableGrid;
+        var oldOccupiableGrid = gridManager.OccupiableGrid;
+        var oldGridSize = new int2(gridManager.Width, gridManager.Height);
+        var newGridSize = config.GridSize;
+        CreateGrids(ref gridManager, newGridSize.x, newGridSize.y);
+        ReapplyGridState(ref gridManager, oldGridSize, newGridSize, oldWalkableGrid, oldDamageableGrid, oldInteractableGrid, oldOccupiableGrid);
+
+        oldWalkableGrid.Dispose();
+        oldDamageableGrid.Dispose();
+        oldInteractableGrid.Dispose();
+        oldOccupiableGrid.Dispose();
         GridVisualsManager.Instance.OnGridSizeChanged();
         return true;
     }
 
+    private void ReapplyGridState(ref GridManager gridManager, int2 oldGridSize, int2 newGridSize, NativeArray<WalkableCell> oldWalkableGrid,
+        NativeArray<DamageableCell> oldDamageableGrid, NativeArray<InteractableCell> oldInteractableGrid,
+        NativeArray<OccupiableCell> oldOccupiableGrid)
+    {
+        var length = math.min(gridManager.WalkableGrid.Length, oldWalkableGrid.Length);
+        for (var i = 0; i < length; i++)
+        {
+            var cell = GetXY(i, oldGridSize.y);
+            gridManager.SetIsWalkable(cell, oldWalkableGrid[i].IsWalkable);
+            gridManager.SetHealth(cell, oldDamageableGrid[i].Health);
+            gridManager.SetInteractableCellType(cell, oldInteractableGrid[i].InteractableCellType);
+            gridManager.SetOccupant(cell, oldOccupiableGrid[i].Occupant);
+        }
+    }
+
+    private int2 GetXY(int i, int height)
+    {
+        return new int2(i / height, i % height);
+    }
 
     protected override void OnDestroy()
     {

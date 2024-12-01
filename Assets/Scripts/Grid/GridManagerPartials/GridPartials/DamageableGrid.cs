@@ -100,5 +100,19 @@ public partial struct GridManager
         SetHealthToZero(i);
     }
 
+    // Note: Remember to call SetComponent after this method
+    public void SetHealth(Vector3 position, float health)
+    {
+        var cell = GridHelpers.GetXY(position);
+        SetHealth(cell, health);
+    }
+
+    // Note: Remember to call SetComponent after this method
+    public void SetHealth(int2 cell, float health)
+    {
+        var i = GetIndex(cell.x, cell.y);
+        SetHealth(i, health);
+    }
+
     #endregion
 }
