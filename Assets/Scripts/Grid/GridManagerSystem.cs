@@ -79,7 +79,8 @@ public partial class GridManagerSystem : SystemBase
             }
 
             var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
-            if (gridManager.TryGetNearbyEmptyCellSemiRandom(cell, out var nearbyEmptyCell))
+            if (gridManager.IsPositionInsideGrid(cell) &&
+                gridManager.TryGetNearbyEmptyCellSemiRandom(cell, out var nearbyEmptyCell))
             {
                 ecb.AddComponent(entity, new Pathfinding
                 {

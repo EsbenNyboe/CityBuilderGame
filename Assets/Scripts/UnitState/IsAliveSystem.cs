@@ -38,8 +38,7 @@ namespace UnitState
             using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
             using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
             using var invalidSocialEventsWithVictim = new NativeList<Entity>(Allocator.Temp);
-            var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(state.WorldUnmanaged);
+            using var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             // Cleanup social events
             foreach (var (socialEvent, entity) in SystemAPI.Query<RefRO<SocialEvent>>().WithEntityAccess())
@@ -168,6 +167,7 @@ namespace UnitState
             state.EntityManager.DestroyEntity(deadUnits);
             state.EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
             state.EntityManager.DestroyEntity(invalidSocialEventsWithVictim.AsArray());
+            ecb.Playback(state.EntityManager);
         }
     }
 }
