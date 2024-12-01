@@ -47,8 +47,9 @@ public static class PathHelpers
     {
         if (isDebugging)
         {
-            if (endCell.x < 0 || endCell.x >= GridManagerSystem.Width || endCell.y < 0 ||
-                endCell.y > GridManagerSystem.Height)
+            // TODO: Use non-static Width and Height here:
+            if (endCell.x < 0 || endCell.x >= GridManagerSystem.DefaultWidth || endCell.y < 0 ||
+                endCell.y > GridManagerSystem.DefaultHeight)
             {
                 DebugHelper.LogError("Path target is out of bounds!");
             }

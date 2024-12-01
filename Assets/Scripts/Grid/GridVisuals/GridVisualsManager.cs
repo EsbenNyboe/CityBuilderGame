@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class GridVisualsManager : MonoBehaviour
 {
+    public static GridVisualsManager Instance;
+
     [SerializeField] private MeshFilter _pathMeshFilter;
     [SerializeField] private MeshFilter _pathDebugMeshFilter;
     [SerializeField] private MeshFilter _treeMeshFilter;
@@ -24,12 +26,7 @@ public class GridVisualsManager : MonoBehaviour
 
     private void Awake()
     {
-        _pathMeshFilter.mesh = _pathGridVisual.CreateMesh();
-        _pathDebugMeshFilter.mesh = _pathGridDebugVisual.CreateMesh();
-        _treeMeshFilter.mesh = _treeGridVisual.CreateMesh();
-        _interactableMeshFilter.mesh = _interactableGridVisual.CreateMesh();
-        _healthBarMeshFilter.mesh = _healthbarGridVisual.CreateMesh();
-        _occupationDebugMeshFilter.mesh = _occupationDebugGridVisual.CreateMesh();
+        Instance = this;
     }
 
     private void Start()
@@ -49,6 +46,13 @@ public class GridVisualsManager : MonoBehaviour
         if (!_isInitialized)
         {
             _isInitialized = true;
+
+            _pathMeshFilter.mesh = _pathGridVisual.CreateMesh();
+            _pathDebugMeshFilter.mesh = _pathGridDebugVisual.CreateMesh();
+            _treeMeshFilter.mesh = _treeGridVisual.CreateMesh();
+            _interactableMeshFilter.mesh = _interactableGridVisual.CreateMesh();
+            _healthBarMeshFilter.mesh = _healthbarGridVisual.CreateMesh();
+            _occupationDebugMeshFilter.mesh = _occupationDebugGridVisual.CreateMesh();
 
             var gridSize = gridManager.WalkableGrid.Length;
             _pathGridVisual.InitializeMesh(gridSize);
@@ -74,6 +78,11 @@ public class GridVisualsManager : MonoBehaviour
         _hasUpdatedOnce = true;
     }
 
+    public void OnGridSizeChanged()
+    {
+        _isInitialized = false;
+        _hasUpdatedOnce = false;
+    }
 
     private void TryUpdateWalkableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
     {

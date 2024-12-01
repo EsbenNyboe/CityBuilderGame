@@ -24,7 +24,7 @@ public class SaveSlotUI : MonoBehaviour
             Destroy(_texture2D);
         }
 
-        _texture2D = new Texture2D(GridManagerSystem.Width, GridManagerSystem.Height);
+        _texture2D = new Texture2D(GridManagerSystem.DefaultWidth, GridManagerSystem.DefaultHeight);
 
         // Black background
         for (var y = 0; y < _texture2D.height; y++)

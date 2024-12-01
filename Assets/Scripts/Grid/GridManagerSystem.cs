@@ -31,18 +31,13 @@ public partial struct GridManager : IComponentData
 public partial class GridManagerSystem : SystemBase
 {
     private const int MaxHealth = 100;
-    public const int Width = 105;
-    public const int Height = 95;
+    public const int DefaultWidth = 105;
+    public const int DefaultHeight = 95;
 
     protected override void OnCreate()
     {
-        var gridManager = new GridManager
-        {
-            Width = Width,
-            Height = Height
-        };
-
-        CreateGrids(ref gridManager);
+        var gridManager = new GridManager();
+        CreateGrids(ref gridManager, DefaultWidth, DefaultHeight);
         CreateGridSearchHelpers(ref gridManager);
 
         EntityManager.CreateSingleton<GridManager>();
@@ -54,17 +49,37 @@ public partial class GridManagerSystem : SystemBase
         var gridManager = SystemAPI.GetSingleton<GridManager>();
         gridManager.RandomSeed++;
         gridManager.Random = Random.CreateFromIndex(gridManager.RandomSeed);
+        TryUpdateGridDimensions(ref gridManager);
         SystemAPI.SetSingleton(gridManager);
     }
+
+    private bool TryUpdateGridDimensions(ref GridManager gridManager)
+    {
+        var config = GridDimensionsConfig.Instance;
+        if (config.GridSize.x <= 0 || config.GridSize.y <= 0)
+        {
+            config.GridSize.x = DefaultWidth;
+            config.GridSize.y = DefaultHeight;
+            return false;
+        }
+
+        if (config.GridSize.x == gridManager.Width && config.GridSize.y == gridManager.Height)
+        {
+            return false;
+        }
+
+        Dependency.Complete();
+        DisposeGridData(gridManager);
+        CreateGrids(ref gridManager, config.GridSize.x, config.GridSize.y);
+        GridVisualsManager.Instance.OnGridSizeChanged();
+        return true;
+    }
+
 
     protected override void OnDestroy()
     {
         var gridManager = SystemAPI.GetSingleton<GridManager>();
-
-        gridManager.WalkableGrid.Dispose();
-        gridManager.DamageableGrid.Dispose();
-        gridManager.OccupiableGrid.Dispose();
-        gridManager.InteractableGrid.Dispose();
+        DisposeGridData(gridManager);
 
         // GridSearchHelpers:
         gridManager.NeighbourDeltas.Dispose();
@@ -73,10 +88,21 @@ public partial class GridManagerSystem : SystemBase
         gridManager.RelativePositionRingInfoList.Dispose();
     }
 
-    private static void CreateGrids(ref GridManager gridManager)
+    public static void DisposeGridData(GridManager gridManager)
     {
+        gridManager.WalkableGrid.Dispose();
+        gridManager.DamageableGrid.Dispose();
+        gridManager.OccupiableGrid.Dispose();
+        gridManager.InteractableGrid.Dispose();
+    }
+
+    public static void CreateGrids(ref GridManager gridManager, int width, int height)
+    {
+        gridManager.Width = width;
+        gridManager.Height = height;
+
         gridManager.WalkableGridIsDirty = true;
-        gridManager.WalkableGrid = new NativeArray<WalkableCell>(Width * Height, Allocator.Persistent);
+        gridManager.WalkableGrid = new NativeArray<WalkableCell>(width * height, Allocator.Persistent);
         for (var i = 0; i < gridManager.WalkableGrid.Length; i++)
         {
             var cell = gridManager.WalkableGrid[i];
@@ -87,7 +113,7 @@ public partial class GridManagerSystem : SystemBase
         }
 
         gridManager.DamageableGridIsDirty = true;
-        gridManager.DamageableGrid = new NativeArray<DamageableCell>(Width * Height, Allocator.Persistent);
+        gridManager.DamageableGrid = new NativeArray<DamageableCell>(width * height, Allocator.Persistent);
         for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
         {
             var cell = gridManager.DamageableGrid[i];
@@ -98,7 +124,7 @@ public partial class GridManagerSystem : SystemBase
         }
 
         gridManager.OccupiableGridIsDirty = true;
-        gridManager.OccupiableGrid = new NativeArray<OccupiableCell>(Width * Height, Allocator.Persistent);
+        gridManager.OccupiableGrid = new NativeArray<OccupiableCell>(width * height, Allocator.Persistent);
         for (var i = 0; i < gridManager.OccupiableGrid.Length; i++)
         {
             var cell = gridManager.OccupiableGrid[i];
@@ -108,7 +134,7 @@ public partial class GridManagerSystem : SystemBase
         }
 
         gridManager.InteractableGridIsDirty = true;
-        gridManager.InteractableGrid = new NativeArray<InteractableCell>(Width * Height, Allocator.Persistent);
+        gridManager.InteractableGrid = new NativeArray<InteractableCell>(width * height, Allocator.Persistent);
         for (var i = 0; i < gridManager.InteractableGrid.Length; i++)
         {
             var cell = gridManager.InteractableGrid[i];
