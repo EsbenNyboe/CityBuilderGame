@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using TMPro;
 using Unity.Assertions;
 using Unity.Mathematics;
 using UnityEngine;
@@ -79,6 +78,7 @@ namespace Grid.SaveLoad
             Assert.IsTrue(SlotToDelete > -1 && SlotToDelete < _saveSlots.Length);
 
             var saveSlot = _saveSlots[SlotToDelete];
+            saveSlot.GridSize = 0;
             saveSlot.Trees = Array.Empty<int2>();
             saveSlot.Beds = Array.Empty<int2>();
             saveSlot.DropPoints = Array.Empty<int2>();
