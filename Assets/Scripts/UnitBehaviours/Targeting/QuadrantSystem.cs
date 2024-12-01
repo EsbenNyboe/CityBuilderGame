@@ -76,11 +76,11 @@ namespace UnitBehaviours.Targeting
                 quadrantMultiHashMap.Capacity = _entityQuery.CalculateEntityCount();
             }
 
-            new SetQuadrantDataHashMapJob
+            state.Dependency = new SetQuadrantDataHashMapJob
             {
                 QuadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(),
                 GridManager = gridManager
-            }.ScheduleParallel(_entityQuery);
+            }.ScheduleParallel(_entityQuery, state.Dependency);
         }
 
         private static void DebugDrawQuadrant(float3 position)

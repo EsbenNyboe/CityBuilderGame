@@ -1,3 +1,4 @@
+using UnitState;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -52,22 +53,40 @@ public partial class GridManagerSystem : SystemBase
         var gridManager = SystemAPI.GetSingleton<GridManager>();
         gridManager.RandomSeed++;
         gridManager.Random = Random.CreateFromIndex(gridManager.RandomSeed);
+        SystemAPI.SetSingleton(gridManager);
+
         if (TryUpdateGridDimensions(ref gridManager))
         {
-            using var ecb = new EntityCommandBuffer(Allocator.Temp);
-            foreach (var (dropPoint, localTransform, entity) in
-                     SystemAPI.Query<RefRO<DropPoint>, RefRO<LocalTransform>>().WithEntityAccess())
-            {
-                if (!gridManager.IsPositionInsideGrid(localTransform.ValueRO.Position))
-                {
-                    ecb.DestroyEntity(entity);
-                }
-            }
+            DestroyEntitiesOutsideOfGrid(gridManager);
+        }
+    }
 
-            ecb.Playback(EntityManager);
+    private void DestroyEntitiesOutsideOfGrid(GridManager gridManager)
+    {
+        using var ecb = new EntityCommandBuffer(Allocator.Temp);
+
+        foreach (var (dropPoint, localTransform, entity) in
+                 SystemAPI.Query<RefRO<DropPoint>, RefRO<LocalTransform>>().WithEntityAccess())
+        {
+            if (!gridManager.IsPositionInsideGrid(localTransform.ValueRO.Position))
+            {
+                ecb.DestroyEntity(entity);
+            }
         }
 
+        foreach (var (isAlive, localTransform, entity) in SystemAPI.Query<RefRO<IsAlive>, RefRO<LocalTransform>>().WithEntityAccess())
+        {
+            if (!gridManager.IsPositionInsideGrid(localTransform.ValueRO.Position))
+            {
+                ecb.SetComponentEnabled<IsAlive>(entity, false);
+            }
+        }
+
+        ecb.Playback(EntityManager);
         SystemAPI.SetSingleton(gridManager);
+
+        // HACK:
+        World.GetExistingSystem<IsAliveSystem>().Update(World.Unmanaged);
     }
 
     public static bool TryUpdateGridDimensions(ref GridManager gridManager)
