@@ -43,7 +43,7 @@ namespace Grid.SaveLoad
             for (var i = 0; i < _saveSlots.Length; i++)
             {
                 var saveSlotUI = Instantiate(_saveSlotUIPrefab, _saveSlotTransformParent);
-                saveSlotUI.GetComponentInChildren<TextMeshProUGUI>().text = "SaveSlot " + (i + 1);
+                // saveSlotUI.GetComponentInChildren<TextMeshProUGUI>().text = "SaveSlot " + (i + 1);
                 _saveSlotUIs[i] = saveSlotUI.GetComponent<SaveSlotUI>();
             }
 
