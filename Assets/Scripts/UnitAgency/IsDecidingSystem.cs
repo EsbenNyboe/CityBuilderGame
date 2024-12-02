@@ -41,7 +41,7 @@ namespace UnitAgency
                 ComponentType.ReadOnly<IsDeciding>(),
                 ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<PathFollow>(),
-                ComponentType.ReadOnly<Inventory>(),
+                ComponentType.ReadWrite<Inventory>(),
                 ComponentType.ReadOnly<MoodSleepiness>(),
                 ComponentType.ReadOnly<MoodLoneliness>(),
                 ComponentType.ReadWrite<MoodInitiative>(),
@@ -93,7 +93,7 @@ namespace UnitAgency
                 in Entity entity,
                 in LocalTransform localTransform,
                 in PathFollow pathFollow,
-                in Inventory inventory,
+                ref Inventory inventory,
                 in MoodSleepiness moodSleepiness,
                 in MoodLoneliness moodLoneliness,
                 ref MoodInitiative moodInitiative,
@@ -101,8 +101,8 @@ namespace UnitAgency
             {
                 EcbParallelWriter.RemoveComponent<IsDeciding>(i, entity);
 
-                var unitPosition = localTransform.Position;
-                var cell = GridHelpers.GetXY(unitPosition);
+                var position = localTransform.Position;
+                var cell = GridHelpers.GetXY(position);
                 var section = GridManager.GetSection(cell);
 
                 var isSleepy = moodSleepiness.Sleepiness > 0.2f;
@@ -117,7 +117,7 @@ namespace UnitAgency
 
                 if (hasInitiative &&
                     QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.BoarQuadrantMap, GridManager,
-                        quadrantsToSearch, unitPosition, entity,
+                        quadrantsToSearch, position, entity,
                         out var nearbyBoar, out var distanceToBoar) &&
                     distanceToBoar < IsThrowingSpearSystem.Range)
                 {
@@ -132,6 +132,16 @@ namespace UnitAgency
                     {
                         MinTimeOfAction = ElapsedTime + randomDelay
                     });
+
+                    if (HasLogOfWood(inventory))
+                    {
+                        EcbParallelWriter.AddComponent(i, EcbParallelWriter.CreateEntity(i), new DroppedItem
+                        {
+                            Item = inventory.CurrentItem,
+                            Position = new float2(position.x, position.y)
+                        });
+                        inventory.CurrentItem = InventoryItem.None;
+                    }
                 }
                 else if (HasLogOfWood(inventory))
                 {
@@ -145,12 +155,12 @@ namespace UnitAgency
                              entity,
                              socialRelationships.Relationships,
                              SocialDynamicsManager.ThresholdForBecomingAnnoying,
-                             unitPosition,
+                             position,
                              QuadrantDataManager,
                              out var annoyingDude))
                 {
                     var annoyingDudePosition = LocalTransformLookup[annoyingDude].Position;
-                    var distanceToTarget = math.distance(unitPosition, annoyingDudePosition);
+                    var distanceToTarget = math.distance(position, annoyingDudePosition);
                     if (distanceToTarget <= IsAttemptingMurderSystem.AttackRange)
                     {
                         EcbParallelWriter.AddComponent(i, entity, new IsMurdering
@@ -170,7 +180,7 @@ namespace UnitAgency
                         });
                     }
                 }
-                else if (isSleepy && GridManager.IsBedAvailableToUnit(unitPosition, entity))
+                else if (isSleepy && GridManager.IsBedAvailableToUnit(position, entity))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSleeping());
                 }
@@ -194,7 +204,7 @@ namespace UnitAgency
                             (socialRelationships.Relationships[neighbourEntity] > friendFactor ||
                              !QuadrantSystem.TryFindClosestFriend(socialRelationships,
                                  QuadrantDataManager.VillagerQuadrantMap, GridManager,
-                                 quadrantsToSearch, unitPosition, entity, out _, out _)))
+                                 quadrantsToSearch, position, entity, out _, out _)))
                         {
                             EcbParallelWriter.AddComponent(i, entity, new IsTalking());
                             EcbParallelWriter.SetComponentEnabled<IsTalking>(i, entity, false);

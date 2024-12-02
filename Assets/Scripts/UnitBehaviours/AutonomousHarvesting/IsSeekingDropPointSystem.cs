@@ -5,7 +5,6 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
@@ -41,11 +40,12 @@ namespace UnitBehaviours.AutonomousHarvesting
                     continue;
                 }
 
-                var unitWorldPosition = localTransform.ValueRO.Position;
-                var unitGridPosition = GridHelpers.GetXY(unitWorldPosition);
-                var closestDropPointEntrance = FindClosestDropPointEntrance(ref state, gridManager, unitWorldPosition);
-                if (unitGridPosition.Equals(closestDropPointEntrance))
+                var position = localTransform.ValueRO.Position;
+                var cell = GridHelpers.GetXY(position);
+                var closestDropPointEntrance = FindClosestDropPointEntrance(ref state, gridManager, position);
+                if (cell.Equals(closestDropPointEntrance))
                 {
+                    // Drop item at drop point
                     inventory.ValueRW.CurrentItem = InventoryItem.None;
                     ecb.RemoveComponent<IsSeekingDropPoint>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
@@ -54,12 +54,19 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 if (closestDropPointEntrance.x > -1)
                 {
-                    PathHelpers.TrySetPath(ecb, entity, unitGridPosition, closestDropPointEntrance, isDebugging);
+                    PathHelpers.TrySetPath(ecb, entity, cell, closestDropPointEntrance, isDebugging);
                 }
                 else
                 {
-                    Debug.Log("TODO: Drop item on ground");
                     // Drop item on ground
+                    ecb.AddComponent(ecb.CreateEntity(), new DroppedItem
+                    {
+                        Item = inventory.ValueRO.CurrentItem,
+                        Position = new float2(position.x, position.y)
+                    });
+                    inventory.ValueRW.CurrentItem = InventoryItem.None;
+                    ecb.RemoveComponent<IsSeekingDropPoint>(entity);
+                    ecb.AddComponent<IsDeciding>(entity);
                 }
             }
         }

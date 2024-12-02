@@ -20,7 +20,8 @@ public struct WorldSpriteSheetSortingManager : IComponentData
 [BurstCompile]
 public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 {
-    private EntityQuery _entityQuery;
+    private EntityQuery _unitQuery;
+    private EntityQuery _droppedItemQuery;
 
     public void OnCreate(ref SystemState state)
     {
@@ -32,8 +33,9 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             SpriteMatrixArray = new NativeArray<Matrix4x4>(1, Allocator.TempJob),
             SpriteUvArray = new NativeArray<Vector4>(1, Allocator.TempJob)
         });
-        _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetAnimation>(),
+        _unitQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetAnimation>(),
             ComponentType.ReadOnly<LocalToWorld>(), ComponentType.ReadOnly<Inventory>());
+        _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<DroppedItem>());
 
         state.RequireForUpdate<BeginPresentationEntityCommandBufferSystem.Singleton>();
         state.RequireForUpdate<WorldSpriteSheetSortingManager>();
@@ -57,7 +59,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         }
 
         var spriteSheetsToSort =
-            GetDataToSort(ref state, out var yTop, out var yBottom, out var inventoryRenderDataQueue);
+            GetDataToSort(ref state, worldSpriteSheetManager, out var yTop, out var yBottom, out var inventoryRenderDataQueue);
         var visibleUnitsCount = spriteSheetsToSort.Count;
         var visibleItemsCount = inventoryRenderDataQueue.Count;
 
@@ -138,8 +140,8 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         return newDependency;
     }
 
-    private NativeQueue<RenderData> GetDataToSort(ref SystemState state, out float yTop, out float yBottom,
-        out NativeQueue<InventoryRenderData> inventoryRenderDataQueue)
+    private NativeQueue<RenderData> GetDataToSort(ref SystemState state, WorldSpriteSheetManager worldSpriteSheetManager,
+        out float yTop, out float yBottom, out NativeQueue<InventoryRenderData> inventoryRenderDataQueue)
     {
         var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
         var cameraPosition = cameraInformation.CameraPosition;
@@ -166,7 +168,17 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             YBottom = yBottom,
             NativeQueue = spriteSheetsToSort,
             InventoryRenderDataQueue = inventoryRenderDataQueue
-        }.Run(_entityQuery);
+        }.Run(_unitQuery);
+
+        new CullJobOnDroppedItems
+        {
+            XLeft = xLeft,
+            XRight = xRight,
+            YTop = yTop,
+            YBottom = yBottom,
+            WorldSpriteSheetManager = worldSpriteSheetManager,
+            NativeQueue = spriteSheetsToSort
+        }.Run(_droppedItemQuery);
 
         return spriteSheetsToSort;
     }
@@ -412,6 +424,53 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
                     Amount = 1
                 });
             }
+        }
+    }
+
+    [BurstCompile]
+    private partial struct CullJobOnDroppedItems : IJobEntity
+    {
+        [ReadOnly] public float XLeft; // Left most cull position
+        [ReadOnly] public float XRight; // Right most cull position
+        [ReadOnly] public float YTop; // Top most cull position
+        [ReadOnly] public float YBottom; // Bottom most cull position
+
+        [ReadOnly] [NativeDisableContainerSafetyRestriction]
+        public WorldSpriteSheetManager WorldSpriteSheetManager;
+
+        public NativeQueue<RenderData> NativeQueue;
+
+        public void Execute(in Entity Entity, in DroppedItem droppedItem)
+        {
+            var position = new float3(droppedItem.Position.x, droppedItem.Position.y, 0);
+            var positionX = position.x;
+            if (!(positionX > XLeft) || !(positionX < XRight))
+            {
+                // Item is not within horizontal view-bounds. No need to render.
+                return;
+            }
+
+            var positionY = position.y;
+            if (!(positionY > YBottom) || !(positionY < YTop))
+            {
+                // Item is not within vertical view-bounds. No need to render.
+                return;
+            }
+
+            WorldSpriteSheetManager.GetInventoryItemCoordinates(droppedItem.Item, out var column, out var row);
+            var columnScale = WorldSpriteSheetManager.ColumnScale;
+            var rowScale = WorldSpriteSheetManager.RowScale;
+            const float groundOffset = 0.4f;
+            var renderPosition = new float3(position.x, position.y - groundOffset, position.z);
+            var renderData = new RenderData
+            {
+                Entity = Entity,
+                Position = position,
+                Matrix = Matrix4x4.TRS(renderPosition, quaternion.identity, Vector3.one),
+                Uv = new Vector4(columnScale, rowScale, column * columnScale, row * rowScale)
+            };
+
+            NativeQueue.Enqueue(renderData);
         }
     }
 
