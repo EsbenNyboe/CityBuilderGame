@@ -43,7 +43,7 @@ namespace UnitAgency
                 var position = localTransform.ValueRO.Position;
 
                 if (!pathFollow.ValueRO.IsMoving() &&
-                    QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap, gridManager, quadrantsToSearch, position, entity,
+                    QuadrantSystem.TryFindClosestEntity(quadrantDataManager.VillagerQuadrantMap, gridManager, quadrantsToSearch, position, entity,
                         out var closestTargetEntity, out var closestTargetDistance))
                 {
                     if (closestTargetDistance <= IsAttemptingMurderSystem.AttackRange)

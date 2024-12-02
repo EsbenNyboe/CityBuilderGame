@@ -200,7 +200,7 @@ namespace UnitAgency
                             GridManager.TryGetOccupant(neighbour, out var neighbourEntity) &&
                             (socialRelationships.Relationships[neighbourEntity] > friendFactor ||
                              !QuadrantSystem.TryFindClosestFriend(socialRelationships,
-                                 QuadrantDataManager.QuadrantMultiHashMap, QuadrantSystem.GetHashMapKeyFromPosition(unitPosition),
+                                 QuadrantDataManager.VillagerQuadrantMap, QuadrantSystem.GetHashMapKeyFromPosition(unitPosition),
                                  section, unitPosition, entity, out _, out _)))
                         {
                             EcbParallelWriter.AddComponent(i, entity, new IsTalking());
@@ -267,7 +267,7 @@ namespace UnitAgency
         )
         {
             var quadrant = QuadrantSystem.GetHashMapKeyFromPosition(position);
-            if (!quadrantDataManager.QuadrantMultiHashMap.TryGetFirstValue(quadrant, out var data, out var iterator))
+            if (!quadrantDataManager.VillagerQuadrantMap.TryGetFirstValue(quadrant, out var data, out var iterator))
             {
                 annoyingDude = Entity.Null;
                 return false;
@@ -293,7 +293,7 @@ namespace UnitAgency
 
                 peopleLeftToCheck--;
             } while (peopleLeftToCheck > 0 &&
-                     quadrantDataManager.QuadrantMultiHashMap.TryGetNextValue(out data, ref iterator));
+                     quadrantDataManager.VillagerQuadrantMap.TryGetNextValue(out data, ref iterator));
 
             annoyingDude = Entity.Null;
             return false;

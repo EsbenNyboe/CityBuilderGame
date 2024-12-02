@@ -38,7 +38,7 @@ namespace UnitBehaviours.Targeting
                 }
 
                 var position = localTransform.ValueRO.Position;
-                if (!QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap, gridManager, quadrantsToSearch,
+                if (!QuadrantSystem.TryFindClosestEntity(quadrantDataManager.VillagerQuadrantMap, gridManager, quadrantsToSearch,
                         position, entity, out var closestTargetEntity, out var closestTargetDistance))
                 {
                     ecb.RemoveComponent<BoarIsCharging>(entity);

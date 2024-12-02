@@ -15,7 +15,7 @@ namespace UnitBehaviours.Targeting
 
     public struct QuadrantDataManager : IComponentData
     {
-        public NativeParallelMultiHashMap<int, QuadrantData> QuadrantMultiHashMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> VillagerQuadrantMap;
     }
 
     public struct QuadrantData
@@ -28,22 +28,23 @@ namespace UnitBehaviours.Targeting
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct QuadrantSystem : ISystem
     {
-        private EntityQuery _entityQuery;
+        private EntityQuery _villagerQuery;
         public const int QuadrantYMultiplier = 1000;
         public const int QuadrantCellSize = 10;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
-            _entityQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<QuadrantEntity>());
+            _villagerQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
+                ComponentType.ReadOnly<QuadrantEntity>(), ComponentType.ReadOnly<Villager>());
 
             state.EntityManager.AddComponent<QuadrantDataManager>(state.SystemHandle);
             SystemAPI.SetComponent(state.SystemHandle, new QuadrantDataManager
             {
-                QuadrantMultiHashMap = new NativeParallelMultiHashMap<int, QuadrantData>(
-                    _entityQuery.CalculateEntityCount(),
+                VillagerQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                    _villagerQuery.CalculateEntityCount(),
                     Allocator.Persistent)
             });
         }
@@ -51,7 +52,7 @@ namespace UnitBehaviours.Targeting
         public void OnDestroy(ref SystemState state)
         {
             var quadrantDataManager = SystemAPI.GetComponent<QuadrantDataManager>(state.SystemHandle);
-            quadrantDataManager.QuadrantMultiHashMap.Dispose();
+            quadrantDataManager.VillagerQuadrantMap.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -59,26 +60,33 @@ namespace UnitBehaviours.Targeting
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugQuadrantSystem;
 
             var gridManager = SystemAPI.GetSingleton<GridManager>();
-            var quadrantMultiHashMap =
-                SystemAPI.GetComponent<QuadrantDataManager>(state.SystemHandle).QuadrantMultiHashMap;
+            var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
 
             if (isDebugging)
             {
-                DebugHelper.Log(GetEntityCountInHashmap(quadrantMultiHashMap,
+                DebugHelper.Log(GetEntityCountInHashmap(quadrantDataManager.VillagerQuadrantMap,
                     GetHashMapKeyFromPosition(UtilsClass.GetMouseWorldPosition())));
             }
 
+            BuildQuadrantMap(ref state, gridManager, _villagerQuery, quadrantDataManager.VillagerQuadrantMap);
+        }
+
+        private void BuildQuadrantMap(ref SystemState state,
+            GridManager gridManager,
+            EntityQuery entityQuery,
+            NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap)
+        {
             quadrantMultiHashMap.Clear();
-            if (_entityQuery.CalculateEntityCount() > quadrantMultiHashMap.Capacity)
+            if (entityQuery.CalculateEntityCount() > quadrantMultiHashMap.Capacity)
             {
-                quadrantMultiHashMap.Capacity = _entityQuery.CalculateEntityCount();
+                quadrantMultiHashMap.Capacity = entityQuery.CalculateEntityCount();
             }
 
             state.Dependency = new SetQuadrantDataHashMapJob
             {
                 QuadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(),
                 GridManager = gridManager
-            }.ScheduleParallel(_entityQuery, state.Dependency);
+            }.ScheduleParallel(entityQuery, state.Dependency);
         }
 
         public static int GetHashMapKeyFromPosition(float3 position)

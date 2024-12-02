@@ -61,9 +61,9 @@ namespace UnitBehaviours.Talking
 
                 var section = gridManager.GetSection(cell);
                 if (!QuadrantSystem.TryFindClosestFriend(socialRelationships.ValueRO,
-                        quadrantDataManager.QuadrantMultiHashMap, hashMapKey,
+                        quadrantDataManager.VillagerQuadrantMap, hashMapKey,
                         section, position, entity, out var otherUnit, out _) &&
-                    !QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap, gridManager, 9,
+                    !QuadrantSystem.TryFindClosestEntity(quadrantDataManager.VillagerQuadrantMap, gridManager, 9,
                         position, entity, out otherUnit, out _))
                 {
                     // No units nearby. I'll find a random person to walk to.
