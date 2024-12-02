@@ -1,3 +1,4 @@
+using UnitBehaviours.Targeting;
 using Unity.Entities;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ public class DropPointAuthoring : MonoBehaviour
         {
             var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
             AddComponent(entity, new DropPoint());
+            AddComponent<QuadrantEntity>(entity);
         }
     }
 }

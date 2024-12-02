@@ -142,6 +142,13 @@ namespace UnitAgency
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingDropPoint());
                 }
+                else if (QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DropPointQuadrantMap, GridManager,
+                             9, position, entity, out _, out _) &&
+                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedItemQuadrantMap, GridManager,
+                             9, position, entity, out _, out _))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedLog());
+                }
                 else if (isMoving)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsIdle());

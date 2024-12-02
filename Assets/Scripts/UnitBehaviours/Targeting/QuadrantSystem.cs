@@ -18,6 +18,7 @@ namespace UnitBehaviours.Targeting
         public NativeParallelMultiHashMap<int, QuadrantData> VillagerQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> BoarQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> DroppedItemQuadrantMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> DropPointQuadrantMap;
     }
 
     public struct QuadrantData
@@ -33,6 +34,7 @@ namespace UnitBehaviours.Targeting
         private EntityQuery _villagerQuery;
         private EntityQuery _boarQuery;
         private EntityQuery _droppedItemQuery;
+        private EntityQuery _dropPointQuery;
         public const int QuadrantYMultiplier = 1000;
         public const int QuadrantCellSize = 10;
 
@@ -50,6 +52,9 @@ namespace UnitBehaviours.Targeting
             _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<DroppedItem>());
+            _dropPointQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
+                ComponentType.ReadOnly<QuadrantEntity>(),
+                ComponentType.ReadOnly<DropPoint>());
 
             state.EntityManager.AddComponent<QuadrantDataManager>(state.SystemHandle);
             SystemAPI.SetComponent(state.SystemHandle, new QuadrantDataManager
@@ -62,6 +67,9 @@ namespace UnitBehaviours.Targeting
                     Allocator.Persistent),
                 DroppedItemQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _droppedItemQuery.CalculateEntityCount(),
+                    Allocator.Persistent),
+                DropPointQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                    _dropPointQuery.CalculateEntityCount(),
                     Allocator.Persistent)
             });
         }
@@ -72,6 +80,7 @@ namespace UnitBehaviours.Targeting
             quadrantDataManager.VillagerQuadrantMap.Dispose();
             quadrantDataManager.BoarQuadrantMap.Dispose();
             quadrantDataManager.DroppedItemQuadrantMap.Dispose();
+            quadrantDataManager.DropPointQuadrantMap.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -90,6 +99,7 @@ namespace UnitBehaviours.Targeting
             BuildQuadrantMap(ref state, gridManager, _villagerQuery, quadrantDataManager.VillagerQuadrantMap);
             BuildQuadrantMap(ref state, gridManager, _boarQuery, quadrantDataManager.BoarQuadrantMap);
             BuildQuadrantMap(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedItemQuadrantMap);
+            BuildQuadrantMap(ref state, gridManager, _dropPointQuery, quadrantDataManager.DropPointQuadrantMap);
         }
 
         private void BuildQuadrantMap(ref SystemState state,
