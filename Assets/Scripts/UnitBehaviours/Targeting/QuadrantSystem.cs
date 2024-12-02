@@ -165,11 +165,15 @@ namespace UnitBehaviours.Targeting
                 var position = localTransform.Position;
                 var gridIndex = GridManager.GetIndex(position);
                 var hashMapKey = GetHashMapKeyFromPosition(position);
+
+                var section = GridManager.IsWalkable(gridIndex)
+                    ? GridManager.WalkableGrid[gridIndex].Section
+                    : GridManager.GetSectionOfNeighbour(GridHelpers.GetXY(position));
                 QuadrantMultiHashMap.Add(hashMapKey, new QuadrantData
                 {
                     Entity = entity,
                     Position = position,
-                    Section = GridManager.WalkableGrid[gridIndex].Section
+                    Section = section
                 });
             }
         }

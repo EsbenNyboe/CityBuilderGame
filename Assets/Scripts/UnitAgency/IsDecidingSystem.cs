@@ -113,11 +113,14 @@ namespace UnitAgency
 
                 var socialRelationships = SocialRelationshipsLookup[entity];
 
-                var quadrantsToSearch = 9;
+                // TODO: Convert these into "rings of quadrants to search" instead of "quadrants to search"
+                var friendQuadrantsToSearch = 25;
+                var boarQuadrantsToSearch = 9;
+                var itemQuadrantsToSearch = 50;
 
                 if (hasInitiative &&
                     QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.BoarQuadrantMap, GridManager,
-                        quadrantsToSearch, position, entity,
+                        boarQuadrantsToSearch, position, entity,
                         out var nearbyBoar, out var distanceToBoar) &&
                     distanceToBoar < IsThrowingSpearSystem.Range)
                 {
@@ -143,9 +146,9 @@ namespace UnitAgency
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingDropPoint());
                 }
                 else if (QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DropPointQuadrantMap, GridManager,
-                             9, position, entity, out _, out _) &&
+                             itemQuadrantsToSearch, position, entity, out _, out _) &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedItemQuadrantMap, GridManager,
-                             9, position, entity, out _, out _))
+                             itemQuadrantsToSearch, position, entity, out _, out _))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedLog());
                 }
@@ -186,59 +189,56 @@ namespace UnitAgency
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSleeping());
                 }
-                else
+                else if (isSleepy && hasInitiative)
                 {
-                    if (isSleepy && hasInitiative)
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingBed());
+                }
+                else if (IsAdjacentToTree(GridManager, cell, out var tree))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
+                    EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
+                }
+                else if (isLonely)
+                {
+                    if ((TalkingHelpers.TryGetNeighbourWithComponent(GridManager, cell, IsTalkativeLookup,
+                             out var neighbour) ||
+                         TalkingHelpers.TryGetNeighbourWithComponent(GridManager, cell, IsTalkingLookup, out neighbour)) &&
+                        GridManager.TryGetOccupant(neighbour, out var neighbourEntity) &&
+                        (socialRelationships.Relationships[neighbourEntity] > friendFactor ||
+                         !QuadrantSystem.TryFindClosestFriend(socialRelationships,
+                             QuadrantDataManager.VillagerQuadrantMap, GridManager,
+                             friendQuadrantsToSearch, position, entity, out _, out _)))
                     {
-                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingBed());
-                    }
-                    else if (IsAdjacentToTree(GridManager, cell, out var tree))
-                    {
-                        EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
-                        EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
-                    }
-                    else if (isLonely)
-                    {
-                        if ((TalkingHelpers.TryGetNeighbourWithComponent(GridManager, cell, IsTalkativeLookup,
-                                 out var neighbour) ||
-                             TalkingHelpers.TryGetNeighbourWithComponent(GridManager, cell, IsTalkingLookup, out neighbour)) &&
-                            GridManager.TryGetOccupant(neighbour, out var neighbourEntity) &&
-                            (socialRelationships.Relationships[neighbourEntity] > friendFactor ||
-                             !QuadrantSystem.TryFindClosestFriend(socialRelationships,
-                                 QuadrantDataManager.VillagerQuadrantMap, GridManager,
-                                 quadrantsToSearch, position, entity, out _, out _)))
-                        {
-                            EcbParallelWriter.AddComponent(i, entity, new IsTalking());
-                            EcbParallelWriter.SetComponentEnabled<IsTalking>(i, entity, false);
+                        EcbParallelWriter.AddComponent(i, entity, new IsTalking());
+                        EcbParallelWriter.SetComponentEnabled<IsTalking>(i, entity, false);
 
-                            EcbParallelWriter.AddComponent(i, EcbParallelWriter.CreateEntity(i), new ConversationEvent
-                            {
-                                Initiator = entity,
-                                Target = neighbourEntity
-                            });
-                        }
-                        else if (hasInitiative)
+                        EcbParallelWriter.AddComponent(i, EcbParallelWriter.CreateEntity(i), new ConversationEvent
                         {
-                            moodInitiative.UseInitiative();
-                            EcbParallelWriter.AddComponent(i, entity, new IsSeekingTalkingPartner());
-                        }
-                        else
-                        {
-                            EcbParallelWriter.AddComponent(i, entity, new IsTalkative
-                            {
-                                Patience = 1
-                            });
-                        }
+                            Initiator = entity,
+                            Target = neighbourEntity
+                        });
                     }
                     else if (hasInitiative)
                     {
                         moodInitiative.UseInitiative();
-                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingTalkingPartner());
                     }
                     else
                     {
-                        EcbParallelWriter.AddComponent<IsIdle>(i, entity);
+                        EcbParallelWriter.AddComponent(i, entity, new IsTalkative
+                        {
+                            Patience = 1
+                        });
                     }
+                }
+                else if (hasInitiative)
+                {
+                    moodInitiative.UseInitiative();
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
+                }
+                else
+                {
+                    EcbParallelWriter.AddComponent<IsIdle>(i, entity);
                 }
             }
         }

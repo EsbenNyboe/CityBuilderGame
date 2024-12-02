@@ -433,4 +433,24 @@ public partial struct GridManager
     }
 
     #endregion
+
+    public int GetSectionOfNeighbour(int2 center)
+    {
+        var neighbourCell = GetAnyWalkableNeighbourCell(center);
+        return neighbourCell.x > -1 ? GetSection(neighbourCell) : -1;
+    }
+
+    public int2 GetAnyWalkableNeighbourCell(int2 cell)
+    {
+        for (var i = 0; i < 8; i++)
+        {
+            var neighbourCell = GetNeighbourCell(i, cell);
+            if (IsPositionInsideGrid(neighbourCell) && IsWalkable(neighbourCell))
+            {
+                return neighbourCell;
+            }
+        }
+
+        return -1;
+    }
 }
