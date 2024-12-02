@@ -28,7 +28,6 @@ namespace UnitAgency
     internal partial struct IsDecidingSystem : ISystem
     {
         private EntityQuery _query;
-        private EntityQuery _boarQuery;
 
         public void OnCreate(ref SystemState state)
         {
@@ -38,7 +37,6 @@ namespace UnitAgency
             state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
-            _boarQuery = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<Boar>(), ComponentType.ReadOnly<LocalTransform>());
             _query = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<Villager>(),
                 ComponentType.ReadOnly<IsDeciding>(),
                 ComponentType.ReadOnly<LocalTransform>(),
@@ -61,9 +59,6 @@ namespace UnitAgency
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
-            var boarEntities = _boarQuery.ToEntityArray(Allocator.TempJob);
-            var boarTransforms = _boarQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
-
             var decideNextBehaviourJob = new DecideNextBehaviourJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
@@ -74,14 +69,9 @@ namespace UnitAgency
                 LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),
                 IsTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>(),
                 IsTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>(),
-                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
-                BoarEntities = boarEntities,
-                BoarTransforms = boarTransforms
+                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
             };
             decideNextBehaviourJob.ScheduleParallel(_query, state.Dependency).Complete();
-
-            boarEntities.Dispose();
-            boarTransforms.Dispose();
         }
 
         [BurstCompile]
@@ -98,9 +88,6 @@ namespace UnitAgency
 
             [NativeDisableContainerSafetyRestriction]
             public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
-
-            [ReadOnly] public NativeArray<Entity> BoarEntities;
-            [ReadOnly] public NativeArray<LocalTransform> BoarTransforms;
 
             public void Execute([EntityIndexInQuery] int i,
                 in Entity entity,
@@ -126,7 +113,10 @@ namespace UnitAgency
 
                 var socialRelationships = SocialRelationshipsLookup[entity];
 
-                if (hasInitiative && BoarIsNearby(unitPosition, BoarTransforms, BoarEntities, out var nearbyBoar))
+                if (hasInitiative &&
+                    QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.BoarQuadrantMap, GridManager, 9, unitPosition, entity,
+                        out var nearbyBoar, out var distanceToBoar) &&
+                    distanceToBoar < IsThrowingSpearSystem.Range)
                 {
                     var randomDelay = randomContainer.Random.NextFloat(0, 1);
                     moodInitiative.UseInitiative();
@@ -236,25 +226,6 @@ namespace UnitAgency
                     }
                 }
             }
-        }
-
-        private static bool BoarIsNearby(float3 unitPosition, NativeArray<LocalTransform> boarTransforms, NativeArray<Entity> boarEntities,
-            out Entity nearbyBoar)
-        {
-            var threshold = 20f;
-            for (var index = 0; index < boarTransforms.Length; index++)
-            {
-                var boarPosition = boarTransforms[index].Position;
-                var distance = math.distance(unitPosition, boarPosition);
-                if (distance < threshold)
-                {
-                    nearbyBoar = boarEntities[index];
-                    return true;
-                }
-            }
-
-            nearbyBoar = Entity.Null;
-            return false;
         }
 
         private static bool IsAnnoyedAtSomeone(

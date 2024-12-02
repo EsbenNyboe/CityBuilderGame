@@ -45,6 +45,7 @@ namespace UnitBehaviours
                 AddComponent<WorldSpriteSheetAnimation>(entity);
                 AddComponent<UnitAnimationSelection>(entity);
 
+                AddComponent<QuadrantEntity>(entity);
                 AddComponent<TargetFollow>(entity);
 
                 AddComponent(entity, new Health

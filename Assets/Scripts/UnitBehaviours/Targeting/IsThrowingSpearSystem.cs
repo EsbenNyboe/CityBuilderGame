@@ -19,6 +19,8 @@ namespace UnitBehaviours.Targeting
 
     public partial struct IsThrowingSpearSystem : ISystem
     {
+        public static readonly float Range = 5f;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();

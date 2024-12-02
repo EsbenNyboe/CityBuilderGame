@@ -16,6 +16,7 @@ namespace UnitBehaviours.Targeting
     public struct QuadrantDataManager : IComponentData
     {
         public NativeParallelMultiHashMap<int, QuadrantData> VillagerQuadrantMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> BoarQuadrantMap;
     }
 
     public struct QuadrantData
@@ -29,6 +30,7 @@ namespace UnitBehaviours.Targeting
     public partial struct QuadrantSystem : ISystem
     {
         private EntityQuery _villagerQuery;
+        private EntityQuery _boarQuery;
         public const int QuadrantYMultiplier = 1000;
         public const int QuadrantCellSize = 10;
 
@@ -39,12 +41,17 @@ namespace UnitBehaviours.Targeting
             state.RequireForUpdate<DebugToggleManager>();
             _villagerQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<QuadrantEntity>(), ComponentType.ReadOnly<Villager>());
+            _boarQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
+                ComponentType.ReadOnly<QuadrantEntity>(), ComponentType.ReadOnly<Boar>());
 
             state.EntityManager.AddComponent<QuadrantDataManager>(state.SystemHandle);
             SystemAPI.SetComponent(state.SystemHandle, new QuadrantDataManager
             {
                 VillagerQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _villagerQuery.CalculateEntityCount(),
+                    Allocator.Persistent),
+                BoarQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                    _boarQuery.CalculateEntityCount(),
                     Allocator.Persistent)
             });
         }
@@ -53,6 +60,7 @@ namespace UnitBehaviours.Targeting
         {
             var quadrantDataManager = SystemAPI.GetComponent<QuadrantDataManager>(state.SystemHandle);
             quadrantDataManager.VillagerQuadrantMap.Dispose();
+            quadrantDataManager.BoarQuadrantMap.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -69,6 +77,7 @@ namespace UnitBehaviours.Targeting
             }
 
             BuildQuadrantMap(ref state, gridManager, _villagerQuery, quadrantDataManager.VillagerQuadrantMap);
+            BuildQuadrantMap(ref state, gridManager, _boarQuery, quadrantDataManager.BoarQuadrantMap);
         }
 
         private void BuildQuadrantMap(ref SystemState state,
