@@ -6,7 +6,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace UnitBehaviours.Targeting
 {
@@ -65,7 +64,6 @@ namespace UnitBehaviours.Targeting
 
             if (isDebugging)
             {
-                DebugDrawQuadrant(UtilsClass.GetMouseWorldPosition());
                 DebugHelper.Log(GetEntityCountInHashmap(quadrantMultiHashMap,
                     GetPositionHashMapKey(UtilsClass.GetMouseWorldPosition())));
             }
@@ -81,19 +79,6 @@ namespace UnitBehaviours.Targeting
                 QuadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(),
                 GridManager = gridManager
             }.ScheduleParallel(_entityQuery, state.Dependency);
-        }
-
-        private static void DebugDrawQuadrant(float3 position)
-        {
-            var lowerLeft = new Vector3(math.floor(position.x / QuadrantCellSize) * QuadrantCellSize,
-                math.floor(position.y / QuadrantCellSize) * QuadrantCellSize, 0);
-            Debug.DrawLine(lowerLeft, lowerLeft + new Vector3(+1, +0) * QuadrantCellSize);
-            Debug.DrawLine(lowerLeft, lowerLeft + new Vector3(+0, +1) * QuadrantCellSize);
-            Debug.DrawLine(lowerLeft + new Vector3(+1, +0) * QuadrantCellSize,
-                lowerLeft + new Vector3(+1, +1) * QuadrantCellSize);
-            Debug.DrawLine(lowerLeft + new Vector3(+0, +1) * QuadrantCellSize,
-                lowerLeft + new Vector3(+1, +1) * QuadrantCellSize);
-            // Debug.Log(GetPositionHashMapKey(position) + " " + position);
         }
 
         public static int GetPositionHashMapKey(float3 position)
