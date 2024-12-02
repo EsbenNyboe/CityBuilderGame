@@ -113,8 +113,11 @@ namespace UnitAgency
 
                 var socialRelationships = SocialRelationshipsLookup[entity];
 
+                var quadrantsToSearch = 9;
+
                 if (hasInitiative &&
-                    QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.BoarQuadrantMap, GridManager, 9, unitPosition, entity,
+                    QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.BoarQuadrantMap, GridManager,
+                        quadrantsToSearch, unitPosition, entity,
                         out var nearbyBoar, out var distanceToBoar) &&
                     distanceToBoar < IsThrowingSpearSystem.Range)
                 {
@@ -190,8 +193,8 @@ namespace UnitAgency
                             GridManager.TryGetOccupant(neighbour, out var neighbourEntity) &&
                             (socialRelationships.Relationships[neighbourEntity] > friendFactor ||
                              !QuadrantSystem.TryFindClosestFriend(socialRelationships,
-                                 QuadrantDataManager.VillagerQuadrantMap, QuadrantSystem.GetHashMapKeyFromPosition(unitPosition),
-                                 section, unitPosition, entity, out _, out _)))
+                                 QuadrantDataManager.VillagerQuadrantMap, GridManager,
+                                 quadrantsToSearch, unitPosition, entity, out _, out _)))
                         {
                             EcbParallelWriter.AddComponent(i, entity, new IsTalking());
                             EcbParallelWriter.SetComponentEnabled<IsTalking>(i, entity, false);

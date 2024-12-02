@@ -154,48 +154,25 @@ namespace UnitBehaviours.Targeting
 
         public static bool TryFindClosestFriend(SocialRelationships socialRelationships,
             NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
-            int hashMapKey, int section, float3 position, Entity entity,
+            GridManager gridManager, int quadrantsToSearch, float3 position, Entity entity,
             out Entity closestTargetEntity, out float closestTargetDistance)
         {
             closestTargetEntity = Entity.Null;
             closestTargetDistance = float.MaxValue;
-            // First check center
-            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey, section, position,
-                ref closestTargetEntity,
-                ref closestTargetDistance, entity);
+            var section = gridManager.GetSection(position);
+            var hashMapKey = GetHashMapKeyFromPosition(position);
 
-            if (closestTargetEntity != Entity.Null)
+            var quadrantIndex = 0;
+            while (quadrantIndex < quadrantsToSearch)
             {
-                // No need to search neighbours
-                return true;
+                var relativeCoordinate = gridManager.RelativePositionList[quadrantIndex];
+                var relativeHashMapKey = relativeCoordinate.x + relativeCoordinate.y * QuadrantYMultiplier;
+                var absoluteHashMapKey = hashMapKey + relativeHashMapKey;
+                FindFriend(socialRelationships, quadrantMultiHashMap, absoluteHashMapKey, section, position,
+                    ref closestTargetEntity,
+                    ref closestTargetDistance, entity);
+                quadrantIndex++;
             }
-
-            // Then search neighbours
-            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey + 1, section, position,
-                ref closestTargetEntity,
-                ref closestTargetDistance, entity);
-            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey - 1, section, position,
-                ref closestTargetEntity,
-                ref closestTargetDistance, entity);
-            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey + QuadrantYMultiplier, section,
-                position, ref closestTargetEntity,
-                ref closestTargetDistance, entity);
-            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey - QuadrantYMultiplier, section,
-                position, ref closestTargetEntity,
-                ref closestTargetDistance, entity);
-            // Then search corners
-            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey + 1 + QuadrantYMultiplier, section,
-                position, ref closestTargetEntity,
-                ref closestTargetDistance, entity);
-            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey - 1 + QuadrantYMultiplier, section,
-                position, ref closestTargetEntity,
-                ref closestTargetDistance, entity);
-            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey + 1 - QuadrantYMultiplier, section,
-                position, ref closestTargetEntity,
-                ref closestTargetDistance, entity);
-            FindFriend(socialRelationships, quadrantMultiHashMap, hashMapKey - 1 - QuadrantYMultiplier, section,
-                position, ref closestTargetEntity,
-                ref closestTargetDistance, entity);
 
             return closestTargetEntity != Entity.Null;
         }

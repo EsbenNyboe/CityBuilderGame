@@ -57,14 +57,14 @@ namespace UnitBehaviours.Talking
                 var position = localTransform.ValueRO.Position;
                 var cell = GridHelpers.GetXY(position);
 
-                var hashMapKey = QuadrantSystem.GetHashMapKeyFromPosition(position);
-
-                var section = gridManager.GetSection(cell);
+                var quadrantsToSearch = 9;
                 if (!QuadrantSystem.TryFindClosestFriend(socialRelationships.ValueRO,
-                        quadrantDataManager.VillagerQuadrantMap, hashMapKey,
-                        section, position, entity, out var otherUnit, out _) &&
-                    !QuadrantSystem.TryFindClosestEntity(quadrantDataManager.VillagerQuadrantMap, gridManager, 9,
-                        position, entity, out otherUnit, out _))
+                        quadrantDataManager.VillagerQuadrantMap, gridManager,
+                        quadrantsToSearch, position, entity,
+                        out var otherUnit, out _) &&
+                    !QuadrantSystem.TryFindClosestEntity(quadrantDataManager.VillagerQuadrantMap, gridManager,
+                        quadrantsToSearch, position, entity,
+                        out otherUnit, out _))
                 {
                     // No units nearby. I'll find a random person to walk to.
                     var relationships = socialRelationships.ValueRO.Relationships;
