@@ -35,7 +35,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         });
         _unitQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetAnimation>(),
             ComponentType.ReadOnly<LocalToWorld>(), ComponentType.ReadOnly<Inventory>());
-        _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<DroppedItem>());
+        _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<DroppedItem>(), ComponentType.ReadOnly<LocalTransform>());
 
         state.RequireForUpdate<BeginPresentationEntityCommandBufferSystem.Singleton>();
         state.RequireForUpdate<WorldSpriteSheetSortingManager>();
@@ -440,9 +440,9 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         public NativeQueue<RenderData> NativeQueue;
 
-        public void Execute(in Entity Entity, in DroppedItem droppedItem)
+        public void Execute(in Entity Entity, in DroppedItem droppedItem, in LocalTransform localTransform)
         {
-            var position = new float3(droppedItem.Position.x, droppedItem.Position.y, 0);
+            var position = localTransform.Position;
             var positionX = position.x;
             if (!(positionX > XLeft) || !(positionX < XRight))
             {

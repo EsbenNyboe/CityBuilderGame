@@ -59,12 +59,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 else
                 {
                     // Drop item on ground
-                    ecb.AddComponent(ecb.CreateEntity(), new DroppedItem
-                    {
-                        Item = inventory.ValueRO.CurrentItem,
-                        Position = new float2(position.x, position.y)
-                    });
-                    inventory.ValueRW.CurrentItem = InventoryItem.None;
+                    InventoryHelpers.DropItemOnGround(ecb, ref inventory.ValueRW, position);
                     ecb.RemoveComponent<IsSeekingDropPoint>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                 }

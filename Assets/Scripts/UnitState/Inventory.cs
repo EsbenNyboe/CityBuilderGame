@@ -1,6 +1,5 @@
 ﻿using System;
 using Unity.Entities;
-using Unity.Mathematics;
 
 namespace UnitState
 {
@@ -12,7 +11,6 @@ namespace UnitState
     public struct DroppedItem : IComponentData
     {
         public InventoryItem Item;
-        public float2 Position;
     }
 
     [Serializable]

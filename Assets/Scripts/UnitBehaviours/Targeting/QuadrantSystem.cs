@@ -17,6 +17,7 @@ namespace UnitBehaviours.Targeting
     {
         public NativeParallelMultiHashMap<int, QuadrantData> VillagerQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> BoarQuadrantMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> DroppedItemQuadrantMap;
     }
 
     public struct QuadrantData
@@ -31,6 +32,7 @@ namespace UnitBehaviours.Targeting
     {
         private EntityQuery _villagerQuery;
         private EntityQuery _boarQuery;
+        private EntityQuery _droppedItemQuery;
         public const int QuadrantYMultiplier = 1000;
         public const int QuadrantCellSize = 10;
 
@@ -40,9 +42,14 @@ namespace UnitBehaviours.Targeting
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
             _villagerQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<QuadrantEntity>(), ComponentType.ReadOnly<Villager>());
+                ComponentType.ReadOnly<QuadrantEntity>(),
+                ComponentType.ReadOnly<Villager>());
             _boarQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<QuadrantEntity>(), ComponentType.ReadOnly<Boar>());
+                ComponentType.ReadOnly<QuadrantEntity>(),
+                ComponentType.ReadOnly<Boar>());
+            _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
+                ComponentType.ReadOnly<QuadrantEntity>(),
+                ComponentType.ReadOnly<DroppedItem>());
 
             state.EntityManager.AddComponent<QuadrantDataManager>(state.SystemHandle);
             SystemAPI.SetComponent(state.SystemHandle, new QuadrantDataManager
@@ -52,6 +59,9 @@ namespace UnitBehaviours.Targeting
                     Allocator.Persistent),
                 BoarQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _boarQuery.CalculateEntityCount(),
+                    Allocator.Persistent),
+                DroppedItemQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                    _droppedItemQuery.CalculateEntityCount(),
                     Allocator.Persistent)
             });
         }
@@ -61,6 +71,7 @@ namespace UnitBehaviours.Targeting
             var quadrantDataManager = SystemAPI.GetComponent<QuadrantDataManager>(state.SystemHandle);
             quadrantDataManager.VillagerQuadrantMap.Dispose();
             quadrantDataManager.BoarQuadrantMap.Dispose();
+            quadrantDataManager.DroppedItemQuadrantMap.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -78,6 +89,7 @@ namespace UnitBehaviours.Targeting
 
             BuildQuadrantMap(ref state, gridManager, _villagerQuery, quadrantDataManager.VillagerQuadrantMap);
             BuildQuadrantMap(ref state, gridManager, _boarQuery, quadrantDataManager.BoarQuadrantMap);
+            BuildQuadrantMap(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedItemQuadrantMap);
         }
 
         private void BuildQuadrantMap(ref SystemState state,

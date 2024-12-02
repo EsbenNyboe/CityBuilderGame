@@ -135,12 +135,7 @@ namespace UnitAgency
 
                     if (HasLogOfWood(inventory))
                     {
-                        EcbParallelWriter.AddComponent(i, EcbParallelWriter.CreateEntity(i), new DroppedItem
-                        {
-                            Item = inventory.CurrentItem,
-                            Position = new float2(position.x, position.y)
-                        });
-                        inventory.CurrentItem = InventoryItem.None;
+                        InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
                     }
                 }
                 else if (HasLogOfWood(inventory))
