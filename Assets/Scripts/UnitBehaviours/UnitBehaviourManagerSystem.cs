@@ -9,6 +9,7 @@ namespace UnitBehaviours
         public float MoveSpeed;
         public float MoveSpeedWhenAttemptingMurder;
         public int MaxSeekAttempts;
+        public int BoarQuadrantRange;
     }
 
     public partial class UnitBehaviourManagerSystem : SystemBase
@@ -27,6 +28,7 @@ namespace UnitBehaviours
             singleton.MoveSpeed = config.MoveSpeed;
             singleton.MoveSpeedWhenAttemptingMurder = config.MoveSpeedWhenAttemptingMurder;
             singleton.MaxSeekAttempts = config.MaxSeekAttempts;
+            singleton.BoarQuadrantRange = config.BoarQuadrantRange;
             SystemAPI.SetSingleton(singleton);
         }
     }

@@ -17,6 +17,7 @@ namespace UnitAgency
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -29,6 +30,9 @@ namespace UnitAgency
             _randomContainerLookup.Update(ref state);
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
+            var quadrantsToSearch = GridHelpers.CalculatePositionListLength(unitBehaviourManager.BoarQuadrantRange);
+
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (_, _, pathFollow, localTransform, moodInitiative, entity) in SystemAPI
                          .Query<RefRO<Boar>, RefRO<IsDeciding>, RefRO<PathFollow>, RefRO<LocalTransform>, RefRW<MoodInitiative>>()
@@ -37,12 +41,10 @@ namespace UnitAgency
                 ecb.RemoveComponent<IsDeciding>(entity);
 
                 var position = localTransform.ValueRO.Position;
-                var cell = GridHelpers.GetXY(position);
 
                 if (!pathFollow.ValueRO.IsMoving() &&
-                    QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap,
-                        QuadrantSystem.GetPositionHashMapKey(position),
-                        gridManager.GetSection(cell), position, entity, out var closestTargetEntity, out var closestTargetDistance))
+                    QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap, gridManager, quadrantsToSearch, position, entity,
+                        out var closestTargetEntity, out var closestTargetDistance))
                 {
                     if (closestTargetDistance <= IsAttemptingMurderSystem.AttackRange)
                     {

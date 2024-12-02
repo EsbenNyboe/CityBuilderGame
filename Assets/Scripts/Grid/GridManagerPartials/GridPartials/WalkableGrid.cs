@@ -90,6 +90,12 @@ public partial struct GridManager
         return GetSection(cell) == GetSection(otherCell);
     }
 
+    public int GetSection(Vector3 position)
+    {
+        var cell = GridHelpers.GetXY(position);
+        return GetSection(cell);
+    }
+
     public int GetSection(int2 cell)
     {
         var gridIndex = GetIndex(cell);

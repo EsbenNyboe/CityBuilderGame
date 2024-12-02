@@ -200,7 +200,7 @@ namespace UnitAgency
                             GridManager.TryGetOccupant(neighbour, out var neighbourEntity) &&
                             (socialRelationships.Relationships[neighbourEntity] > friendFactor ||
                              !QuadrantSystem.TryFindClosestFriend(socialRelationships,
-                                 QuadrantDataManager.QuadrantMultiHashMap, QuadrantSystem.GetPositionHashMapKey(unitPosition),
+                                 QuadrantDataManager.QuadrantMultiHashMap, QuadrantSystem.GetHashMapKeyFromPosition(unitPosition),
                                  section, unitPosition, entity, out _, out _)))
                         {
                             EcbParallelWriter.AddComponent(i, entity, new IsTalking());
@@ -266,7 +266,7 @@ namespace UnitAgency
             out Entity annoyingDude
         )
         {
-            var quadrant = QuadrantSystem.GetPositionHashMapKey(position);
+            var quadrant = QuadrantSystem.GetHashMapKeyFromPosition(position);
             if (!quadrantDataManager.QuadrantMultiHashMap.TryGetFirstValue(quadrant, out var data, out var iterator))
             {
                 annoyingDude = Entity.Null;

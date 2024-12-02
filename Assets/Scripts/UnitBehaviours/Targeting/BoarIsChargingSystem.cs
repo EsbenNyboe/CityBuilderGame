@@ -15,6 +15,7 @@ namespace UnitBehaviours.Targeting
     {
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -24,6 +25,9 @@ namespace UnitBehaviours.Targeting
         {
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
+            var quadrantsToSearch = GridHelpers.CalculatePositionListLength(unitBehaviourManager.BoarQuadrantRange);
+
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (boarIsCharging, actionGate, localTransform, entity) in SystemAPI
                          .Query<RefRO<BoarIsCharging>, RefRO<ActionGate>, RefRO<LocalTransform>>().WithEntityAccess())
@@ -34,10 +38,8 @@ namespace UnitBehaviours.Targeting
                 }
 
                 var position = localTransform.ValueRO.Position;
-                var cell = GridHelpers.GetXY(position);
-                if (!QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap,
-                        QuadrantSystem.GetPositionHashMapKey(position),
-                        gridManager.GetSection(cell), position, entity, out var closestTargetEntity, out var closestTargetDistance))
+                if (!QuadrantSystem.TryFindClosestEntity(quadrantDataManager.QuadrantMultiHashMap, gridManager, quadrantsToSearch,
+                        position, entity, out var closestTargetEntity, out var closestTargetDistance))
                 {
                     ecb.RemoveComponent<BoarIsCharging>(entity);
                     ecb.AddComponent<IsDeciding>(entity);

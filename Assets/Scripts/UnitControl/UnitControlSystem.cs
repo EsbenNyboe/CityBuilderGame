@@ -322,7 +322,6 @@ public partial class UnitControlSystem : SystemBase
 
         ecb.RemoveComponent<IsAttemptingMurder>(entity);
         ecb.RemoveComponent<IsMurdering>(entity);
-        ecb.RemoveComponent<TargetSelector>(entity);
 
         ecb.RemoveComponent<IsTalkative>(entity);
         ecb.RemoveComponent<IsTalking>(entity);
