@@ -37,7 +37,7 @@ namespace UnitAgency
             state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
-            _query = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<Villager>(),
+            _query = state.GetEntityQuery(ComponentType.ReadOnly<Villager>(),
                 ComponentType.ReadOnly<IsDeciding>(),
                 ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<PathFollow>(),
