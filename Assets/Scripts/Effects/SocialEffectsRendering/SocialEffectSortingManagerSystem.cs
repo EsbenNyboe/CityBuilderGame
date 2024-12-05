@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -40,6 +41,7 @@ namespace Effects.SocialEffectsRendering
             socialEffectSortingManager.SpriteUvArray.Dispose();
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var socialEffectSortingManager = SystemAPI.GetSingleton<SocialEffectSortingManager>();
