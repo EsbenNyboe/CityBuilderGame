@@ -25,6 +25,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<SortingTest>();
         state.RequireForUpdate<WorldSpriteSheetManager>();
         state.RequireForUpdate<CameraInformation>();
         var singletonEntity = state.EntityManager.CreateSingleton<WorldSpriteSheetSortingManager>();
@@ -63,13 +64,30 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         var visibleUnitsCount = spriteSheetsToSort.Count;
         var visibleItemsCount = inventoryRenderDataQueue.Count;
 
-        var splitTimes = 4;
-        var splitJobCount = (int)math.pow(2, splitTimes) - 1;
+        var sortingTest = SystemAPI.GetSingleton<SortingTest>();
+        var sectionCount = (int)math.pow(sortingTest.SectionsPerSplitJob, sortingTest.SplitJobCount);
+        var pivotCount = sectionCount - 1;
+        var queueCount = 1;
+        var jobIndex = 0;
+        while (jobIndex < sortingTest.SplitJobCount)
+        {
+            var outputQueues = (int)math.pow(sortingTest.SectionsPerSplitJob, jobIndex + 1);
+            queueCount += outputQueues;
+            jobIndex++;
+        }
 
-        var arrayOfQueues = InitializeQuickSortQueues(splitJobCount, spriteSheetsToSort);
+        var arrayOfQueues = new NativeArray<QueueContainer>(queueCount, Allocator.Temp);
+        arrayOfQueues[0] = new QueueContainer
+        {
+            SortingQueue = spriteSheetsToSort
+        };
 
-        var quickPivots = GetArrayOfPivots(splitJobCount, yBottom, yTop);
-        var jobBatchSizes = GetJobBatchSizes(splitTimes, splitJobCount);
+        var quickPivots = GetArrayOfPivots(pivotCount, yBottom, yTop);
+        var jobBatchSizes = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
+        for (var i = 0; i < sortingTest.SplitJobCount; i++)
+        {
+            jobBatchSizes[i] = (int)math.pow(sortingTest.SectionsPerSplitJob, i);
+        }
 
         QuickSortQueuesToVerticalSections(arrayOfQueues, quickPivots, jobBatchSizes);
         var arrayOfArrays = ConvertQueuesToArrays(arrayOfQueues);
@@ -183,22 +201,14 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         return spriteSheetsToSort;
     }
 
-    private static NativeArray<NativeQueue<RenderData>> InitializeQuickSortQueues(int splitJobCount,
-        NativeQueue<RenderData> spriteSheetsToSort)
+    private static NativeArray<float> GetArrayOfPivots(int pivotCount, float yBottom, float yTop)
     {
-        var outQueues = new NativeArray<NativeQueue<RenderData>>(1 + splitJobCount * 2, Allocator.Temp);
-        outQueues[0] = spriteSheetsToSort;
-        return outQueues;
-    }
-
-    private static NativeArray<float> GetArrayOfPivots(int splitJobCount, float yBottom, float yTop)
-    {
-        var quickPivots = new NativeArray<float>(splitJobCount, Allocator.Temp);
+        var quickPivots = new NativeArray<float>(pivotCount, Allocator.Temp);
 
         var normalizedPivotInterval = 1f;
         var normalizedPivot = 0.5f;
         var normalizedPivotSum = normalizedPivot;
-        for (var i = 0; i < splitJobCount; i++)
+        for (var i = 0; i < pivotCount; i++)
         {
             quickPivots[i] = yBottom + normalizedPivotSum * (yTop - yBottom);
             normalizedPivotSum -= normalizedPivotInterval;
@@ -213,29 +223,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         return quickPivots;
     }
 
-    private static NativeArray<int> GetJobBatchSizes(int splitTimes, int splitJobCount)
-    {
-        var jobBatchSizes = new NativeArray<int>(splitTimes, Allocator.Temp);
-        var jobBatchSizeSum = 0;
-        var jobBatchSize = 1;
-        var jobBatchIndex = 0;
-
-        for (var i = 0; i < splitJobCount; i++)
-        {
-            if (i == jobBatchSizeSum + jobBatchSize - 1)
-            {
-                // jobBatches follow the pattern of 1, 2, 4, 8, etc...
-                jobBatchSizes[jobBatchIndex] = jobBatchSize;
-                jobBatchSizeSum += jobBatchSize;
-                jobBatchSize *= 2;
-                jobBatchIndex++;
-            }
-        }
-
-        return jobBatchSizes;
-    }
-
-    private static void QuickSortQueuesToVerticalSections(NativeArray<NativeQueue<RenderData>> outQueues,
+    private static void QuickSortQueuesToVerticalSections(NativeArray<QueueContainer> outQueues,
         NativeArray<float> quickPivots,
         NativeArray<int> jobBatchSizes)
     {
@@ -248,12 +236,20 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
                 var pivot = quickPivots[jobIndex];
                 var outQueueIndex1 = jobIndex + batchSize + j;
                 var outQueueIndex2 = outQueueIndex1 + 1;
-                var quickSortJob = new QuickSortJob
+                outQueues[outQueueIndex1] = new QueueContainer
+                {
+                    SortingQueue = new NativeQueue<RenderData>(Allocator.TempJob)
+                };
+                outQueues[outQueueIndex2] = new QueueContainer
+                {
+                    SortingQueue = new NativeQueue<RenderData>(Allocator.TempJob)
+                };
+                var quickSortJob = new QuickSortJob_OLD
                 {
                     Pivot = pivot,
-                    InQueue = outQueues[jobIndex],
-                    OutQueue1 = outQueues[outQueueIndex1] = new NativeQueue<RenderData>(Allocator.TempJob),
-                    OutQueue2 = outQueues[outQueueIndex2] = new NativeQueue<RenderData>(Allocator.TempJob)
+                    InQueue = outQueues[jobIndex].SortingQueue,
+                    OutQueue1 = outQueues[outQueueIndex1].SortingQueue,
+                    OutQueue2 = outQueues[outQueueIndex2].SortingQueue
                 };
                 jobBatch.Add(quickSortJob.Schedule());
                 jobIndex++;
@@ -269,7 +265,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     }
 
     private static NativeArray<NativeArray<RenderData>> ConvertQueuesToArrays(
-        NativeArray<NativeQueue<RenderData>> arrayOfQueues)
+        NativeArray<QueueContainer> arrayOfQueues)
     {
         var outQueuesLength = arrayOfQueues.Length;
         var jobs = new NativeArray<JobHandle>(outQueuesLength, Allocator.Temp);
@@ -278,8 +274,8 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         {
             var nativeQueueToArrayJob = new NativeQueueToArrayJob
             {
-                NativeQueue = arrayOfQueues[i],
-                NativeArray = arrayOfArrays[i] = new NativeArray<RenderData>(arrayOfQueues[i].Count, Allocator.TempJob)
+                NativeQueue = arrayOfQueues[i].SortingQueue,
+                NativeArray = arrayOfArrays[i] = new NativeArray<RenderData>(arrayOfQueues[i].SortingQueue.Count, Allocator.TempJob)
             };
             jobs[i] = nativeQueueToArrayJob.Schedule();
         }
@@ -289,7 +285,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         for (var i = 0; i < arrayOfQueues.Length; i++)
         {
-            arrayOfQueues[i].Dispose();
+            arrayOfQueues[i].SortingQueue.Dispose();
         }
 
         arrayOfQueues.Dispose();
@@ -474,8 +470,52 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         }
     }
 
+    private struct QueueContainer
+    {
+        public NativeQueue<RenderData> SortingQueue;
+    }
+
     [BurstCompile]
     private struct QuickSortJob : IJob
+    {
+        public NativeQueue<RenderData> InQueue;
+
+        [ReadOnly] public NativeArray<float> Pivots;
+        public int PivotsStartIndex; // inclusive
+        public int PivotsEndIndex; // exclusive
+
+        [NativeDisableContainerSafetyRestriction]
+        public NativeArray<QueueContainer> SortingQueues;
+
+        public int OutputStartIndex;
+
+        public void Execute()
+        {
+            while (InQueue.Count > 0)
+            {
+                var enqueueSuccesful = false;
+                var renderData = InQueue.Dequeue();
+                for (var i = PivotsStartIndex; i < PivotsEndIndex; i++)
+                {
+                    if (renderData.Position.y > Pivots[i])
+                    {
+                        var queueIndex = OutputStartIndex + i - PivotsStartIndex;
+                        SortingQueues[queueIndex].SortingQueue.Enqueue(renderData);
+                        enqueueSuccesful = true;
+                    }
+                }
+
+                if (!enqueueSuccesful)
+                {
+                    Debug.LogError("Enqueue failed");
+                    break;
+                }
+            }
+        }
+    }
+
+    [BurstCompile]
+    private struct QuickSortJob_OLD : IJob
     {
         [ReadOnly] public float Pivot;
 
