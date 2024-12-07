@@ -16,6 +16,7 @@ public struct WorldSpriteSheetSortingManager : IComponentData
     public NativeArray<Vector4> SpriteUvArray;
 }
 
+[DisableAutoCreation]
 [UpdateInGroup(typeof(PreRenderingSystemGroup), OrderLast = true)]
 [BurstCompile]
 public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
