@@ -1,3 +1,5 @@
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 
 public struct MoodRestlessness : IComponentData
@@ -8,17 +10,23 @@ public struct MoodRestlessness : IComponentData
 [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
 public partial struct MoodRestlessnessSystem : ISystem
 {
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        foreach (var (moodRestlessness, pathFollow) in SystemAPI.Query<RefRW<MoodRestlessness>, RefRO<PathFollow>>()
-                     .WithAll<IsIdle>())
-        {
-            if (pathFollow.ValueRO.IsMoving())
-            {
-                continue;
-            }
+        new UpdateRestlessnessJob { DeltaTime = SystemAPI.Time.DeltaTime }.ScheduleParallel();
+    }
 
-            moodRestlessness.ValueRW.Restlessness += SystemAPI.Time.DeltaTime;
+    [BurstCompile]
+    private partial struct UpdateRestlessnessJob : IJobEntity
+    {
+        [ReadOnly] public float DeltaTime;
+
+        public void Execute(in IsIdle _, in PathFollow pathFollow, ref MoodRestlessness moodLoneliness)
+        {
+            if (!pathFollow.IsMoving())
+            {
+                moodLoneliness.Restlessness += DeltaTime;
+            }
         }
     }
 }
