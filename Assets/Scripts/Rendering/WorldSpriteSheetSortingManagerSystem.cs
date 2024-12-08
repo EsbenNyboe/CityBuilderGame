@@ -386,7 +386,8 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             endIndexes[i] = startIndexes[i] + outArrays[i].Length;
             for (var j = 0; j < outArrays[i].Length; j++)
             {
-                sharedNativeArray[sharedIndex] = outArrays[i][j];
+                var renderData = outArrays[i][j];
+                sharedNativeArray[sharedIndex] = renderData;
                 sharedIndex++;
             }
         }
@@ -557,22 +558,22 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         {
             while (InQueue.Count > 0)
             {
-                var enqueueSuccesful = false;
                 var renderData = InQueue.Dequeue();
+                var dataIsSorted = false;
+
                 for (var i = PivotsStartIndex; i < PivotsStartIndex + PivotCount; i++)
                 {
                     if (renderData.Position.y > Pivots[i])
                     {
-                        var queueIndex = OutputStartIndex + i - PivotsStartIndex;
-                        SortingQueues[queueIndex].SortingQueue.Enqueue(renderData);
-                        enqueueSuccesful = true;
+                        SortingQueues[OutputStartIndex + i - PivotsStartIndex].SortingQueue.Enqueue(renderData);
+                        dataIsSorted = true;
+                        break;
                     }
                 }
 
-                if (!enqueueSuccesful)
+                if (!dataIsSorted)
                 {
-                    Debug.LogError("Enqueue failed");
-                    break;
+                    SortingQueues[OutputStartIndex + PivotCount].SortingQueue.Enqueue(renderData);
                 }
             }
         }
