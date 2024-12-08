@@ -17,7 +17,7 @@ namespace Rendering
         {
             var sortingTest = SystemAPI.GetSingleton<SortingJobConfig>();
 
-            if (!sortingTest.EnableDebugging)
+            if (sortingTest is { EnableDebugLog: false, EnableGizmos: false })
             {
                 return;
             }
@@ -25,8 +25,11 @@ namespace Rendering
             var sectionCount = (int)math.pow(sortingTest.SectionsPerSplitJob, sortingTest.SplitJobCount);
             var pivotCount = sectionCount - 1;
             var queueCount = 1;
-            Debug.Log("Sections: " + sectionCount);
-            Debug.Log("Pivots: " + pivotCount);
+            if (sortingTest.EnableDebugLog)
+            {
+                Debug.Log("Sections: " + sectionCount);
+                Debug.Log("Pivots: " + pivotCount);
+            }
 
             var jobIndex = 0;
             while (jobIndex < sortingTest.SplitJobCount)
@@ -34,7 +37,11 @@ namespace Rendering
                 var previousQueueCount = queueCount;
                 var outputQueues = (int)math.pow(sortingTest.SectionsPerSplitJob, jobIndex + 1);
                 queueCount += outputQueues;
-                Debug.Log("Queue count: " + previousQueueCount + " + " + outputQueues + " = " + queueCount);
+                if (sortingTest.EnableDebugLog)
+                {
+                    Debug.Log("Queue count: " + previousQueueCount + " + " + outputQueues + " = " + queueCount);
+                }
+
                 jobIndex++;
             }
 
@@ -42,9 +49,11 @@ namespace Rendering
             for (var i = 0; i < batchSectionCounts.Length; i++)
             {
                 batchSectionCounts[i] = (int)math.pow(sortingTest.SectionsPerSplitJob, i + 1);
-                Debug.Log("Job section count " + i + ": " + batchSectionCounts[i]);
+                if (sortingTest.EnableDebugLog)
+                {
+                    Debug.Log("Job section count " + i + ": " + batchSectionCounts[i]);
+                }
             }
-
 
             var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
             var cameraPosition = cameraInformation.CameraPosition;
@@ -60,17 +69,21 @@ namespace Rendering
             var yTop = cameraPosition.y + cameraSizeY;
             var yBottom = cameraPosition.y - cameraSizeY;
 
-            var pivots = GetArrayOfPivots(pivotCount, batchSectionCounts, yBottom, yTop);
-            for (var i = 0; i < pivots.Length; i++)
+            var pivots = GetArrayOfPivots(pivotCount, batchSectionCounts, yBottom, yTop, sortingTest.EnableDebugLog);
+            if (sortingTest.EnableGizmos)
             {
-                Debug.DrawLine(new Vector3(xLeft, pivots[i], 0), new Vector3(xRight, pivots[i], 0), Color.green);
+                for (var i = 0; i < pivots.Length; i++)
+                {
+                    Debug.DrawLine(new Vector3(xLeft, pivots[i], 0), new Vector3(xRight, pivots[i], 0), Color.green);
+                }
             }
 
             batchSectionCounts.Dispose();
             pivots.Dispose();
         }
 
-        private static NativeArray<float> GetArrayOfPivots(int pivotCount, NativeArray<int> batchSectionCounts, float yBottom, float yTop)
+        private static NativeArray<float> GetArrayOfPivots(int pivotCount, NativeArray<int> batchSectionCounts, float yBottom, float yTop,
+            bool debugLog)
         {
             var pivots = new NativeArray<float>(pivotCount, Allocator.Temp);
             var pivotIndex = 0;
@@ -96,7 +109,11 @@ namespace Rendering
 
                     var offset = 1f - fractionPerSection * j;
                     pivots[pivotIndex] = yBottom + offset * (yTop - yBottom);
-                    Debug.Log("Pivot " + pivotIndex + ": " + pivots[pivotIndex]);
+                    if (debugLog)
+                    {
+                        Debug.Log("Pivot " + pivotIndex + ": " + pivots[pivotIndex]);
+                    }
+
                     pivotIndex++;
                 }
             }

@@ -7,14 +7,16 @@ namespace Rendering
     {
         public int SectionsPerSplitJob;
         public int SplitJobCount;
-        public bool EnableDebugging;
+        public bool EnableGizmos;
+        public bool EnableDebugLog;
     }
 
     public class SortingTestAuthoring : MonoBehaviour
     {
         public int SectionsPerSplitJob;
         public int SplitJobCount;
-        public bool EnableDebugging;
+        public bool EnableGizmos;
+        public bool EnableDebugLog;
 
         public class SortingTestBaker : Baker<SortingTestAuthoring>
         {
@@ -26,7 +28,8 @@ namespace Rendering
                     {
                         SectionsPerSplitJob = authoring.SectionsPerSplitJob,
                         SplitJobCount = authoring.SplitJobCount,
-                        EnableDebugging = authoring.EnableDebugging
+                        EnableGizmos = authoring.EnableGizmos,
+                        EnableDebugLog = authoring.EnableDebugLog
                     });
             }
         }
