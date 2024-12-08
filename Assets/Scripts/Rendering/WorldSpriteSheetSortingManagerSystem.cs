@@ -377,7 +377,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         NativeArray<int> startIndexes, NativeArray<int> endIndexes)
     {
         var jobs = new NativeList<JobHandle>(startIndexes.Length, Allocator.Temp);
-        for (var i = 0; i < jobs.Length; i++)
+        for (var i = 0; i < startIndexes.Length; i++)
         {
             if (endIndexes[i] > startIndexes[i])
             {
