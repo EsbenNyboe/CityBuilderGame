@@ -244,8 +244,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32b48f6c7b8b41599ca25772c74b49f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SectionsPerSplitJob: 3
-  SplitJobCount: 2
+  SectionsPerSplitJob: 8
+  SplitJobCount: 1
+  EnableGizmos: 1
+  EnableDebugLog: 0
 --- !u!4 &1039008836
 Transform:
   m_ObjectHideFlags: 0

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Rendering
 {
-    public partial struct SortingTestSystem : ISystem
+    public partial struct SortingJobConfigTestSystem : ISystem
     {
         public void OnCreate(ref SystemState state)
         {
