@@ -245,7 +245,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SectionsPerSplitJob: 8
-  SplitJobCount: 1
+  SplitJobCount: 2
   EnableGizmos: 1
   EnableDebugLog: 0
 --- !u!4 &1039008836
