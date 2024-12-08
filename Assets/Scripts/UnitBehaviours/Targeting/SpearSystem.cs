@@ -19,6 +19,9 @@ namespace UnitBehaviours.Targeting
     public partial struct SpearSystem : ISystem
     {
         private EntityQuery _query;
+        private const float SpearSpeed = 15f;
+        private const float SpearDamageRadius = 0.5f;
+        private const float SpearDamage = 10f;
 
         public void OnCreate(ref SystemState state)
         {
@@ -28,22 +31,19 @@ namespace UnitBehaviours.Targeting
             _query = state.GetEntityQuery(typeof(Spear));
         }
 
-        private const float SpearSpeed = 15f;
-        private const float SpearDamageRadius = 0.5f;
-        private const float SpearDamage = 10f;
 
         public void OnUpdate(ref SystemState state)
         {
+            var entityCount = _query.CalculateEntityCount();
+            if (entityCount <= 0)
+            {
+                return;
+            }
+
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
             var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
             var unitMesh = WorldSpriteSheetConfig.Instance.UnitMesh;
             var unitMaterial = WorldSpriteSheetConfig.Instance.UnitMaterial;
-            var entityCount = _query.CalculateEntityCount();
-            var uvTemplate = new Vector4
-            {
-                x = worldSpriteSheetManager.ColumnScale,
-                y = worldSpriteSheetManager.RowScale
-            };
             var uvArray = new Vector4[entityCount];
             var matrix4X4Array = new Matrix4x4[entityCount];
 
@@ -106,10 +106,7 @@ namespace UnitBehaviours.Targeting
                 }
             }
 
-            if (entityCount > 0)
-            {
-                WorldSpriteSheetRendererSystem.DrawMesh(new MaterialPropertyBlock(), unitMesh, unitMaterial, uvArray, matrix4X4Array, uvArray.Length);
-            }
+            WorldSpriteSheetRendererSystem.DrawMesh(new MaterialPropertyBlock(), unitMesh, unitMaterial, uvArray, matrix4X4Array, uvArray.Length);
         }
     }
 }

@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 
 public struct SpawnedUnit : IComponentData
@@ -7,11 +8,13 @@ public struct SpawnedUnit : IComponentData
 [UpdateInGroup(typeof(LifetimeSystemGroup), OrderLast = true)]
 public partial struct SpawnedUnitSystem : ISystem
 {
+    [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
     }
 
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()

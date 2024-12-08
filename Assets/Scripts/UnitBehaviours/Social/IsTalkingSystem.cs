@@ -1,5 +1,6 @@
 using UnitAgency;
 using UnitState;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -19,12 +20,14 @@ namespace UnitBehaviours.Talking
     {
         private const float LonelinessReductionFactor = 10f;
 
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var gridManager = SystemAPI.GetSingleton<GridManager>();

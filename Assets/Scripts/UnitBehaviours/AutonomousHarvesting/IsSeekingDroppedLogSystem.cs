@@ -1,6 +1,7 @@
 using UnitAgency;
 using UnitBehaviours.Targeting;
 using UnitState;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -14,6 +15,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
     public partial struct IsSeekingDroppedLogSystem : ISystem
     {
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -21,6 +23,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             state.RequireForUpdate<QuadrantDataManager>();
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();

@@ -2,6 +2,7 @@ using Audio;
 using UnitAgency;
 using UnitBehaviours.Pathing;
 using UnitSpawn;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 
@@ -13,6 +14,7 @@ namespace UnitBehaviours.Targeting
 
     public partial struct BoarIsChargingSystem : ISystem
     {
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<UnitBehaviourManager>();
@@ -21,6 +23,7 @@ namespace UnitBehaviours.Targeting
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();

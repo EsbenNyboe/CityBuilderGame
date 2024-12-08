@@ -1,4 +1,5 @@
 using UnitAgency;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -12,6 +13,7 @@ namespace UnitBehaviours.Pathing
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsAttemptingMurderSystem : ISystem
     {
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<UnitBehaviourManager>();
@@ -20,6 +22,7 @@ namespace UnitBehaviours.Pathing
 
         public const float AttackRange = 1.5f;
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();

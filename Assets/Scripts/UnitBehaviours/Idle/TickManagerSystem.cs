@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 
 public struct TickManager : IComponentData
@@ -7,18 +8,20 @@ public struct TickManager : IComponentData
 }
 
 [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
-public partial class TickManagerSystem : SystemBase
+public partial struct TickManagerSystem : ISystem
 {
     private const float TimeBetweenTicks = 1f;
 
-    protected override void OnCreate()
+    [BurstCompile]
+    public void OnCreate(ref SystemState state)
     {
-        EntityManager.AddComponent<TickManager>(SystemHandle);
+        state.EntityManager.AddComponent<TickManager>(state.SystemHandle);
     }
 
-    protected override void OnUpdate()
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
     {
-        var tickManager = SystemAPI.GetComponent<TickManager>(SystemHandle);
+        var tickManager = SystemAPI.GetComponent<TickManager>(state.SystemHandle);
         tickManager.TimeSinceLastTick += SystemAPI.Time.DeltaTime;
         tickManager.IsTicking = false;
         if (tickManager.TimeSinceLastTick > TimeBetweenTicks)
@@ -27,6 +30,6 @@ public partial class TickManagerSystem : SystemBase
             tickManager.IsTicking = true;
         }
 
-        SystemAPI.SetComponent(SystemHandle, tickManager);
+        SystemAPI.SetComponent(state.SystemHandle, tickManager);
     }
 }

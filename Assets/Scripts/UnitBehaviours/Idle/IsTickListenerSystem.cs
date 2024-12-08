@@ -1,4 +1,5 @@
 using UnitAgency;
+using Unity.Burst;
 using Unity.Entities;
 
 public struct IsTickListener : IComponentData
@@ -17,6 +18,7 @@ public partial struct IsTickListenerSystem : ISystem
         _tickManagerSystemHandle = state.EntityManager.World.GetExistingSystem(typeof(TickManagerSystem));
     }
 
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         var isTickingThisFrame = SystemAPI.GetComponent<TickManager>(_tickManagerSystemHandle).IsTicking;

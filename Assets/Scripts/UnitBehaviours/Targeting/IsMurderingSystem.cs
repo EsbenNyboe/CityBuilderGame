@@ -24,6 +24,7 @@ namespace UnitBehaviours.Targeting
     {
         private const float MaxRange = 2f;
 
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<SocialDynamicsManager>();

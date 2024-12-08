@@ -16,6 +16,7 @@ public struct IsSleeping : IComponentData
 [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
 public partial struct IsSleepingSystem : ISystem
 {
+    [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<GridManager>();

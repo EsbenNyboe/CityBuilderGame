@@ -1,4 +1,5 @@
 using UnitAgency;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
 
@@ -15,12 +16,14 @@ namespace UnitBehaviours.Talking
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsTalkativeSystem : ISystem
     {
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()

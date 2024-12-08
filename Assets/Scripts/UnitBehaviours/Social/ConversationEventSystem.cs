@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 
 namespace UnitBehaviours.Talking
@@ -19,6 +20,7 @@ namespace UnitBehaviours.Talking
             _query = state.GetEntityQuery(ComponentType.ReadOnly<ConversationEvent>());
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()

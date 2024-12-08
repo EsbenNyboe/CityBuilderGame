@@ -1,5 +1,6 @@
 using CodeMonkey.Utils;
 using Debugging;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -13,6 +14,7 @@ namespace UnitBehaviours.Targeting
 
     public partial struct QuadrantSystemDebuggingSystem : ISystem
     {
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<GridManager>();

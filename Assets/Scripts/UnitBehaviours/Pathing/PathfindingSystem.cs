@@ -21,6 +21,7 @@ public partial struct PathfindingSystem : ISystem
     private const int MoveDiagonalCost = 14;
     private const int MaxPathfindingSchedulesPerFrame = 200;
 
+    [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<GridManager>();

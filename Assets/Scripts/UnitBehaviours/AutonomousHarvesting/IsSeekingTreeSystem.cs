@@ -15,9 +15,9 @@ namespace UnitBehaviours.AutonomousHarvesting
     }
 
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
-    [BurstCompile]
     public partial struct IsSeekingTreeSystem : ISystem
     {
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<GridManager>();

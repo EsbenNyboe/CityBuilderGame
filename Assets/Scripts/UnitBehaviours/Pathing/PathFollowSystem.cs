@@ -29,9 +29,9 @@ public partial struct PathFollow
 }
 
 [UpdateInGroup(typeof(UnitStateSystemGroup))]
-[BurstCompile]
 public partial struct PathFollowSystem : ISystem
 {
+    [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<GridManager>();

@@ -19,9 +19,9 @@ namespace UnitBehaviours.Sleeping
     }
 
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
-    [BurstCompile]
     public partial struct IsSeekingBedSystem : ISystem
     {
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<GridManager>();

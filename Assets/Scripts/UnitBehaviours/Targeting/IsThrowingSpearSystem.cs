@@ -1,6 +1,7 @@
 using Audio;
 using UnitAgency;
 using UnitSpawn;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -20,15 +21,16 @@ namespace UnitBehaviours.Targeting
     public partial struct IsThrowingSpearSystem : ISystem
     {
         public static readonly float Range = 5f;
+        private const float ThrowingSpearTime = 0.5f;
+        private const float PostThrowWaitTime = 0.5f;
 
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
-        private const float ThrowingSpearTime = 0.5f;
-        private const float PostThrowWaitTime = 0.5f;
-
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);

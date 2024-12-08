@@ -74,6 +74,7 @@ namespace UnitBehaviours.Targeting
             });
         }
 
+        [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
             var quadrantDataManager = SystemAPI.GetComponent<QuadrantDataManager>(state.SystemHandle);
@@ -86,7 +87,6 @@ namespace UnitBehaviours.Targeting
         public void OnUpdate(ref SystemState state)
         {
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugQuadrantSystem;
-
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
 
@@ -102,6 +102,7 @@ namespace UnitBehaviours.Targeting
             BuildQuadrantMap(ref state, gridManager, _dropPointQuery, quadrantDataManager.DropPointQuadrantMap);
         }
 
+        [BurstCompile]
         private void BuildQuadrantMap(ref SystemState state,
             GridManager gridManager,
             EntityQuery entityQuery,
