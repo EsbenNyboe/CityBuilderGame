@@ -259,6 +259,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         var jobBatch = new NativeList<JobHandle>(Allocator.Temp);
         var jobIndex = 0;
         var pivotIndex = 0;
+        var outputIndex = 1;
         for (var i = 0; i < jobBatchSizes.Length; i++)
         {
             var batchSize = jobBatchSizes[i];
@@ -271,52 +272,12 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
                     PivotsStartIndex = pivotIndex,
                     PivotCount = pivotCount,
                     SortingQueues = outQueues,
-                    OutputStartIndex = jobIndex + batchSize + j
+                    OutputStartIndex = outputIndex
                 };
                 jobBatch.Add(quickSortJob.Schedule());
                 jobIndex++;
                 pivotIndex += pivotCount;
-            }
-
-            JobHandle.CompleteAll(jobBatch.AsArray());
-            jobBatch.Clear();
-        }
-
-        jobBatch.Dispose();
-        jobBatchSizes.Dispose();
-        quickPivots.Dispose();
-    }
-
-    private static void QuickSortQueuesToVerticalSections_OLD(NativeArray<QueueContainer> outQueues,
-        NativeArray<float> quickPivots,
-        NativeArray<int> jobBatchSizes)
-    {
-        var jobBatch = new NativeList<JobHandle>(Allocator.Temp);
-        var jobIndex = 0;
-        foreach (var batchSize in jobBatchSizes)
-        {
-            for (var j = 0; j < batchSize; j++)
-            {
-                var pivot = quickPivots[jobIndex];
-                var outQueueIndex1 = jobIndex + batchSize + j;
-                var outQueueIndex2 = outQueueIndex1 + 1;
-                outQueues[outQueueIndex1] = new QueueContainer
-                {
-                    SortingQueue = new NativeQueue<RenderData>(Allocator.TempJob)
-                };
-                outQueues[outQueueIndex2] = new QueueContainer
-                {
-                    SortingQueue = new NativeQueue<RenderData>(Allocator.TempJob)
-                };
-                var quickSortJob = new QuickSortJob_OLD
-                {
-                    Pivot = pivot,
-                    InQueue = outQueues[jobIndex].SortingQueue,
-                    OutQueue1 = outQueues[outQueueIndex1].SortingQueue,
-                    OutQueue2 = outQueues[outQueueIndex2].SortingQueue
-                };
-                jobBatch.Add(quickSortJob.Schedule());
-                jobIndex++;
+                outputIndex += pivotCount + 1;
             }
 
             JobHandle.CompleteAll(jobBatch.AsArray());
