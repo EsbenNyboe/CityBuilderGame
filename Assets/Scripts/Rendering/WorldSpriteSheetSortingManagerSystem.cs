@@ -265,16 +265,19 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             var batchSize = jobBatchSizes[i];
             for (var j = 0; j < batchSize; j++)
             {
-                var quickSortJob = new QuickSortJob
+                if (outQueues[jobIndex].SortingQueue.Count > 0)
                 {
-                    InQueue = outQueues[jobIndex].SortingQueue,
-                    Pivots = quickPivots,
-                    PivotsStartIndex = pivotIndex,
-                    PivotCount = pivotCount,
-                    SortingQueues = outQueues,
-                    OutputStartIndex = outputIndex
-                };
-                jobBatch.Add(quickSortJob.Schedule());
+                    jobBatch.Add(new QuickSortJob
+                    {
+                        InQueue = outQueues[jobIndex].SortingQueue,
+                        Pivots = quickPivots,
+                        PivotsStartIndex = pivotIndex,
+                        PivotCount = pivotCount,
+                        SortingQueues = outQueues,
+                        OutputStartIndex = outputIndex
+                    }.Schedule());
+                }
+
                 jobIndex++;
                 pivotIndex += pivotCount;
                 outputIndex += pivotCount + 1;
@@ -293,19 +296,26 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         NativeArray<QueueContainer> arrayOfQueues)
     {
         var outQueuesLength = arrayOfQueues.Length;
-        var jobs = new NativeArray<JobHandle>(outQueuesLength, Allocator.Temp);
+        var jobs = new NativeList<JobHandle>(outQueuesLength, Allocator.Temp);
         var arrayOfArrays = new NativeArray<NativeArray<RenderData>>(outQueuesLength, Allocator.Temp);
-        for (var i = 0; i < outQueuesLength; i++)
+        for (var i = 0; i < arrayOfArrays.Length; i++)
         {
-            var nativeQueueToArrayJob = new NativeQueueToArrayJob
-            {
-                NativeQueue = arrayOfQueues[i].SortingQueue,
-                NativeArray = arrayOfArrays[i] = new NativeArray<RenderData>(arrayOfQueues[i].SortingQueue.Count, Allocator.TempJob)
-            };
-            jobs[i] = nativeQueueToArrayJob.Schedule();
+            arrayOfArrays[i] = new NativeArray<RenderData>(arrayOfQueues[i].SortingQueue.Count, Allocator.TempJob);
         }
 
-        JobHandle.CompleteAll(jobs);
+        for (var i = 0; i < outQueuesLength; i++)
+        {
+            if (arrayOfQueues[i].SortingQueue.Count > 0)
+            {
+                jobs.Add(new NativeQueueToArrayJob
+                {
+                    NativeQueue = arrayOfQueues[i].SortingQueue,
+                    NativeArray = arrayOfArrays[i]
+                }.Schedule());
+            }
+        }
+
+        JobHandle.CompleteAll(jobs.AsArray());
         jobs.Dispose();
 
         for (var i = 0; i < arrayOfQueues.Length; i++)
@@ -366,19 +376,21 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     private static JobHandle ScheduleBubbleSortingOfEachSection(NativeArray<RenderData> sharedNativeArray,
         NativeArray<int> startIndexes, NativeArray<int> endIndexes)
     {
-        var jobs = new NativeArray<JobHandle>(startIndexes.Length, Allocator.Temp);
+        var jobs = new NativeList<JobHandle>(startIndexes.Length, Allocator.Temp);
         for (var i = 0; i < jobs.Length; i++)
         {
-            var sortByPositionJob = new SortByPositionParallelJob
+            if (endIndexes[i] > startIndexes[i])
             {
-                SharedNativeArray = sharedNativeArray,
-                StartIndex = startIndexes[i],
-                EndIndex = endIndexes[i]
-            };
-            jobs[i] = sortByPositionJob.Schedule();
+                jobs.Add(new SortByPositionParallelJob
+                {
+                    SharedNativeArray = sharedNativeArray,
+                    StartIndex = startIndexes[i],
+                    EndIndex = endIndexes[i]
+                }.Schedule());
+            }
         }
 
-        var dependency = JobHandle.CombineDependencies(jobs);
+        var dependency = JobHandle.CombineDependencies(jobs.AsArray());
         startIndexes.Dispose(dependency);
         endIndexes.Dispose(dependency);
         jobs.Dispose();
