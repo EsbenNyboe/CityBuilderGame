@@ -1,5 +1,6 @@
 using Debugging;
 using Statistics;
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -42,7 +43,25 @@ namespace Effects.SocialEffectsRendering
             var numOfPositiveEffects = 0;
             var numOfNegativeEffects = 0;
 
-            // INITIALIZE NEW SOCIAL EFFECTS
+            InitializeNewSocialEffects(ref state, socialEffectSortingManager, isCounting,
+                ref numOfPositiveEffects, ref numOfNegativeEffects);
+
+            UpdateSocialEffectStates(ref state, socialEffectSortingManager);
+
+            if (isCounting)
+            {
+                UnitStatsDisplayManager.Instance.SetNumberOfPositiveSocialEffects(numOfPositiveEffects);
+                UnitStatsDisplayManager.Instance.SetNumberOfNegativeSocialEffects(numOfNegativeEffects);
+            }
+        }
+
+        [BurstCompile]
+        private void InitializeNewSocialEffects(ref SystemState state,
+            SocialEffectSortingManager socialEffectSortingManager,
+            bool isCounting,
+            ref int numOfPositiveEffects,
+            ref int numOfNegativeEffects)
+        {
             foreach (var (socialEffect, entity) in SystemAPI.Query<RefRO<SocialEffect>>().WithAll<SocialEffect>()
                          .WithEntityAccess())
             {
@@ -68,14 +87,11 @@ namespace Effects.SocialEffectsRendering
                     numOfNegativeEffects++;
                 }
             }
+        }
 
-            if (isCounting)
-            {
-                UnitStatsDisplayManager.Instance.SetNumberOfPositiveSocialEffects(numOfPositiveEffects);
-                UnitStatsDisplayManager.Instance.SetNumberOfNegativeSocialEffects(numOfNegativeEffects);
-            }
-
-            // UPDATE SOCIAL EFFECT STATES
+        [BurstCompile]
+        private void UpdateSocialEffectStates(ref SystemState state, SocialEffectSortingManager socialEffectSortingManager)
+        {
             foreach (var socialEffect in SystemAPI.Query<RefRW<SocialEffect>>().WithDisabled<SocialEffect>())
             {
                 socialEffect.ValueRW.Position.y += socialEffectSortingManager.MoveSpeed * SystemAPI.Time.DeltaTime;

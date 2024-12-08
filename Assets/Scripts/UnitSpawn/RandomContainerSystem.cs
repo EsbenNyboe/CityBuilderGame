@@ -1,3 +1,4 @@
+using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -16,6 +17,7 @@ namespace UnitSpawn
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct RandomContainerSystem : ISystem
     {
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             foreach (var (randomContainer, entity) in SystemAPI.Query<RefRW<RandomContainer>>().WithDisabled<RandomContainer>().WithEntityAccess())
