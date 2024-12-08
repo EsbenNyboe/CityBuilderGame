@@ -111,7 +111,7 @@ namespace Rendering
                     pivots[pivotIndex] = yBottom + offset * (yTop - yBottom);
                     if (debugLog)
                     {
-                        Debug.Log("Pivot " + pivotIndex + ": " + pivots[pivotIndex]);
+                        // Debug.Log("Pivot " + pivotIndex + ": " + pivots[pivotIndex]);
                     }
 
                     pivotIndex++;
