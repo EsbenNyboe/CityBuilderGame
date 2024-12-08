@@ -97,7 +97,7 @@ namespace Grid
                 });
             }
 
-            var validatePathJobHandle = new ValidatePathJob
+            state.Dependency = new ValidatePathJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 GridManager = gridManager,
@@ -114,9 +114,8 @@ namespace Grid
                 MoodInitiativeLookup = SystemAPI.GetComponentLookup<MoodInitiative>(),
                 MoodSleepinessLookup = SystemAPI.GetComponentLookup<MoodSleepiness>()
             }.Schedule(invalidatedPathfindingEntities.Length, 1);
-            validatePathJobHandle.Complete();
 
-            invalidatedPathfindingEntities.Dispose();
+            invalidatedPathfindingEntities.Dispose(state.Dependency);
         }
 
         [BurstCompile]
