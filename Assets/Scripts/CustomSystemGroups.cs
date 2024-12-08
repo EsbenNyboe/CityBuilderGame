@@ -27,7 +27,8 @@ public partial class UnitBehaviourSystemGroup : ComponentSystemGroup
 }
 
 [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
-[UpdateBefore(typeof(UnitStateSystemGroup))]
+[UpdateAfter(typeof(UnitStateSystemGroup))]
+[UpdateBefore(typeof(UnitBehaviourGridWritingSystemGroup))]
 public partial class PreRenderingSystemGroup : ComponentSystemGroup
 {
 }
