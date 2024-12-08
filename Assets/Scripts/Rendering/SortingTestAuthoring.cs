@@ -3,16 +3,18 @@ using UnityEngine;
 
 namespace Rendering
 {
-    public struct SortingTest : IComponentData
+    public struct SortingJobConfig : IComponentData
     {
         public int SectionsPerSplitJob;
         public int SplitJobCount;
+        public bool EnableDebugging;
     }
 
     public class SortingTestAuthoring : MonoBehaviour
     {
         public int SectionsPerSplitJob;
         public int SplitJobCount;
+        public bool EnableDebugging;
 
         public class SortingTestBaker : Baker<SortingTestAuthoring>
         {
@@ -20,7 +22,12 @@ namespace Rendering
             {
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent(entity,
-                    new SortingTest { SectionsPerSplitJob = authoring.SectionsPerSplitJob, SplitJobCount = authoring.SplitJobCount });
+                    new SortingJobConfig
+                    {
+                        SectionsPerSplitJob = authoring.SectionsPerSplitJob,
+                        SplitJobCount = authoring.SplitJobCount,
+                        EnableDebugging = authoring.EnableDebugging
+                    });
             }
         }
     }

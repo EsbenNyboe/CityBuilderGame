@@ -25,7 +25,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate<SortingTest>();
+        state.RequireForUpdate<SortingJobConfig>();
         state.RequireForUpdate<WorldSpriteSheetManager>();
         state.RequireForUpdate<CameraInformation>();
         var singletonEntity = state.EntityManager.CreateSingleton<WorldSpriteSheetSortingManager>();
@@ -64,7 +64,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         var visibleUnitsCount = spriteSheetsToSort.Count;
         var visibleItemsCount = inventoryRenderDataQueue.Count;
 
-        var sortingTest = SystemAPI.GetSingleton<SortingTest>();
+        var sortingTest = SystemAPI.GetSingleton<SortingJobConfig>();
         var sectionCount = (int)math.pow(sortingTest.SectionsPerSplitJob, sortingTest.SplitJobCount);
         var pivotCount = sectionCount - 1;
         var queueCount = 1;

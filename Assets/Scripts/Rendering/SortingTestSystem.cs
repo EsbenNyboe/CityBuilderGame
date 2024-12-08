@@ -5,17 +5,22 @@ using UnityEngine;
 
 namespace Rendering
 {
-    [DisableAutoCreation]
     public partial struct SortingTestSystem : ISystem
     {
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<SortingTest>();
+            state.RequireForUpdate<CameraInformation>();
+            state.RequireForUpdate<SortingJobConfig>();
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            var sortingTest = SystemAPI.GetSingleton<SortingTest>();
+            var sortingTest = SystemAPI.GetSingleton<SortingJobConfig>();
+
+            if (!sortingTest.EnableDebugging)
+            {
+                return;
+            }
 
             var sectionCount = (int)math.pow(sortingTest.SectionsPerSplitJob, sortingTest.SplitJobCount);
             var pivotCount = sectionCount - 1;
@@ -33,19 +38,6 @@ namespace Rendering
                 jobIndex++;
             }
 
-            // var jobBatchSizes = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
-            // for (var i = 0; i < sortingTest.SplitJobCount; i++)
-            // {
-            //     jobBatchSizes[i] = (int)math.pow(sortingTest.SectionsPerSplitJob, i);
-            // }
-            //
-            // for (var i = 0; i < jobBatchSizes.Length; i++)
-            // {
-            //     Debug.Log("Job batch size " + i + ": " + jobBatchSizes[i]);
-            // }
-            //
-            // jobBatchSizes.Dispose();
-
             var batchSectionCounts = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
             for (var i = 0; i < batchSectionCounts.Length; i++)
             {
@@ -53,9 +45,26 @@ namespace Rendering
                 Debug.Log("Job section count " + i + ": " + batchSectionCounts[i]);
             }
 
-            float yBottom = -1;
-            float yTop = 1;
+
+            var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
+            var cameraPosition = cameraInformation.CameraPosition;
+            var screenRatio = cameraInformation.ScreenRatio;
+            var orthographicSize = cameraInformation.OrthographicSize;
+
+            var cullBuffer = 1f; // We add some buffer, so culling is not noticable
+            var cameraSizeX = orthographicSize * screenRatio + cullBuffer;
+            var cameraSizeY = orthographicSize + cullBuffer;
+
+            var xLeft = cameraPosition.x - cameraSizeX;
+            var xRight = cameraPosition.x + cameraSizeX;
+            var yTop = cameraPosition.y + cameraSizeY;
+            var yBottom = cameraPosition.y - cameraSizeY;
+
             var pivots = GetArrayOfPivots(pivotCount, batchSectionCounts, yBottom, yTop);
+            for (var i = 0; i < pivots.Length; i++)
+            {
+                Debug.DrawLine(new Vector3(xLeft, pivots[i], 0), new Vector3(xRight, pivots[i], 0), Color.green);
+            }
 
             batchSectionCounts.Dispose();
             pivots.Dispose();
