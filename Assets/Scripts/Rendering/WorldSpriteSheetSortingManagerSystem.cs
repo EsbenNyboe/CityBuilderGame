@@ -376,24 +376,15 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     private static JobHandle ScheduleBubbleSortingOfEachSection(NativeArray<RenderData> sharedNativeArray,
         NativeArray<int> startIndexes, NativeArray<int> endIndexes)
     {
-        var jobs = new NativeList<JobHandle>(startIndexes.Length, Allocator.Temp);
-        for (var i = 0; i < startIndexes.Length; i++)
+        var sortByPositionParallelJob = new SortByPositionParallelJob
         {
-            if (endIndexes[i] > startIndexes[i])
-            {
-                jobs.Add(new SortByPositionParallelJob
-                {
-                    SharedNativeArray = sharedNativeArray,
-                    StartIndex = startIndexes[i],
-                    EndIndex = endIndexes[i]
-                }.Schedule());
-            }
-        }
-
-        var dependency = JobHandle.CombineDependencies(jobs.AsArray());
+            SharedNativeArray = sharedNativeArray,
+            StartIndexes = startIndexes,
+            EndIndexes = endIndexes
+        };
+        var dependency = sortByPositionParallelJob.Schedule(startIndexes.Length, 10);
         startIndexes.Dispose(dependency);
         endIndexes.Dispose(dependency);
-        jobs.Dispose();
         return dependency;
     }
 
@@ -596,19 +587,19 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     }
 
     [BurstCompile]
-    private struct SortByPositionParallelJob : IJob
+    private struct SortByPositionParallelJob : IJobParallelFor
     {
         [NativeDisableContainerSafetyRestriction]
         public NativeArray<RenderData> SharedNativeArray;
 
-        [ReadOnly] public int StartIndex;
-        [ReadOnly] public int EndIndex;
+        [ReadOnly] public NativeArray<int> StartIndexes;
+        [ReadOnly] public NativeArray<int> EndIndexes;
 
-        public void Execute()
+        public void Execute(int index)
         {
-            for (var i = StartIndex; i < EndIndex; i++)
+            for (var i = StartIndexes[index]; i < EndIndexes[index]; i++)
             {
-                for (var j = i + 1; j < EndIndex; j++)
+                for (var j = i + 1; j < EndIndexes[index]; j++)
                 {
                     var pos = SharedNativeArray[i].Position.y;
                     var otherPos = SharedNativeArray[j].Position.y;
