@@ -57,11 +57,11 @@ namespace Grid.SaveLoad
                 {
                     bedList.Add(gridManager.GetXY(i));
                 }
-                // TODO: Implement drop-point as grid-cell-type
-                else if (false) //gridManager.IsDropPoint(i))
-                {
-                    dropPointList.Add(gridManager.GetXY(i));
-                }
+                // // TODO: Implement drop-point as grid-cell-type
+                // else if (false) //gridManager.IsDropPoint(i))
+                // {
+                //     dropPointList.Add(gridManager.GetXY(i));
+                // }
             }
 
             // TEMPORARY:

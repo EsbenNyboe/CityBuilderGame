@@ -1,101 +1,89 @@
 using Grid;
 using UnitAgency;
+using UnitBehaviours;
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
 using UnitState;
-using Unity.Collections;
 using Unity.Entities;
 
 namespace Statistics
 {
     [UpdateInGroup(typeof(PresentationSystemGroup))]
-    public partial class UnitStatsCounterSystem : SystemBase
+    public partial struct UnitStatsCounterSystem : ISystem
     {
-        protected override void OnUpdate()
+        private EntityQuery _villagerQuery;
+        private EntityQuery _isDecidingQuery;
+        private EntityQuery _isPathfindingQuery;
+        private EntityQuery _conversationEventQuery;
+        private EntityQuery _socialEventQuery;
+        private EntityQuery _socialEventWithVictimQuery;
+        private EntityQuery _isSeekingBedQuery;
+        private EntityQuery _isSeekingTreeQuery;
+        private EntityQuery _isSeekingDropPointQuery;
+        private EntityQuery _isSleepingQuery;
+        private EntityQuery _isHarvestingQuery;
+        private EntityQuery _isIdleQuery;
+        private EntityQuery _isTalkativeQuery;
+        private EntityQuery _isTalkingQuery;
+        private EntityQuery _isSeekingTalkingPartnerQuery;
+        private EntityQuery _isAttemptingMurderQuery;
+        private EntityQuery _isMurderingQuery;
+
+        public void OnCreate(ref SystemState state)
         {
-            var ecb = SystemAPI.GetSingleton<BeginPresentationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(World.Unmanaged);
-            
-            var unitCount = new EntityQueryBuilder(Allocator.Temp).WithAll<UnitAnimationSelection>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfUnits(unitCount);
+            state.RequireForUpdate<BeginPresentationEntityCommandBufferSystem.Singleton>();
 
-            var isDecidingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsDeciding>()
-                .WithNone<AttackAnimation>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfDecidingUnits(isDecidingCount);
+            _villagerQuery = state.GetEntityQuery(typeof(Villager));
+            _isDecidingQuery = state.GetEntityQuery(typeof(IsDeciding), ComponentType.Exclude<AttackAnimation>());
+            _isPathfindingQuery = state.GetEntityQuery(typeof(Pathfinding));
+            _conversationEventQuery = state.GetEntityQuery(typeof(ConversationEvent));
+            _socialEventQuery = state.GetEntityQuery(typeof(SocialEvent));
+            _socialEventWithVictimQuery = state.GetEntityQuery(typeof(SocialEventWithVictim));
+            _isSeekingBedQuery = state.GetEntityQuery(typeof(IsSeekingBed));
+            _isSeekingTreeQuery = state.GetEntityQuery(typeof(IsSeekingTree));
+            _isSeekingDropPointQuery = state.GetEntityQuery(typeof(IsSeekingDropPoint));
+            _isSleepingQuery = state.GetEntityQuery(typeof(IsSleeping));
+            _isHarvestingQuery = state.GetEntityQuery(typeof(IsHarvesting));
+            _isIdleQuery = state.GetEntityQuery(typeof(IsIdle));
+            _isTalkativeQuery = state.GetEntityQuery(typeof(IsTalkative));
+            _isTalkingQuery = state.GetEntityQuery(typeof(IsTalking));
+            _isSeekingTalkingPartnerQuery = state.GetEntityQuery(typeof(IsSeekingTalkingPartner));
+            _isAttemptingMurderQuery = state.GetEntityQuery(typeof(IsAttemptingMurder));
+            _isMurderingQuery = state.GetEntityQuery(typeof(IsMurdering));
+        }
 
-            var isPathfindingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<Pathfinding>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfPathfindingUnits(isPathfindingCount);
+        public void OnUpdate(ref SystemState state)
+        {
+            var ecb = SystemAPI.GetSingleton<BeginPresentationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
+
+            var instance = UnitStatsDisplayManager.Instance;
+            instance.SetNumberOfUnits(_villagerQuery.CalculateEntityCount());
+            instance.SetNumberOfDecidingUnits(_isDecidingQuery.CalculateEntityCount());
+            instance.SetNumberOfPathfindingUnits(_isPathfindingQuery.CalculateEntityCount());
 
             foreach (var (pathInvalidationDebugEvent, entity) in SystemAPI.Query<RefRO<PathInvalidationDebugEvent>>().WithEntityAccess())
             {
-                UnitStatsDisplayManager.Instance.SetNumberOfPathInvalidations(pathInvalidationDebugEvent.ValueRO.Count);
+                instance.SetNumberOfPathInvalidations(pathInvalidationDebugEvent.ValueRO.Count);
                 ecb.DestroyEntity(entity);
             }
 
-            var conversationEventCount = new EntityQueryBuilder(Allocator.Temp).WithAll<ConversationEvent>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfConversationEvents(conversationEventCount);
-
-            var socialEventCount = new EntityQueryBuilder(Allocator.Temp).WithAll<SocialEvent>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfSocialEvent(socialEventCount);
-
-            var socialEventWithVictimCount = new EntityQueryBuilder(Allocator.Temp).WithAll<SocialEventWithVictim>()
-                .Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfSocialEventWithVictim(socialEventWithVictimCount);
-
-            var isSeekingBedCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingBed>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfBedSeekingUnits(isSeekingBedCount);
-
-            var isSeekingTreeCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingTree>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfTreeSeekingUnits(isSeekingTreeCount);
-
-            var isSeekingDropPointCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingDropPoint>()
-                .Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfDropPointSeekingUnits(isSeekingDropPointCount);
-
-            var isSleepingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSleeping>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfSleepingUnits(isSleepingCount);
-
-            var isHarvestingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsHarvesting>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfHarvestingUnits(isHarvestingCount);
-
-            var isIdleCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsIdle>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfIdleUnits(isIdleCount);
-
-            var isTalkativeCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsTalkative>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfIsTalkative(isTalkativeCount);
-
-            var isTalkingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsTalking>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfIsTalking(isTalkingCount);
-
-            var isSeekingTalkingPartnerCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsSeekingTalkingPartner>()
-                .Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfIsSeekingTalkingPartner(isSeekingTalkingPartnerCount);
-
-            var isAttemptingMurderCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsAttemptingMurder>()
-                .Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfIsAttemptingMurder(isAttemptingMurderCount);
-
-            var isMurderingCount = new EntityQueryBuilder(Allocator.Temp).WithAll<IsMurdering>().Build(this)
-                .CalculateEntityCount();
-            UnitStatsDisplayManager.Instance.SetNumberOfIsMurdering(isMurderingCount);
+            instance.SetNumberOfConversationEvents(_conversationEventQuery.CalculateEntityCount());
+            instance.SetNumberOfSocialEvent(_socialEventQuery.CalculateEntityCount());
+            instance.SetNumberOfSocialEventWithVictim(_socialEventWithVictimQuery.CalculateEntityCount());
+            instance.SetNumberOfBedSeekingUnits(_isSeekingBedQuery.CalculateEntityCount());
+            instance.SetNumberOfTreeSeekingUnits(_isSeekingTreeQuery.CalculateEntityCount());
+            instance.SetNumberOfDropPointSeekingUnits(_isSeekingDropPointQuery.CalculateEntityCount());
+            instance.SetNumberOfSleepingUnits(_isSleepingQuery.CalculateEntityCount());
+            instance.SetNumberOfHarvestingUnits(_isHarvestingQuery.CalculateEntityCount());
+            instance.SetNumberOfIdleUnits(_isIdleQuery.CalculateEntityCount());
+            instance.SetNumberOfIsTalkative(_isTalkativeQuery.CalculateEntityCount());
+            instance.SetNumberOfIsTalking(_isTalkingQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingTalkingPartner(_isSeekingTalkingPartnerQuery.CalculateEntityCount());
+            instance.SetNumberOfIsAttemptingMurder(_isAttemptingMurderQuery.CalculateEntityCount());
+            instance.SetNumberOfIsMurdering(_isMurderingQuery.CalculateEntityCount());
         }
     }
 }
