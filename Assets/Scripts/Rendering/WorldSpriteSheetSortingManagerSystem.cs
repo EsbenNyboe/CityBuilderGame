@@ -60,11 +60,6 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             return;
         }
 
-        var spriteSheetsToSort =
-            GetDataToSort(ref state, worldSpriteSheetManager, out var yTop, out var yBottom, out var inventoryRenderDataQueue);
-        var visibleUnitsCount = spriteSheetsToSort.Count;
-        var visibleItemsCount = inventoryRenderDataQueue.Count;
-
         var sortingTest = SystemAPI.GetSingleton<SortingJobConfig>();
         var sectionCount = (int)math.pow(sortingTest.SectionsPerSplitJob, sortingTest.SplitJobCount);
         var pivotCount = sectionCount - 1;
@@ -77,14 +72,10 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             jobIndex++;
         }
 
-        var arrayOfQueues = new NativeArray<QueueContainer>(queueCount, Allocator.Temp);
-        arrayOfQueues[0] = new QueueContainer
+        var sortingQueues = new NativeArray<QueueContainer>(queueCount, Allocator.Temp);
+        for (var i = 1; i < sortingQueues.Length; i++)
         {
-            SortingQueue = spriteSheetsToSort
-        };
-        for (var i = 1; i < arrayOfQueues.Length; i++)
-        {
-            arrayOfQueues[i] = new QueueContainer
+            sortingQueues[i] = new QueueContainer
             {
                 SortingQueue = new NativeQueue<RenderData>(Allocator.TempJob)
             };
@@ -97,7 +88,19 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             // Debug.Log("Job section count " + i + ": " + batchSectionCounts[i]);
         }
 
+        GetCameraBounds(ref state, out var yTop, out var yBottom, out var xLeft, out var xRight);
         var pivots = GetArrayOfPivots(pivotCount, batchSectionCounts, yBottom, yTop);
+        var spriteSheetsToSort =
+            GetDataToSort(ref state, worldSpriteSheetManager, yTop, yBottom, xLeft, xRight, out var inventoryRenderDataQueue,
+                pivots, pivotCount, sortingQueues);
+        sortingQueues[0] = new QueueContainer
+        {
+            SortingQueue = spriteSheetsToSort
+        };
+
+        var visibleUnitsCount = spriteSheetsToSort.Count;
+        var visibleItemsCount = inventoryRenderDataQueue.Count;
+
         var jobBatchSizes = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
         jobBatchSizes[0] = 1;
         for (var i = 1; i < sortingTest.SplitJobCount; i++)
@@ -105,9 +108,9 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             jobBatchSizes[i] = batchSectionCounts[i - 1];
         }
 
-        QuickSortQueuesToVerticalSections(arrayOfQueues, pivots, jobBatchSizes, sortingTest.SectionsPerSplitJob - 1);
+        QuickSortQueuesToVerticalSections(sortingQueues, pivots, jobBatchSizes, sortingTest.SectionsPerSplitJob - 1);
 
-        var arrayOfArrays = ConvertQueuesToArrays(arrayOfQueues);
+        var arrayOfArrays = ConvertQueuesToArrays(sortingQueues);
 
         var sharedSortingArray = MergeArraysIntoOneSharedArray(visibleUnitsCount, arrayOfArrays,
             out var startIndexes,
@@ -177,22 +180,10 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     }
 
     private NativeQueue<RenderData> GetDataToSort(ref SystemState state, WorldSpriteSheetManager worldSpriteSheetManager,
-        out float yTop, out float yBottom, out NativeQueue<InventoryRenderData> inventoryRenderDataQueue)
+        float yTop, float yBottom, float xLeft, float xRight, out NativeQueue<InventoryRenderData> inventoryRenderDataQueue,
+        NativeArray<float> pivots, int pivotCount,
+        NativeArray<QueueContainer> sortingQueues)
     {
-        var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
-        var cameraPosition = cameraInformation.CameraPosition;
-        var screenRatio = cameraInformation.ScreenRatio;
-        var orthographicSize = cameraInformation.OrthographicSize;
-
-        var cullBuffer = 1f; // We add some buffer, so culling is not noticable
-        var cameraSizeX = orthographicSize * screenRatio + cullBuffer;
-        var cameraSizeY = orthographicSize + cullBuffer;
-
-        var xLeft = cameraPosition.x - cameraSizeX;
-        var xRight = cameraPosition.x + cameraSizeX;
-        yTop = cameraPosition.y + cameraSizeY;
-        yBottom = cameraPosition.y - cameraSizeY;
-
         // Filter out all units that are outside the field of view
         var spriteSheetsToSort = new NativeQueue<RenderData>(Allocator.TempJob);
         inventoryRenderDataQueue = new NativeQueue<InventoryRenderData>(Allocator.TempJob);
@@ -206,6 +197,18 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             InventoryRenderDataQueue = inventoryRenderDataQueue
         }.Run(_unitQuery);
 
+        // new CullJob
+        // {
+        //     XLeft = xLeft,
+        //     XRight = xRight,
+        //     YTop = yTop,
+        //     YBottom = yBottom,
+        //     InventoryRenderDataQueue = inventoryRenderDataQueue,
+        //     Pivots = pivots,
+        //     PivotCount = pivotCount,
+        //     SortingQueues = sortingQueues
+        // }.Run(_unitQuery);
+
         new CullJobOnDroppedItems_OLD
         {
             XLeft = xLeft,
@@ -216,7 +219,36 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             NativeQueue = spriteSheetsToSort
         }.Run(_droppedItemQuery);
 
+        // new CullJobOnDroppedItems
+        // {
+        //     XLeft = xLeft,
+        //     XRight = xRight,
+        //     YTop = yTop,
+        //     YBottom = yBottom,
+        //     WorldSpriteSheetManager = worldSpriteSheetManager,
+        //     Pivots = pivots,
+        //     PivotCount = pivotCount,
+        //     SortingQueues = sortingQueues
+        // }.Run(_droppedItemQuery);
+
         return spriteSheetsToSort;
+    }
+
+    private void GetCameraBounds(ref SystemState state, out float yTop, out float yBottom, out float xLeft, out float xRight)
+    {
+        var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
+        var cameraPosition = cameraInformation.CameraPosition;
+        var screenRatio = cameraInformation.ScreenRatio;
+        var orthographicSize = cameraInformation.OrthographicSize;
+
+        var cullBuffer = 1f; // We add some buffer, so culling is not noticable
+        var cameraSizeX = orthographicSize * screenRatio + cullBuffer;
+        var cameraSizeY = orthographicSize + cullBuffer;
+
+        xLeft = cameraPosition.x - cameraSizeX;
+        xRight = cameraPosition.x + cameraSizeX;
+        yTop = cameraPosition.y + cameraSizeY;
+        yBottom = cameraPosition.y - cameraSizeY;
     }
 
     private static NativeArray<float> GetArrayOfPivots(int pivotCount, NativeArray<int> batchSectionCounts, float yBottom, float yTop)
@@ -474,13 +506,10 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         public NativeQueue<InventoryRenderData> InventoryRenderDataQueue;
 
         [ReadOnly] public NativeArray<float> Pivots;
-        [ReadOnly] public int PivotsStartIndex;
         [ReadOnly] public int PivotCount;
 
         [NativeDisableContainerSafetyRestriction]
         public NativeArray<QueueContainer> SortingQueues;
-
-        [ReadOnly] public int OutputStartIndex;
 
         public void Execute(in Entity Entity, in LocalToWorld localToWorld, in WorldSpriteSheetAnimation animationData,
             in Inventory inventory)
@@ -507,7 +536,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
                 Uv = animationData.Uv
             };
 
-            QuickSortToQueues(Pivots, PivotsStartIndex, PivotCount, SortingQueues, OutputStartIndex, renderData);
+            QuickSortToQueues(Pivots, 0, PivotCount, SortingQueues, 0, renderData);
 
             if (inventory.CurrentItem != InventoryItem.None)
             {
@@ -580,13 +609,10 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         public WorldSpriteSheetManager WorldSpriteSheetManager;
 
         [ReadOnly] public NativeArray<float> Pivots;
-        [ReadOnly] public int PivotsStartIndex;
         [ReadOnly] public int PivotCount;
 
         [NativeDisableContainerSafetyRestriction]
         public NativeArray<QueueContainer> SortingQueues;
-
-        [ReadOnly] public int OutputStartIndex;
 
         public void Execute(in Entity Entity, in DroppedItem droppedItem, in LocalTransform localTransform)
         {
@@ -618,7 +644,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
                 Uv = new Vector4(columnScale, rowScale, column * columnScale, row * rowScale)
             };
 
-            QuickSortToQueues(Pivots, PivotsStartIndex, PivotCount, SortingQueues, OutputStartIndex, renderData);
+            QuickSortToQueues(Pivots, 0, PivotCount, SortingQueues, 0, renderData);
         }
     }
 
