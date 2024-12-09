@@ -91,8 +91,9 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         GetCameraBounds(ref state, out var yTop, out var yBottom, out var xLeft, out var xRight);
         var pivots = GetArrayOfPivots(pivotCount, batchQueueCounts, yBottom, yTop);
+        var pivotsPerQuickSort = sortingTest.SectionsPerSplitJob - 1;
         GetDataToSort(ref state, worldSpriteSheetManager, yTop, yBottom, xLeft, xRight, out var inventoryRenderDataQueue,
-            pivots, pivotCount, sortingQueues);
+            pivots, pivotsPerQuickSort, sortingQueues);
 
         var visibleItemsCount = inventoryRenderDataQueue.Count;
         var visibleUnitsCount = 0;
@@ -101,9 +102,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             visibleUnitsCount += sortingQueues[i].SortingQueue.Count;
         }
 
-        Debug.Log("Visible units: " + visibleUnitsCount);
-
-        QuickSortQueuesToVerticalSections(sortingQueues, batchQueueCounts, pivots, jobBatchSizes, sortingTest.SectionsPerSplitJob - 1);
+        QuickSortQueuesToVerticalSections(sortingQueues, batchQueueCounts, pivots, jobBatchSizes, pivotsPerQuickSort);
 
         var arrayOfArrays = ConvertQueuesToArrays(sortingQueues);
 
