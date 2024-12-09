@@ -63,29 +63,26 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         var sortingTest = SystemAPI.GetSingleton<SortingJobConfig>();
         var sectionCount = (int)math.pow(sortingTest.SectionsPerSplitJob, sortingTest.SplitJobCount);
         var pivotCount = sectionCount - 1;
+
         var queueCount = 1;
-        var jobIndex = 0;
-        while (jobIndex < sortingTest.SplitJobCount)
+        var jobBatchSizes = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
+        jobBatchSizes[0] = 1;
+        var batchSectionCounts = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
+        for (var i = 0; i < batchSectionCounts.Length; i++)
         {
-            var outputQueues = (int)math.pow(sortingTest.SectionsPerSplitJob, jobIndex + 1);
-            queueCount += outputQueues;
-            jobIndex++;
+            var outputQueuesInBatch = (int)math.pow(sortingTest.SectionsPerSplitJob, i + 1);
+            queueCount += outputQueuesInBatch;
+            batchSectionCounts[i] = outputQueuesInBatch;
+            jobBatchSizes[i] = i == 0 ? 1 : batchSectionCounts[i - 1];
         }
 
         var sortingQueues = new NativeArray<QueueContainer>(queueCount, Allocator.Temp);
-        for (var i = 1; i < sortingQueues.Length; i++)
+        for (var i = 1; i < queueCount; i++)
         {
             sortingQueues[i] = new QueueContainer
             {
                 SortingQueue = new NativeQueue<RenderData>(Allocator.TempJob)
             };
-        }
-
-        var batchSectionCounts = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
-        for (var i = 0; i < batchSectionCounts.Length; i++)
-        {
-            batchSectionCounts[i] = (int)math.pow(sortingTest.SectionsPerSplitJob, i + 1);
-            // Debug.Log("Job section count " + i + ": " + batchSectionCounts[i]);
         }
 
         GetCameraBounds(ref state, out var yTop, out var yBottom, out var xLeft, out var xRight);
@@ -100,13 +97,6 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         var visibleUnitsCount = spriteSheetsToSort.Count;
         var visibleItemsCount = inventoryRenderDataQueue.Count;
-
-        var jobBatchSizes = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
-        jobBatchSizes[0] = 1;
-        for (var i = 1; i < sortingTest.SplitJobCount; i++)
-        {
-            jobBatchSizes[i] = batchSectionCounts[i - 1];
-        }
 
         QuickSortQueuesToVerticalSections(sortingQueues, pivots, jobBatchSizes, sortingTest.SectionsPerSplitJob - 1);
 
