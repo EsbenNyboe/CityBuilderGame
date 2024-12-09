@@ -6,7 +6,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Profiling;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -61,8 +60,6 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             return;
         }
 
-        var profilerA = new ProfilerMarker("A");
-        profilerA.Begin();
         var sortingTest = SystemAPI.GetSingleton<SortingJobConfig>();
         var sectionCount = (int)math.pow(sortingTest.SectionsPerSplitJob, sortingTest.SplitJobCount);
         var pivotCount = sectionCount - 1;
@@ -92,28 +89,11 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             };
         }
 
-        profilerA.End();
-
-        var profilerB = new ProfilerMarker("B");
-        profilerB.Begin();
-
         GetCameraBounds(ref state, out var yTop, out var yBottom, out var xLeft, out var xRight);
-        profilerB.End();
-
-        var profilerC = new ProfilerMarker("C");
-        profilerC.Begin();
-
         var pivots = GetArrayOfPivots(pivotCount, batchQueueCounts, yBottom, yTop);
         var pivotsPerQuickSort = sortingTest.SectionsPerSplitJob - 1;
-        profilerC.End();
-        var profilerD = new ProfilerMarker("D");
-        profilerD.Begin();
         GetDataToSort(ref state, worldSpriteSheetManager, yTop, yBottom, xLeft, xRight, out var inventoryRenderDataQueue,
             pivots, pivotsPerQuickSort, sortingQueues);
-        profilerD.End();
-
-        var profilerE = new ProfilerMarker("E");
-        profilerE.Begin();
 
         var visibleItemsCount = inventoryRenderDataQueue.Count;
         var visibleUnitsCount = 0;
@@ -122,49 +102,22 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             visibleUnitsCount += sortingQueues[i].SortingQueue.Count;
         }
 
-        profilerE.End();
-        var profilerF = new ProfilerMarker("F");
-        profilerF.Begin();
-
         QuickSortQueuesToVerticalSections(sortingQueues, batchQueueCounts, pivots, jobBatchSizes, pivotsPerQuickSort);
-        profilerF.End();
-
-        var profilerG = new ProfilerMarker("G");
-        profilerG.Begin();
 
         var arrayOfArrays = ConvertQueuesToArrays(sortingQueues);
-        profilerG.End();
-        var profilerH = new ProfilerMarker("H");
-        profilerH.Begin();
 
         var sharedSortingArray = MergeArraysIntoOneSharedArray(visibleUnitsCount, arrayOfArrays,
             out var startIndexes,
             out var endIndexes);
-        profilerH.End();
-        var profilerI = new ProfilerMarker("I");
-        profilerI.Begin();
 
         var dependency = ScheduleBubbleSortingOfEachSection(sharedSortingArray, startIndexes, endIndexes);
-        profilerI.End();
-        var profilerJ = new ProfilerMarker("J");
-        profilerJ.Begin();
 
         dependency = MergeSortedArrayWithInventoryData(dependency, ref state, sharedSortingArray, inventoryRenderDataQueue,
             worldSpriteSheetManager, out var allEntitiesToRenderArray);
-        profilerJ.End();
-
-        var profilerK = new ProfilerMarker("K");
-        profilerK.Begin();
-
         GetSingletonDataContainers(ref state, visibleUnitsCount + visibleItemsCount,
             out var spriteMatrixArray, out var spriteUvArray);
-        profilerK.End();
-        var profilerL = new ProfilerMarker("L");
-        profilerL.Begin();
-
         dependency = ScheduleWritingToDataContainers(allEntitiesToRenderArray, spriteMatrixArray, spriteUvArray,
             dependency, visibleUnitsCount + visibleItemsCount);
-        profilerL.End();
         state.Dependency = dependency;
     }
 
