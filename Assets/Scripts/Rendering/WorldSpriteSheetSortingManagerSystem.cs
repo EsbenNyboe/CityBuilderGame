@@ -531,25 +531,35 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         public void Execute()
         {
-            while (InQueue.Count > 0)
+            QuickSortLogic(InQueue, PivotsStartIndex, PivotCount, SortingQueues, OutputStartIndex, Pivots);
+        }
+    }
+
+    private static void QuickSortLogic(NativeQueue<RenderData> inQueue,
+        int pivotsStartIndex,
+        int pivotCount,
+        NativeArray<QueueContainer> sortingQueues,
+        int outputStartIndex,
+        NativeArray<float> pivots)
+    {
+        while (inQueue.Count > 0)
+        {
+            var renderData = inQueue.Dequeue();
+            var dataIsSorted = false;
+
+            for (var i = pivotsStartIndex; i < pivotsStartIndex + pivotCount; i++)
             {
-                var renderData = InQueue.Dequeue();
-                var dataIsSorted = false;
-
-                for (var i = PivotsStartIndex; i < PivotsStartIndex + PivotCount; i++)
+                if (renderData.Position.y > pivots[i])
                 {
-                    if (renderData.Position.y > Pivots[i])
-                    {
-                        SortingQueues[OutputStartIndex + i - PivotsStartIndex].SortingQueue.Enqueue(renderData);
-                        dataIsSorted = true;
-                        break;
-                    }
+                    sortingQueues[outputStartIndex + i - pivotsStartIndex].SortingQueue.Enqueue(renderData);
+                    dataIsSorted = true;
+                    break;
                 }
+            }
 
-                if (!dataIsSorted)
-                {
-                    SortingQueues[OutputStartIndex + PivotCount].SortingQueue.Enqueue(renderData);
-                }
+            if (!dataIsSorted)
+            {
+                sortingQueues[outputStartIndex + pivotCount].SortingQueue.Enqueue(renderData);
             }
         }
     }
