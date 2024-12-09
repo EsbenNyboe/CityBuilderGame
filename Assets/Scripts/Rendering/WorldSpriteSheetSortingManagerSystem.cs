@@ -196,7 +196,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         // Filter out all units that are outside the field of view
         var spriteSheetsToSort = new NativeQueue<RenderData>(Allocator.TempJob);
         inventoryRenderDataQueue = new NativeQueue<InventoryRenderData>(Allocator.TempJob);
-        new CullJob
+        new CullJob_OLD
         {
             XLeft = xLeft,
             XRight = xRight,
@@ -206,7 +206,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             InventoryRenderDataQueue = inventoryRenderDataQueue
         }.Run(_unitQuery);
 
-        new CullJobOnDroppedItems
+        new CullJobOnDroppedItems_OLD
         {
             XLeft = xLeft,
             XRight = xRight,
@@ -415,7 +415,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     }
 
     [BurstCompile]
-    private partial struct CullJob : IJobEntity
+    private partial struct CullJob_OLD : IJobEntity
     {
         public float XLeft; // Left most cull position
         public float XRight; // Right most cull position
@@ -464,7 +464,65 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     }
 
     [BurstCompile]
-    private partial struct CullJobOnDroppedItems : IJobEntity
+    private partial struct CullJob : IJobEntity
+    {
+        [ReadOnly] public float XLeft; // Left most cull position
+        [ReadOnly] public float XRight; // Right most cull position
+        [ReadOnly] public float YTop; // Top most cull position
+        [ReadOnly] public float YBottom; // Bottom most cull position
+
+        public NativeQueue<InventoryRenderData> InventoryRenderDataQueue;
+
+        [ReadOnly] public NativeArray<float> Pivots;
+        [ReadOnly] public int PivotsStartIndex;
+        [ReadOnly] public int PivotCount;
+
+        [NativeDisableContainerSafetyRestriction]
+        public NativeArray<QueueContainer> SortingQueues;
+
+        [ReadOnly] public int OutputStartIndex;
+
+        public void Execute(in Entity Entity, in LocalToWorld localToWorld, in WorldSpriteSheetAnimation animationData,
+            in Inventory inventory)
+        {
+            var positionX = localToWorld.Position.x;
+            if (!(positionX > XLeft) || !(positionX < XRight))
+            {
+                // Unit is not within horizontal view-bounds. No need to render.
+                return;
+            }
+
+            var positionY = localToWorld.Position.y;
+            if (!(positionY > YBottom) || !(positionY < YTop))
+            {
+                // Unit is not within vertical view-bounds. No need to render.
+                return;
+            }
+
+            var renderData = new RenderData
+            {
+                Entity = Entity,
+                Position = localToWorld.Position,
+                Matrix = animationData.Matrix,
+                Uv = animationData.Uv
+            };
+
+            QuickSortToQueues(Pivots, PivotsStartIndex, PivotCount, SortingQueues, OutputStartIndex, renderData);
+
+            if (inventory.CurrentItem != InventoryItem.None)
+            {
+                InventoryRenderDataQueue.Enqueue(new InventoryRenderData
+                {
+                    Entity = Entity,
+                    Item = inventory.CurrentItem,
+                    Amount = 1
+                });
+            }
+        }
+    }
+
+    [BurstCompile]
+    private partial struct CullJobOnDroppedItems_OLD : IJobEntity
     {
         [ReadOnly] public float XLeft; // Left most cull position
         [ReadOnly] public float XRight; // Right most cull position
@@ -510,6 +568,60 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         }
     }
 
+    [BurstCompile]
+    private partial struct CullJobOnDroppedItems : IJobEntity
+    {
+        [ReadOnly] public float XLeft; // Left most cull position
+        [ReadOnly] public float XRight; // Right most cull position
+        [ReadOnly] public float YTop; // Top most cull position
+        [ReadOnly] public float YBottom; // Bottom most cull position
+
+        [ReadOnly] [NativeDisableContainerSafetyRestriction]
+        public WorldSpriteSheetManager WorldSpriteSheetManager;
+
+        [ReadOnly] public NativeArray<float> Pivots;
+        [ReadOnly] public int PivotsStartIndex;
+        [ReadOnly] public int PivotCount;
+
+        [NativeDisableContainerSafetyRestriction]
+        public NativeArray<QueueContainer> SortingQueues;
+
+        [ReadOnly] public int OutputStartIndex;
+
+        public void Execute(in Entity Entity, in DroppedItem droppedItem, in LocalTransform localTransform)
+        {
+            var position = localTransform.Position;
+            var positionX = position.x;
+            if (!(positionX > XLeft) || !(positionX < XRight))
+            {
+                // Item is not within horizontal view-bounds. No need to render.
+                return;
+            }
+
+            var positionY = position.y;
+            if (!(positionY > YBottom) || !(positionY < YTop))
+            {
+                // Item is not within vertical view-bounds. No need to render.
+                return;
+            }
+
+            WorldSpriteSheetManager.GetInventoryItemCoordinates(droppedItem.Item, out var column, out var row);
+            var columnScale = WorldSpriteSheetManager.ColumnScale;
+            var rowScale = WorldSpriteSheetManager.RowScale;
+            const float groundOffset = 0.4f;
+            var renderPosition = new float3(position.x, position.y - groundOffset, position.z);
+            var renderData = new RenderData
+            {
+                Entity = Entity,
+                Position = position,
+                Matrix = Matrix4x4.TRS(renderPosition, quaternion.identity, Vector3.one),
+                Uv = new Vector4(columnScale, rowScale, column * columnScale, row * rowScale)
+            };
+
+            QuickSortToQueues(Pivots, PivotsStartIndex, PivotCount, SortingQueues, OutputStartIndex, renderData);
+        }
+    }
+
     private struct QueueContainer
     {
         public NativeQueue<RenderData> SortingQueue;
@@ -521,46 +633,46 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         public NativeQueue<RenderData> InQueue;
 
         [ReadOnly] public NativeArray<float> Pivots;
-        public int PivotsStartIndex;
-        public int PivotCount;
+        [ReadOnly] public int PivotsStartIndex;
+        [ReadOnly] public int PivotCount;
 
         [NativeDisableContainerSafetyRestriction]
         public NativeArray<QueueContainer> SortingQueues;
 
-        public int OutputStartIndex;
+        [ReadOnly] public int OutputStartIndex;
 
         public void Execute()
         {
-            QuickSortLogic(InQueue, PivotsStartIndex, PivotCount, SortingQueues, OutputStartIndex, Pivots);
+            while (InQueue.Count > 0)
+            {
+                var renderData = InQueue.Dequeue();
+                QuickSortToQueues(Pivots, PivotsStartIndex, PivotCount, SortingQueues, OutputStartIndex, renderData);
+            }
         }
     }
 
-    private static void QuickSortLogic(NativeQueue<RenderData> inQueue,
+    private static void QuickSortToQueues(NativeArray<float> pivots,
         int pivotsStartIndex,
         int pivotCount,
         NativeArray<QueueContainer> sortingQueues,
         int outputStartIndex,
-        NativeArray<float> pivots)
+        RenderData renderData)
     {
-        while (inQueue.Count > 0)
+        var dataIsSorted = false;
+
+        for (var i = pivotsStartIndex; i < pivotsStartIndex + pivotCount; i++)
         {
-            var renderData = inQueue.Dequeue();
-            var dataIsSorted = false;
-
-            for (var i = pivotsStartIndex; i < pivotsStartIndex + pivotCount; i++)
+            if (renderData.Position.y > pivots[i])
             {
-                if (renderData.Position.y > pivots[i])
-                {
-                    sortingQueues[outputStartIndex + i - pivotsStartIndex].SortingQueue.Enqueue(renderData);
-                    dataIsSorted = true;
-                    break;
-                }
+                sortingQueues[outputStartIndex + i - pivotsStartIndex].SortingQueue.Enqueue(renderData);
+                dataIsSorted = true;
+                break;
             }
+        }
 
-            if (!dataIsSorted)
-            {
-                sortingQueues[outputStartIndex + pivotCount].SortingQueue.Enqueue(renderData);
-            }
+        if (!dataIsSorted)
+        {
+            sortingQueues[outputStartIndex + pivotCount].SortingQueue.Enqueue(renderData);
         }
     }
 
