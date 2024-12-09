@@ -80,7 +80,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             jobBatchSizes[i] = batchQueueCounts[i - 1];
         }
 
-        var sortingQueues = new NativeArray<QueueContainer>(queueCount, Allocator.Temp);
+        var sortingQueues = new NativeArray<QueueContainer>(queueCount, Allocator.TempJob);
         for (var i = 0; i < queueCount; i++)
         {
             sortingQueues[i] = new QueueContainer
