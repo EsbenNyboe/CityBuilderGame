@@ -565,32 +565,6 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     }
 
     [BurstCompile]
-    private struct QuickSortJob_OLD : IJob
-    {
-        [ReadOnly] public float Pivot;
-
-        public NativeQueue<RenderData> InQueue;
-        public NativeQueue<RenderData> OutQueue1;
-        public NativeQueue<RenderData> OutQueue2;
-
-        public void Execute()
-        {
-            while (InQueue.Count > 0)
-            {
-                var renderData = InQueue.Dequeue();
-                if (renderData.Position.y > Pivot)
-                {
-                    OutQueue1.Enqueue(renderData);
-                }
-                else
-                {
-                    OutQueue2.Enqueue(renderData);
-                }
-            }
-        }
-    }
-
-    [BurstCompile]
     private struct NativeQueueToArrayJob : IJob
     {
         public NativeQueue<RenderData> NativeQueue;
