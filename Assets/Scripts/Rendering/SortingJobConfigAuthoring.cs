@@ -13,9 +13,9 @@ namespace Rendering
 
     public class SortingJobConfigAuthoring : MonoBehaviour
     {
-        [Range(2, 10)] public int SectionsPerSplitJob;
+        [Range(2, 20)] public int SectionsPerSplitJob;
 
-        [Range(1, 5)] public int SplitJobCount;
+        [Range(1, 4)] public int SplitJobCount;
 
         public bool EnableGizmos;
         public bool EnableDebugLog;
