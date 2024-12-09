@@ -8,7 +8,6 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-using Utilities;
 
 public struct WorldSpriteSheetSortingManager : IComponentData
 {
@@ -25,6 +24,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<InventoryEnum>();
         state.RequireForUpdate<SortingJobConfig>();
         state.RequireForUpdate<WorldSpriteSheetManager>();
         state.RequireForUpdate<CameraInformation>();
@@ -50,6 +50,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         singleton.ValueRW.SpriteUvArray.Dispose();
     }
 
+    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         state.Dependency.Complete();
@@ -114,7 +115,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         var dependency = ScheduleBubbleSortingOfEachSection(sharedSortingArray, startIndexes, endIndexes);
 
-        dependency = MergeSortedArrayWithInventoryData(dependency, sharedSortingArray, inventoryRenderDataQueue,
+        dependency = MergeSortedArrayWithInventoryData(dependency, ref state, sharedSortingArray, inventoryRenderDataQueue,
             worldSpriteSheetManager, out var allEntitiesToRenderArray);
         GetSingletonDataContainers(ref state, visibleUnitsCount + visibleItemsCount,
             out var spriteMatrixArray, out var spriteUvArray);
@@ -124,6 +125,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     }
 
     private JobHandle MergeSortedArrayWithInventoryData(JobHandle dependency,
+        ref SystemState state,
         NativeArray<RenderData> sharedSortingArray,
         NativeQueue<InventoryRenderData> inventoryRenderDataQueue,
         WorldSpriteSheetManager worldSpriteSheetManager, out NativeArray<RenderData> mergedArray)
@@ -144,7 +146,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         mergedArray =
             new NativeArray<RenderData>(sharedSortingArray.Length + inventoryItemsToRender, Allocator.TempJob);
 
-        var enumLength = EnumHelpers.GetMaxEnumValue<InventoryItem>() + 1;
+        var enumLength = SystemAPI.GetSingleton<InventoryEnum>().ItemEnumLength;
 
         var inventoryItemSpriteSheetColumnLookup = new NativeArray<int>(enumLength, Allocator.TempJob);
         var inventoryItemSpriteSheetRowLookup = new NativeArray<int>(enumLength, Allocator.TempJob);
