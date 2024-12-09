@@ -64,20 +64,24 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         var sectionCount = (int)math.pow(sortingTest.SectionsPerSplitJob, sortingTest.SplitJobCount);
         var pivotCount = sectionCount - 1;
 
-        var queueCount = 1;
-        var jobBatchSizes = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
-        jobBatchSizes[0] = 1;
-        var batchSectionCounts = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
-        for (var i = 0; i < batchSectionCounts.Length; i++)
+        var queueCount = 0;
+        var batchQueueCounts = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
+        for (var i = 0; i < sortingTest.SplitJobCount; i++)
         {
             var outputQueuesInBatch = (int)math.pow(sortingTest.SectionsPerSplitJob, i + 1);
             queueCount += outputQueuesInBatch;
-            batchSectionCounts[i] = outputQueuesInBatch;
-            jobBatchSizes[i] = i == 0 ? 1 : batchSectionCounts[i - 1];
+            batchQueueCounts[i] = outputQueuesInBatch;
+        }
+
+        var jobBatchSizes = new NativeArray<int>(sortingTest.SplitJobCount, Allocator.Temp);
+        jobBatchSizes[0] = 1;
+        for (var i = 1; i < sortingTest.SplitJobCount; i++)
+        {
+            jobBatchSizes[i] = batchQueueCounts[i - 1];
         }
 
         var sortingQueues = new NativeArray<QueueContainer>(queueCount, Allocator.Temp);
-        for (var i = 1; i < queueCount; i++)
+        for (var i = 0; i < queueCount; i++)
         {
             sortingQueues[i] = new QueueContainer
             {
@@ -86,19 +90,20 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         }
 
         GetCameraBounds(ref state, out var yTop, out var yBottom, out var xLeft, out var xRight);
-        var pivots = GetArrayOfPivots(pivotCount, batchSectionCounts, yBottom, yTop);
-        var spriteSheetsToSort =
-            GetDataToSort(ref state, worldSpriteSheetManager, yTop, yBottom, xLeft, xRight, out var inventoryRenderDataQueue,
-                pivots, pivotCount, sortingQueues);
-        sortingQueues[0] = new QueueContainer
-        {
-            SortingQueue = spriteSheetsToSort
-        };
+        var pivots = GetArrayOfPivots(pivotCount, batchQueueCounts, yBottom, yTop);
+        GetDataToSort(ref state, worldSpriteSheetManager, yTop, yBottom, xLeft, xRight, out var inventoryRenderDataQueue,
+            pivots, pivotCount, sortingQueues);
 
-        var visibleUnitsCount = spriteSheetsToSort.Count;
         var visibleItemsCount = inventoryRenderDataQueue.Count;
+        var visibleUnitsCount = 0;
+        for (var i = 0; i < batchQueueCounts[0]; i++)
+        {
+            visibleUnitsCount += sortingQueues[i].SortingQueue.Count;
+        }
 
-        QuickSortQueuesToVerticalSections(sortingQueues, pivots, jobBatchSizes, sortingTest.SectionsPerSplitJob - 1);
+        Debug.Log("Visible units: " + visibleUnitsCount);
+
+        QuickSortQueuesToVerticalSections(sortingQueues, batchQueueCounts, pivots, jobBatchSizes, sortingTest.SectionsPerSplitJob - 1);
 
         var arrayOfArrays = ConvertQueuesToArrays(sortingQueues);
 
@@ -169,59 +174,36 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         return newDependency;
     }
 
-    private NativeQueue<RenderData> GetDataToSort(ref SystemState state, WorldSpriteSheetManager worldSpriteSheetManager,
+    private void GetDataToSort(ref SystemState state, WorldSpriteSheetManager worldSpriteSheetManager,
         float yTop, float yBottom, float xLeft, float xRight, out NativeQueue<InventoryRenderData> inventoryRenderDataQueue,
         NativeArray<float> pivots, int pivotCount,
         NativeArray<QueueContainer> sortingQueues)
     {
-        // Filter out all units that are outside the field of view
-        var spriteSheetsToSort = new NativeQueue<RenderData>(Allocator.TempJob);
         inventoryRenderDataQueue = new NativeQueue<InventoryRenderData>(Allocator.TempJob);
-        new CullJob_OLD
+
+        new CullJob
         {
             XLeft = xLeft,
             XRight = xRight,
             YTop = yTop,
             YBottom = yBottom,
-            NativeQueue = spriteSheetsToSort,
-            InventoryRenderDataQueue = inventoryRenderDataQueue
+            InventoryRenderDataQueue = inventoryRenderDataQueue,
+            Pivots = pivots,
+            PivotCount = pivotCount,
+            SortingQueues = sortingQueues
         }.Run(_unitQuery);
 
-        // new CullJob
-        // {
-        //     XLeft = xLeft,
-        //     XRight = xRight,
-        //     YTop = yTop,
-        //     YBottom = yBottom,
-        //     InventoryRenderDataQueue = inventoryRenderDataQueue,
-        //     Pivots = pivots,
-        //     PivotCount = pivotCount,
-        //     SortingQueues = sortingQueues
-        // }.Run(_unitQuery);
-
-        new CullJobOnDroppedItems_OLD
+        new CullJobOnDroppedItems
         {
             XLeft = xLeft,
             XRight = xRight,
             YTop = yTop,
             YBottom = yBottom,
             WorldSpriteSheetManager = worldSpriteSheetManager,
-            NativeQueue = spriteSheetsToSort
+            Pivots = pivots,
+            PivotCount = pivotCount,
+            SortingQueues = sortingQueues
         }.Run(_droppedItemQuery);
-
-        // new CullJobOnDroppedItems
-        // {
-        //     XLeft = xLeft,
-        //     XRight = xRight,
-        //     YTop = yTop,
-        //     YBottom = yBottom,
-        //     WorldSpriteSheetManager = worldSpriteSheetManager,
-        //     Pivots = pivots,
-        //     PivotCount = pivotCount,
-        //     SortingQueues = sortingQueues
-        // }.Run(_droppedItemQuery);
-
-        return spriteSheetsToSort;
     }
 
     private void GetCameraBounds(ref SystemState state, out float yTop, out float yBottom, out float xLeft, out float xRight)
@@ -276,18 +258,20 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     }
 
     private static void QuickSortQueuesToVerticalSections(NativeArray<QueueContainer> outQueues,
+        NativeArray<int> batchQueueCounts,
         NativeArray<float> quickPivots,
         NativeArray<int> jobBatchSizes,
         int pivotCount)
     {
         var jobBatch = new NativeList<JobHandle>(Allocator.Temp);
         var jobIndex = 0;
-        var pivotIndex = 0;
-        var outputIndex = 1;
-        for (var i = 0; i < jobBatchSizes.Length; i++)
+        // PivotIndex, OutputIndex, and batch skip to the second iteration,
+        // because we already did a quick-sort during culling
+        var pivotIndex = pivotCount;
+        var outputIndex = batchQueueCounts[0];
+        for (var batch = 1; batch < jobBatchSizes.Length; batch++)
         {
-            var batchSize = jobBatchSizes[i];
-            for (var j = 0; j < batchSize; j++)
+            for (var job = 0; job < jobBatchSizes[batch]; job++)
             {
                 if (outQueues[jobIndex].SortingQueue.Count > 0)
                 {
@@ -437,55 +421,6 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     }
 
     [BurstCompile]
-    private partial struct CullJob_OLD : IJobEntity
-    {
-        public float XLeft; // Left most cull position
-        public float XRight; // Right most cull position
-        public float YTop; // Top most cull position
-        public float YBottom; // Bottom most cull position
-
-        public NativeQueue<RenderData> NativeQueue;
-        public NativeQueue<InventoryRenderData> InventoryRenderDataQueue;
-
-        public void Execute(in Entity Entity, in LocalToWorld localToWorld, in WorldSpriteSheetAnimation animationData,
-            in Inventory inventory)
-        {
-            var positionX = localToWorld.Position.x;
-            if (!(positionX > XLeft) || !(positionX < XRight))
-            {
-                // Unit is not within horizontal view-bounds. No need to render.
-                return;
-            }
-
-            var positionY = localToWorld.Position.y;
-            if (!(positionY > YBottom) || !(positionY < YTop))
-            {
-                // Unit is not within vertical view-bounds. No need to render.
-                return;
-            }
-
-            var renderData = new RenderData
-            {
-                Entity = Entity,
-                Position = localToWorld.Position,
-                Matrix = animationData.Matrix,
-                Uv = animationData.Uv
-            };
-
-            NativeQueue.Enqueue(renderData);
-            if (inventory.CurrentItem != InventoryItem.None)
-            {
-                InventoryRenderDataQueue.Enqueue(new InventoryRenderData
-                {
-                    Entity = Entity,
-                    Item = inventory.CurrentItem,
-                    Amount = 1
-                });
-            }
-        }
-    }
-
-    [BurstCompile]
     private partial struct CullJob : IJobEntity
     {
         [ReadOnly] public float XLeft; // Left most cull position
@@ -537,53 +472,6 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
                     Amount = 1
                 });
             }
-        }
-    }
-
-    [BurstCompile]
-    private partial struct CullJobOnDroppedItems_OLD : IJobEntity
-    {
-        [ReadOnly] public float XLeft; // Left most cull position
-        [ReadOnly] public float XRight; // Right most cull position
-        [ReadOnly] public float YTop; // Top most cull position
-        [ReadOnly] public float YBottom; // Bottom most cull position
-
-        [ReadOnly] [NativeDisableContainerSafetyRestriction]
-        public WorldSpriteSheetManager WorldSpriteSheetManager;
-
-        public NativeQueue<RenderData> NativeQueue;
-
-        public void Execute(in Entity Entity, in DroppedItem droppedItem, in LocalTransform localTransform)
-        {
-            var position = localTransform.Position;
-            var positionX = position.x;
-            if (!(positionX > XLeft) || !(positionX < XRight))
-            {
-                // Item is not within horizontal view-bounds. No need to render.
-                return;
-            }
-
-            var positionY = position.y;
-            if (!(positionY > YBottom) || !(positionY < YTop))
-            {
-                // Item is not within vertical view-bounds. No need to render.
-                return;
-            }
-
-            WorldSpriteSheetManager.GetInventoryItemCoordinates(droppedItem.Item, out var column, out var row);
-            var columnScale = WorldSpriteSheetManager.ColumnScale;
-            var rowScale = WorldSpriteSheetManager.RowScale;
-            const float groundOffset = 0.4f;
-            var renderPosition = new float3(position.x, position.y - groundOffset, position.z);
-            var renderData = new RenderData
-            {
-                Entity = Entity,
-                Position = position,
-                Matrix = Matrix4x4.TRS(renderPosition, quaternion.identity, Vector3.one),
-                Uv = new Vector4(columnScale, rowScale, column * columnScale, row * rowScale)
-            };
-
-            NativeQueue.Enqueue(renderData);
         }
     }
 
