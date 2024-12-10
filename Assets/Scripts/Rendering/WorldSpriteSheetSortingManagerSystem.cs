@@ -104,19 +104,19 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         QuickSortQueuesToVerticalSections(sortingQueues, batchQueueCounts, pivots, jobBatchSizes, pivotsPerQuickSort);
 
-        var arrayOfArrays = ConvertQueuesToArrays(sortingQueues);
+        var sortingArrays = ConvertQueuesToArrays(sortingQueues);
 
-        var sharedSortingArray = MergeArraysIntoOneSharedArray(visibleUnitsCount, arrayOfArrays,
+        var sharedSortingArray = MergeArraysIntoOneSharedArray(visibleUnitsCount, sortingArrays,
             out var startIndexes,
             out var endIndexes);
 
         var dependency = ScheduleBubbleSortingOfEachSection(sharedSortingArray, startIndexes, endIndexes);
 
         dependency = MergeSortedArrayWithInventoryData(dependency, ref state, sharedSortingArray, inventoryRenderDataQueue,
-            worldSpriteSheetManager, out var allEntitiesToRenderArray);
+            worldSpriteSheetManager, out var finalArrayOfRenderData);
         GetSingletonDataContainers(ref state, visibleUnitsCount + visibleItemsCount,
             out var spriteMatrixArray, out var spriteUvArray);
-        dependency = ScheduleWritingToDataContainers(allEntitiesToRenderArray, spriteMatrixArray, spriteUvArray,
+        dependency = ScheduleWritingToDataContainers(finalArrayOfRenderData, spriteMatrixArray, spriteUvArray,
             dependency, visibleUnitsCount + visibleItemsCount);
         state.Dependency = dependency;
     }
@@ -125,7 +125,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         ref SystemState state,
         NativeArray<RenderData> sharedSortingArray,
         NativeQueue<InventoryRenderData> inventoryRenderDataQueue,
-        WorldSpriteSheetManager worldSpriteSheetManager, out NativeArray<RenderData> mergedArray)
+        WorldSpriteSheetManager worldSpriteSheetManager, out NativeArray<RenderData> finalArrayOfRenderData)
     {
         // Convert this to a job
         var inventoryItemsToRender = inventoryRenderDataQueue.Count;
@@ -140,7 +140,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         inventoryRenderDataQueue.Dispose();
 
-        mergedArray =
+        finalArrayOfRenderData =
             new NativeArray<RenderData>(sharedSortingArray.Length + inventoryItemsToRender, Allocator.TempJob);
 
         var enumLength = SystemAPI.GetSingleton<InventoryEnum>().ItemEnumLength;
@@ -156,7 +156,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         var newDependency = new MergeSortedArrayWithInventoryDataJob
         {
-            MergedArray = mergedArray,
+            MergedArray = finalArrayOfRenderData,
             InventoryRenderDataHashMap = inventoryRenderDataHashMap,
             SortedArray = sharedSortingArray,
             ColumnScale = worldSpriteSheetManager.ColumnScale,
@@ -222,20 +222,20 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         yBottom = cameraPosition.y - cameraSizeY;
     }
 
-    private static NativeArray<float> GetArrayOfPivots(int pivotCount, NativeArray<int> batchSectionCounts, float yBottom, float yTop)
+    private static NativeArray<float> GetArrayOfPivots(int pivotCount, NativeArray<int> batchQueueCounts, float yBottom, float yTop)
     {
         var pivots = new NativeArray<float>(pivotCount, Allocator.TempJob);
         var pivotIndex = 0;
-        for (var i = 0; i < batchSectionCounts.Length; i++)
+        for (var i = 0; i < batchQueueCounts.Length; i++)
         {
-            var batchSectionCount = batchSectionCounts[i];
+            var batchSectionCount = batchQueueCounts[i];
             var fractionPerSection = 1f / batchSectionCount;
             for (var j = 1; j < batchSectionCount; j++) // Start at 1, because pivots are 1 less than sections
             {
                 var previousBatchContainsPivot = false;
                 for (var k = 0; k < i; k++)
                 {
-                    if (j % batchSectionCounts[k] == 0)
+                    if (j % batchQueueCounts[k] == 0)
                     {
                         previousBatchContainsPivot = true;
                     }
@@ -256,9 +256,9 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         return pivots;
     }
 
-    private static void QuickSortQueuesToVerticalSections(NativeArray<QueueContainer> outQueues,
+    private static void QuickSortQueuesToVerticalSections(NativeArray<QueueContainer> sortingQueues,
         NativeArray<int> batchQueueCounts,
-        NativeArray<float> quickPivots,
+        NativeArray<float> pivots,
         NativeArray<int> jobBatchSizes,
         int pivotCount)
     {
@@ -272,15 +272,15 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         {
             for (var job = 0; job < jobBatchSizes[batch]; job++)
             {
-                if (outQueues[jobIndex].SortingQueue.Count > 0)
+                if (sortingQueues[jobIndex].SortingQueue.Count > 0)
                 {
                     jobBatch.Add(new QuickSortJob
                     {
-                        InQueue = outQueues[jobIndex].SortingQueue,
-                        Pivots = quickPivots,
+                        InQueue = sortingQueues[jobIndex].SortingQueue,
+                        Pivots = pivots,
                         PivotsStartIndex = pivotIndex,
                         PivotCount = pivotCount,
-                        SortingQueues = outQueues,
+                        SortingQueues = sortingQueues,
                         OutputStartIndex = outputIndex
                     }.Schedule());
                 }
@@ -296,28 +296,28 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 
         jobBatch.Dispose();
         jobBatchSizes.Dispose();
-        quickPivots.Dispose();
+        pivots.Dispose();
     }
 
     private static NativeArray<NativeArray<RenderData>> ConvertQueuesToArrays(
-        NativeArray<QueueContainer> arrayOfQueues)
+        NativeArray<QueueContainer> sortingQueues)
     {
-        var outQueuesLength = arrayOfQueues.Length;
+        var outQueuesLength = sortingQueues.Length;
         var jobs = new NativeList<JobHandle>(outQueuesLength, Allocator.Temp);
-        var arrayOfArrays = new NativeArray<NativeArray<RenderData>>(outQueuesLength, Allocator.Temp);
-        for (var i = 0; i < arrayOfArrays.Length; i++)
+        var sortingArrays = new NativeArray<NativeArray<RenderData>>(outQueuesLength, Allocator.Temp);
+        for (var i = 0; i < sortingArrays.Length; i++)
         {
-            arrayOfArrays[i] = new NativeArray<RenderData>(arrayOfQueues[i].SortingQueue.Count, Allocator.TempJob);
+            sortingArrays[i] = new NativeArray<RenderData>(sortingQueues[i].SortingQueue.Count, Allocator.TempJob);
         }
 
         for (var i = 0; i < outQueuesLength; i++)
         {
-            if (arrayOfQueues[i].SortingQueue.Count > 0)
+            if (sortingQueues[i].SortingQueue.Count > 0)
             {
                 jobs.Add(new NativeQueueToArrayJob
                 {
-                    NativeQueue = arrayOfQueues[i].SortingQueue,
-                    NativeArray = arrayOfArrays[i]
+                    NativeQueue = sortingQueues[i].SortingQueue,
+                    NativeArray = sortingArrays[i]
                 }.Schedule());
             }
         }
@@ -325,14 +325,14 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         JobHandle.CompleteAll(jobs.AsArray());
         jobs.Dispose();
 
-        for (var i = 0; i < arrayOfQueues.Length; i++)
+        for (var i = 0; i < sortingQueues.Length; i++)
         {
-            arrayOfQueues[i].SortingQueue.Dispose();
+            sortingQueues[i].SortingQueue.Dispose();
         }
 
-        arrayOfQueues.Dispose();
+        sortingQueues.Dispose();
 
-        return arrayOfArrays;
+        return sortingArrays;
     }
 
     private void GetSingletonDataContainers(ref SystemState state, int visibleEntitiesTotal,
@@ -350,37 +350,37 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
     }
 
     private static NativeArray<RenderData> MergeArraysIntoOneSharedArray(int visibleEntitiesTotal,
-        NativeArray<NativeArray<RenderData>> outArrays,
+        NativeArray<NativeArray<RenderData>> sortingArrays,
         out NativeArray<int> startIndexes, out NativeArray<int> endIndexes)
     {
-        var sharedNativeArray = new NativeArray<RenderData>(visibleEntitiesTotal, Allocator.TempJob);
-        startIndexes = new NativeArray<int>(outArrays.Length, Allocator.TempJob);
-        endIndexes = new NativeArray<int>(outArrays.Length, Allocator.TempJob);
+        var sharedSortingArray = new NativeArray<RenderData>(visibleEntitiesTotal, Allocator.TempJob);
+        startIndexes = new NativeArray<int>(sortingArrays.Length, Allocator.TempJob);
+        endIndexes = new NativeArray<int>(sortingArrays.Length, Allocator.TempJob);
         var sharedIndex = 0;
 
-        for (var i = 0; i < outArrays.Length; i++)
+        for (var i = 0; i < sortingArrays.Length; i++)
         {
             startIndexes[i] = i > 0 ? endIndexes[i - 1] : 0;
-            endIndexes[i] = startIndexes[i] + outArrays[i].Length;
-            for (var j = 0; j < outArrays[i].Length; j++)
+            endIndexes[i] = startIndexes[i] + sortingArrays[i].Length;
+            for (var j = 0; j < sortingArrays[i].Length; j++)
             {
-                var renderData = outArrays[i][j];
-                sharedNativeArray[sharedIndex] = renderData;
+                var renderData = sortingArrays[i][j];
+                sharedSortingArray[sharedIndex] = renderData;
                 sharedIndex++;
             }
         }
 
-        for (var i = 0; i < outArrays.Length; i++)
+        for (var i = 0; i < sortingArrays.Length; i++)
         {
-            outArrays[i].Dispose();
+            sortingArrays[i].Dispose();
         }
 
-        outArrays.Dispose();
+        sortingArrays.Dispose();
 
-        return sharedNativeArray;
+        return sharedSortingArray;
     }
 
-    private static JobHandle ScheduleBubbleSortingOfEachSection(NativeArray<RenderData> sharedNativeArray,
+    private static JobHandle ScheduleBubbleSortingOfEachSection(NativeArray<RenderData> sharedSortingArray,
         NativeArray<int> startIndexes, NativeArray<int> endIndexes)
     {
         var jobs = new NativeList<JobHandle>(startIndexes.Length, Allocator.Temp);
@@ -390,7 +390,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             {
                 jobs.Add(new SortByPositionParallelJob
                 {
-                    SharedNativeArray = sharedNativeArray,
+                    SharedNativeArray = sharedSortingArray,
                     StartIndex = startIndexes[i],
                     EndIndex = endIndexes[i]
                 }.Schedule());
@@ -404,18 +404,18 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         return dependency;
     }
 
-    private static JobHandle ScheduleWritingToDataContainers(NativeArray<RenderData> sharedNativeArray,
+    private static JobHandle ScheduleWritingToDataContainers(NativeArray<RenderData> finalArrayOfRenderData,
         NativeArray<Matrix4x4> spriteMatrixArray,
         NativeArray<Vector4> spriteUvArray, JobHandle dependency, int visibleEntitiesTotal)
     {
         var fillArraysJob = new FillArraysJob
         {
-            SortedArray = sharedNativeArray,
+            SortedArray = finalArrayOfRenderData,
             MatrixArray = spriteMatrixArray,
             UvArray = spriteUvArray
         };
         dependency = fillArraysJob.Schedule(visibleEntitiesTotal, 10, dependency);
-        sharedNativeArray.Dispose(dependency);
+        finalArrayOfRenderData.Dispose(dependency);
         return dependency;
     }
 
