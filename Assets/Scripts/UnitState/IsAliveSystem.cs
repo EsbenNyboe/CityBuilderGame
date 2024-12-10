@@ -8,7 +8,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Profiling;
 using Unity.Transforms;
 
 namespace UnitState
@@ -81,8 +80,6 @@ namespace UnitState
             using var invalidSocialEventsWithVictim = new NativeList<Entity>(Allocator.Temp);
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
-            var profilerA = new ProfilerMarker("A");
-            profilerA.Begin();
             // Cleanup social events
             foreach (var (socialEvent, entity) in SystemAPI.Query<RefRO<SocialEvent>>().WithEntityAccess())
             {
@@ -109,10 +106,6 @@ namespace UnitState
                 }
             }
 
-            profilerA.End();
-
-            var profilerB = new ProfilerMarker("B");
-            profilerB.Begin();
             // Play death effect
             new PlayDeathEffectJob
             {
@@ -125,9 +118,6 @@ namespace UnitState
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 UnitType = UnitType.Boar
             }.ScheduleParallel(_deadBoarQuery, state.Dependency).Complete();
-            profilerB.End();
-            var profilerC = new ProfilerMarker("C");
-            profilerC.Begin();
 
             // Cleanup grid
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>()
@@ -139,10 +129,6 @@ namespace UnitState
 
             SystemAPI.SetSingleton(gridManager);
 
-            profilerC.End();
-            var profilerD = new ProfilerMarker("D");
-            profilerD.Begin();
-
             // Cleanup dead units relationships
             foreach (var (socialRelationships, entity) in
                      SystemAPI.Query<RefRW<SocialRelationships>>().WithDisabled<IsAlive>().WithEntityAccess())
@@ -150,10 +136,6 @@ namespace UnitState
                 socialRelationships.ValueRW.Relationships.Dispose();
                 ecb.RemoveComponent<SocialRelationships>(entity);
             }
-
-            profilerD.End();
-            var profilerE = new ProfilerMarker("E");
-            profilerE.Begin();
 
             var relationshipsOfAllLivingVillagers = _aliveVillagerQuery.ToComponentDataArray<SocialRelationships>(Allocator.TempJob);
             new CleanupAliveVillagersRelationshipsJob
@@ -163,11 +145,6 @@ namespace UnitState
             }.Schedule(relationshipsOfAllLivingVillagers.Length, 1).Complete();
 
             relationshipsOfAllLivingVillagers.Dispose();
-
-            profilerE.End();
-
-            var profilerF = new ProfilerMarker("F");
-            profilerF.Begin();
 
             // Cleanup SocialEvaluation-queue
             var socialEvaluationManager = SystemAPI.GetSingleton<SocialEvaluationManager>();
@@ -193,11 +170,6 @@ namespace UnitState
                 }
             }
 
-            profilerF.End();
-
-            var profilerG = new ProfilerMarker("G");
-            profilerG.Begin();
-
             new CleanupTargetFollowJob
             {
                 DeadVillagers = deadVillagers
@@ -207,10 +179,6 @@ namespace UnitState
             {
                 DeadVillagers = deadVillagers
             }.ScheduleParallel();
-            profilerG.End();
-
-            var profilerH = new ProfilerMarker("H");
-            profilerH.Begin();
 
             // Destroy dead units
             state.EntityManager.DestroyEntity(deadVillagers);
@@ -219,7 +187,6 @@ namespace UnitState
             state.EntityManager.DestroyEntity(invalidSocialEventsWithVictim.AsArray());
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
-            profilerH.End();
         }
     }
 
