@@ -1,5 +1,6 @@
 using Rendering;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -30,68 +31,81 @@ public partial struct WorldSpriteSheetAnimationSystem : ISystem
         var uvScaleY = worldSpriteSheetManager.RowScale;
         var uvTemplate = new Vector4(uvScaleX, uvScaleY, 0, 0);
 
-        foreach (var (spriteSheetAnimationData, localToWorld, spriteTransform, unitAnimator) in SystemAPI
-                     .Query<RefRW<WorldSpriteSheetAnimation>, RefRO<LocalToWorld>, RefRO<SpriteTransform>,
-                         RefRW<UnitAnimationSelection>>())
+        new SetAnimationStateJob
         {
-            var selectedAnimation = unitAnimator.ValueRO.SelectedAnimation;
-            var entry = worldSpriteSheetManager.Entries[(int)selectedAnimation];
+            DeltaTime = SystemAPI.Time.DeltaTime,
+            UvTemplate = uvTemplate,
+            WorldSpriteSheetManager = worldSpriteSheetManager
+        }.ScheduleParallel();
+    }
 
-            if (unitAnimator.ValueRO.CurrentAnimation != selectedAnimation)
+    [BurstCompile]
+    private partial struct SetAnimationStateJob : IJobEntity
+    {
+        [ReadOnly] public float DeltaTime;
+        [ReadOnly] public Vector4 UvTemplate;
+        [ReadOnly] public WorldSpriteSheetManager WorldSpriteSheetManager;
+
+        public void Execute(ref WorldSpriteSheetAnimation spriteSheetAnimationData, ref UnitAnimationSelection unitAnimationSelection,
+            in LocalToWorld localToWorld, in SpriteTransform spriteTransform)
+        {
+            var selectedAnimation = unitAnimationSelection.SelectedAnimation;
+            var entry = WorldSpriteSheetManager.Entries[(int)selectedAnimation];
+
+            if (unitAnimationSelection.CurrentAnimation != selectedAnimation)
             {
-                unitAnimator.ValueRW.CurrentAnimation = selectedAnimation;
-                ResetAnimation(spriteSheetAnimationData);
-                SetMatrix(spriteSheetAnimationData, localToWorld, spriteTransform);
-                SetUv(spriteSheetAnimationData, entry, uvTemplate);
+                unitAnimationSelection.CurrentAnimation = selectedAnimation;
+                ResetAnimation(ref spriteSheetAnimationData);
+                SetMatrix(ref spriteSheetAnimationData, localToWorld, spriteTransform);
+                SetUv(ref spriteSheetAnimationData, entry, UvTemplate);
             }
             else
             {
-                UpdateAnimation(ref state, spriteSheetAnimationData, entry, out var updateUv);
-                SetMatrix(spriteSheetAnimationData, localToWorld, spriteTransform);
+                UpdateAnimation(DeltaTime, ref spriteSheetAnimationData, entry, out var updateUv);
+                SetMatrix(ref spriteSheetAnimationData, localToWorld, spriteTransform);
                 if (updateUv)
                 {
-                    SetUv(spriteSheetAnimationData, entry, uvTemplate);
+                    SetUv(ref spriteSheetAnimationData, entry, UvTemplate);
                 }
             }
         }
-    }
 
-    private static void ResetAnimation(RefRW<WorldSpriteSheetAnimation> spriteSheetAnimationData)
-    {
-        spriteSheetAnimationData.ValueRW.FrameTimer = 0;
-        spriteSheetAnimationData.ValueRW.CurrentFrame = 0;
-    }
-
-    private void UpdateAnimation(ref SystemState state, RefRW<WorldSpriteSheetAnimation> spriteSheetAnimationData,
-        WorldSpriteSheetEntry entry, out bool updateUv)
-    {
-        updateUv = false;
-        spriteSheetAnimationData.ValueRW.FrameTimer += SystemAPI.Time.DeltaTime;
-        while (spriteSheetAnimationData.ValueRO.FrameTimer > entry.FrameInterval)
+        private static void ResetAnimation(ref WorldSpriteSheetAnimation spriteSheetAnimationData)
         {
-            spriteSheetAnimationData.ValueRW.FrameTimer -= entry.FrameInterval;
-            spriteSheetAnimationData.ValueRW.CurrentFrame =
-                (spriteSheetAnimationData.ValueRO.CurrentFrame + 1) % entry.EntryColumns.Length;
-            updateUv = true;
+            spriteSheetAnimationData.FrameTimer = 0;
+            spriteSheetAnimationData.CurrentFrame = 0;
         }
-    }
 
-    private static void SetMatrix(RefRW<WorldSpriteSheetAnimation> spriteSheetAnimationData,
-        RefRO<LocalToWorld> localToWorld,
-        RefRO<SpriteTransform> spriteTransform)
-    {
-        var position = localToWorld.ValueRO.Position + spriteTransform.ValueRO.Position;
-        var rotation = spriteTransform.ValueRO.Rotation;
+        private static void SetMatrix(ref WorldSpriteSheetAnimation spriteSheetAnimationData,
+            LocalToWorld localToWorld,
+            SpriteTransform spriteTransform)
+        {
+            var position = localToWorld.Position + spriteTransform.Position;
+            var rotation = spriteTransform.Rotation;
 
-        spriteSheetAnimationData.ValueRW.Matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
-    }
+            spriteSheetAnimationData.Matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
+        }
 
-    private static void SetUv(RefRW<WorldSpriteSheetAnimation> spriteSheetAnimationData, WorldSpriteSheetEntry entry,
-        Vector4 uv)
-    {
-        var currentFrame = spriteSheetAnimationData.ValueRO.CurrentFrame;
-        uv.z = uv.x * entry.EntryColumns[currentFrame];
-        uv.w = uv.y * entry.EntryRows[currentFrame];
-        spriteSheetAnimationData.ValueRW.Uv = uv;
+        private static void UpdateAnimation(float deltaTime, ref WorldSpriteSheetAnimation spriteSheetAnimationData,
+            WorldSpriteSheetEntry entry, out bool updateUv)
+        {
+            updateUv = false;
+            spriteSheetAnimationData.FrameTimer += deltaTime;
+            while (spriteSheetAnimationData.FrameTimer > entry.FrameInterval)
+            {
+                spriteSheetAnimationData.FrameTimer -= entry.FrameInterval;
+                spriteSheetAnimationData.CurrentFrame =
+                    (spriteSheetAnimationData.CurrentFrame + 1) % entry.EntryColumns.Length;
+                updateUv = true;
+            }
+        }
+
+        private static void SetUv(ref WorldSpriteSheetAnimation spriteSheetAnimationData, WorldSpriteSheetEntry entry, Vector4 uv)
+        {
+            var currentFrame = spriteSheetAnimationData.CurrentFrame;
+            uv.z = uv.x * entry.EntryColumns[currentFrame];
+            uv.w = uv.y * entry.EntryRows[currentFrame];
+            spriteSheetAnimationData.Uv = new Vector4(uv.x, uv.y, uv.z, uv.w);
+        }
     }
 }
