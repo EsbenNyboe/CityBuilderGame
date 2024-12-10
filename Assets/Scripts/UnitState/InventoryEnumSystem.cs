@@ -14,7 +14,7 @@ namespace UnitState
         {
             state.EntityManager.CreateSingleton(new InventoryEnum
             {
-                ItemEnumLength = EnumHelpers.GetMaxEnumValue<InventoryItem>()
+                ItemEnumLength = EnumHelpers.GetMaxEnumValue<InventoryItem>() + 1
             });
         }
     }
