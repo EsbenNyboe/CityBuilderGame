@@ -11,25 +11,24 @@ public partial class LifetimeSystemGroup : ComponentSystemGroup
 }
 
 [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
+public partial class UnitBehaviourGridWritingSystemGroup : ComponentSystemGroup
+{
+}
+
+[UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
+[UpdateAfter(typeof(UnitBehaviourGridWritingSystemGroup))]
 public partial class UnitStateSystemGroup : ComponentSystemGroup
 {
 }
 
 [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
 [UpdateAfter(typeof(UnitStateSystemGroup))]
-public partial class UnitBehaviourGridWritingSystemGroup : ComponentSystemGroup
+public partial class PreRenderingSystemGroup : ComponentSystemGroup
 {
 }
 
 [UpdateInGroup(typeof(SimulationSystemGroup))]
 public partial class UnitBehaviourSystemGroup : ComponentSystemGroup
-{
-}
-
-[UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
-[UpdateAfter(typeof(UnitStateSystemGroup))]
-[UpdateBefore(typeof(UnitBehaviourGridWritingSystemGroup))]
-public partial class PreRenderingSystemGroup : ComponentSystemGroup
 {
 }
 
