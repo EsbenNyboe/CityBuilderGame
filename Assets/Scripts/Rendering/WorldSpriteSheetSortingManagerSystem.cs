@@ -297,6 +297,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         jobBatch.Dispose();
         jobBatchSizes.Dispose();
         pivots.Dispose();
+        batchQueueCounts.Dispose();
     }
 
     private static NativeArray<NativeArray<RenderData>> ConvertQueuesToArrays(
