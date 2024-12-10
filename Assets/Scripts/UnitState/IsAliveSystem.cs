@@ -33,9 +33,13 @@ namespace UnitState
         public void OnUpdate(ref SystemState state)
         {
             state.Dependency.Complete();
+            using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
+            if (deadUnits.Length <= 0)
+            {
+                return;
+            }
 
             var gridManagerRW = SystemAPI.GetSingletonRW<GridManager>();
-            using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
             using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
             using var invalidSocialEventsWithVictim = new NativeList<Entity>(Allocator.Temp);
             using var ecb = new EntityCommandBuffer(Allocator.Temp);
