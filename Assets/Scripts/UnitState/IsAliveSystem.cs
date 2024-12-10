@@ -4,7 +4,9 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Transforms;
@@ -18,6 +20,7 @@ namespace UnitState
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial struct IsAliveSystem : ISystem
     {
+        private EntityQuery _aliveVillagerQuery;
         private EntityQuery _deadVillagerQuery;
         private EntityQuery _deadBoarQuery;
 
@@ -49,6 +52,15 @@ namespace UnitState
                 },
                 Disabled = new ComponentType[]
                 {
+                    typeof(IsAlive)
+                }
+            });
+            _aliveVillagerQuery = state.GetEntityQuery(new EntityQueryDesc
+            {
+                All = new ComponentType[]
+                {
+                    typeof(Villager),
+                    typeof(SocialRelationships),
                     typeof(IsAlive)
                 }
             });
@@ -143,15 +155,14 @@ namespace UnitState
             var profilerE = new ProfilerMarker("E");
             profilerE.Begin();
 
-            // Cleanup alive units relationships
-            foreach (var socialRelationships in
-                     SystemAPI.Query<RefRW<SocialRelationships>>().WithAll<IsAlive>())
+            var relationshipsOfAllLivingVillagers = _aliveVillagerQuery.ToComponentDataArray<SocialRelationships>(Allocator.TempJob);
+            new CleanupAliveVillagersRelationshipsJob
             {
-                foreach (var deadUnit in deadVillagers)
-                {
-                    socialRelationships.ValueRW.Relationships.Remove(deadUnit);
-                }
-            }
+                DeadVillagers = deadVillagers,
+                RelationshipsOfAllLivingVillagers = relationshipsOfAllLivingVillagers
+            }.Schedule(relationshipsOfAllLivingVillagers.Length, 1).Complete();
+
+            relationshipsOfAllLivingVillagers.Dispose();
 
             profilerE.End();
 
@@ -209,6 +220,23 @@ namespace UnitState
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
             profilerH.End();
+        }
+    }
+
+    [BurstCompile]
+    public struct CleanupAliveVillagersRelationshipsJob : IJobParallelFor
+    {
+        [ReadOnly] public NativeArray<Entity> DeadVillagers;
+
+        [NativeDisableContainerSafetyRestriction]
+        public NativeArray<SocialRelationships> RelationshipsOfAllLivingVillagers;
+
+        public void Execute(int index)
+        {
+            foreach (var deadUnit in DeadVillagers)
+            {
+                RelationshipsOfAllLivingVillagers[index].Relationships.Remove(deadUnit);
+            }
         }
     }
 
