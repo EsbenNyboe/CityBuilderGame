@@ -232,12 +232,14 @@ public partial struct PathfindingSystem : ISystem
                     EcbParallelWriter.AddComponent(index, EcbParallelWriter.CreateEntity(index),
                         new DebugPopupEvent
                         {
+                            Entity = entity,
                             Type = DebugPopupEventType.PathNotFoundStart,
                             Cell = startPosition
                         });
                     EcbParallelWriter.AddComponent(index, EcbParallelWriter.CreateEntity(index),
                         new DebugPopupEvent
                         {
+                            Entity = entity,
                             Type = DebugPopupEventType.PathNotFoundEnd,
                             Cell = endPosition
                         });

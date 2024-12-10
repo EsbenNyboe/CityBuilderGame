@@ -4,7 +4,6 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 
 
@@ -130,8 +129,8 @@ public partial struct PathFollowSystem : ISystem
             if (isDebuggingPath)
             {
                 var pathEndPosition = pathPositionBuffer[0].Position;
-                Debug.DrawLine(currentPosition, new Vector3(pathEndPosition.x, pathEndPosition.y),
-                    Color.red);
+//                Debug.DrawLine(currentPosition, new Vector3(pathEndPosition.x, pathEndPosition.y),
+//                    Color.red);
             }
         }
     }
