@@ -35,11 +35,21 @@ namespace Events
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(World.Unmanaged);
 
+            const int maxDeathSoundsPerFrame = 100;
+            var deathSounds = 0;
             foreach (var (deathEvent, entity) in SystemAPI.Query<RefRO<DeathEvent>>()
                          .WithEntityAccess())
             {
                 ParticleEffectManager.Instance.PlayDeathEffect(deathEvent.ValueRO.Position);
                 ecb.DestroyEntity(entity);
+
+                // TODO: Make sure we're only playing sounds that are within audible range
+                deathSounds++;
+                if (deathSounds > maxDeathSoundsPerFrame)
+                {
+                    continue;
+                }
+
                 switch (deathEvent.ValueRO.TargetType)
                 {
                     case UnitType.Villager:

@@ -1545,7 +1545,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _poolItemTemplate: {fileID: 1506610343661268529, guid: 61b715a71611607459fcba32fcfb2760, type: 3}
-  _preferredPoolSize: 200
+  _preferredPoolSize: 500
   _poolCleanupInterval: 5
 --- !u!1 &248984269
 GameObject:
@@ -2001,7 +2001,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _poolItemTemplate: {fileID: 6014855171916078136, guid: c5700d2bb6141db4ca8291d809b542de, type: 3}
-  _preferredPoolSize: 20
+  _preferredPoolSize: 2000
   _poolCleanupInterval: 5
 --- !u!4 &308826358
 Transform:
@@ -4476,8 +4476,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _poolItemTemplate: {fileID: 6014855171916078136, guid: 3cad03ef4bc3c0c41a56c9362f7232c1, type: 3}
-  _preferredPoolSize: 100
-  _poolCleanupInterval: 2
+  _preferredPoolSize: 300
+  _poolCleanupInterval: 5
 --- !u!4 &719381207
 Transform:
   m_ObjectHideFlags: 0
