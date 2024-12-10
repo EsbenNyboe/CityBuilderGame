@@ -17,7 +17,8 @@ namespace UnitState
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial struct IsAliveSystem : ISystem
     {
-        private EntityQuery _deadUnits;
+        private EntityQuery _deadVillagers;
+        private EntityQuery _deadBoars;
 
         public void OnCreate(ref SystemState state)
         {
@@ -26,15 +27,38 @@ namespace UnitState
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<IsAlive>();
 
-            _deadUnits = new EntityQueryBuilder(Allocator.Temp).WithDisabled<IsAlive>().Build(ref state);
+            _deadBoars = state.GetEntityQuery(new EntityQueryDesc
+            {
+                All = new ComponentType[]
+                {
+                    typeof(Boar),
+                    typeof(LocalTransform)
+                },
+                Disabled = new ComponentType[]
+                {
+                    typeof(IsAlive)
+                }
+            });
+            _deadVillagers = state.GetEntityQuery(new EntityQueryDesc
+            {
+                All = new ComponentType[]
+                {
+                    typeof(Villager),
+                    typeof(LocalTransform)
+                },
+                Disabled = new ComponentType[]
+                {
+                    typeof(IsAlive)
+                }
+            });
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             state.Dependency.Complete();
-            using var deadUnits = _deadUnits.ToEntityArray(Allocator.Temp);
-            if (deadUnits.Length <= 0)
+            using var deadVillagers = _deadVillagers.ToEntityArray(Allocator.Temp);
+            if (deadVillagers.Length <= 0)
             {
                 return;
             }
@@ -42,14 +66,14 @@ namespace UnitState
             var gridManagerRW = SystemAPI.GetSingletonRW<GridManager>();
             using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
             using var invalidSocialEventsWithVictim = new NativeList<Entity>(Allocator.Temp);
-            using var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var ecb = new EntityCommandBuffer(Allocator.TempJob);
 
             // Cleanup social events
             foreach (var (socialEvent, entity) in SystemAPI.Query<RefRO<SocialEvent>>().WithEntityAccess())
             {
-                for (var i = 0; i < deadUnits.Length; i++)
+                for (var i = 0; i < deadVillagers.Length; i++)
                 {
-                    if (socialEvent.ValueRO.Perpetrator == deadUnits[i])
+                    if (socialEvent.ValueRO.Perpetrator == deadVillagers[i])
                     {
                         invalidSocialEvents.Add(entity);
                     }
@@ -60,10 +84,10 @@ namespace UnitState
             foreach (var (socialEventWithVictim, entity) in SystemAPI.Query<RefRO<SocialEventWithVictim>>()
                          .WithEntityAccess())
             {
-                for (var i = 0; i < deadUnits.Length; i++)
+                for (var i = 0; i < deadVillagers.Length; i++)
                 {
-                    if (socialEventWithVictim.ValueRO.Perpetrator == deadUnits[i] ||
-                        socialEventWithVictim.ValueRO.Victim == deadUnits[i])
+                    if (socialEventWithVictim.ValueRO.Perpetrator == deadVillagers[i] ||
+                        socialEventWithVictim.ValueRO.Victim == deadVillagers[i])
                     {
                         invalidSocialEventsWithVictim.Add(entity);
                     }
@@ -71,25 +95,17 @@ namespace UnitState
             }
 
             // Play death effect
-            foreach (var (_, localTransform) in SystemAPI.Query<RefRO<Villager>, RefRO<LocalTransform>>().WithDisabled<IsAlive>())
+            new PlayDeathEffectJob
             {
-                ecb.AddComponent(ecb.CreateEntity(),
-                    new DeathEvent
-                    {
-                        Position = localTransform.ValueRO.Position,
-                        TargetType = UnitType.Villager
-                    });
-            }
+                EcbParallelWriter = ecb.AsParallelWriter(),
+                UnitType = UnitType.Villager
+            }.ScheduleParallel(_deadVillagers, state.Dependency).Complete();
 
-            foreach (var (_, localTransform) in SystemAPI.Query<RefRO<Boar>, RefRO<LocalTransform>>().WithDisabled<IsAlive>())
+            new PlayDeathEffectJob
             {
-                ecb.AddComponent(ecb.CreateEntity(),
-                    new DeathEvent
-                    {
-                        Position = localTransform.ValueRO.Position,
-                        TargetType = UnitType.Boar
-                    });
-            }
+                EcbParallelWriter = ecb.AsParallelWriter(),
+                UnitType = UnitType.Boar
+            }.ScheduleParallel(_deadBoars, state.Dependency).Complete();
 
             // Cleanup grid
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>()
@@ -111,7 +127,7 @@ namespace UnitState
             foreach (var socialRelationships in
                      SystemAPI.Query<RefRW<SocialRelationships>>().WithAll<IsAlive>())
             {
-                foreach (var deadUnit in deadUnits)
+                foreach (var deadUnit in deadVillagers)
                 {
                     socialRelationships.ValueRW.Relationships.Remove(deadUnit);
                 }
@@ -126,7 +142,7 @@ namespace UnitState
                 queueIndex++;
                 var socialEvaluationEntry = socialEvaluationManager.SocialEvaluationQueue.Dequeue();
                 var isDead = false;
-                foreach (var deadUnit in deadUnits)
+                foreach (var deadUnit in deadVillagers)
                 {
                     if (deadUnit == socialEvaluationEntry)
                     {
@@ -144,7 +160,7 @@ namespace UnitState
             // Cleanup TargetFollow targets
             foreach (var targetFollow in SystemAPI.Query<RefRW<TargetFollow>>())
             {
-                foreach (var deadUnit in deadUnits)
+                foreach (var deadUnit in deadVillagers)
                 {
                     if (deadUnit == targetFollow.ValueRO.Target)
                     {
@@ -158,7 +174,7 @@ namespace UnitState
             // Cleanup IsMurdering targets
             foreach (var isMurdering in SystemAPI.Query<RefRW<IsMurdering>>())
             {
-                foreach (var deadUnit in deadUnits)
+                foreach (var deadUnit in deadVillagers)
                 {
                     if (deadUnit == isMurdering.ValueRO.Target)
                     {
@@ -168,10 +184,27 @@ namespace UnitState
             }
 
             // Destroy dead units
-            state.EntityManager.DestroyEntity(deadUnits);
+            state.EntityManager.DestroyEntity(deadVillagers);
             state.EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
             state.EntityManager.DestroyEntity(invalidSocialEventsWithVictim.AsArray());
             ecb.Playback(state.EntityManager);
+            ecb.Dispose();
+        }
+    }
+
+    public partial struct PlayDeathEffectJob : IJobEntity
+    {
+        public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
+        [ReadOnly] public UnitType UnitType;
+
+        public void Execute(in LocalTransform localTransform, [EntityIndexInChunk] int entityIndexInChunk)
+        {
+            EcbParallelWriter.AddComponent(entityIndexInChunk, EcbParallelWriter.CreateEntity(entityIndexInChunk),
+                new DeathEvent
+                {
+                    Position = localTransform.Position,
+                    TargetType = UnitType
+                });
         }
     }
 }
