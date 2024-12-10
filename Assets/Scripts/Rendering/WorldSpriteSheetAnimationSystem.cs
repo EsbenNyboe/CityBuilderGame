@@ -1,6 +1,7 @@
 using Rendering;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
@@ -35,7 +36,7 @@ public partial struct WorldSpriteSheetAnimationSystem : ISystem
         {
             DeltaTime = SystemAPI.Time.DeltaTime,
             UvTemplate = uvTemplate,
-            WorldSpriteSheetManager = worldSpriteSheetManager
+            WorldSpriteSheetEntries = worldSpriteSheetManager.Entries
         }.ScheduleParallel();
     }
 
@@ -44,13 +45,15 @@ public partial struct WorldSpriteSheetAnimationSystem : ISystem
     {
         [ReadOnly] public float DeltaTime;
         [ReadOnly] public Vector4 UvTemplate;
-        [ReadOnly] public WorldSpriteSheetManager WorldSpriteSheetManager;
+
+        [ReadOnly] [NativeDisableContainerSafetyRestriction]
+        public NativeArray<WorldSpriteSheetEntry> WorldSpriteSheetEntries;
 
         public void Execute(ref WorldSpriteSheetAnimation spriteSheetAnimationData, ref UnitAnimationSelection unitAnimationSelection,
             in LocalToWorld localToWorld, in SpriteTransform spriteTransform)
         {
             var selectedAnimation = unitAnimationSelection.SelectedAnimation;
-            var entry = WorldSpriteSheetManager.Entries[(int)selectedAnimation];
+            var entry = WorldSpriteSheetEntries[(int)selectedAnimation];
 
             if (unitAnimationSelection.CurrentAnimation != selectedAnimation)
             {
