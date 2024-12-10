@@ -159,23 +159,15 @@ namespace UnitState
                 }
             }
 
-            // Cleanup TargetFollow targets
             new CleanupTargetFollowJob
             {
                 DeadVillagers = deadVillagers
             }.ScheduleParallel();
 
-            // Cleanup IsMurdering targets
-            foreach (var isMurdering in SystemAPI.Query<RefRW<IsMurdering>>())
+            new CleanupIsMurderingJob
             {
-                foreach (var deadUnit in deadVillagers)
-                {
-                    if (deadUnit == isMurdering.ValueRO.Target)
-                    {
-                        isMurdering.ValueRW.Target = Entity.Null;
-                    }
-                }
-            }
+                DeadVillagers = deadVillagers
+            }.ScheduleParallel();
 
             // Destroy dead units
             state.EntityManager.DestroyEntity(deadVillagers);
@@ -186,6 +178,24 @@ namespace UnitState
         }
     }
 
+    [BurstCompile]
+    public partial struct CleanupIsMurderingJob : IJobEntity
+    {
+        [ReadOnly] public NativeArray<Entity> DeadVillagers;
+
+        public void Execute(ref IsMurdering isMurdering)
+        {
+            foreach (var deadUnit in DeadVillagers)
+            {
+                if (deadUnit == isMurdering.Target)
+                {
+                    isMurdering.Target = Entity.Null;
+                }
+            }
+        }
+    }
+
+    [BurstCompile]
     public partial struct CleanupTargetFollowJob : IJobEntity
     {
         [ReadOnly] public NativeArray<Entity> DeadVillagers;
@@ -204,6 +214,7 @@ namespace UnitState
         }
     }
 
+    [BurstCompile]
     public partial struct PlayDeathEffectJob : IJobEntity
     {
         public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
