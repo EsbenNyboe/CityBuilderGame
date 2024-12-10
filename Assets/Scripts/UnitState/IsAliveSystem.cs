@@ -181,7 +181,8 @@ namespace UnitState
             }.ScheduleParallel();
 
             // Destroy dead units
-            state.EntityManager.DestroyEntity(deadVillagers);
+            state.EntityManager.DestroyEntity(_deadVillagerQuery);
+            state.EntityManager.DestroyEntity(_deadBoarQuery);
             deadVillagers.Dispose();
             state.EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
             state.EntityManager.DestroyEntity(invalidSocialEventsWithVictim.AsArray());
