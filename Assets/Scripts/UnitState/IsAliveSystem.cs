@@ -17,8 +17,8 @@ namespace UnitState
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial struct IsAliveSystem : ISystem
     {
-        private EntityQuery _deadVillagers;
-        private EntityQuery _deadBoars;
+        private EntityQuery _deadVillagerQuery;
+        private EntityQuery _deadBoarQuery;
 
         public void OnCreate(ref SystemState state)
         {
@@ -27,7 +27,7 @@ namespace UnitState
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<IsAlive>();
 
-            _deadBoars = state.GetEntityQuery(new EntityQueryDesc
+            _deadBoarQuery = state.GetEntityQuery(new EntityQueryDesc
             {
                 All = new ComponentType[]
                 {
@@ -39,7 +39,7 @@ namespace UnitState
                     typeof(IsAlive)
                 }
             });
-            _deadVillagers = state.GetEntityQuery(new EntityQueryDesc
+            _deadVillagerQuery = state.GetEntityQuery(new EntityQueryDesc
             {
                 All = new ComponentType[]
                 {
@@ -57,7 +57,7 @@ namespace UnitState
         public void OnUpdate(ref SystemState state)
         {
             state.Dependency.Complete();
-            using var deadVillagers = _deadVillagers.ToEntityArray(Allocator.Temp);
+            using var deadVillagers = _deadVillagerQuery.ToEntityArray(Allocator.Temp);
             if (deadVillagers.Length <= 0)
             {
                 return;
@@ -99,13 +99,13 @@ namespace UnitState
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 UnitType = UnitType.Villager
-            }.ScheduleParallel(_deadVillagers, state.Dependency).Complete();
+            }.ScheduleParallel(_deadVillagerQuery, state.Dependency).Complete();
 
             new PlayDeathEffectJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 UnitType = UnitType.Boar
-            }.ScheduleParallel(_deadBoars, state.Dependency).Complete();
+            }.ScheduleParallel(_deadBoarQuery, state.Dependency).Complete();
 
             // Cleanup grid
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>()
@@ -160,18 +160,10 @@ namespace UnitState
             }
 
             // Cleanup TargetFollow targets
-            foreach (var targetFollow in SystemAPI.Query<RefRW<TargetFollow>>())
+            new CleanupTargetFollowJob
             {
-                foreach (var deadUnit in deadVillagers)
-                {
-                    if (deadUnit == targetFollow.ValueRO.Target)
-                    {
-                        targetFollow.ValueRW.Target = Entity.Null;
-                        targetFollow.ValueRW.CurrentDistanceToTarget = math.INFINITY;
-                        targetFollow.ValueRW.DesiredRange = 0;
-                    }
-                }
-            }
+                DeadVillagers = deadVillagers
+            }.ScheduleParallel();
 
             // Cleanup IsMurdering targets
             foreach (var isMurdering in SystemAPI.Query<RefRW<IsMurdering>>())
@@ -191,6 +183,24 @@ namespace UnitState
             state.EntityManager.DestroyEntity(invalidSocialEventsWithVictim.AsArray());
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
+        }
+    }
+
+    public partial struct CleanupTargetFollowJob : IJobEntity
+    {
+        [ReadOnly] public NativeArray<Entity> DeadVillagers;
+
+        public void Execute(ref TargetFollow targetFollow)
+        {
+            foreach (var deadUnit in DeadVillagers)
+            {
+                if (deadUnit == targetFollow.Target)
+                {
+                    targetFollow.Target = Entity.Null;
+                    targetFollow.CurrentDistanceToTarget = math.INFINITY;
+                    targetFollow.DesiredRange = 0;
+                }
+            }
         }
     }
 
