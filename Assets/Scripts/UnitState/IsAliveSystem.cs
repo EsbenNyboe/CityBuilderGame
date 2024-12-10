@@ -57,13 +57,13 @@ namespace UnitState
         public void OnUpdate(ref SystemState state)
         {
             state.Dependency.Complete();
-            using var deadVillagers = _deadVillagerQuery.ToEntityArray(Allocator.Temp);
-            if (deadVillagers.Length <= 0)
+            if (_deadVillagerQuery.CalculateEntityCount() <= 0)
             {
                 return;
             }
 
             var gridManager = SystemAPI.GetSingleton<GridManager>();
+            var deadVillagers = _deadVillagerQuery.ToEntityArray(Allocator.TempJob);
             using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
             using var invalidSocialEventsWithVictim = new NativeList<Entity>(Allocator.Temp);
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
@@ -171,6 +171,7 @@ namespace UnitState
 
             // Destroy dead units
             state.EntityManager.DestroyEntity(deadVillagers);
+            deadVillagers.Dispose();
             state.EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
             state.EntityManager.DestroyEntity(invalidSocialEventsWithVictim.AsArray());
             ecb.Playback(state.EntityManager);
