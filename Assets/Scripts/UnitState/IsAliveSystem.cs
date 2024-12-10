@@ -63,7 +63,7 @@ namespace UnitState
                 return;
             }
 
-            var gridManagerRW = SystemAPI.GetSingletonRW<GridManager>();
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
             using var invalidSocialEventsWithVictim = new NativeList<Entity>(Allocator.Temp);
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
@@ -112,8 +112,10 @@ namespace UnitState
                          .WithEntityAccess())
             {
                 var position = localTransform.ValueRO.Position;
-                gridManagerRW.ValueRW.OnUnitDestroyed(entity, position);
+                gridManager.OnUnitDestroyed(entity, position);
             }
+
+            SystemAPI.SetSingleton(gridManager);
 
             // Cleanup dead units relationships
             foreach (var (socialRelationships, entity) in
