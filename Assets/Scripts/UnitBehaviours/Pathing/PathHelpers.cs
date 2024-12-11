@@ -72,6 +72,8 @@ public static class PathHelpers
             {
                 DebugHelper.LogError("Path target is out of bounds!");
             }
+
+            return true;
         }
 
         if (isDebugging)

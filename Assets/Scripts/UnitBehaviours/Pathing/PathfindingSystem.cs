@@ -73,7 +73,10 @@ public partial struct PathfindingSystem : ISystem
             }
             else if (!gridManager.IsMatchingSection(startCell, endCell))
             {
-                DebugHelper.LogError("Pathfinding is not possible: Section mis-match.");
+                if (isDebugging)
+                {
+                    DebugHelper.LogError("Pathfinding is not possible: Section mis-match.");
+                }
             }
             else
             {
@@ -230,9 +233,9 @@ public partial struct PathfindingSystem : ISystem
             if (endNode.cameFromNodeIndex == -1)
             {
                 // Didn't find a path!
+                DebugHelper.LogError("Didn't find a path!");
                 if (IsDebugging)
                 {
-                    DebugHelper.LogError("Didn't find a path!");
                     EcbParallelWriter.AddComponent(index, EcbParallelWriter.CreateEntity(index),
                         new DebugPopupEvent
                         {

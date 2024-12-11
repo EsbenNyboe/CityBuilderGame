@@ -1,6 +1,5 @@
 using Unity.Burst;
 using Unity.Entities;
-using UnityEngine;
 
 namespace Grid
 {
@@ -25,7 +24,6 @@ namespace Grid
             {
                 if (!gridManager.IsWalkable(pathfinding.ValueRO.EndPosition))
                 {
-                    Debug.LogError("Not walkable");
                     ecb.RemoveComponent<Pathfinding>(entity);
                 }
 
