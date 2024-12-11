@@ -10,13 +10,12 @@ public partial class LifetimeSystemGroup : ComponentSystemGroup
 {
 }
 
-[UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
+[UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
 public partial class UnitBehaviourGridWritingSystemGroup : ComponentSystemGroup
 {
 }
 
 [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
-[UpdateAfter(typeof(UnitBehaviourGridWritingSystemGroup))]
 public partial class UnitStateSystemGroup : ComponentSystemGroup
 {
 }
