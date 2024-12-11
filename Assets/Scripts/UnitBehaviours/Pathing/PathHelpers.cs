@@ -28,7 +28,7 @@ public static class PathHelpers
     }
 
     public static bool TrySetPath(EntityCommandBuffer ecb, GridManager gridManager,
-        Entity entity, int2 startCell, int2 endCell, bool isDebugging = false)
+        Entity entity, int2 startCell, int2 endCell, bool isDebugging = true)
     {
         if (PathIsInvalid(gridManager, startCell, endCell, isDebugging))
         {
@@ -45,6 +45,16 @@ public static class PathHelpers
 
     private static bool PathIsInvalid(GridManager gridManager, int2 startCell, int2 endCell, bool isDebugging)
     {
+        if (!gridManager.IsMatchingSection(startCell, endCell))
+        {
+            if (isDebugging)
+            {
+                DebugHelper.Log("Path target is in different section");
+            }
+
+            return true;
+        }
+
         if (endCell.x < 0 || endCell.x >= gridManager.Width ||
             endCell.y < 0 || endCell.y > gridManager.Height)
         {
