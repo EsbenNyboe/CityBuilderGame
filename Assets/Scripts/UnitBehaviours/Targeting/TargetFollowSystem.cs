@@ -80,13 +80,13 @@ namespace UnitBehaviours.Pathing
                             out var neighbourCell))
                     {
                         // I'll go stand next to my target. 
-                        PathHelpers.TrySetPath(ecb, entity, currentCell, neighbourCell, isDebugging);
+                        PathHelpers.TrySetPath(ecb, gridManager, entity, currentCell, neighbourCell, isDebugging);
                     }
                     else if (gridManager.TryGetNearbyEmptyCellSemiRandom(targetCell, out var nearbyCell) &&
                              math.distance(currentCell, targetCell) > math.distance(nearbyCell, targetCell))
                     {
                         // I'll move a bit closer to my target.
-                        PathHelpers.TrySetPath(ecb, entity, currentCell, nearbyCell, isDebugging);
+                        PathHelpers.TrySetPath(ecb, gridManager, entity, currentCell, nearbyCell, isDebugging);
                     }
                     else
                     {

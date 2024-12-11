@@ -115,7 +115,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             }
 
             // I found a tree!! I will go there! 
-            PathHelpers.TrySetPath(Ecb, Entity, CurrentCell, choppingCell, IsDebuggingPath);
+            PathHelpers.TrySetPath(Ecb, GridManager, Entity, CurrentCell, choppingCell, IsDebuggingPath);
         }
     }
 }

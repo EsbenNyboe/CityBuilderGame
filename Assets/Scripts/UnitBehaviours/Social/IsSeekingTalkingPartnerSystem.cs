@@ -95,7 +95,7 @@ namespace UnitBehaviours.Talking
                     }
                 }
 
-                PathHelpers.TrySetPath(ecb, entity, cell, pathTargetCell);
+                PathHelpers.TrySetPath(ecb, gridManager, entity, cell, pathTargetCell);
                 seekingTalkingPartner.ValueRW.HasStartedMoving = true;
             }
         }

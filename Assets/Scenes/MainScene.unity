@@ -7374,7 +7374,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DebugSectionSorting: 0
-  DebugPathfinding: 0
+  DebugPathfinding: 1
   DebugPathSearchEmptyCells: 0
   DebugBedOccupation: 0
   DebugBedSeeking: 0

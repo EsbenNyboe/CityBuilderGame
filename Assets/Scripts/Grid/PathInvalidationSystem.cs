@@ -173,12 +173,12 @@ namespace Grid
                     if (nextPathNodeIsWalkable)
                     {
                         // I can keep my momentum, and adjust my path, after the next step!
-                        PathHelpers.TrySetPath(EcbParallelWriter, index, entity, nextPathNode, targetCell, IsDebuggingPath);
+                        PathHelpers.TrySetPath(EcbParallelWriter, index, GridManager, entity, nextPathNode, targetCell, IsDebuggingPath);
                     }
                     else
                     {
                         // I'll need to do a hard stop, and pivot.
-                        PathHelpers.TrySetPath(EcbParallelWriter, index, entity, currentCell, targetCell, IsDebuggingPath);
+                        PathHelpers.TrySetPath(EcbParallelWriter, index, GridManager, entity, currentCell, targetCell, IsDebuggingPath);
                     }
                 }
                 else
@@ -204,11 +204,11 @@ namespace Grid
                         // I'll walk to a nearby spot...
                         if (nextPathNodeIsWalkable)
                         {
-                            PathHelpers.TrySetPath(EcbParallelWriter, index, entity, nextPathNode, targetCell, IsDebuggingPath);
+                            PathHelpers.TrySetPath(EcbParallelWriter, index, GridManager, entity, nextPathNode, targetCell, IsDebuggingPath);
                         }
                         else
                         {
-                            PathHelpers.TrySetPath(EcbParallelWriter, index, entity, currentCell, targetCell, IsDebuggingPath);
+                            PathHelpers.TrySetPath(EcbParallelWriter, index, GridManager, entity, currentCell, targetCell, IsDebuggingPath);
                         }
 
                         // I should do a new search ASAP.

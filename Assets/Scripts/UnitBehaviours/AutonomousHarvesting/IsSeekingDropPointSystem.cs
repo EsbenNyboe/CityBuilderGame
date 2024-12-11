@@ -54,7 +54,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 if (closestDropPointEntrance.x > -1)
                 {
-                    PathHelpers.TrySetPath(ecb, entity, cell, closestDropPointEntrance, isDebugging);
+                    PathHelpers.TrySetPath(ecb, gridManager, entity, cell, closestDropPointEntrance, isDebugging);
                 }
                 else
                 {

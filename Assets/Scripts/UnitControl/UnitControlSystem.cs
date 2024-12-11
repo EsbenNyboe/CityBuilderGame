@@ -275,7 +275,7 @@ public partial class UnitControlSystem : SystemBase
     private void ForceUnitToSelectPath(EntityCommandBuffer ecb, ref GridManager gridManager, Entity entity,
         int2 startPosition, int2 endPosition)
     {
-        if (PathHelpers.TrySetPath(ecb, entity, startPosition, endPosition))
+        if (PathHelpers.TrySetPath(ecb, gridManager, entity, startPosition, endPosition))
         {
             TryResetGridCell(ref gridManager, startPosition, entity);
         }
