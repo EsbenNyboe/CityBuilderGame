@@ -71,6 +71,13 @@ public partial struct PathfindingSystem : ISystem
                 });
                 pathFollow.ValueRW.PathIndex = 0;
             }
+            else if (!gridManager.IsWalkable(endCell))
+            {
+                if (isDebugging)
+                {
+                    DebugHelper.LogError("Pathfinding is not possible: Not walkable.");
+                }
+            }
             else if (!gridManager.IsMatchingSection(startCell, endCell))
             {
                 if (isDebugging)
@@ -232,10 +239,24 @@ public partial struct PathfindingSystem : ISystem
 
             if (endNode.cameFromNodeIndex == -1)
             {
-                // Didn't find a path!
-                DebugHelper.LogError("Didn't find a path!");
+                DebugHelper.LogError("Path was not found!");
+                PathFollowLookup[entity] = new PathFollow(-1);
                 if (IsDebugging)
                 {
+                    var startNodeIndex = GridHelpers.GetIndex(GridSize.y, startPosition.x, startPosition.y);
+                    if (!WalkableGrid[startNodeIndex].IsWalkable)
+                    {
+                        DebugHelper.LogError("Start not walkable!");
+                    }
+                    else if (!WalkableGrid[endNodeIndex].IsWalkable)
+                    {
+                        DebugHelper.LogError("End not walkable!");
+                    }
+                    else if (WalkableGrid[startNodeIndex].Section != WalkableGrid[endNodeIndex].Section)
+                    {
+                        DebugHelper.LogError("Not same section!");
+                    }
+
                     EcbParallelWriter.AddComponent(index, EcbParallelWriter.CreateEntity(index),
                         new DebugPopupEvent
                         {
@@ -251,8 +272,6 @@ public partial struct PathfindingSystem : ISystem
                             Cell = endPosition
                         });
                 }
-
-                PathFollowLookup[entity] = new PathFollow(-1);
             }
             else
             {
