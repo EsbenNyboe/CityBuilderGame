@@ -45,6 +45,16 @@ public static class PathHelpers
 
     private static bool PathIsInvalid(GridManager gridManager, int2 startCell, int2 endCell, bool isDebugging)
     {
+        if (!gridManager.IsWalkable(endCell))
+        {
+            if (isDebugging)
+            {
+                DebugHelper.LogError("Path target is not walkable!!");
+            }
+
+            return true;
+        }
+
         if (!gridManager.IsMatchingSection(startCell, endCell))
         {
             if (isDebugging)
