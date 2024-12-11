@@ -202,7 +202,7 @@ namespace Grid
                         }
 
                         // I'll walk to a nearby spot...
-                        if (nextPathNodeIsWalkable)
+                        if (nextPathNodeIsWalkable && GridManager.IsMatchingSection(nextPathNode, targetCell))
                         {
                             PathHelpers.TrySetPath(EcbParallelWriter, index, GridManager, entity, nextPathNode, targetCell, IsDebuggingPath);
                         }

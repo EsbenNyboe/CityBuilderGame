@@ -3,14 +3,13 @@ using Unity.Entities;
 
 namespace Grid
 {
-    [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup), OrderLast = true)]
-    [UpdateAfter(typeof(GridManagerSectionSortingSystem))]
+    [UpdateInGroup(typeof(PresentationSystemGroup))]
     public partial struct PathfindingInvalidationSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<GridManager>();
         }
 
@@ -18,7 +17,7 @@ namespace Grid
         public void OnUpdate(ref SystemState state)
         {
             var gridManager = SystemAPI.GetSingleton<GridManager>();
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
+            var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
 
             foreach (var (pathfinding, entity) in SystemAPI.Query<RefRO<Pathfinding>>().WithEntityAccess())
             {
