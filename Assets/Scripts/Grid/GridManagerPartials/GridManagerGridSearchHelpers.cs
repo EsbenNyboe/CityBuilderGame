@@ -238,6 +238,49 @@ public partial struct GridManager
         return false;
     }
 
+    public bool TryGetEmptyCellNearCurrentTarget(int2 self, int2 oldTarget, out int2 newTarget, bool isDebugging = false, int radius = -1)
+    {
+        Assert.IsTrue(radius < RelativePositionRingInfoList.Length);
+        if (radius < 1)
+        {
+            radius = RelativePositionRingInfoList.Length;
+        }
+
+        for (var ring = 1; ring < radius; ring++)
+        {
+            var ringStart = RelativePositionRingInfoList[ring].x;
+            var ringEnd = RelativePositionRingInfoList[ring].y;
+            var randomStartIndex = GetSemiRandomIndex(ringStart, ringEnd);
+            var currentIndex = randomStartIndex + 1;
+
+            while (currentIndex != randomStartIndex)
+            {
+                currentIndex++;
+                if (currentIndex >= ringEnd)
+                {
+                    currentIndex = ringStart;
+                }
+
+                var relativePosition = oldTarget + RelativePositionList[currentIndex];
+                if (IsPositionInsideGrid(relativePosition) &&
+                    IsEmptyCell(relativePosition) &&
+                    IsMatchingSection(self, relativePosition))
+                {
+                    newTarget = relativePosition;
+                    return true;
+                }
+            }
+        }
+
+        if (isDebugging)
+        {
+            DebugHelper.LogError("No empty cell was found near current target");
+        }
+
+        newTarget = new int2(-1, -1);
+        return false;
+    }
+
     public bool TryGetNearbyEmptyCellSemiRandom(int2 center,
         out int2 nearbyCell,
         bool isDebugging = false,

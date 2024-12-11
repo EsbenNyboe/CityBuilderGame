@@ -194,7 +194,7 @@ namespace Grid
                     }
 
                     if (currentCellIsWalkable &&
-                        GridManager.TryGetNearbyEmptyCellSemiRandom(targetCell, out targetCell, IsDebuggingSearch))
+                        GridManager.TryGetEmptyCellNearCurrentTarget(currentCell, targetCell, out targetCell, IsDebuggingSearch))
                     {
                         if (IsDebuggingPathInvalidation)
                         {
