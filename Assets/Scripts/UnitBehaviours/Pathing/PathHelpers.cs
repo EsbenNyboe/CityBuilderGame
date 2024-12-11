@@ -45,11 +45,21 @@ public static class PathHelpers
 
     private static bool PathIsInvalid(GridManager gridManager, int2 startCell, int2 endCell, bool isDebugging)
     {
+        if (!gridManager.IsWalkable(startCell))
+        {
+            if (isDebugging)
+            {
+                DebugHelper.LogError("Path start is not walkable!!");
+            }
+
+            return true;
+        }
+
         if (!gridManager.IsWalkable(endCell))
         {
             if (isDebugging)
             {
-                DebugHelper.LogError("Path target is not walkable!!");
+                DebugHelper.LogError("Path end is not walkable!!");
             }
 
             return true;
@@ -59,7 +69,7 @@ public static class PathHelpers
         {
             if (isDebugging)
             {
-                DebugHelper.Log("Path target is in different section");
+                DebugHelper.Log("Path spans multiple sections!");
             }
 
             return true;
@@ -70,7 +80,7 @@ public static class PathHelpers
         {
             if (isDebugging)
             {
-                DebugHelper.LogError("Path target is out of bounds!");
+                DebugHelper.LogError("Path end is out of bounds!");
             }
 
             return true;
