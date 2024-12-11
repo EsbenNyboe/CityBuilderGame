@@ -73,7 +73,7 @@ public partial struct PathfindingSystem : ISystem
             }
             else if (!gridManager.IsMatchingSection(startCell, endCell))
             {
-                DebugHelper.LogError("Pathfinding is not possible: Section mis-match.", entity);
+                DebugHelper.LogError("Pathfinding is not possible: Section mis-match.");
             }
             else
             {

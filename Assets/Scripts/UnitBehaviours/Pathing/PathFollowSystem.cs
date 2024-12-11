@@ -155,13 +155,6 @@ public partial struct PathFollowSystem : ISystem
                 PathHelpers.TrySetPath(ecb, gridManager, entity, new int2(x, y), vacantCell, isDebuggingPath);
             }
             // TODO: Go to a nearby walkable-cell, then?
-            else
-            {
-                if (isDebuggingPath)
-                {
-                    DebugHelper.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
-                }
-            }
         }
     }
 }
