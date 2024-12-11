@@ -71,6 +71,10 @@ public partial struct PathfindingSystem : ISystem
                 });
                 pathFollow.ValueRW.PathIndex = 0;
             }
+            else if (!gridManager.IsMatchingSection(startCell, endCell))
+            {
+                DebugHelper.LogError("Pathfinding is not possible: Section mis-match.", entity);
+            }
             else
             {
                 startCells.Add(startCell);
