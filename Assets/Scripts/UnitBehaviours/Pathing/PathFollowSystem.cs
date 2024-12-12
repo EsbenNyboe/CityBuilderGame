@@ -4,6 +4,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 
 
@@ -100,7 +101,9 @@ public partial struct PathFollowSystem : ISystem
                     EndPathFollowing(ref state, ecb, entity,
                         targetPosition,
                         isDebuggingSearch,
-                        isDebuggingPath);
+                        isDebuggingPath,
+                        pathPositionBuffer,
+                        pathFollow);
                 }
                 else
                 {
@@ -137,7 +140,8 @@ public partial struct PathFollowSystem : ISystem
 
     private void EndPathFollowing(ref SystemState state, EntityCommandBuffer ecb, Entity entity,
         float3 targetPosition,
-        bool isDebuggingSearch, bool isDebuggingPath)
+        bool isDebuggingSearch, bool isDebuggingPath,
+        DynamicBuffer<PathPosition> pathPosition, RefRW<PathFollow> pathFollow)
     {
         var gridManager = SystemAPI.GetSingleton<GridManager>();
 
@@ -149,12 +153,29 @@ public partial struct PathFollowSystem : ISystem
         }
         else
         {
-            GridHelpers.GetXY(targetPosition, out var x, out var y);
-            if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell, isDebuggingSearch))
+            var cell = GridHelpers.GetXY(targetPosition);
+            var foundPath = false;
+            if (gridManager.TryGetNearbyEmptyCellSemiRandom(cell, out var newTarget, isDebuggingSearch))
             {
-                PathHelpers.TrySetPath(ecb, gridManager, entity, new int2(x, y), vacantCell, isDebuggingPath);
+                foundPath = PathHelpers.TrySetPath(ecb, gridManager, entity, cell, newTarget, isDebuggingPath);
             }
-            // TODO: Go to a nearby walkable-cell, then?
+            else if (gridManager.TryGetClosestWalkableCell(cell, out newTarget))
+            {
+                foundPath = PathHelpers.TrySetPath(ecb, gridManager, entity, cell, newTarget, isDebuggingPath);
+            }
+
+            if (newTarget.x < 0)
+            {
+                Debug.LogError("No nearby walkable cell found");
+            }
+            else if (!foundPath)
+            {
+                // Defy physics, and move to new target
+                pathPosition.Clear();
+                pathPosition.Add(new PathPosition { Position = newTarget });
+                pathFollow.ValueRW.PathIndex = 0;
+                Debug.Log("Defy physics");
+            }
         }
     }
 }
