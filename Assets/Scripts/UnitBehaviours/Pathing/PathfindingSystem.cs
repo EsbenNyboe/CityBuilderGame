@@ -71,11 +71,18 @@ public partial struct PathfindingSystem : ISystem
                 });
                 pathFollow.ValueRW.PathIndex = 0;
             }
+            else if (!gridManager.IsWalkable(startCell))
+            {
+                if (isDebugging)
+                {
+                    DebugHelper.LogError("Pathfinding is not possible: Start not walkable.");
+                }
+            }
             else if (!gridManager.IsWalkable(endCell))
             {
                 if (isDebugging)
                 {
-                    DebugHelper.LogError("Pathfinding is not possible: Not walkable.");
+                    DebugHelper.LogError("Pathfinding is not possible: End not walkable.");
                 }
             }
             else if (!gridManager.IsMatchingSection(startCell, endCell))
