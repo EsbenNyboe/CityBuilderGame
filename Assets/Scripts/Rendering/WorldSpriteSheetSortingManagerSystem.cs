@@ -9,7 +9,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-public struct WorldSpriteSheetSortingManager : IComponentData
+public struct WorldSpriteSheetSortingManager : ICleanupComponentData
 {
     public NativeArray<Matrix4x4> SpriteMatrixArray;
     public NativeArray<Vector4> SpriteUvArray;
