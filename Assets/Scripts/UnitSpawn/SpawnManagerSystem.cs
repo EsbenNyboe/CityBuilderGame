@@ -226,7 +226,6 @@ public partial class SpawnManagerSystem : SystemBase
         }
     }
 
-
     private void TrySpawnDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager, int2 cell,
         Entity prefab)
     {
