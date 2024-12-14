@@ -64,13 +64,13 @@ namespace UnitBehaviours.Targeting
                 index++;
 
                 var distanceBeforeMoving = math.distance(position, spear.ValueRO.Target);
-                spear.ValueRW.CurrentPosition += spear.ValueRO.Direction * SystemAPI.Time.DeltaTime * SpearSpeed;
-                var distanceAfterMoving = math.distance(spear.ValueRO.CurrentPosition, spear.ValueRO.Target);
-                if (distanceBeforeMoving < distanceAfterMoving)
+                spear.ValueRW.CurrentPosition = position += spear.ValueRO.Direction * SystemAPI.Time.DeltaTime * SpearSpeed;
+                var distanceAfterMoving = math.distance(position, spear.ValueRO.Target);
+                if (distanceBeforeMoving <= distanceAfterMoving)
                 {
                     ecb.DestroyEntity(entity);
 
-                    var spearPosition2D = spear.ValueRO.CurrentPosition;
+                    var spearPosition2D = position;
                     var spearPosition = new float3(spearPosition2D.x, spearPosition2D.y, 0);
 
                     foreach (var (_, localTransform, health, boarEntity) in SystemAPI.Query

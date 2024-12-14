@@ -127,7 +127,7 @@ namespace UnitBehaviours.Sleeping
                     // Whoops, I'm standing on a bed.. I should move..
                     if (GridManager.TryGetNearbyEmptyCellSemiRandom(CurrentCell, out var nearbyCell, IsDebuggingSearch))
                     {
-                        PathHelpers.TrySetPath(ECB, Entity, CurrentCell, nearbyCell, IsDebuggingPath);
+                        PathHelpers.TrySetPath(ECB, GridManager, Entity, CurrentCell, nearbyCell, IsDebuggingPath);
                     }
                 }
 
@@ -137,7 +137,7 @@ namespace UnitBehaviours.Sleeping
             }
 
             // I found a bed!! I will go there! 
-            PathHelpers.TrySetPath(ECB, Entity, CurrentCell, closestAvailableBed, IsDebuggingPath);
+            PathHelpers.TrySetPath(ECB, GridManager, Entity, CurrentCell, closestAvailableBed, IsDebuggingPath);
         }
     }
 }

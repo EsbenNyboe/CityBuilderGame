@@ -99,14 +99,15 @@ namespace UnitBehaviours.Targeting
             BuildQuadrantMap(ref state, gridManager, _villagerQuery, quadrantDataManager.VillagerQuadrantMap);
             BuildQuadrantMap(ref state, gridManager, _boarQuery, quadrantDataManager.BoarQuadrantMap);
             BuildQuadrantMap(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedItemQuadrantMap);
-            BuildQuadrantMap(ref state, gridManager, _dropPointQuery, quadrantDataManager.DropPointQuadrantMap);
+            BuildQuadrantMap(ref state, gridManager, _dropPointQuery, quadrantDataManager.DropPointQuadrantMap, true);
         }
 
         [BurstCompile]
         private void BuildQuadrantMap(ref SystemState state,
             GridManager gridManager,
             EntityQuery entityQuery,
-            NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap)
+            NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
+            bool needsAdjacentAcces = false)
         {
             quadrantMultiHashMap.Clear();
             if (entityQuery.CalculateEntityCount() > quadrantMultiHashMap.Capacity)
@@ -117,7 +118,8 @@ namespace UnitBehaviours.Targeting
             state.Dependency = new SetQuadrantDataHashMapJob
             {
                 QuadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(),
-                GridManager = gridManager
+                GridManager = gridManager,
+                NeedsAdjacentAccess = needsAdjacentAcces
             }.ScheduleParallel(entityQuery, state.Dependency);
         }
 
@@ -160,6 +162,7 @@ namespace UnitBehaviours.Targeting
         {
             public NativeParallelMultiHashMap<int, QuadrantData>.ParallelWriter QuadrantMultiHashMap;
             [ReadOnly] public GridManager GridManager;
+            [ReadOnly] public bool NeedsAdjacentAccess;
 
             public void Execute(in Entity entity, in LocalTransform localTransform)
             {
@@ -167,15 +170,21 @@ namespace UnitBehaviours.Targeting
                 var gridIndex = GridManager.GetIndex(position);
                 var hashMapKey = GetHashMapKeyFromPosition(position);
 
-                var section = GridManager.IsWalkable(gridIndex)
-                    ? GridManager.WalkableGrid[gridIndex].Section
-                    : GridManager.GetSectionOfNeighbour(GridHelpers.GetXY(position));
-                QuadrantMultiHashMap.Add(hashMapKey, new QuadrantData
+                var section = NeedsAdjacentAccess
+                    ? GridManager.GetSectionOfNeighbour(GridHelpers.GetXY(position))
+                    : GridManager.IsWalkable(gridIndex)
+                        ? GridManager.WalkableGrid[gridIndex].Section
+                        : -1;
+
+                if (section > -1)
                 {
-                    Entity = entity,
-                    Position = position,
-                    Section = section
-                });
+                    QuadrantMultiHashMap.Add(hashMapKey, new QuadrantData
+                    {
+                        Entity = entity,
+                        Position = position,
+                        Section = section
+                    });
+                }
             }
         }
 

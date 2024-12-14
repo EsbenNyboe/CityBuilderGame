@@ -11,6 +11,7 @@ public struct Pathfinding : IComponentData
 {
     public int2 StartPosition;
     public int2 EndPosition;
+    public bool AllowNonWalkabes;
 }
 
 [UpdateInGroup(typeof(UnitStateSystemGroup))]
@@ -45,6 +46,7 @@ public partial struct PathfindingSystem : ISystem
         var currentAmountOfSchedules = 0;
         var startCells = new NativeList<int2>(MaxPathfindingSchedulesPerFrame, Allocator.TempJob);
         var endCells = new NativeList<int2>(MaxPathfindingSchedulesPerFrame, Allocator.TempJob);
+        var ignoreWalkablesList = new NativeList<bool>(MaxPathfindingSchedulesPerFrame, Allocator.TempJob);
         var entities = new NativeList<Entity>(MaxPathfindingSchedulesPerFrame, Allocator.TempJob);
 
         foreach (var (pathfindingParams, pathPosition, pathFollow, localTransform, entity) in SystemAPI
@@ -60,6 +62,8 @@ public partial struct PathfindingSystem : ISystem
 
             var startCell = pathfindingParams.ValueRO.StartPosition;
             var endCell = pathfindingParams.ValueRO.EndPosition;
+            var ignoreWalkables = pathfindingParams.ValueRO.AllowNonWalkabes;
+            ecb.RemoveComponent<Pathfinding>(entity);
 
             if (startCell.x == endCell.x && startCell.y == endCell.y)
             {
@@ -70,36 +74,69 @@ public partial struct PathfindingSystem : ISystem
                     Position = endCell
                 });
                 pathFollow.ValueRW.PathIndex = 0;
-            }
-            else
-            {
-                startCells.Add(startCell);
-                endCells.Add(endCell);
-                entities.Add(entity);
-                gridManager.TryClearOccupant(startCell, entity);
+                continue;
             }
 
-            ecb.RemoveComponent<Pathfinding>(entity);
+            if (!ignoreWalkables)
+            {
+                if (!gridManager.IsWalkable(startCell))
+                {
+                    if (isDebugging)
+                    {
+                        DebugHelper.LogError("Pathfinding is not possible: Start not walkable.");
+                    }
+
+                    continue;
+                }
+
+                if (!gridManager.IsWalkable(endCell))
+                {
+                    if (isDebugging)
+                    {
+                        DebugHelper.LogError("Pathfinding is not possible: End not walkable.");
+                    }
+
+                    continue;
+                }
+
+                if (!gridManager.IsMatchingSection(startCell, endCell))
+                {
+                    if (isDebugging)
+                    {
+                        DebugHelper.LogError("Pathfinding is not possible: Section mis-match.");
+                    }
+
+                    continue;
+                }
+            }
+
+            startCells.Add(startCell);
+            endCells.Add(endCell);
+            ignoreWalkablesList.Add(ignoreWalkables);
+            entities.Add(entity);
+            gridManager.TryClearOccupant(startCell, entity);
         }
 
-        var findPathJobParallel = new FindPathJobParallel
+        var findPathJobHandle = new FindPathJobParallel
         {
             WalkableGrid = walkableGrid,
             GridSize = gridSize,
             StartPositions = startCells.AsArray(),
             EndPositions = endCells.AsArray(),
+            IgnoreWalkablesArray = ignoreWalkablesList.AsArray(),
             Entities = entities.AsArray(),
             PathFollowLookup = SystemAPI.GetComponentLookup<PathFollow>(),
             PathPositionLookup = SystemAPI.GetBufferLookup<PathPosition>(),
             EcbParallelWriter = ecb.AsParallelWriter(),
             IsDebugging = isDebugging
-        };
+        }.Schedule(entities.Length, 1);
 
         SystemAPI.SetSingleton(gridManager);
 
-        state.Dependency = findPathJobParallel.Schedule(entities.Length, 1);
+        state.Dependency = findPathJobHandle;
         startCells.Dispose(state.Dependency);
         endCells.Dispose(state.Dependency);
+        ignoreWalkablesList.Dispose(state.Dependency);
         entities.Dispose(state.Dependency);
     }
 
@@ -196,6 +233,7 @@ public partial struct PathfindingSystem : ISystem
 
         [ReadOnly] public NativeArray<int2> StartPositions;
         [ReadOnly] public NativeArray<int2> EndPositions;
+        [ReadOnly] public NativeArray<bool> IgnoreWalkablesArray;
         [ReadOnly] public NativeArray<Entity> Entities;
 
         [NativeDisableContainerSafetyRestriction]
@@ -215,7 +253,7 @@ public partial struct PathfindingSystem : ISystem
 
             var pathNodeArray = GetPathNodeArray(GridSize, WalkableGrid);
 
-            FindPath(pathNodeArray, startPosition, endPosition);
+            FindPath(pathNodeArray, startPosition, endPosition, IgnoreWalkablesArray[index]);
 
             var pathPosition = PathPositionLookup[entity];
             pathPosition.Clear();
@@ -225,10 +263,24 @@ public partial struct PathfindingSystem : ISystem
 
             if (endNode.cameFromNodeIndex == -1)
             {
-                // Didn't find a path!
+                DebugHelper.LogError("Path was not found!");
+                PathFollowLookup[entity] = new PathFollow(-1);
                 if (IsDebugging)
                 {
-                    DebugHelper.LogError("Didn't find a path!");
+                    var startNodeIndex = GridHelpers.GetIndex(GridSize.y, startPosition.x, startPosition.y);
+                    if (!WalkableGrid[startNodeIndex].IsWalkable)
+                    {
+                        DebugHelper.LogError("Start not walkable!");
+                    }
+                    else if (!WalkableGrid[endNodeIndex].IsWalkable)
+                    {
+                        DebugHelper.LogError("End not walkable!");
+                    }
+                    else if (WalkableGrid[startNodeIndex].Section != WalkableGrid[endNodeIndex].Section)
+                    {
+                        DebugHelper.LogError("Not same section!");
+                    }
+
                     EcbParallelWriter.AddComponent(index, EcbParallelWriter.CreateEntity(index),
                         new DebugPopupEvent
                         {
@@ -244,8 +296,6 @@ public partial struct PathfindingSystem : ISystem
                             Cell = endPosition
                         });
                 }
-
-                PathFollowLookup[entity] = new PathFollow(-1);
             }
             else
             {
@@ -255,7 +305,7 @@ public partial struct PathfindingSystem : ISystem
             }
         }
 
-        private void FindPath(NativeArray<PathNode> pathNodeArray, int2 startPosition, int2 endPosition)
+        private void FindPath(NativeArray<PathNode> pathNodeArray, int2 startPosition, int2 endPosition, bool allowNonWalkables)
         {
             for (var i = 0; i < pathNodeArray.Length; i++)
             {
@@ -341,7 +391,7 @@ public partial struct PathfindingSystem : ISystem
                     }
 
                     var neighbourNode = pathNodeArray[neighbourNodeIndex];
-                    if (!neighbourNode.isWalkable)
+                    if (!allowNonWalkables && !neighbourNode.isWalkable)
                     {
                         // Not walkable
                         continue;

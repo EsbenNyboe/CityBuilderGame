@@ -118,11 +118,26 @@ namespace UnitAgency
                 var boarQuadrantsToSearch = 9;
                 var itemQuadrantsToSearch = 50;
 
-                if (hasInitiative &&
-                    QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.BoarQuadrantMap, GridManager,
-                        boarQuadrantsToSearch, position, entity,
-                        out var nearbyBoar, out var distanceToBoar) &&
-                    distanceToBoar < IsThrowingSpearSystem.Range)
+                var isStandingOnNonWalkableCell = !GridManager.IsWalkable(cell) && !GridManager.IsBedAvailableToUnit(cell, entity);
+
+                if (isStandingOnNonWalkableCell)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsIdle());
+                    if (GridManager.TryGetNearbyEmptyCellSemiRandom(cell, out var nearbyCell, true, true))
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new Pathfinding
+                        {
+                            StartPosition = cell,
+                            EndPosition = nearbyCell,
+                            AllowNonWalkabes = true
+                        });
+                    }
+                }
+                else if (hasInitiative &&
+                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.BoarQuadrantMap, GridManager,
+                             boarQuadrantsToSearch, position, entity,
+                             out var nearbyBoar, out var distanceToBoar) &&
+                         distanceToBoar < IsThrowingSpearSystem.Range)
                 {
                     var randomDelay = randomContainer.Random.NextFloat(0, 1);
                     moodInitiative.UseInitiative();

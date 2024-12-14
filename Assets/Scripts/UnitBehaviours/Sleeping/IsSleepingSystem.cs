@@ -111,7 +111,7 @@ public partial struct IsSleepingSystem : ISystem
 
         if (gridManager.TryGetNearbyEmptyCellSemiRandom(currentCell, out var nearbyCell, isDebuggingSearch))
         {
-            PathHelpers.TrySetPath(ecb, entity, currentCell, nearbyCell, isDebuggingPath);
+            PathHelpers.TrySetPath(ecb, gridManager, entity, currentCell, nearbyCell, isDebuggingPath);
         }
     }
 }

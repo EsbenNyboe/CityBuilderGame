@@ -4,6 +4,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 using ISystem = Unity.Entities.ISystem;
 
 
@@ -149,17 +150,31 @@ public partial struct PathFollowSystem : ISystem
         }
         else
         {
-            GridHelpers.GetXY(targetPosition, out var x, out var y);
-            if (gridManager.TryGetNearbyEmptyCellSemiRandom(new int2(x, y), out var vacantCell, isDebuggingSearch))
+            var cell = GridHelpers.GetXY(targetPosition);
+            var foundPath = false;
+            if (gridManager.TryGetNearbyEmptyCellSemiRandom(cell, out var newTarget, isDebuggingSearch))
             {
-                PathHelpers.TrySetPath(ecb, entity, new int2(x, y), vacantCell, isDebuggingPath);
+                foundPath = PathHelpers.TrySetPath(ecb, gridManager, entity, cell, newTarget, isDebuggingPath);
             }
-            // TODO: Go to a nearby walkable-cell, then?
-            else
+            else if (gridManager.TryGetClosestWalkableCell(cell, out newTarget, false, false))
             {
-                if (isDebuggingPath)
+                foundPath = PathHelpers.TrySetPath(ecb, gridManager, entity, cell, newTarget, isDebuggingPath);
+            }
+
+            if (newTarget.x < 0)
+            {
+                Debug.LogError("No nearby walkable cell found");
+            }
+            else if (!foundPath)
+            {
+                // Defy physics, and move to new target
+                if (gridManager.TryGetClosestWalkableCell(cell, out newTarget, false))
                 {
-                    DebugHelper.LogError("NO NEARBY POSITION WAS FOUND FOR ENTITY: ", entity);
+                    PathHelpers.SetPath(ecb, entity, cell, newTarget, true);
+                }
+                else
+                {
+                    Debug.LogError("No nearby walkable cell found");
                 }
             }
         }

@@ -3,66 +3,95 @@ using Unity.Mathematics;
 
 public static class PathHelpers
 {
-    public static bool TrySetPath(EntityCommandBuffer.ParallelWriter ecb, int index, Entity entity,
-        int2 startCell, int2 endCell, bool isDebugging = false)
+    public static bool TrySetPath(EntityCommandBuffer.ParallelWriter ecb, int index, GridManager gridManager,
+        Entity entity, int2 startCell, int2 endCell, bool isDebugging = false)
     {
-        if (PathIsInvalid(startCell, endCell, isDebugging))
+        if (PathIsInvalid(gridManager, startCell, endCell, isDebugging))
         {
             return false;
         }
 
+        SetPath(ecb, index, entity, startCell, endCell);
+        return true;
+    }
+
+    public static bool TrySetPath(EntityCommandBuffer ecb, GridManager gridManager,
+        Entity entity, int2 startCell, int2 endCell, bool isDebugging = true)
+    {
+        if (PathIsInvalid(gridManager, startCell, endCell, isDebugging))
+        {
+            return false;
+        }
+
+        SetPath(ecb, entity, startCell, endCell);
+        return true;
+    }
+
+    public static void SetPath(EntityCommandBuffer.ParallelWriter ecb, int index,
+        Entity entity, int2 startCell, int2 endCell,
+        bool ignoreWalkable = false)
+    {
         ecb.AddComponent(index, entity, new Pathfinding
         {
             StartPosition = new int2(startCell.x, startCell.y),
-            EndPosition = new int2(endCell.x, endCell.y)
+            EndPosition = new int2(endCell.x, endCell.y),
+            AllowNonWalkabes = ignoreWalkable
         });
-        return true;
     }
 
-    public static bool TrySetPath(EntityCommandBuffer ecb, Entity entity,
-        float3 startPosition, float3 endPosition, bool isDebugging = false)
+    public static void SetPath(EntityCommandBuffer ecb,
+        Entity entity, int2 startCell, int2 endCell,
+        bool ignoreWalkable = false)
     {
-        var startCell = GridHelpers.GetXY(startPosition);
-        var endCell = GridHelpers.GetXY(endPosition);
-        return TrySetPath(ecb, entity, startCell, endCell, isDebugging);
-    }
-
-    public static bool TrySetPath(EntityCommandBuffer ecb, Entity entity,
-        int2 startCell, int2 endCell, bool isDebugging = false)
-    {
-        if (PathIsInvalid(startCell, endCell, isDebugging))
-        {
-            return false;
-        }
-
         ecb.AddComponent(entity, new Pathfinding
         {
             StartPosition = new int2(startCell.x, startCell.y),
-            EndPosition = new int2(endCell.x, endCell.y)
+            EndPosition = new int2(endCell.x, endCell.y),
+            AllowNonWalkabes = ignoreWalkable
         });
-        return true;
     }
 
-    private static bool PathIsInvalid(int2 startCell, int2 endCell, bool isDebugging)
+    private static bool PathIsInvalid(GridManager gridManager, int2 startCell, int2 endCell, bool isDebugging)
     {
-        if (isDebugging)
+        if (!gridManager.IsWalkable(startCell))
         {
-            // TODO: Use non-static Width and Height here:
-            if (endCell.x < 0 || endCell.x >= GridManagerSystem.DefaultWidth || endCell.y < 0 ||
-                endCell.y > GridManagerSystem.DefaultHeight)
+            if (isDebugging)
             {
-                DebugHelper.LogError("Path target is out of bounds!");
+                DebugHelper.LogError("Path start is not walkable!!");
             }
+
+            return true;
         }
 
-        if (isDebugging)
+        if (!gridManager.IsWalkable(endCell))
         {
-            // Are there any downsides to allowing pathfinding, if you're already at your destination?
-            // If you're not centered, I guess it makes sense to pathfind to the center of the cell, right?
-            if (startCell.x == endCell.x && startCell.y == endCell.y)
+            if (isDebugging)
             {
-                DebugHelper.Log("No need to set a path. Already at destination");
+                DebugHelper.LogError("Path end is not walkable!!");
             }
+
+            return true;
+        }
+
+        if (!gridManager.IsMatchingSection(startCell, endCell))
+        {
+            if (isDebugging)
+            {
+                DebugHelper.Log("Path spans multiple sections!");
+            }
+
+            return true;
+        }
+
+        if (endCell.x < 0 || endCell.x >= gridManager.Width ||
+            endCell.y < 0 || endCell.y > gridManager.Height)
+        {
+            if (isDebugging)
+            {
+                DebugHelper.LogError("Path end is out of bounds!");
+            }
+
+            return true;
         }
 
         return false;

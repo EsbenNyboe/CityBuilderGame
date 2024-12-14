@@ -64,7 +64,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedItemQuadrantMap, gridManager, 9, position,
                         entity, out var droppedItemToSeek, out _))
                 {
-                    PathHelpers.TrySetPath(ecb, entity, GridHelpers.GetXY(position),
+                    PathHelpers.TrySetPath(ecb, gridManager, entity, GridHelpers.GetXY(position),
                         GridHelpers.GetXY(SystemAPI.GetComponent<LocalTransform>(droppedItemToSeek).Position));
                 }
             }
