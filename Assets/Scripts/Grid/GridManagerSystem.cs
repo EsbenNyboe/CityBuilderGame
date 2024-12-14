@@ -13,6 +13,10 @@ public partial struct GridManager : IComponentData
     public NativeArray<DamageableCell> DamageableGrid;
     public NativeArray<OccupiableCell> OccupiableGrid;
     public NativeArray<InteractableCell> InteractableGrid;
+
+    public NativeArray<GridEntityType> GridEntityTypeGrid;
+    public NativeArray<Entity> GridEntityGrid;
+
     public bool WalkableGridIsDirty;
     public bool DamageableGridIsDirty;
     public bool OccupiableGridIsDirty;
@@ -145,20 +149,25 @@ public partial class GridManagerSystem : SystemBase
         var oldDamageableGrid = gridManager.DamageableGrid;
         var oldInteractableGrid = gridManager.InteractableGrid;
         var oldOccupiableGrid = gridManager.OccupiableGrid;
+        var oldGridEntityTypeGrid = gridManager.GridEntityTypeGrid;
+        var oldGridEntityGrid = gridManager.GridEntityGrid;
         CreateGrids(ref gridManager, config.Width, config.Height);
-        ReapplyGridState(ref gridManager, oldHeight, oldWalkableGrid, oldDamageableGrid, oldInteractableGrid, oldOccupiableGrid);
+        ReapplyGridState(ref gridManager, oldHeight, oldWalkableGrid, oldDamageableGrid, oldInteractableGrid, oldOccupiableGrid,
+            oldGridEntityTypeGrid, oldGridEntityGrid);
 
         oldWalkableGrid.Dispose();
         oldDamageableGrid.Dispose();
         oldInteractableGrid.Dispose();
         oldOccupiableGrid.Dispose();
+        oldGridEntityTypeGrid.Dispose();
+        oldGridEntityGrid.Dispose();
         GridVisualsManager.Instance.OnGridSizeChanged();
         return true;
     }
 
     private static void ReapplyGridState(ref GridManager gridManager, int oldHeight, NativeArray<WalkableCell> oldWalkableGrid,
         NativeArray<DamageableCell> oldDamageableGrid, NativeArray<InteractableCell> oldInteractableGrid,
-        NativeArray<OccupiableCell> oldOccupiableGrid)
+        NativeArray<OccupiableCell> oldOccupiableGrid, NativeArray<GridEntityType> oldGridEntityTypeGrid, NativeArray<Entity> oldGridEntityGrid)
     {
         var length = math.min(gridManager.WalkableGrid.Length, oldWalkableGrid.Length);
         for (var i = 0; i < length; i++)
@@ -173,6 +182,7 @@ public partial class GridManagerSystem : SystemBase
             gridManager.SetHealth(cell, oldDamageableGrid[i].Health);
             gridManager.SetInteractableCellType(cell, oldInteractableGrid[i].InteractableCellType);
             gridManager.SetOccupant(cell, oldOccupiableGrid[i].Occupant);
+            gridManager.SetGridEntity(cell, oldGridEntityGrid[i], oldGridEntityTypeGrid[i]);
         }
     }
 
@@ -199,6 +209,8 @@ public partial class GridManagerSystem : SystemBase
         gridManager.DamageableGrid.Dispose();
         gridManager.OccupiableGrid.Dispose();
         gridManager.InteractableGrid.Dispose();
+        gridManager.GridEntityGrid.Dispose();
+        gridManager.GridEntityTypeGrid.Dispose();
     }
 
     public static void CreateGrids(ref GridManager gridManager, int width, int height)
@@ -247,6 +259,9 @@ public partial class GridManagerSystem : SystemBase
             cell.IsDirty = true;
             gridManager.InteractableGrid[i] = cell;
         }
+
+        gridManager.GridEntityGrid = new NativeArray<Entity>(width * height, Allocator.Persistent);
+        gridManager.GridEntityTypeGrid = new NativeArray<GridEntityType>(width * height, Allocator.Persistent);
     }
 
     private static void CreateGridSearchHelpers(ref GridManager gridManager)

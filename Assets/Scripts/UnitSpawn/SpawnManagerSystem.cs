@@ -224,33 +224,24 @@ public partial class SpawnManagerSystem : SystemBase
     private void TrySpawnDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager, int2 cell,
         Entity prefab)
     {
-        if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) && !gridManager.IsBed(cell))
+        if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) && !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
         {
             gridManager.SetIsWalkable(cell, false);
             var entity = InstantiateAtPosition(prefab, cell);
+            ecb.RemoveComponent<LinkedEntityGroup>(entity);
+            gridManager.AddGridEntity(cell, entity, GridEntityType.DropPoint);
             SetupWorldSpriteSheetState(ecb, worldSpriteSheetManager, entity, cell, WorldSpriteSheetEntryType.DropPoint);
         }
     }
 
     private void TryDeleteDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
     {
-        // TODO: FIIIIIIX
-        // If it's not a tree or a bed, it must be a DropPoint, I guess?
         if (gridManager.IsPositionInsideGrid(position) &&
-            !gridManager.IsWalkable(position) &&
-            !gridManager.IsInteractable(position) &&
-            !gridManager.IsDamageable(position))
+            gridManager.TryGetDropPointEntity(position, out var entity))
         {
-            var gridIndex = gridManager.GetIndex(position);
-            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<DropPoint>, RefRO<LocalTransform>>()
-                         .WithEntityAccess())
-            {
-                if (gridManager.GetIndex(localTransform.ValueRO.Position) == gridIndex)
-                {
-                    ecb.DestroyEntity(entity);
-                    gridManager.SetIsWalkable(gridIndex, true);
-                }
-            }
+            ecb.DestroyEntity(entity);
+            gridManager.SetIsWalkable(position, true);
+            gridManager.RemoveGridEntity(position);
         }
     }
 
@@ -269,7 +260,7 @@ public partial class SpawnManagerSystem : SystemBase
         return entity;
     }
 
-    private void SetupWorldSpriteSheetState(EntityCommandBuffer ecb, WorldSpriteSheetManager worldSpriteSheetManager, Entity entity, int2 cell,
+    public static void SetupWorldSpriteSheetState(EntityCommandBuffer ecb, WorldSpriteSheetManager worldSpriteSheetManager, Entity entity, int2 cell,
         WorldSpriteSheetEntryType type)
     {
         var position = GetEntityPosition(cell);

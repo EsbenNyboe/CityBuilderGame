@@ -1,3 +1,4 @@
+using Rendering;
 using UnitState;
 using Unity.Collections;
 using Unity.Entities;
@@ -11,13 +12,6 @@ namespace Grid.SaveLoad
     [UpdateBefore(typeof(IsAliveSystem))]
     public partial class SavedGridStateLogic : SystemBase
     {
-        private EntityQuery _dropPointQuery;
-
-        protected override void OnCreate()
-        {
-            _dropPointQuery = GetEntityQuery(typeof(DropPoint));
-        }
-
         protected override void OnUpdate()
         {
             if (SavedGridStateManager.Instance.SlotToSave > -1)
@@ -57,22 +51,9 @@ namespace Grid.SaveLoad
                 {
                     bedList.Add(gridManager.GetXY(i));
                 }
-                // // TODO: Implement drop-point as grid-cell-type
-                // else if (false) //gridManager.IsDropPoint(i))
-                // {
-                //     dropPointList.Add(gridManager.GetXY(i));
-                // }
-            }
-
-            // TEMPORARY:
-            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<DropPoint>, RefRO<LocalTransform>>()
-                         .WithEntityAccess())
-            {
-                var dropPointCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
-                if (gridManager.IsPositionInsideGrid(dropPointCell))
+                else if (gridManager.TryGetDropPointEntity(i, out _))
                 {
-                    // TODO: Find a cleaner way to prevent dropPoints from ending up out of bounds
-                    dropPointList.Add(dropPointCell);
+                    dropPointList.Add(gridManager.GetXY(i));
                 }
             }
 
@@ -96,26 +77,33 @@ namespace Grid.SaveLoad
         private void LoadSavedGridState()
         {
             Dependency.Complete();
+            using var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
 
             // DELETE CURRENT STATE
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
             {
-                // Delete tree
                 gridManager.SetIsWalkable(i, true);
+
+                // Delete tree
                 gridManager.SetHealthToZero(i);
 
                 // Delete bed
                 gridManager.SetInteractableNone(i);
 
-                // TODO: Delete droppoint
+                // Delete droppoint
+                if (gridManager.TryGetDropPointEntity(i, out var dropPointEntity))
+                {
+                    gridManager.RemoveGridEntity(i);
+                    ecb.DestroyEntity(dropPointEntity);
+                }
             }
 
             gridManager.WalkableGridIsDirty = true;
             gridManager.OccupiableGridIsDirty = true;
             gridManager.DamageableGridIsDirty = true;
             gridManager.InteractableGridIsDirty = true;
-            EntityManager.DestroyEntity(_dropPointQuery);
 
             // LOAD NEW STATE
 
@@ -153,12 +141,18 @@ namespace Grid.SaveLoad
                 }
                 else
                 {
+                    // TODO: Refactor this, to reduce code-duplication (see SpawnManagerSystem)
                     gridManager.SetIsWalkable(dropPoints[i], false);
-                    InstantiateAtPosition(spawnManager.DropPointPrefab, dropPoints[i]);
+                    var entity = InstantiateAtPosition(spawnManager.DropPointPrefab, dropPoints[i]);
+                    ecb.RemoveComponent<LinkedEntityGroup>(entity);
+                    gridManager.AddGridEntity(dropPoints[i], entity, GridEntityType.DropPoint);
+                    SpawnManagerSystem.SetupWorldSpriteSheetState(ecb, worldSpriteSheetManager, entity, dropPoints[i],
+                        WorldSpriteSheetEntryType.DropPoint);
                 }
             }
 
             SystemAPI.SetSingleton(gridManager);
+            ecb.Playback(EntityManager);
         }
 
         private void HandleEntitiesOutsideOfGrid(GridManager gridManager)

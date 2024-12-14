@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Assertions;
 using Unity.Mathematics;
 using UnityEngine;
@@ -56,6 +57,38 @@ namespace Grid.SaveLoad
                 _showSaveMenu = !_showSaveMenu;
                 SetMenuVisibility();
             }
+        }
+
+        [ContextMenu("Remove Duplicate Data")]
+        public void RemoveDuplicatesInSaveSlots()
+        {
+            for (var i = 0; i < _saveSlots.Length; i++)
+            {
+                _saveSlots[i].DropPoints = GetCleanedUpDataList(_saveSlots[i].DropPoints);
+                _saveSlots[i].Beds = GetCleanedUpDataList(_saveSlots[i].Beds);
+                _saveSlots[i].Trees = GetCleanedUpDataList(_saveSlots[i].Trees);
+#if UNITY_EDITOR
+                EditorUtility.SetDirty(_saveSlots[i]);
+#endif
+                if (Application.isPlaying)
+                {
+                    UpdateSaveSlot(i);
+                }
+            }
+        }
+
+        private int2[] GetCleanedUpDataList(int2[] dataList)
+        {
+            var cleanedUpDataList = new List<int2>();
+            foreach (var dataElement in dataList)
+            {
+                if (!cleanedUpDataList.Contains(dataElement))
+                {
+                    cleanedUpDataList.Add(dataElement);
+                }
+            }
+
+            return cleanedUpDataList.ToArray();
         }
 
         public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] dropPoints)
