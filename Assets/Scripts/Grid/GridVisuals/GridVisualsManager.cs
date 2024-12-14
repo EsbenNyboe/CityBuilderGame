@@ -1,4 +1,5 @@
 ﻿using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class GridVisualsManager : MonoBehaviour
@@ -6,12 +7,14 @@ public class GridVisualsManager : MonoBehaviour
     public static GridVisualsManager Instance;
 
     [SerializeField] private MeshFilter _pathMeshFilter;
+    [SerializeField] private MeshFilter _pathSecondMeshFilter;
     [SerializeField] private MeshFilter _pathDebugMeshFilter;
     [SerializeField] private MeshFilter _interactableMeshFilter;
     [SerializeField] private MeshFilter _healthBarMeshFilter;
     [SerializeField] private MeshFilter _occupationDebugMeshFilter;
 
     private readonly PathGridVisual _pathGridVisual = new();
+    private readonly PathGridVisual _pathSecondGridVisual = new();
     private readonly PathGridDebugVisual _pathGridDebugVisual = new();
     private readonly InteractableGridDebugVisual _interactableGridVisual = new();
     private readonly HealthbarGridVisual _healthbarGridVisual = new();
@@ -21,6 +24,8 @@ public class GridVisualsManager : MonoBehaviour
 
     private bool _isInitialized;
     private EntityQuery _gridManagerQuery;
+    private int _firstGridWidth;
+    private int _secondGridWidth;
 
     private void Awake()
     {
@@ -41,18 +46,25 @@ public class GridVisualsManager : MonoBehaviour
             return;
         }
 
+        const int maxMeshSize = 16000;
+        var maxMeshWidth = math.min(maxMeshSize / gridManager.Height, gridManager.Width);
+
         if (!_isInitialized)
         {
             _isInitialized = true;
 
             _pathMeshFilter.mesh = _pathGridVisual.CreateMesh();
+            _pathSecondMeshFilter.mesh = _pathSecondGridVisual.CreateMesh();
             _pathDebugMeshFilter.mesh = _pathGridDebugVisual.CreateMesh();
             _interactableMeshFilter.mesh = _interactableGridVisual.CreateMesh();
             _healthBarMeshFilter.mesh = _healthbarGridVisual.CreateMesh();
             _occupationDebugMeshFilter.mesh = _occupationDebugGridVisual.CreateMesh();
 
             var gridSize = gridManager.WalkableGrid.Length;
-            _pathGridVisual.InitializeMesh(gridSize);
+            _firstGridWidth = maxMeshWidth;
+            _secondGridWidth = gridManager.Width - _firstGridWidth;
+            _pathGridVisual.InitializeMesh(gridManager.Height * _firstGridWidth, _firstGridWidth);
+            _pathSecondGridVisual.InitializeMesh(gridManager.Height * _secondGridWidth, _secondGridWidth);
             _pathGridDebugVisual.InitializeMesh(gridSize);
             _interactableGridVisual.InitializeMesh(gridSize);
             _healthbarGridVisual.InitializeMesh(gridSize);
@@ -95,6 +107,7 @@ public class GridVisualsManager : MonoBehaviour
             {
                 // This visual is a static background:
                 _pathGridVisual.UpdateVisual(gridManager);
+                _pathSecondGridVisual.UpdateVisual(gridManager, _firstGridWidth);
             }
 
             if (showDebug)

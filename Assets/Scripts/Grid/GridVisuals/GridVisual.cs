@@ -6,6 +6,7 @@ public abstract class GridVisual
     private int[] _triangles;
     private Vector2[] _uvs;
     private Vector3[] _vertices;
+    private int _meshWidth;
 
     public Mesh CreateMesh()
     {
@@ -13,18 +14,19 @@ public abstract class GridVisual
         return _mesh;
     }
 
-    public void InitializeMesh(int gridSize)
+    public void InitializeMesh(int gridSize, int slicedWidth = 0)
     {
+        _meshWidth = slicedWidth;
         MeshUtils.CreateEmptyMeshArrays(gridSize, out _vertices, out _uvs,
             out _triangles);
     }
 
-    public void UpdateVisual(GridManager gridManager)
+    public void UpdateVisual(GridManager gridManager, int startX = 0)
     {
-        var gridWidth = gridManager.Width;
+        var gridWidth = _meshWidth > 0 ? startX + _meshWidth : gridManager.Width;
         var gridHeight = gridManager.Height;
 
-        for (var x = 0; x < gridWidth; x++)
+        for (var x = startX; x < gridWidth; x++)
         {
             for (var y = 0; y < gridHeight; y++)
             {
@@ -37,7 +39,7 @@ public abstract class GridVisual
                     continue;
                 }
 
-                MeshUtils.AddToMeshArrays(_vertices, _uvs, _triangles, index, worldPosition + quadSize * .0f, 0,
+                MeshUtils.AddToMeshArrays(_vertices, _uvs, _triangles, index - startX * gridHeight, worldPosition + quadSize * .0f, 0,
                     quadSize,
                     uv00, uv11);
             }
