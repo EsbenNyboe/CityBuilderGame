@@ -6,10 +6,10 @@ public class GridVisualsManager : MonoBehaviour
     public static GridVisualsManager Instance;
 
     [SerializeField] private GameObject _pathMeshPrefab;
+    [SerializeField] private GameObject _healthBarMeshPrefab;
 
     [SerializeField] private MeshFilter _pathDebugMeshFilter;
     [SerializeField] private MeshFilter _interactableMeshFilter;
-    [SerializeField] private MeshFilter _healthBarMeshFilter;
     [SerializeField] private MeshFilter _occupationDebugMeshFilter;
 
     private readonly PathGridVisual _pathGridVisual = new();
@@ -46,22 +46,22 @@ public class GridVisualsManager : MonoBehaviour
         {
             _isInitialized = true;
 
-            _pathGridVisual.CreateMeshFilters(gridManager.Height, gridManager.Width, _pathMeshPrefab, transform);
+            var height = gridManager.Height;
+            var width = gridManager.Width;
+            _pathGridVisual.CreateMeshFilters(height, width, _pathMeshPrefab, transform);
+            _healthbarGridVisual.CreateMeshFilters(height, width, _healthBarMeshPrefab, transform);
 
             _pathGridDebugVisual.CreateMeshContainer(1);
             _interactableGridVisual.CreateMeshContainer(1);
-            _healthbarGridVisual.CreateMeshContainer(1);
             _occupationDebugGridVisual.CreateMeshContainer(1);
 
             _pathDebugMeshFilter.mesh = _pathGridDebugVisual.GetMesh();
             _interactableMeshFilter.mesh = _interactableGridVisual.GetMesh();
-            _healthBarMeshFilter.mesh = _healthbarGridVisual.GetMesh();
             _occupationDebugMeshFilter.mesh = _occupationDebugGridVisual.GetMesh();
 
             var gridSize = gridManager.WalkableGrid.Length;
             _pathGridDebugVisual.InitializeMeshData(gridSize);
             _interactableGridVisual.InitializeMeshData(gridSize);
-            _healthbarGridVisual.InitializeMeshData(gridSize);
             _occupationDebugGridVisual.InitializeMeshData(gridSize);
         }
 
@@ -116,7 +116,7 @@ public class GridVisualsManager : MonoBehaviour
             gridManager.DamageableGridIsDirty = false;
             wasDirty = true;
 
-            _healthbarGridVisual.UpdateVisual(gridManager);
+            _healthbarGridVisual.UpdateVisualNew(gridManager);
         }
     }
 
