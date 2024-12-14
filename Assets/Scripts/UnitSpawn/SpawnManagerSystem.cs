@@ -236,7 +236,9 @@ public partial class SpawnManagerSystem : SystemBase
     {
         // TODO: FIIIIIIX
         // If it's not a tree or a bed, it must be a DropPoint, I guess?
-        if (!gridManager.IsWalkable(position) && !gridManager.IsInteractable(position) &&
+        if (gridManager.IsPositionInsideGrid(position) &&
+            !gridManager.IsWalkable(position) &&
+            !gridManager.IsInteractable(position) &&
             !gridManager.IsDamageable(position))
         {
             var gridIndex = gridManager.GetIndex(position);
