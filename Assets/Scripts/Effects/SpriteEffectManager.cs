@@ -1,30 +1,33 @@
 using UnityEngine;
 
-public class SpriteEffectManager : MonoBehaviour
+namespace Effects
 {
-    public static SpriteEffectManager Instance;
-
-    [SerializeField] private TimedImagePoolManager[] _damageEffectPools;
-    [Range(0, 0.5f)] [SerializeField] private float _randomPositionFactor;
-
-    private int _currentSelection;
-
-    private void Awake()
+    public class SpriteEffectManager : MonoBehaviour
     {
-        Instance = this;
-    }
+        public static SpriteEffectManager Instance;
 
-    public void PlayDamageEffect(Vector3 position)
-    {
-        _currentSelection++;
-        if (_currentSelection >= _damageEffectPools.Length)
+        [SerializeField] private TimedImagePoolManager[] _damageEffectPools;
+        [Range(0, 0.5f)] [SerializeField] private float _randomPositionFactor;
+
+        private int _currentSelection;
+
+        private void Awake()
         {
-            _currentSelection = 0;
+            Instance = this;
         }
 
-        var poolItem = _damageEffectPools[_currentSelection].GetOrCreatePoolItem();
-        position.x += Random.Range(-_randomPositionFactor, _randomPositionFactor);
-        position.y += Random.Range(-_randomPositionFactor, _randomPositionFactor);
-        _damageEffectPools[_currentSelection].EnqueuePoolItem(poolItem, position);
+        public void PlayDamageEffect(Vector3 position)
+        {
+            _currentSelection++;
+            if (_currentSelection >= _damageEffectPools.Length)
+            {
+                _currentSelection = 0;
+            }
+
+            var poolItem = _damageEffectPools[_currentSelection].GetOrCreatePoolItem();
+            position.x += Random.Range(-_randomPositionFactor, _randomPositionFactor);
+            position.y += Random.Range(-_randomPositionFactor, _randomPositionFactor);
+            _damageEffectPools[_currentSelection].EnqueuePoolItem(poolItem, position);
+        }
     }
 }
