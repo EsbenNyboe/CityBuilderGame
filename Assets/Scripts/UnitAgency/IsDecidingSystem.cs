@@ -118,7 +118,7 @@ namespace UnitAgency
                 var boarQuadrantsToSearch = 9;
                 var itemQuadrantsToSearch = 50;
 
-                var isStandingOnNonWalkableCell = !GridManager.IsWalkable(cell) && !GridManager.IsBed(cell);
+                var isStandingOnNonWalkableCell = !GridManager.IsWalkable(cell) && !GridManager.IsBedAvailableToUnit(cell, entity);
 
                 if (isStandingOnNonWalkableCell)
                 {
