@@ -172,6 +172,14 @@ namespace Grid.SaveLoad
                 }
             }
 
+            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<DroppedItem>, RefRO<LocalTransform>>().WithEntityAccess())
+            {
+                if (!gridManager.IsPositionInsideGrid(localTransform.ValueRO.Position))
+                {
+                    ecb.DestroyEntity(entity);
+                }
+            }
+
             ecb.Playback(EntityManager);
         }
 
