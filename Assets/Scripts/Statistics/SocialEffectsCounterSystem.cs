@@ -3,6 +3,8 @@ using Unity.Entities;
 
 namespace Statistics
 {
+    [UpdateInGroup(typeof(InitializationSystemGroup))]
+    [UpdateBefore(typeof(SocialEffectSystem))]
     public partial class SocialEffectsCounterSystem : SystemBase
     {
         protected override void OnUpdate()
