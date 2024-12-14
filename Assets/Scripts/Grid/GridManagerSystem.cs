@@ -105,8 +105,7 @@ public partial class GridManagerSystem : SystemBase
     {
         using var ecb = new EntityCommandBuffer(Allocator.Temp);
 
-        foreach (var (dropPoint, localTransform, entity) in
-                 SystemAPI.Query<RefRO<DropPoint>, RefRO<LocalTransform>>().WithEntityAccess())
+        foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<GridEntity>, RefRO<LocalTransform>>().WithEntityAccess())
         {
             if (!gridManager.IsPositionInsideGrid(localTransform.ValueRO.Position))
             {
