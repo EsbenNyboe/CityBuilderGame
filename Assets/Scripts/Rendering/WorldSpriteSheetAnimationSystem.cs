@@ -19,7 +19,6 @@ public struct WorldSpriteSheetState : IComponentData
 }
 
 [UpdateInGroup(typeof(AnimationSystemGroup))]
-[UpdateAfter(typeof(UnitAnimationSelectionSystem))]
 public partial struct WorldSpriteSheetAnimationSystem : ISystem
 {
     public void OnCreate(ref SystemState state)
