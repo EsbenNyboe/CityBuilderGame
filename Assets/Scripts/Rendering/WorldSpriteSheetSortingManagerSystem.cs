@@ -36,12 +36,12 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             SpriteUvArray = new NativeArray<Vector4>(1, Allocator.TempJob)
         });
         _unitQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
-            ComponentType.ReadOnly<LocalToWorld>(),
+            ComponentType.ReadOnly<LocalTransform>(),
             ComponentType.ReadOnly<Inventory>());
         _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<DroppedItem>(),
             ComponentType.ReadOnly<LocalTransform>());
         _gridEntityQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
-            ComponentType.ReadOnly<LocalToWorld>(),
+            ComponentType.ReadOnly<LocalTransform>(),
             ComponentType.ReadOnly<GridEntity>());
 
         state.RequireForUpdate<BeginPresentationEntityCommandBufferSystem.Singleton>();
@@ -453,17 +453,17 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         [NativeDisableContainerSafetyRestriction]
         public NativeArray<QueueContainer> SortingQueues;
 
-        public void Execute(in Entity Entity, in LocalToWorld localToWorld, in WorldSpriteSheetState animationData,
+        public void Execute(in Entity Entity, in LocalTransform localTransform, in WorldSpriteSheetState animationData,
             in Inventory inventory)
         {
-            var positionX = localToWorld.Position.x;
+            var positionX = localTransform.Position.x;
             if (!(positionX > XLeft) || !(positionX < XRight))
             {
                 // Unit is not within horizontal view-bounds. No need to render.
                 return;
             }
 
-            var positionY = localToWorld.Position.y;
+            var positionY = localTransform.Position.y;
             if (!(positionY > YBottom) || !(positionY < YTop))
             {
                 // Unit is not within vertical view-bounds. No need to render.
@@ -473,7 +473,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             var renderData = new RenderData
             {
                 Entity = Entity,
-                Position = localToWorld.Position,
+                Position = localTransform.Position,
                 Matrix = animationData.Matrix,
                 Uv = animationData.Uv
             };
@@ -557,9 +557,9 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         [NativeDisableContainerSafetyRestriction]
         public NativeArray<QueueContainer> SortingQueues;
 
-        public void Execute(in Entity Entity, in WorldSpriteSheetState worldSpriteSheetState, in LocalToWorld localToWorld)
+        public void Execute(in Entity Entity, in WorldSpriteSheetState worldSpriteSheetState, in LocalTransform localTransform)
         {
-            var position = localToWorld.Position;
+            var position = localTransform.Position;
             var positionX = position.x;
             if (!(positionX > XLeft) || !(positionX < XRight))
             {
