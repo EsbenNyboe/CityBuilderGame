@@ -77,7 +77,7 @@ public partial class SpawnManagerSystem : SystemBase
             case SpawnItemType.Tree:
                 foreach (var cell in cellList)
                 {
-                    TrySpawnTree(ref gridManager, cell);
+                    TrySpawnTree(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.TreePrefab);
                 }
 
                 break;
@@ -117,7 +117,7 @@ public partial class SpawnManagerSystem : SystemBase
             case SpawnItemType.Tree:
                 foreach (var cell in cellList)
                 {
-                    TryDeleteTree(ref gridManager, cell);
+                    TryDeleteTree(ecb, ref gridManager, cell);
                 }
 
                 break;
@@ -183,26 +183,6 @@ public partial class SpawnManagerSystem : SystemBase
         }
     }
 
-    private void TrySpawnTree(ref GridManager gridManager, int2 position)
-    {
-        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
-            !gridManager.IsDamageable(position))
-        {
-            gridManager.SetIsWalkable(position, false);
-            gridManager.SetHealthToMax(position);
-        }
-    }
-
-    private void TryDeleteTree(ref GridManager gridManager, int2 position)
-    {
-        if (gridManager.IsPositionInsideGrid(position) && !gridManager.IsWalkable(position) &&
-            gridManager.IsDamageable(position))
-        {
-            gridManager.SetIsWalkable(position, true);
-            gridManager.SetHealthToZero(position);
-        }
-    }
-
     private void TrySpawnBed(ref GridManager gridManager, int2 position)
     {
         if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
@@ -221,14 +201,52 @@ public partial class SpawnManagerSystem : SystemBase
         }
     }
 
+    private void TrySpawnTree(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager, int2 cell,
+        Entity prefab)
+    {
+        if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+            !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
+        {
+            gridManager.SetIsWalkable(cell, false);
+            gridManager.SetHealthToMax(cell);
+            SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.Tree,
+                WorldSpriteSheetEntryType.Tree);
+        }
+    }
+
+    private void TryDeleteTree(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
+    {
+        if (gridManager.IsPositionInsideGrid(position) && gridManager.TryGetTreeEntity(position, out var entity))
+        {
+            gridManager.SetHealthToZero(position);
+
+            gridManager.SetIsWalkable(position, true);
+            gridManager.RemoveGridEntity(position);
+            ecb.DestroyEntity(entity);
+        }
+    }
+
+
     private void TrySpawnDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager, int2 cell,
         Entity prefab)
     {
-        if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) && !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
+        if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+            !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
         {
             gridManager.SetIsWalkable(cell, false);
             SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.DropPoint,
                 WorldSpriteSheetEntryType.DropPoint);
+        }
+    }
+
+    private void TryDeleteDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
+    {
+        if (gridManager.IsPositionInsideGrid(position) &&
+            gridManager.TryGetDropPointEntity(position, out var entity))
+        {
+            gridManager.SetIsWalkable(position, true);
+            gridManager.RemoveGridEntity(position);
+            ecb.DestroyEntity(entity);
         }
     }
 
@@ -246,17 +264,6 @@ public partial class SpawnManagerSystem : SystemBase
             Uv = worldSpriteSheetManager.GetUvSingleFramed(spriteEntryType),
             Matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one)
         });
-    }
-
-    private void TryDeleteDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
-    {
-        if (gridManager.IsPositionInsideGrid(position) &&
-            gridManager.TryGetDropPointEntity(position, out var entity))
-        {
-            ecb.DestroyEntity(entity);
-            gridManager.SetIsWalkable(position, true);
-            gridManager.RemoveGridEntity(position);
-        }
     }
 
     private static Entity InstantiateAtPosition(EntityManager entityManager, EntityCommandBuffer ecb, Entity prefab, int2 cell)

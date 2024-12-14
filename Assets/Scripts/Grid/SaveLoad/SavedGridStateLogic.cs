@@ -42,17 +42,17 @@ namespace Grid.SaveLoad
 
             for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
             {
-                if (gridManager.IsDamageable(i))
-                {
-                    treeList.Add(gridManager.GetXY(i));
-                }
-                else if (gridManager.IsBed(i))
+                if (gridManager.IsBed(i))
                 {
                     bedList.Add(gridManager.GetXY(i));
                 }
                 else if (gridManager.TryGetDropPointEntity(i, out _))
                 {
                     dropPointList.Add(gridManager.GetXY(i));
+                }
+                else if (gridManager.TryGetTreeEntity(i, out _))
+                {
+                    treeList.Add(gridManager.GetXY(i));
                 }
             }
 
@@ -83,9 +83,8 @@ namespace Grid.SaveLoad
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
             {
+                // Reset generic grid-state
                 gridManager.SetIsWalkable(i, true);
-
-                // Delete tree
                 gridManager.SetHealthToZero(i);
 
                 // Delete bed
@@ -96,6 +95,12 @@ namespace Grid.SaveLoad
                 {
                     gridManager.RemoveGridEntity(i);
                     ecb.DestroyEntity(dropPointEntity);
+                }
+                // Delete tree
+                else if (gridManager.TryGetTreeEntity(i, out var treeEntity))
+                {
+                    gridManager.RemoveGridEntity(i);
+                    ecb.DestroyEntity(treeEntity);
                 }
             }
 
@@ -124,6 +129,9 @@ namespace Grid.SaveLoad
             {
                 gridManager.SetIsWalkable(trees[i], false);
                 gridManager.SetHealthToMax(trees[i]);
+                SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
+                    trees[i], spawnManager.TreePrefab,
+                    GridEntityType.Tree, WorldSpriteSheetEntryType.Tree);
             }
 
             for (var i = 0; i < beds.Length; i++)

@@ -154,6 +154,7 @@ MonoBehaviour:
   _unitPrefab: {fileID: 4976699055111691379, guid: 22224e3eda44f3946a44cb6d2958434d, type: 3}
   _boarPrefab: {fileID: 4976699055111691379, guid: 72cee0b8cc737864ebcb2d52e664506d, type: 3}
   _dropPointPrefab: {fileID: 1066731238684271649, guid: 3936afcf6c89b2742a0369cedf3301d7, type: 3}
+  _treePrefab: {fileID: 1066731238684271649, guid: 6fca584db7f958344848bc1832d12393, type: 3}
 --- !u!4 &54733006
 Transform:
   m_ObjectHideFlags: 0

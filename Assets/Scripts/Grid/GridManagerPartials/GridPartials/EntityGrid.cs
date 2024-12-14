@@ -6,7 +6,8 @@ using UnityEngine;
 public enum GridEntityType
 {
     None,
-    DropPoint
+    DropPoint,
+    Tree
 }
 
 public partial struct GridManager
@@ -128,6 +129,21 @@ public partial struct GridManager
     public bool TryGetDropPointEntity(int gridIndex, out Entity entity)
     {
         return TryGetGridEntityOfType(gridIndex, GridEntityType.DropPoint, out entity);
+    }
+
+    public bool TryGetTreeEntity(Vector3 position, out Entity entity)
+    {
+        return TryGetGridEntityOfType(position, GridEntityType.Tree, out entity);
+    }
+
+    public bool TryGetTreeEntity(int2 cell, out Entity entity)
+    {
+        return TryGetGridEntityOfType(cell, GridEntityType.Tree, out entity);
+    }
+
+    public bool TryGetTreeEntity(int gridIndex, out Entity entity)
+    {
+        return TryGetGridEntityOfType(gridIndex, GridEntityType.Tree, out entity);
     }
 
     private bool TryGetGridEntityOfType(Vector3 position, GridEntityType type, out Entity entity)
