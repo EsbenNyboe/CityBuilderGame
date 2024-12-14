@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Debugging
+namespace GridDebugging
 {
     public class DebugPopupEventManager : MonoBehaviour
     {

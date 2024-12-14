@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Debugging
+namespace GridDebugging
 {
     public struct DebugPopupEvent : IComponentData
     {
