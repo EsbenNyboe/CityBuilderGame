@@ -88,7 +88,7 @@ namespace UnitBehaviours.Talking
                 {
                     if (!gridManager.TryGetClosestVacantCell(cell, targetCell, out pathTargetCell))
                     {
-                        if (!gridManager.TryGetClosestWalkableCell(targetCell, out pathTargetCell))
+                        if (!gridManager.TryGetClosestWalkableCell(targetCell, out pathTargetCell, false, false))
                         {
                             Debug.LogError("How hard is it to find a talking partner?!");
                         }

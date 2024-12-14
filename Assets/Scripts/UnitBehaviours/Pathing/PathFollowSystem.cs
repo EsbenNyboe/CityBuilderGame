@@ -101,9 +101,7 @@ public partial struct PathFollowSystem : ISystem
                     EndPathFollowing(ref state, ecb, entity,
                         targetPosition,
                         isDebuggingSearch,
-                        isDebuggingPath,
-                        pathPositionBuffer,
-                        pathFollow);
+                        isDebuggingPath);
                 }
                 else
                 {
@@ -140,8 +138,7 @@ public partial struct PathFollowSystem : ISystem
 
     private void EndPathFollowing(ref SystemState state, EntityCommandBuffer ecb, Entity entity,
         float3 targetPosition,
-        bool isDebuggingSearch, bool isDebuggingPath,
-        DynamicBuffer<PathPosition> pathPosition, RefRW<PathFollow> pathFollow)
+        bool isDebuggingSearch, bool isDebuggingPath)
     {
         var gridManager = SystemAPI.GetSingleton<GridManager>();
 
@@ -159,7 +156,7 @@ public partial struct PathFollowSystem : ISystem
             {
                 foundPath = PathHelpers.TrySetPath(ecb, gridManager, entity, cell, newTarget, isDebuggingPath);
             }
-            else if (gridManager.TryGetClosestWalkableCell(cell, out newTarget))
+            else if (gridManager.TryGetClosestWalkableCell(cell, out newTarget, false, false))
             {
                 foundPath = PathHelpers.TrySetPath(ecb, gridManager, entity, cell, newTarget, isDebuggingPath);
             }
@@ -171,10 +168,14 @@ public partial struct PathFollowSystem : ISystem
             else if (!foundPath)
             {
                 // Defy physics, and move to new target
-                pathPosition.Clear();
-                pathPosition.Add(new PathPosition { Position = newTarget });
-                pathFollow.ValueRW.PathIndex = 0;
-                Debug.Log("Defy physics");
+                if (gridManager.TryGetClosestWalkableCell(cell, out newTarget, false))
+                {
+                    PathHelpers.SetPath(ecb, entity, cell, newTarget, true);
+                }
+                else
+                {
+                    Debug.LogError("No nearby walkable cell found");
+                }
             }
         }
     }

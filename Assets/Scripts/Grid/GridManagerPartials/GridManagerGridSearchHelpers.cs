@@ -362,7 +362,7 @@ public partial struct GridManager
         return false;
     }
 
-    public bool TryGetClosestWalkableCell(int2 center, out int2 nearbyCell, bool includeSelf = true)
+    public bool TryGetClosestWalkableCell(int2 center, out int2 nearbyCell, bool includeSelf = true, bool ignoreSection = true)
     {
         if (includeSelf && IsPositionInsideGrid(center) && IsWalkable(center))
         {
@@ -379,7 +379,8 @@ public partial struct GridManager
             for (var i = ringStart; i < ringEnd; i++)
             {
                 var relativePosition = center + RelativePositionList[i];
-                if (IsPositionInsideGrid(relativePosition) && IsWalkable(relativePosition))
+                if (IsPositionInsideGrid(relativePosition) && IsWalkable(relativePosition) &&
+                    (ignoreSection || IsMatchingSection(center, relativePosition)))
                 {
                     nearbyCell = relativePosition;
                     return true;

@@ -11,20 +11,8 @@ public static class PathHelpers
             return false;
         }
 
-        ecb.AddComponent(index, entity, new Pathfinding
-        {
-            StartPosition = new int2(startCell.x, startCell.y),
-            EndPosition = new int2(endCell.x, endCell.y)
-        });
+        SetPath(ecb, index, entity, startCell, endCell);
         return true;
-    }
-
-    public static bool TrySetPath(EntityCommandBuffer ecb, GridManager gridManager,
-        Entity entity, float3 startPosition, float3 endPosition, bool isDebugging = false)
-    {
-        var startCell = GridHelpers.GetXY(startPosition);
-        var endCell = GridHelpers.GetXY(endPosition);
-        return TrySetPath(ecb, gridManager, entity, startCell, endCell, isDebugging);
     }
 
     public static bool TrySetPath(EntityCommandBuffer ecb, GridManager gridManager,
@@ -35,12 +23,32 @@ public static class PathHelpers
             return false;
         }
 
+        SetPath(ecb, entity, startCell, endCell);
+        return true;
+    }
+
+    public static void SetPath(EntityCommandBuffer.ParallelWriter ecb, int index,
+        Entity entity, int2 startCell, int2 endCell,
+        bool ignoreWalkable = false)
+    {
+        ecb.AddComponent(index, entity, new Pathfinding
+        {
+            StartPosition = new int2(startCell.x, startCell.y),
+            EndPosition = new int2(endCell.x, endCell.y),
+            AllowNonWalkabes = ignoreWalkable
+        });
+    }
+
+    public static void SetPath(EntityCommandBuffer ecb,
+        Entity entity, int2 startCell, int2 endCell,
+        bool ignoreWalkable = false)
+    {
         ecb.AddComponent(entity, new Pathfinding
         {
             StartPosition = new int2(startCell.x, startCell.y),
-            EndPosition = new int2(endCell.x, endCell.y)
+            EndPosition = new int2(endCell.x, endCell.y),
+            AllowNonWalkabes = ignoreWalkable
         });
-        return true;
     }
 
     private static bool PathIsInvalid(GridManager gridManager, int2 startCell, int2 endCell, bool isDebugging)
