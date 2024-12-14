@@ -17,15 +17,15 @@ namespace Rendering
         public float ColumnScale;
         public float RowScale;
 
-        public readonly Vector4 GetUvSingleFramed(WorldSpriteSheetEntryType type)
+        public readonly Vector4 GetUv(WorldSpriteSheetEntryType type, int frame = 0)
         {
             var entry = Entries[(int)type];
             return new Vector4
             {
                 x = ColumnScale,
                 y = RowScale,
-                z = ColumnScale * entry.EntryColumns[0],
-                w = RowScale * entry.EntryRows[0]
+                z = ColumnScale * entry.EntryColumns[frame],
+                w = RowScale * entry.EntryRows[frame]
             };
         }
 

@@ -260,7 +260,7 @@ public partial class SpawnManagerSystem : SystemBase
         var position = GetEntityPosition(cell);
         ecb.AddComponent(entity, new WorldSpriteSheetState
         {
-            Uv = worldSpriteSheetManager.GetUvSingleFramed(spriteEntryType),
+            Uv = worldSpriteSheetManager.GetUv(spriteEntryType),
             Matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one)
         });
     }
