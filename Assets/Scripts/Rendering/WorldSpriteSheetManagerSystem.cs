@@ -3,6 +3,7 @@ using UnitState;
 using Unity.Assertions;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 using Utilities;
 
 namespace Rendering
@@ -15,6 +16,18 @@ namespace Rendering
         public NativeArray<WorldSpriteSheetEntry> Entries;
         public float ColumnScale;
         public float RowScale;
+
+        public readonly Vector4 GetUvSingleFramed(WorldSpriteSheetEntryType type)
+        {
+            var entry = Entries[(int)type];
+            return new Vector4
+            {
+                x = ColumnScale,
+                y = RowScale,
+                z = ColumnScale * entry.EntryColumns[0],
+                w = RowScale * entry.EntryRows[0]
+            };
+        }
 
         public readonly void GetInventoryItemCoordinates(InventoryItem inventoryItem, out int column, out int row)
         {

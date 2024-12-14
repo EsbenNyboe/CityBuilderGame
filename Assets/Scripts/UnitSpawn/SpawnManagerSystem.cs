@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CodeMonkey.Utils;
+using Rendering;
 using UnitBehaviours;
 using UnitState;
 using Unity.Entities;
@@ -24,6 +25,7 @@ public partial class SpawnManagerSystem : SystemBase
         var itemToSpawn = SpawnMenuManager.Instance.ItemToSpawn;
         var itemToDelete = SpawnMenuManager.Instance.ItemToDelete;
         var brushSize = SpawnMenuManager.Instance.GetBrushSize();
+        var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
 
         var cellSize = 1f;
         var mousePosition =
@@ -41,14 +43,16 @@ public partial class SpawnManagerSystem : SystemBase
         // TODO: Make SpawnManager into a Singleton instead
         foreach (var spawnManager in SystemAPI.Query<RefRO<SpawnManager>>())
         {
-            SpawnProcess(ecb, ref gridManager, cellList, spawnManager.ValueRO, itemToSpawn);
+            SpawnProcess(ecb, ref gridManager, worldSpriteSheetManager, cellList, spawnManager.ValueRO, itemToSpawn);
             DeleteProcess(ecb, ref gridManager, cellList, brushSize, itemToDelete);
         }
 
         SystemAPI.SetSingleton(gridManager);
     }
 
-    private void SpawnProcess(EntityCommandBuffer ecb, ref GridManager gridManager, List<int2> cellList,
+    private void SpawnProcess(EntityCommandBuffer ecb, ref GridManager gridManager,
+        WorldSpriteSheetManager worldSpriteSheetManager,
+        List<int2> cellList,
         SpawnManager spawnManager,
         SpawnItemType itemToSpawn)
     {
@@ -87,7 +91,7 @@ public partial class SpawnManagerSystem : SystemBase
             case SpawnItemType.House:
                 foreach (var cell in cellList)
                 {
-                    TrySpawnDropPoint(ref gridManager, cell, spawnManager.DropPointPrefab);
+                    TrySpawnDropPoint(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.DropPointPrefab);
                 }
 
                 break;
@@ -136,14 +140,14 @@ public partial class SpawnManagerSystem : SystemBase
         }
     }
 
-    private void TrySpawnUnit(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position, Entity prefab,
+    private void TrySpawnUnit(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell, Entity prefab,
         bool hasHierarchy)
     {
-        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
-            !gridManager.IsOccupied(position))
+        if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+            !gridManager.IsOccupied(cell))
         {
-            var entity = InstantiateAtPosition(prefab, position);
-            gridManager.SetOccupant(position, entity);
+            var entity = InstantiateAtPosition(prefab, cell);
+            gridManager.SetOccupant(cell, entity);
 
             if (!hasHierarchy)
             {
@@ -217,12 +221,14 @@ public partial class SpawnManagerSystem : SystemBase
         }
     }
 
-    private void TrySpawnDropPoint(ref GridManager gridManager, int2 position, Entity prefab)
+    private void TrySpawnDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager, int2 cell,
+        Entity prefab)
     {
-        if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position))
+        if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) && !gridManager.IsBed(cell))
         {
-            gridManager.SetIsWalkable(position, false);
-            InstantiateAtPosition(prefab, position);
+            gridManager.SetIsWalkable(cell, false);
+            var entity = InstantiateAtPosition(prefab, cell);
+            SetupWorldSpriteSheetState(ecb, worldSpriteSheetManager, entity, cell, WorldSpriteSheetEntryType.DropPoint);
         }
     }
 
@@ -246,18 +252,34 @@ public partial class SpawnManagerSystem : SystemBase
         }
     }
 
-    private Entity InstantiateAtPosition(Entity prefab, int2 position)
+    private Entity InstantiateAtPosition(Entity prefab, int2 cell)
     {
         var entity = EntityManager.Instantiate(prefab);
         SystemAPI.SetComponent(
             entity,
             new LocalTransform
             {
-                Position = new float3(position.x, position.y, -0.01f),
+                Position = GetEntityPosition(cell),
                 Scale = 1,
                 Rotation = quaternion.identity
             }
         );
         return entity;
+    }
+
+    private void SetupWorldSpriteSheetState(EntityCommandBuffer ecb, WorldSpriteSheetManager worldSpriteSheetManager, Entity entity, int2 cell,
+        WorldSpriteSheetEntryType type)
+    {
+        var position = GetEntityPosition(cell);
+        ecb.AddComponent(entity, new WorldSpriteSheetState
+        {
+            Uv = worldSpriteSheetManager.GetUvSingleFramed(type),
+            Matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one)
+        });
+    }
+
+    private static float3 GetEntityPosition(int2 cell)
+    {
+        return new float3(cell.x, cell.y, -0.01f);
     }
 }

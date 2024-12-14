@@ -9,7 +9,8 @@ public class DropPointAuthoring : MonoBehaviour
         public override void Bake(DropPointAuthoring authoring)
         {
             var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
-            AddComponent(entity, new DropPoint());
+            AddComponent<DropPoint>(entity);
+            AddComponent<GridEntity>(entity);
             AddComponent<QuadrantEntity>(entity);
         }
     }
