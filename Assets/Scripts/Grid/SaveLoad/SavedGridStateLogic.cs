@@ -127,7 +127,7 @@ namespace Grid.SaveLoad
             GridDimensionsConfig.Instance.Height = gridSize.y;
             GridManagerSystem.TryUpdateGridDimensions(ref gridManager);
 
-            DestroyEntitiesOutsideOfGrid(gridManager);
+            HandleEntitiesOutsideOfGrid(gridManager);
 
             SavedGridStateManager.Instance.OnLoaded();
             // TODO: Convert spawnManager to singleton
@@ -161,9 +161,20 @@ namespace Grid.SaveLoad
             SystemAPI.SetSingleton(gridManager);
         }
 
-        private void DestroyEntitiesOutsideOfGrid(GridManager gridManager)
+        private void HandleEntitiesOutsideOfGrid(GridManager gridManager)
         {
             using var ecb = new EntityCommandBuffer(Allocator.Temp);
+            // Cancel pathing, if targeting cell outside of grid
+            foreach (var (pathFollow, pathPositions) in SystemAPI.Query<RefRW<PathFollow>, DynamicBuffer<PathPosition>>())
+            {
+                if (pathFollow.ValueRO.IsMoving() &&
+                    !gridManager.IsPositionInsideGrid(pathPositions[0].Position))
+                {
+                    pathFollow.ValueRW.PathIndex = -1;
+                }
+            }
+
+            // Destroy, if positioned outside of grid
             foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<IsAlive>, RefRO<LocalTransform>>().WithEntityAccess())
             {
                 if (!gridManager.IsPositionInsideGrid(localTransform.ValueRO.Position))
