@@ -34,7 +34,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             SpriteMatrixArray = new NativeArray<Matrix4x4>(1, Allocator.TempJob),
             SpriteUvArray = new NativeArray<Vector4>(1, Allocator.TempJob)
         });
-        _unitQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetAnimation>(),
+        _unitQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
             ComponentType.ReadOnly<LocalToWorld>(), ComponentType.ReadOnly<Inventory>());
         _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<DroppedItem>(), ComponentType.ReadOnly<LocalTransform>());
 
@@ -436,7 +436,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         [NativeDisableContainerSafetyRestriction]
         public NativeArray<QueueContainer> SortingQueues;
 
-        public void Execute(in Entity Entity, in LocalToWorld localToWorld, in WorldSpriteSheetAnimation animationData,
+        public void Execute(in Entity Entity, in LocalToWorld localToWorld, in WorldSpriteSheetState animationData,
             in Inventory inventory)
         {
             var positionX = localToWorld.Position.x;

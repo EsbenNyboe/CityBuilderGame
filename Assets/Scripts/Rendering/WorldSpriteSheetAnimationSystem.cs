@@ -10,6 +10,10 @@ public struct WorldSpriteSheetAnimation : IComponentData
 {
     public int CurrentFrame;
     public float FrameTimer;
+}
+
+public struct WorldSpriteSheetState : IComponentData
+{
     public Vector4 Uv;
     public Matrix4x4 Matrix;
 }
@@ -49,8 +53,11 @@ public partial struct WorldSpriteSheetAnimationSystem : ISystem
         [ReadOnly] [NativeDisableContainerSafetyRestriction]
         public NativeArray<WorldSpriteSheetEntry> WorldSpriteSheetEntries;
 
-        public void Execute(ref WorldSpriteSheetAnimation spriteSheetAnimationData, ref UnitAnimationSelection unitAnimationSelection,
-            in LocalToWorld localToWorld, in SpriteTransform spriteTransform)
+        public void Execute(ref WorldSpriteSheetAnimation worldSpriteSheetAnimation,
+            ref WorldSpriteSheetState worldSpriteSheetState,
+            ref UnitAnimationSelection unitAnimationSelection,
+            in LocalToWorld localToWorld,
+            in SpriteTransform spriteTransform)
         {
             var selectedAnimation = unitAnimationSelection.SelectedAnimation;
             var entry = WorldSpriteSheetEntries[(int)selectedAnimation];
@@ -58,17 +65,17 @@ public partial struct WorldSpriteSheetAnimationSystem : ISystem
             if (unitAnimationSelection.CurrentAnimation != selectedAnimation)
             {
                 unitAnimationSelection.CurrentAnimation = selectedAnimation;
-                ResetAnimation(ref spriteSheetAnimationData);
-                SetMatrix(ref spriteSheetAnimationData, localToWorld, spriteTransform);
-                SetUv(ref spriteSheetAnimationData, entry, UvTemplate);
+                ResetAnimation(ref worldSpriteSheetAnimation);
+                SetMatrix(ref worldSpriteSheetState, localToWorld, spriteTransform);
+                SetUv(ref worldSpriteSheetState, worldSpriteSheetAnimation.CurrentFrame, entry, UvTemplate);
             }
             else
             {
-                UpdateAnimation(DeltaTime, ref spriteSheetAnimationData, entry, out var updateUv);
-                SetMatrix(ref spriteSheetAnimationData, localToWorld, spriteTransform);
+                UpdateAnimation(DeltaTime, ref worldSpriteSheetAnimation, entry, out var updateUv);
+                SetMatrix(ref worldSpriteSheetState, localToWorld, spriteTransform);
                 if (updateUv)
                 {
-                    SetUv(ref spriteSheetAnimationData, entry, UvTemplate);
+                    SetUv(ref worldSpriteSheetState, worldSpriteSheetAnimation.CurrentFrame, entry, UvTemplate);
                 }
             }
         }
@@ -79,36 +86,37 @@ public partial struct WorldSpriteSheetAnimationSystem : ISystem
             spriteSheetAnimationData.CurrentFrame = 0;
         }
 
-        private static void SetMatrix(ref WorldSpriteSheetAnimation spriteSheetAnimationData,
+        private static void SetMatrix(ref WorldSpriteSheetState worldSpriteSheetState,
             LocalToWorld localToWorld,
             SpriteTransform spriteTransform)
         {
             var position = localToWorld.Position + spriteTransform.Position;
             var rotation = spriteTransform.Rotation;
 
-            spriteSheetAnimationData.Matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
+            worldSpriteSheetState.Matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
         }
 
-        private static void UpdateAnimation(float deltaTime, ref WorldSpriteSheetAnimation spriteSheetAnimationData,
+        private static void UpdateAnimation(float deltaTime, ref WorldSpriteSheetAnimation worldSpriteSheetAnimation,
             WorldSpriteSheetEntry entry, out bool updateUv)
         {
             updateUv = false;
-            spriteSheetAnimationData.FrameTimer += deltaTime;
-            while (spriteSheetAnimationData.FrameTimer > entry.FrameInterval)
+            worldSpriteSheetAnimation.FrameTimer += deltaTime;
+            while (worldSpriteSheetAnimation.FrameTimer > entry.FrameInterval)
             {
-                spriteSheetAnimationData.FrameTimer -= entry.FrameInterval;
-                spriteSheetAnimationData.CurrentFrame =
-                    (spriteSheetAnimationData.CurrentFrame + 1) % entry.EntryColumns.Length;
+                worldSpriteSheetAnimation.FrameTimer -= entry.FrameInterval;
+                worldSpriteSheetAnimation.CurrentFrame =
+                    (worldSpriteSheetAnimation.CurrentFrame + 1) % entry.EntryColumns.Length;
                 updateUv = true;
             }
         }
 
-        private static void SetUv(ref WorldSpriteSheetAnimation spriteSheetAnimationData, WorldSpriteSheetEntry entry, Vector4 uv)
+        private static void SetUv(ref WorldSpriteSheetState worldSpriteSheetState,
+            int currentFrame,
+            WorldSpriteSheetEntry entry, Vector4 uv)
         {
-            var currentFrame = spriteSheetAnimationData.CurrentFrame;
             uv.z = uv.x * entry.EntryColumns[currentFrame];
             uv.w = uv.y * entry.EntryRows[currentFrame];
-            spriteSheetAnimationData.Uv = new Vector4(uv.x, uv.y, uv.z, uv.w);
+            worldSpriteSheetState.Uv = new Vector4(uv.x, uv.y, uv.z, uv.w);
         }
     }
 }

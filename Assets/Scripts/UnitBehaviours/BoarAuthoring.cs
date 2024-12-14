@@ -43,6 +43,7 @@ namespace UnitBehaviours
 
                 AddComponent(entity, new SpriteTransform { Position = new float3(), Rotation = quaternion.identity });
                 AddComponent<WorldSpriteSheetAnimation>(entity);
+                AddComponent<WorldSpriteSheetState>(entity);
                 AddComponent<UnitAnimationSelection>(entity);
 
                 AddComponent<QuadrantEntity>(entity);
