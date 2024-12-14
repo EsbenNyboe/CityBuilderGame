@@ -52,6 +52,7 @@ namespace UnitBehaviours.Targeting
             {
                 if (isThrowingSpear.ValueRO.Target == Entity.Null || !state.WorldUnmanaged.EntityManager.Exists(isThrowingSpear.ValueRO.Target))
                 {
+                    ecb.RemoveComponent<IsHoldingSpear>(entity);
                     ecb.RemoveComponent<IsThrowingSpear>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     continue;
