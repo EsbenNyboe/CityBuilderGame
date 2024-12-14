@@ -1,27 +1,30 @@
 using Unity.Entities;
 
-public struct AttackAnimationManager : IComponentData
+namespace Rendering
 {
-    public float AttackDuration;
-    public float AttackAnimationSize;
-    public float AttackAnimationIdleTime;
-}
-
-[UpdateInGroup(typeof(AnimationSystemGroup))]
-public partial class AttackAnimationManagerSystem : SystemBase
-{
-    protected override void OnCreate()
+    public struct AttackAnimationManager : IComponentData
     {
-        EntityManager.CreateSingleton<AttackAnimationManager>();
+        public float AttackDuration;
+        public float AttackAnimationSize;
+        public float AttackAnimationIdleTime;
     }
 
-    protected override void OnUpdate()
+    [UpdateInGroup(typeof(AnimationSystemGroup))]
+    public partial class AttackAnimationManagerSystem : SystemBase
     {
-        SystemAPI.SetSingleton(new AttackAnimationManager
+        protected override void OnCreate()
         {
-            AttackDuration = AttackAnimationManagerConfig.Instance.AnimationDuration,
-            AttackAnimationSize = AttackAnimationManagerConfig.Instance.AnimationSize,
-            AttackAnimationIdleTime = AttackAnimationManagerConfig.Instance.AnimationIdleTime
-        });
+            EntityManager.CreateSingleton<AttackAnimationManager>();
+        }
+
+        protected override void OnUpdate()
+        {
+            SystemAPI.SetSingleton(new AttackAnimationManager
+            {
+                AttackDuration = AttackAnimationManagerConfig.Instance.AnimationDuration,
+                AttackAnimationSize = AttackAnimationManagerConfig.Instance.AnimationSize,
+                AttackAnimationIdleTime = AttackAnimationManagerConfig.Instance.AnimationIdleTime
+            });
+        }
     }
 }

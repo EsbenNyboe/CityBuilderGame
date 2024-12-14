@@ -1,3 +1,4 @@
+using GridEntityNS;
 using UnitBehaviours.Targeting;
 using Unity.Entities;
 using UnityEngine;
