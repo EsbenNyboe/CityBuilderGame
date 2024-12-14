@@ -1,7 +1,7 @@
 using Unity.Entities;
 using Utilities;
 
-namespace UnitState
+namespace Inventory
 {
     public struct InventoryEnum : IComponentData
     {

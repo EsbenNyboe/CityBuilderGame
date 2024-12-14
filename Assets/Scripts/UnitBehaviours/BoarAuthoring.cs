@@ -1,3 +1,4 @@
+using Inventory;
 using UnitAgency;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
@@ -31,7 +32,7 @@ namespace UnitBehaviours
                 SetComponentEnabled<RandomContainer>(entity, false);
                 AddComponent<ActionGate>(entity);
 
-                AddComponent<Inventory>(entity); // LOL!!!
+                AddComponent<InventoryState>(entity); // LOL!!!
 
                 AddComponent<Selectable>(entity);
                 AddComponent<PathPosition>(entity);

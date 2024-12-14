@@ -1,9 +1,9 @@
 ﻿using System;
 using Unity.Entities;
 
-namespace UnitState
+namespace Inventory
 {
-    public struct Inventory : IComponentData
+    public struct InventoryState : IComponentData
     {
         public InventoryItem CurrentItem;
     }

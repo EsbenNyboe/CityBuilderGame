@@ -1,3 +1,4 @@
+using Inventory;
 using UnitBehaviours;
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Pathing;
@@ -41,7 +42,7 @@ namespace UnitAgency
                 ComponentType.ReadOnly<IsDeciding>(),
                 ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<PathFollow>(),
-                ComponentType.ReadWrite<Inventory>(),
+                ComponentType.ReadWrite<InventoryState>(),
                 ComponentType.ReadOnly<MoodSleepiness>(),
                 ComponentType.ReadOnly<MoodLoneliness>(),
                 ComponentType.ReadWrite<MoodInitiative>(),
@@ -93,7 +94,7 @@ namespace UnitAgency
                 in Entity entity,
                 in LocalTransform localTransform,
                 in PathFollow pathFollow,
-                ref Inventory inventory,
+                ref InventoryState inventory,
                 in MoodSleepiness moodSleepiness,
                 in MoodLoneliness moodLoneliness,
                 ref MoodInitiative moodInitiative,
@@ -300,7 +301,7 @@ namespace UnitAgency
             return false;
         }
 
-        private static bool HasLogOfWood(Inventory inventory)
+        private static bool HasLogOfWood(InventoryState inventory)
         {
             return inventory.CurrentItem == InventoryItem.LogOfWood;
         }

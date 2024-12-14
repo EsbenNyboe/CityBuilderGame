@@ -1,5 +1,5 @@
+using Inventory;
 using Rendering;
-using UnitState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -37,7 +37,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         });
         _unitQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
             ComponentType.ReadOnly<LocalTransform>(),
-            ComponentType.ReadOnly<Inventory>());
+            ComponentType.ReadOnly<InventoryState>());
         _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<DroppedItem>(),
             ComponentType.ReadOnly<LocalTransform>());
         _gridEntityQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
@@ -454,7 +454,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         public NativeArray<QueueContainer> SortingQueues;
 
         public void Execute(in Entity Entity, in LocalTransform localTransform, in WorldSpriteSheetState animationData,
-            in Inventory inventory)
+            in InventoryState inventory)
         {
             var positionX = localTransform.Position.x;
             if (!(positionX > XLeft) || !(positionX < XRight))

@@ -1,6 +1,6 @@
+using Inventory;
 using UnitAgency;
 using UnitBehaviours.Targeting;
-using UnitState;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -30,7 +30,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (isSeekingDroppedLog, localTransform, pathFollow, inventory, entity) in
-                     SystemAPI.Query<RefRW<IsSeekingDroppedLog>, RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<Inventory>>()
+                     SystemAPI.Query<RefRW<IsSeekingDroppedLog>, RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<InventoryState>>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())

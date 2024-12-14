@@ -1,8 +1,8 @@
+using Inventory;
 using Rendering;
 using UnitBehaviours;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
-using UnitState;
 using Unity.Burst;
 using Unity.Entities;
 
@@ -38,7 +38,7 @@ public partial struct UnitAnimationSelectionSystem : ISystem
         }
 
         foreach (var (unitAnimationSelection, pathFollow, inventory) in SystemAPI
-                     .Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>, RefRO<Inventory>>()
+                     .Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>, RefRO<InventoryState>>()
                      .WithNone<IsSleeping>().WithNone<IsTalking>().WithNone<IsThrowingSpear>().WithAll<Villager>())
         {
             var hasItem = inventory.ValueRO.CurrentItem != InventoryItem.None;

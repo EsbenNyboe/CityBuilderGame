@@ -1,3 +1,4 @@
+using Inventory;
 using UnitAgency;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
@@ -57,7 +58,7 @@ namespace UnitBehaviours
                     CurrentHealth = authoring._maxHealth,
                     MaxHealth = authoring._maxHealth
                 });
-                AddComponent(entity, new Inventory { CurrentItem = authoring._startItem });
+                AddComponent(entity, new InventoryState { CurrentItem = authoring._startItem });
                 AddComponent(entity, new MoodSleepiness { Sleepiness = authoring._sleepiness });
                 AddComponent(entity, new MoodRestlessness { Restlessness = authoring._restlessness });
                 AddComponent(entity, new MoodLoneliness { Loneliness = authoring._loneliness });

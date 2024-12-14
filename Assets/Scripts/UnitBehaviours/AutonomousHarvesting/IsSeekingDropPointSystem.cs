@@ -1,6 +1,6 @@
 ﻿using Debugging;
+using Inventory;
 using UnitAgency;
-using UnitState;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -31,7 +31,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (localTransform, pathFollow, inventory, entity)
-                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<Inventory>>()
+                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<InventoryState>>()
                          .WithAll<IsSeekingDropPoint>()
                          .WithEntityAccess())
             {

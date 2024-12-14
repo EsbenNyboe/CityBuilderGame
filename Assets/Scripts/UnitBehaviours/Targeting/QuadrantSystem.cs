@@ -1,5 +1,6 @@
 using CodeMonkey.Utils;
 using Debugging;
+using Inventory;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;
@@ -50,7 +51,7 @@ namespace UnitBehaviours.Targeting
                 ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<Boar>());
             _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<QuadrantEntity>(),
+                // ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<DroppedItem>());
             _dropPointQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<QuadrantEntity>(),
