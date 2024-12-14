@@ -227,11 +227,25 @@ public partial class SpawnManagerSystem : SystemBase
         if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) && !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
         {
             gridManager.SetIsWalkable(cell, false);
-            var entity = InstantiateAtPosition(prefab, cell);
-            ecb.RemoveComponent<LinkedEntityGroup>(entity);
-            gridManager.AddGridEntity(cell, entity, GridEntityType.DropPoint);
-            SetupWorldSpriteSheetState(ecb, worldSpriteSheetManager, entity, cell, WorldSpriteSheetEntryType.DropPoint);
+            SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.DropPoint,
+                WorldSpriteSheetEntryType.DropPoint);
         }
+    }
+
+    public static void SpawnGridEntity(EntityManager entityManager, EntityCommandBuffer ecb, GridManager gridManager,
+        WorldSpriteSheetManager worldSpriteSheetManager,
+        int2 cell,
+        Entity prefab, GridEntityType gridEntityType, WorldSpriteSheetEntryType spriteEntryType)
+    {
+        var entity = InstantiateAtPosition(entityManager, ecb, prefab, cell);
+        ecb.RemoveComponent<LinkedEntityGroup>(entity);
+        gridManager.AddGridEntity(cell, entity, gridEntityType);
+        var position = GetEntityPosition(cell);
+        ecb.AddComponent(entity, new WorldSpriteSheetState
+        {
+            Uv = worldSpriteSheetManager.GetUvSingleFramed(spriteEntryType),
+            Matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one)
+        });
     }
 
     private void TryDeleteDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
@@ -243,6 +257,19 @@ public partial class SpawnManagerSystem : SystemBase
             gridManager.SetIsWalkable(position, true);
             gridManager.RemoveGridEntity(position);
         }
+    }
+
+    private static Entity InstantiateAtPosition(EntityManager entityManager, EntityCommandBuffer ecb, Entity prefab, int2 cell)
+    {
+        var entity = entityManager.Instantiate(prefab);
+        ecb.SetComponent(entity, new LocalTransform
+            {
+                Position = GetEntityPosition(cell),
+                Scale = 1,
+                Rotation = quaternion.identity
+            }
+        );
+        return entity;
     }
 
     private Entity InstantiateAtPosition(Entity prefab, int2 cell)
@@ -258,17 +285,6 @@ public partial class SpawnManagerSystem : SystemBase
             }
         );
         return entity;
-    }
-
-    public static void SetupWorldSpriteSheetState(EntityCommandBuffer ecb, WorldSpriteSheetManager worldSpriteSheetManager, Entity entity, int2 cell,
-        WorldSpriteSheetEntryType type)
-    {
-        var position = GetEntityPosition(cell);
-        ecb.AddComponent(entity, new WorldSpriteSheetState
-        {
-            Uv = worldSpriteSheetManager.GetUvSingleFramed(type),
-            Matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one)
-        });
     }
 
     private static float3 GetEntityPosition(int2 cell)

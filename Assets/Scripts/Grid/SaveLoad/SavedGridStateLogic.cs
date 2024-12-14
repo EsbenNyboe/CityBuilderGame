@@ -4,7 +4,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Grid.SaveLoad
 {
@@ -135,20 +134,10 @@ namespace Grid.SaveLoad
 
             for (var i = 0; i < dropPoints.Length; i++)
             {
-                if (!gridManager.IsPositionInsideGrid(dropPoints[i]))
-                {
-                    Debug.Log("Not inside grid bounds");
-                }
-                else
-                {
-                    // TODO: Refactor this, to reduce code-duplication (see SpawnManagerSystem)
-                    gridManager.SetIsWalkable(dropPoints[i], false);
-                    var entity = InstantiateAtPosition(spawnManager.DropPointPrefab, dropPoints[i]);
-                    ecb.RemoveComponent<LinkedEntityGroup>(entity);
-                    gridManager.AddGridEntity(dropPoints[i], entity, GridEntityType.DropPoint);
-                    SpawnManagerSystem.SetupWorldSpriteSheetState(ecb, worldSpriteSheetManager, entity, dropPoints[i],
-                        WorldSpriteSheetEntryType.DropPoint);
-                }
+                gridManager.SetIsWalkable(dropPoints[i], false);
+                SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
+                    dropPoints[i], spawnManager.DropPointPrefab,
+                    GridEntityType.DropPoint, WorldSpriteSheetEntryType.DropPoint);
             }
 
             SystemAPI.SetSingleton(gridManager);
@@ -196,21 +185,6 @@ namespace Grid.SaveLoad
             }
 
             return new SpawnManager();
-        }
-
-        private Entity InstantiateAtPosition(Entity prefab, int2 position)
-        {
-            var entity = EntityManager.Instantiate(prefab);
-            SystemAPI.SetComponent(
-                entity,
-                new LocalTransform
-                {
-                    Position = new float3(position.x, position.y, -0.01f),
-                    Scale = 1,
-                    Rotation = quaternion.identity
-                }
-            );
-            return entity;
         }
     }
 }
