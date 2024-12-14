@@ -56,6 +56,10 @@ namespace Rendering
         BoarRun,
         SpearHolding,
         SpearThrowing,
-        Spear
+        Spear,
+        DropPoint,
+        TreeDamaged,
+        Tree,
+        Bed
     }
 }
