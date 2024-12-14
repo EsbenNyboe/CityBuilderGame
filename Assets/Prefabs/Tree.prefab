@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4856569207308846974}
-  - component: {fileID: 8548957558176902156}
+  - component: {fileID: -2068064885046200369}
   m_Layer: 0
-  m_Name: DropPoint
+  m_Name: Tree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8548957558176902156
+--- !u!114 &-2068064885046200369
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,6 +41,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 1066731238684271649}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d99730ad75dc46c3b23f0716132d65e9, type: 3}
+  m_Script: {fileID: 11500000, guid: 2903e5b11a6148748e6260b2a02b7f5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

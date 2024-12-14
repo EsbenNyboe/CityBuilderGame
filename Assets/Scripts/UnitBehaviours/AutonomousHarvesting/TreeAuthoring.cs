@@ -2,20 +2,20 @@ using UnitBehaviours.Targeting;
 using Unity.Entities;
 using UnityEngine;
 
-public class DropPointAuthoring : MonoBehaviour
+public class TreeAuthoring : MonoBehaviour
 {
-    public class Baker : Baker<DropPointAuthoring>
+    public class TreeBaker : Baker<TreeAuthoring>
     {
-        public override void Bake(DropPointAuthoring authoring)
+        public override void Bake(TreeAuthoring authoring)
         {
             var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
-            AddComponent<DropPoint>(entity);
+            AddComponent<Tree>(entity);
             AddComponent<GridEntity>(entity);
             AddComponent<QuadrantEntity>(entity);
         }
     }
 }
 
-public struct DropPoint : IComponentData
+public struct Tree : IComponentData
 {
 }

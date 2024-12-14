@@ -12,6 +12,11 @@ public partial struct GridManager
 {
     #region DamageableGrid Core
 
+    public float GetHealthNormalized(int i)
+    {
+        return DamageableGrid[i].Health / DamageableGrid[i].MaxHealth;
+    }
+
     public bool IsDamageable(int i)
     {
         return DamageableGrid[i].Health > 0;

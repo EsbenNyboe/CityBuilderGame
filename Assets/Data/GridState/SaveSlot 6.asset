@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1dfb5062a97fb20418c87ccef4d78d79, type: 3}
   m_Name: SaveSlot 6
   m_EditorClassIdentifier: 
+  GridSize:
+    x: 0
+    y: 0
   Trees: []
   Beds: []
   DropPoints: []

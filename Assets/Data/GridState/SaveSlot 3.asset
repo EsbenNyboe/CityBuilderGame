@@ -731,4 +731,12 @@ MonoBehaviour:
   - x: 33
     y: 17
   Beds: []
-  DropPoints: []
+  DropPoints:
+  - x: 14
+    y: 21
+  - x: 19
+    y: 19
+  - x: 24
+    y: 20
+  - x: 31
+    y: 20

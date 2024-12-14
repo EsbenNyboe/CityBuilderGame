@@ -21,6 +21,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
 {
     private EntityQuery _unitQuery;
     private EntityQuery _droppedItemQuery;
+    private EntityQuery _gridEntityQuery;
 
     public void OnCreate(ref SystemState state)
     {
@@ -34,9 +35,14 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             SpriteMatrixArray = new NativeArray<Matrix4x4>(1, Allocator.TempJob),
             SpriteUvArray = new NativeArray<Vector4>(1, Allocator.TempJob)
         });
-        _unitQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetAnimation>(),
-            ComponentType.ReadOnly<LocalToWorld>(), ComponentType.ReadOnly<Inventory>());
-        _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<DroppedItem>(), ComponentType.ReadOnly<LocalTransform>());
+        _unitQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
+            ComponentType.ReadOnly<LocalTransform>(),
+            ComponentType.ReadOnly<Inventory>());
+        _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<DroppedItem>(),
+            ComponentType.ReadOnly<LocalTransform>());
+        _gridEntityQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
+            ComponentType.ReadOnly<LocalTransform>(),
+            ComponentType.ReadOnly<GridEntity>());
 
         state.RequireForUpdate<BeginPresentationEntityCommandBufferSystem.Singleton>();
         state.RequireForUpdate<WorldSpriteSheetSortingManager>();
@@ -203,6 +209,17 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             PivotCount = pivotCount,
             SortingQueues = sortingQueues
         }.Run(_droppedItemQuery);
+
+        new CullJobOnGridEntities
+        {
+            XLeft = xLeft,
+            XRight = xRight,
+            YTop = yTop,
+            YBottom = yBottom,
+            Pivots = pivots,
+            PivotCount = pivotCount,
+            SortingQueues = sortingQueues
+        }.Run(_gridEntityQuery);
     }
 
     private void GetCameraBounds(ref SystemState state, out float yTop, out float yBottom, out float xLeft, out float xRight)
@@ -436,17 +453,17 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
         [NativeDisableContainerSafetyRestriction]
         public NativeArray<QueueContainer> SortingQueues;
 
-        public void Execute(in Entity Entity, in LocalToWorld localToWorld, in WorldSpriteSheetAnimation animationData,
+        public void Execute(in Entity Entity, in LocalTransform localTransform, in WorldSpriteSheetState animationData,
             in Inventory inventory)
         {
-            var positionX = localToWorld.Position.x;
+            var positionX = localTransform.Position.x;
             if (!(positionX > XLeft) || !(positionX < XRight))
             {
                 // Unit is not within horizontal view-bounds. No need to render.
                 return;
             }
 
-            var positionY = localToWorld.Position.y;
+            var positionY = localTransform.Position.y;
             if (!(positionY > YBottom) || !(positionY < YTop))
             {
                 // Unit is not within vertical view-bounds. No need to render.
@@ -456,7 +473,7 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
             var renderData = new RenderData
             {
                 Entity = Entity,
-                Position = localToWorld.Position,
+                Position = localTransform.Position,
                 Matrix = animationData.Matrix,
                 Uv = animationData.Uv
             };
@@ -520,6 +537,49 @@ public partial struct WorldSpriteSheetSortingManagerSystem : ISystem
                 Position = position,
                 Matrix = Matrix4x4.TRS(renderPosition, quaternion.identity, Vector3.one),
                 Uv = new Vector4(columnScale, rowScale, column * columnScale, row * rowScale)
+            };
+
+            QuickSortToQueues(Pivots, 0, PivotCount, SortingQueues, 0, renderData);
+        }
+    }
+
+    [BurstCompile]
+    private partial struct CullJobOnGridEntities : IJobEntity
+    {
+        [ReadOnly] public float XLeft; // Left most cull position
+        [ReadOnly] public float XRight; // Right most cull position
+        [ReadOnly] public float YTop; // Top most cull position
+        [ReadOnly] public float YBottom; // Bottom most cull position
+
+        [ReadOnly] public NativeArray<float> Pivots;
+        [ReadOnly] public int PivotCount;
+
+        [NativeDisableContainerSafetyRestriction]
+        public NativeArray<QueueContainer> SortingQueues;
+
+        public void Execute(in Entity Entity, in WorldSpriteSheetState worldSpriteSheetState, in LocalTransform localTransform)
+        {
+            var position = localTransform.Position;
+            var positionX = position.x;
+            if (!(positionX > XLeft) || !(positionX < XRight))
+            {
+                // Item is not within horizontal view-bounds. No need to render.
+                return;
+            }
+
+            var positionY = position.y;
+            if (!(positionY > YBottom) || !(positionY < YTop))
+            {
+                // Item is not within vertical view-bounds. No need to render.
+                return;
+            }
+
+            var renderData = new RenderData
+            {
+                Entity = Entity,
+                Position = position,
+                Matrix = worldSpriteSheetState.Matrix,
+                Uv = worldSpriteSheetState.Uv
             };
 
             QuickSortToQueues(Pivots, 0, PivotCount, SortingQueues, 0, renderData);

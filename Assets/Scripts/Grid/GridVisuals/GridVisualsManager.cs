@@ -7,14 +7,12 @@ public class GridVisualsManager : MonoBehaviour
 
     [SerializeField] private MeshFilter _pathMeshFilter;
     [SerializeField] private MeshFilter _pathDebugMeshFilter;
-    [SerializeField] private MeshFilter _treeMeshFilter;
     [SerializeField] private MeshFilter _interactableMeshFilter;
     [SerializeField] private MeshFilter _healthBarMeshFilter;
     [SerializeField] private MeshFilter _occupationDebugMeshFilter;
 
     private readonly PathGridVisual _pathGridVisual = new();
     private readonly PathGridDebugVisual _pathGridDebugVisual = new();
-    private readonly TreeGridVisual _treeGridVisual = new();
     private readonly InteractableGridDebugVisual _interactableGridVisual = new();
     private readonly HealthbarGridVisual _healthbarGridVisual = new();
     private readonly OccupationDebugGridVisual _occupationDebugGridVisual = new();
@@ -49,7 +47,6 @@ public class GridVisualsManager : MonoBehaviour
 
             _pathMeshFilter.mesh = _pathGridVisual.CreateMesh();
             _pathDebugMeshFilter.mesh = _pathGridDebugVisual.CreateMesh();
-            _treeMeshFilter.mesh = _treeGridVisual.CreateMesh();
             _interactableMeshFilter.mesh = _interactableGridVisual.CreateMesh();
             _healthBarMeshFilter.mesh = _healthbarGridVisual.CreateMesh();
             _occupationDebugMeshFilter.mesh = _occupationDebugGridVisual.CreateMesh();
@@ -57,7 +54,6 @@ public class GridVisualsManager : MonoBehaviour
             var gridSize = gridManager.WalkableGrid.Length;
             _pathGridVisual.InitializeMesh(gridSize);
             _pathGridDebugVisual.InitializeMesh(gridSize);
-            _treeGridVisual.InitializeMesh(gridSize);
             _interactableGridVisual.InitializeMesh(gridSize);
             _healthbarGridVisual.InitializeMesh(gridSize);
             _occupationDebugGridVisual.InitializeMesh(gridSize);
@@ -115,7 +111,6 @@ public class GridVisualsManager : MonoBehaviour
             gridManager.DamageableGridIsDirty = false;
             wasDirty = true;
 
-            _treeGridVisual.UpdateVisual(gridManager);
             _healthbarGridVisual.UpdateVisual(gridManager);
         }
     }

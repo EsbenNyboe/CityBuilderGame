@@ -118,3 +118,5 @@ MonoBehaviour:
   DropPoints:
   - x: 7
     y: 4
+  - x: 32
+    y: 3

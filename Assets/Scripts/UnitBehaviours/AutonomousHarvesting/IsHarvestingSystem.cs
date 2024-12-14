@@ -4,6 +4,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
@@ -62,7 +63,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                         InfluenceRadius = socialDynamicsManager.OnUnitAttackTree.InfluenceRadius
                     });
 
-                    ChopTree(ref state,
+                    ChopTree(ecb,
                         soundManager,
                         ref gridManager,
                         unitBehaviourManager,
@@ -75,7 +76,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             SystemAPI.SetSingleton(gridManager);
         }
 
-        private void ChopTree(ref SystemState state,
+        private void ChopTree(EntityCommandBuffer ecb,
             DotsSoundManager soundManager,
             ref GridManager gridManager,
             UnitBehaviourManager unitBehaviourManager,
@@ -92,20 +93,29 @@ namespace UnitBehaviours.AutonomousHarvesting
             {
                 // I am the one who gets to take the log and destroys the tree
                 inventory.ValueRW.CurrentItem = InventoryItem.LogOfWood;
-                DestroyTree(ref state, soundManager, ref gridManager, treeCoords);
+                DestroyTree(ecb, soundManager, ref gridManager, treeCoords);
             }
         }
 
-        private void DestroyTree(ref SystemState state,
+        private void DestroyTree(EntityCommandBuffer ecb,
             DotsSoundManager soundManager,
             ref GridManager gridManager,
-            int2 tree
+            int2 treeCell
         )
         {
-            var soundOrigin = GridHelpers.GetWorldPosition(tree.x, tree.y);
+            var soundOrigin = GridHelpers.GetWorldPosition(treeCell.x, treeCell.y);
             soundManager.DestroyTreeSoundRequests.Enqueue(soundOrigin);
-            gridManager.SetIsWalkable(tree.x, tree.y, true);
-            gridManager.SetHealth(gridManager.GetIndex(tree), 0);
+            gridManager.SetIsWalkable(treeCell, true);
+            gridManager.SetHealth(treeCell, 0);
+            if (gridManager.TryGetTreeEntity(treeCell, out var treeEntity))
+            {
+                gridManager.RemoveGridEntity(treeCell);
+                ecb.DestroyEntity(treeEntity);
+            }
+            else
+            {
+                Debug.LogError("There is no tree!");
+            }
         }
     }
 }

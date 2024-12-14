@@ -1,9 +1,9 @@
+using Rendering;
 using UnitState;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Grid.SaveLoad
 {
@@ -11,13 +11,6 @@ namespace Grid.SaveLoad
     [UpdateBefore(typeof(IsAliveSystem))]
     public partial class SavedGridStateLogic : SystemBase
     {
-        private EntityQuery _dropPointQuery;
-
-        protected override void OnCreate()
-        {
-            _dropPointQuery = GetEntityQuery(typeof(DropPoint));
-        }
-
         protected override void OnUpdate()
         {
             if (SavedGridStateManager.Instance.SlotToSave > -1)
@@ -49,30 +42,17 @@ namespace Grid.SaveLoad
 
             for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
             {
-                if (gridManager.IsDamageable(i))
-                {
-                    treeList.Add(gridManager.GetXY(i));
-                }
-                else if (gridManager.IsBed(i))
+                if (gridManager.IsBed(i))
                 {
                     bedList.Add(gridManager.GetXY(i));
                 }
-                // // TODO: Implement drop-point as grid-cell-type
-                // else if (false) //gridManager.IsDropPoint(i))
-                // {
-                //     dropPointList.Add(gridManager.GetXY(i));
-                // }
-            }
-
-            // TEMPORARY:
-            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<DropPoint>, RefRO<LocalTransform>>()
-                         .WithEntityAccess())
-            {
-                var dropPointCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
-                if (gridManager.IsPositionInsideGrid(dropPointCell))
+                else if (gridManager.TryGetDropPointEntity(i, out _))
                 {
-                    // TODO: Find a cleaner way to prevent dropPoints from ending up out of bounds
-                    dropPointList.Add(dropPointCell);
+                    dropPointList.Add(gridManager.GetXY(i));
+                }
+                else if (gridManager.TryGetTreeEntity(i, out _))
+                {
+                    treeList.Add(gridManager.GetXY(i));
                 }
             }
 
@@ -96,26 +76,38 @@ namespace Grid.SaveLoad
         private void LoadSavedGridState()
         {
             Dependency.Complete();
+            using var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
 
             // DELETE CURRENT STATE
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
             {
-                // Delete tree
+                // Reset generic grid-state
                 gridManager.SetIsWalkable(i, true);
                 gridManager.SetHealthToZero(i);
 
                 // Delete bed
                 gridManager.SetInteractableNone(i);
 
-                // TODO: Delete droppoint
+                // Delete droppoint
+                if (gridManager.TryGetDropPointEntity(i, out var dropPointEntity))
+                {
+                    gridManager.RemoveGridEntity(i);
+                    ecb.DestroyEntity(dropPointEntity);
+                }
+                // Delete tree
+                else if (gridManager.TryGetTreeEntity(i, out var treeEntity))
+                {
+                    gridManager.RemoveGridEntity(i);
+                    ecb.DestroyEntity(treeEntity);
+                }
             }
 
             gridManager.WalkableGridIsDirty = true;
             gridManager.OccupiableGridIsDirty = true;
             gridManager.DamageableGridIsDirty = true;
             gridManager.InteractableGridIsDirty = true;
-            EntityManager.DestroyEntity(_dropPointQuery);
 
             // LOAD NEW STATE
 
@@ -137,6 +129,9 @@ namespace Grid.SaveLoad
             {
                 gridManager.SetIsWalkable(trees[i], false);
                 gridManager.SetHealthToMax(trees[i]);
+                SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
+                    trees[i], spawnManager.TreePrefab,
+                    GridEntityType.Tree, WorldSpriteSheetEntryType.Tree);
             }
 
             for (var i = 0; i < beds.Length; i++)
@@ -147,18 +142,14 @@ namespace Grid.SaveLoad
 
             for (var i = 0; i < dropPoints.Length; i++)
             {
-                if (!gridManager.IsPositionInsideGrid(dropPoints[i]))
-                {
-                    Debug.Log("Not inside grid bounds");
-                }
-                else
-                {
-                    gridManager.SetIsWalkable(dropPoints[i], false);
-                    InstantiateAtPosition(spawnManager.DropPointPrefab, dropPoints[i]);
-                }
+                gridManager.SetIsWalkable(dropPoints[i], false);
+                SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
+                    dropPoints[i], spawnManager.DropPointPrefab,
+                    GridEntityType.DropPoint, WorldSpriteSheetEntryType.DropPoint);
             }
 
             SystemAPI.SetSingleton(gridManager);
+            ecb.Playback(EntityManager);
         }
 
         private void HandleEntitiesOutsideOfGrid(GridManager gridManager)
@@ -202,21 +193,6 @@ namespace Grid.SaveLoad
             }
 
             return new SpawnManager();
-        }
-
-        private Entity InstantiateAtPosition(Entity prefab, int2 position)
-        {
-            var entity = EntityManager.Instantiate(prefab);
-            SystemAPI.SetComponent(
-                entity,
-                new LocalTransform
-                {
-                    Position = new float3(position.x, position.y, -0.01f),
-                    Scale = 1,
-                    Rotation = quaternion.identity
-                }
-            );
-            return entity;
         }
     }
 }
