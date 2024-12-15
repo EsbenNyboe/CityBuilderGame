@@ -1,6 +1,7 @@
 using CodeMonkey.Utils;
 using Debugging;
 using Inventory;
+using UnitBehaviours.AutonomousHarvesting;
 using UnitState;
 using Unity.Burst;
 using Unity.Collections;

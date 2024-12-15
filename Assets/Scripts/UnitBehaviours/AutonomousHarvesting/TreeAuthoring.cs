@@ -3,20 +3,23 @@ using UnitBehaviours.Targeting;
 using Unity.Entities;
 using UnityEngine;
 
-public class TreeAuthoring : MonoBehaviour
+namespace UnitBehaviours.AutonomousHarvesting
 {
-    public class TreeBaker : Baker<TreeAuthoring>
+    public class TreeAuthoring : MonoBehaviour
     {
-        public override void Bake(TreeAuthoring authoring)
+        public class TreeBaker : Baker<TreeAuthoring>
         {
-            var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
-            AddComponent<Tree>(entity);
-            AddComponent<GridEntity>(entity);
-            AddComponent<QuadrantEntity>(entity);
+            public override void Bake(TreeAuthoring authoring)
+            {
+                var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
+                AddComponent<Tree>(entity);
+                AddComponent<GridEntity>(entity);
+                AddComponent<QuadrantEntity>(entity);
+            }
         }
     }
-}
 
-public struct Tree : IComponentData
-{
+    public struct Tree : IComponentData
+    {
+    }
 }
