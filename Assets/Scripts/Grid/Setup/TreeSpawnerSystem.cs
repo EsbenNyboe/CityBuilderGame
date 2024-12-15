@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using SystemGroups;
+using Unity.Entities;
 
 namespace Grid.Setup
 {

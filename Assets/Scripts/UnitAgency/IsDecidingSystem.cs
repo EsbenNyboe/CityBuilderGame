@@ -1,5 +1,6 @@
 using Inventory;
 using Rendering;
+using SystemGroups;
 using UnitBehaviours;
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Idle;
