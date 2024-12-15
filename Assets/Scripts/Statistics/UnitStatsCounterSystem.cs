@@ -1,5 +1,6 @@
 using PathInvalidation;
 using Rendering;
+using Rendering.SpriteTransformNS;
 using UnitAgency;
 using UnitBehaviours;
 using UnitBehaviours.AutonomousHarvesting;

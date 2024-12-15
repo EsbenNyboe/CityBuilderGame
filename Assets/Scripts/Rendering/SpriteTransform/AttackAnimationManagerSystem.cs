@@ -1,7 +1,7 @@
 using SystemGroups;
 using Unity.Entities;
 
-namespace Rendering
+namespace Rendering.SpriteTransformNS
 {
     public struct AttackAnimationManager : IComponentData
     {

@@ -1,17 +1,20 @@
 ﻿using UnityEngine;
 
-public class AttackAnimationManagerConfig : MonoBehaviour
+namespace Rendering.SpriteTransformNS
 {
-    public static AttackAnimationManagerConfig Instance;
-
-    public float AnimationDuration = 1f;
-
-    public float AnimationSize = 0.5f;
-
-    [Range(0f, 0.999f)] public float AnimationIdleTime = 0.1f;
-
-    private void Awake()
+    public class AttackAnimationManagerConfig : MonoBehaviour
     {
-        Instance = this;
+        public static AttackAnimationManagerConfig Instance;
+
+        public float AnimationDuration = 1f;
+
+        public float AnimationSize = 0.5f;
+
+        [Range(0f, 0.999f)] public float AnimationIdleTime = 0.1f;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
     }
 }

@@ -1,5 +1,6 @@
 using Inventory;
 using Rendering;
+using Rendering.SpriteTransformNS;
 using UnitAgency;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;

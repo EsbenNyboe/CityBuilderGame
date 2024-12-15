@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Rendering
+namespace Rendering.SpriteTransformNS
 {
     /// <summary>
     ///     When an attack-animation is marked for deletion,
