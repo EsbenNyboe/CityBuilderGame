@@ -7,7 +7,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using Random = Unity.Mathematics.Random;
 
-namespace Grid
+namespace Grid.SectionSorting
 {
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup), OrderLast = true)]
     public partial struct GridManagerSectionSortingSystem : ISystem

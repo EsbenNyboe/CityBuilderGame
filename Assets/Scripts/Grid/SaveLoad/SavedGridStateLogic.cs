@@ -1,3 +1,4 @@
+using Grid.Dimensions;
 using Inventory;
 using Rendering;
 using UnitBehaviours.Pathing;
@@ -120,7 +121,7 @@ namespace Grid.SaveLoad
             var gridSize = SavedGridStateManager.Instance.TryLoadSavedGridSize(new int2(gridManager.Width, gridManager.Height));
             GridDimensionsConfig.Instance.Width = gridSize.x;
             GridDimensionsConfig.Instance.Height = gridSize.y;
-            GridManagerSystem.TryUpdateGridDimensions(ref gridManager);
+            GridDimensionsSystem.TryUpdateGridDimensions(ref gridManager);
 
             HandleEntitiesOutsideOfGrid(gridManager);
 
