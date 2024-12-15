@@ -1,27 +1,30 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SpawnSelector : MonoBehaviour
+namespace UnitSpawn
 {
-    [SerializeField] private Image _icon;
-    [SerializeField] private SpawnItemType _spawnItemType;
-
-    [SerializeField] private SpawnMenuManager _spawnMenuManager;
-
-    public void SelectSpawnItem(bool isSelected)
+    public class SpawnSelector : MonoBehaviour
     {
-        if (isSelected)
-        {
-            _spawnMenuManager.SetSpawnSelection(_icon.material, _spawnItemType);
-        }
-        else
-        {
-            _spawnMenuManager.ResetSpawnSelection();
-        }
-    }
+        [SerializeField] private Image _icon;
+        [SerializeField] private SpawnItemType _spawnItemType;
 
-    public void NotifyOnHoverEvent(bool isHovered)
-    {
-        _spawnMenuManager.BlockMouseFromSpawning(isHovered);
+        [SerializeField] private SpawnMenuManager _spawnMenuManager;
+
+        public void SelectSpawnItem(bool isSelected)
+        {
+            if (isSelected)
+            {
+                _spawnMenuManager.SetSpawnSelection(_icon.material, _spawnItemType);
+            }
+            else
+            {
+                _spawnMenuManager.ResetSpawnSelection();
+            }
+        }
+
+        public void NotifyOnHoverEvent(bool isHovered)
+        {
+            _spawnMenuManager.BlockMouseFromSpawning(isHovered);
+        }
     }
 }

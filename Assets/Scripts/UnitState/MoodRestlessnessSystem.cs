@@ -29,7 +29,3 @@ namespace UnitState
         }
     }
 }
-
-namespace UnitState.Mood
-{
-}

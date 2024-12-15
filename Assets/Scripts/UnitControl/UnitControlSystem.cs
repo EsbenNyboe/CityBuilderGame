@@ -7,6 +7,7 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
+using UnitSpawn;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;

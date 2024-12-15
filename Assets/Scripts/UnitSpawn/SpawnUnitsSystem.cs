@@ -3,99 +3,102 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateInGroup(typeof(LifetimeSystemGroup))]
-public partial class SpawnUnitsSystem : SystemBase
+namespace UnitSpawn
 {
-    protected override void OnCreate()
+    [UpdateInGroup(typeof(LifetimeSystemGroup))]
+    public partial class SpawnUnitsSystem : SystemBase
     {
-        RequireForUpdate<SpawnUnitsConfig>();
-    }
-
-    protected override void OnUpdate()
-    {
-        if (!Input.GetKeyDown(KeyCode.Space))
+        protected override void OnCreate()
         {
-            return;
+            RequireForUpdate<SpawnUnitsConfig>();
         }
 
-        var spawnUnitsConfig = SystemAPI.GetSingleton<SpawnUnitsConfig>();
-        var gridManager = SystemAPI.GetSingleton<GridManager>();
-
-        var gridIndex = 0;
-        for (var i = 0; i < spawnUnitsConfig.AmountToSpawn; i++)
+        protected override void OnUpdate()
         {
-            if (!GetNextValidGridPosition(gridManager, ref gridIndex, out var x, out var y))
+            if (!Input.GetKeyDown(KeyCode.Space))
             {
                 return;
             }
 
-            var spawnedEntity = EntityManager.Instantiate(spawnUnitsConfig.ObjectToSpawn);
-            EntityManager.SetComponentData(spawnedEntity, new LocalTransform
+            var spawnUnitsConfig = SystemAPI.GetSingleton<SpawnUnitsConfig>();
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
+
+            var gridIndex = 0;
+            for (var i = 0; i < spawnUnitsConfig.AmountToSpawn; i++)
             {
-                Position = new float3
+                if (!GetNextValidGridPosition(gridManager, ref gridIndex, out var x, out var y))
                 {
-                    x = x,
-                    y = y,
-                    z = -0.01f
-                },
-                Scale = 1f,
-                Rotation = quaternion.identity
-            });
+                    return;
+                }
 
-            gridManager.SetOccupant(x, y, spawnedEntity);
-            SystemAPI.SetSingleton(gridManager);
-        }
-    }
+                var spawnedEntity = EntityManager.Instantiate(spawnUnitsConfig.ObjectToSpawn);
+                EntityManager.SetComponentData(spawnedEntity, new LocalTransform
+                {
+                    Position = new float3
+                    {
+                        x = x,
+                        y = y,
+                        z = -0.01f
+                    },
+                    Scale = 1f,
+                    Rotation = quaternion.identity
+                });
 
-    private bool GetNextValidGridPosition(GridManager gridManager, ref int gridIndex, out int x, out int y)
-    {
-        var maxAttempts = 20000;
-        var currentAttempt = 0;
-        x = 0;
-        y = 0;
-
-        while (currentAttempt < maxAttempts)
-        {
-            currentAttempt++;
-
-            if (!GetNextGridPosition(gridManager, gridIndex, out x, out y))
-            {
-                DebugHelper.Log("No valid grid position found: Outside range");
-                return false;
+                gridManager.SetOccupant(x, y, spawnedEntity);
+                SystemAPI.SetSingleton(gridManager);
             }
-
-            if (ValidateWalkableGridPosition(gridManager, gridIndex) && ValidateVacantGridPosition(gridManager, x, y))
-            {
-                return true;
-            }
-
-            gridIndex++;
         }
 
-        DebugHelper.Log("No valid grid position found: Not walkable");
-        return false;
-    }
-
-    private bool GetNextGridPosition(GridManager gridManager, int gridIndex, out int x, out int y)
-    {
-        if (gridIndex >= gridManager.WalkableGrid.Length)
+        private bool GetNextValidGridPosition(GridManager gridManager, ref int gridIndex, out int x, out int y)
         {
-            x = -1;
-            y = -1;
+            var maxAttempts = 20000;
+            var currentAttempt = 0;
+            x = 0;
+            y = 0;
+
+            while (currentAttempt < maxAttempts)
+            {
+                currentAttempt++;
+
+                if (!GetNextGridPosition(gridManager, gridIndex, out x, out y))
+                {
+                    DebugHelper.Log("No valid grid position found: Outside range");
+                    return false;
+                }
+
+                if (ValidateWalkableGridPosition(gridManager, gridIndex) && ValidateVacantGridPosition(gridManager, x, y))
+                {
+                    return true;
+                }
+
+                gridIndex++;
+            }
+
+            DebugHelper.Log("No valid grid position found: Not walkable");
             return false;
         }
 
-        gridManager.GetXY(gridIndex, out x, out y);
-        return true;
-    }
+        private bool GetNextGridPosition(GridManager gridManager, int gridIndex, out int x, out int y)
+        {
+            if (gridIndex >= gridManager.WalkableGrid.Length)
+            {
+                x = -1;
+                y = -1;
+                return false;
+            }
 
-    private bool ValidateWalkableGridPosition(GridManager gridManager, int gridIndex)
-    {
-        return gridManager.WalkableGrid[gridIndex].IsWalkable;
-    }
+            gridManager.GetXY(gridIndex, out x, out y);
+            return true;
+        }
 
-    private bool ValidateVacantGridPosition(GridManager gridManager, int x, int y)
-    {
-        return !gridManager.IsOccupied(x, y);
+        private bool ValidateWalkableGridPosition(GridManager gridManager, int gridIndex)
+        {
+            return gridManager.WalkableGrid[gridIndex].IsWalkable;
+        }
+
+        private bool ValidateVacantGridPosition(GridManager gridManager, int x, int y)
+        {
+            return !gridManager.IsOccupied(x, y);
+        }
     }
 }

@@ -1,27 +1,30 @@
 using Unity.Burst;
 using Unity.Entities;
 
-public struct SpawnedUnit : IComponentData
+namespace UnitSpawn
 {
-}
-
-[UpdateInGroup(typeof(LifetimeSystemGroup), OrderLast = true)]
-public partial struct SpawnedUnitSystem : ISystem
-{
-    [BurstCompile]
-    public void OnCreate(ref SystemState state)
+    public struct SpawnedUnit : IComponentData
     {
-        state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
     }
 
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state)
+    [UpdateInGroup(typeof(LifetimeSystemGroup), OrderLast = true)]
+    public partial struct SpawnedUnitSystem : ISystem
     {
-        var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
-            .CreateCommandBuffer(state.WorldUnmanaged);
-        foreach (var (_, entity) in SystemAPI.Query<RefRO<SpawnedUnit>>().WithEntityAccess())
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
         {
-            ecb.RemoveComponent<SpawnedUnit>(entity);
+            state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
+        }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
+            foreach (var (_, entity) in SystemAPI.Query<RefRO<SpawnedUnit>>().WithEntityAccess())
+            {
+                ecb.RemoveComponent<SpawnedUnit>(entity);
+            }
         }
     }
 }

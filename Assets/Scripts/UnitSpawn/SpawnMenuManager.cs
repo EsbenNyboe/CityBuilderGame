@@ -2,131 +2,134 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SpawnMenuManager : MonoBehaviour
+namespace UnitSpawn
 {
-    public static SpawnMenuManager Instance;
-    [SerializeField] private Image _selectionGraphic;
-    [SerializeField] private RectTransform _selectorUI;
-    [SerializeField] private float _minimumTimeBetweenSpawns;
-    [SerializeField] private float _minimumTimeBetweenDeletes;
-    [SerializeField] private TextMeshProUGUI _brushSizeText;
-    private Material _selectionMaterial;
-    private SpawnItemType _spawnItemType;
-    private bool _spawningIsDisallowed;
-    private float _timeSinceLastSpawn;
-    private float _timeSinceLastDelete;
-    private bool _autoSpawn;
-    private int _brushSize;
-
-    public SpawnItemType ItemToSpawn { get; private set; }
-    public SpawnItemType ItemToDelete { get; private set; }
-
-    private void Awake()
+    public class SpawnMenuManager : MonoBehaviour
     {
-        Instance = this;
-    }
+        public static SpawnMenuManager Instance;
+        [SerializeField] private Image _selectionGraphic;
+        [SerializeField] private RectTransform _selectorUI;
+        [SerializeField] private float _minimumTimeBetweenSpawns;
+        [SerializeField] private float _minimumTimeBetweenDeletes;
+        [SerializeField] private TextMeshProUGUI _brushSizeText;
+        private Material _selectionMaterial;
+        private SpawnItemType _spawnItemType;
+        private bool _spawningIsDisallowed;
+        private float _timeSinceLastSpawn;
+        private float _timeSinceLastDelete;
+        private bool _autoSpawn;
+        private int _brushSize;
 
-    private void LateUpdate()
-    {
-        ItemToSpawn = SpawnItemType.None;
-        ItemToDelete = SpawnItemType.None;
+        public SpawnItemType ItemToSpawn { get; private set; }
+        public SpawnItemType ItemToDelete { get; private set; }
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        private void Awake()
         {
-            GetComponentInChildren<ToggleGroup>().SetAllTogglesOff();
+            Instance = this;
         }
 
-        if (!HasSelection())
+        private void LateUpdate()
         {
-            _selectionGraphic.enabled = false;
-            return;
-        }
+            ItemToSpawn = SpawnItemType.None;
+            ItemToDelete = SpawnItemType.None;
 
-        _timeSinceLastSpawn += Time.deltaTime;
-        _timeSinceLastDelete += Time.deltaTime;
-
-        if (!_spawningIsDisallowed)
-        {
-            if ((!_autoSpawn && Input.GetMouseButtonDown(0)) ||
-                (_autoSpawn && Input.GetMouseButton(0)))
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
-                TrySpawn();
+                GetComponentInChildren<ToggleGroup>().SetAllTogglesOff();
             }
 
-            if ((!_autoSpawn && Input.GetMouseButtonDown(1)) || (_autoSpawn && Input.GetMouseButton(1)))
+            if (!HasSelection())
             {
-                TryDelete();
+                _selectionGraphic.enabled = false;
+                return;
+            }
+
+            _timeSinceLastSpawn += Time.deltaTime;
+            _timeSinceLastDelete += Time.deltaTime;
+
+            if (!_spawningIsDisallowed)
+            {
+                if ((!_autoSpawn && Input.GetMouseButtonDown(0)) ||
+                    (_autoSpawn && Input.GetMouseButton(0)))
+                {
+                    TrySpawn();
+                }
+
+                if ((!_autoSpawn && Input.GetMouseButtonDown(1)) || (_autoSpawn && Input.GetMouseButton(1)))
+                {
+                    TryDelete();
+                }
+            }
+
+            _selectionGraphic.material = _selectionMaterial;
+            _selectionGraphic.transform.position = Input.mousePosition;
+            _selectionGraphic.enabled = true;
+        }
+
+        private void TrySpawn()
+        {
+            if (_timeSinceLastSpawn >= _minimumTimeBetweenSpawns)
+            {
+                _timeSinceLastSpawn = 0;
+                ItemToSpawn = _spawnItemType;
             }
         }
 
-        _selectionGraphic.material = _selectionMaterial;
-        _selectionGraphic.transform.position = Input.mousePosition;
-        _selectionGraphic.enabled = true;
-    }
-
-    private void TrySpawn()
-    {
-        if (_timeSinceLastSpawn >= _minimumTimeBetweenSpawns)
+        private void TryDelete()
         {
-            _timeSinceLastSpawn = 0;
-            ItemToSpawn = _spawnItemType;
+            if (_timeSinceLastDelete > _minimumTimeBetweenDeletes)
+            {
+                _timeSinceLastDelete = 0;
+                ItemToDelete = _spawnItemType;
+            }
+        }
+
+        public bool HasSelection()
+        {
+            return _selectionMaterial != null;
+        }
+
+        public void BlockMouseFromSpawning(bool isBlocked)
+        {
+            _spawningIsDisallowed = isBlocked;
+        }
+
+        public void ResetSpawnSelection()
+        {
+            _selectionMaterial = null;
+            _spawnItemType = SpawnItemType.None;
+        }
+
+        public void SetSpawnSelection(Material itemMaterial, SpawnItemType itemType)
+        {
+            _selectionMaterial = itemMaterial;
+            _spawnItemType = itemType;
+        }
+
+        public void SetBrushSize(float brushSize)
+        {
+            _brushSize = Mathf.FloorToInt(brushSize);
+            _brushSizeText.text = _brushSize.ToString();
+        }
+
+        public int GetBrushSize()
+        {
+            return _brushSize;
+        }
+
+        public void SetAutoSpawn(bool autoSpawn)
+        {
+            _autoSpawn = autoSpawn;
         }
     }
 
-    private void TryDelete()
+    public enum SpawnItemType
     {
-        if (_timeSinceLastDelete > _minimumTimeBetweenDeletes)
-        {
-            _timeSinceLastDelete = 0;
-            ItemToDelete = _spawnItemType;
-        }
+        None,
+        Unit,
+        Tree,
+        Bed,
+        House,
+        Boar
     }
-
-    public bool HasSelection()
-    {
-        return _selectionMaterial != null;
-    }
-
-    public void BlockMouseFromSpawning(bool isBlocked)
-    {
-        _spawningIsDisallowed = isBlocked;
-    }
-
-    public void ResetSpawnSelection()
-    {
-        _selectionMaterial = null;
-        _spawnItemType = SpawnItemType.None;
-    }
-
-    public void SetSpawnSelection(Material itemMaterial, SpawnItemType itemType)
-    {
-        _selectionMaterial = itemMaterial;
-        _spawnItemType = itemType;
-    }
-
-    public void SetBrushSize(float brushSize)
-    {
-        _brushSize = Mathf.FloorToInt(brushSize);
-        _brushSizeText.text = _brushSize.ToString();
-    }
-
-    public int GetBrushSize()
-    {
-        return _brushSize;
-    }
-
-    public void SetAutoSpawn(bool autoSpawn)
-    {
-        _autoSpawn = autoSpawn;
-    }
-}
-
-public enum SpawnItemType
-{
-    None,
-    Unit,
-    Tree,
-    Bed,
-    House,
-    Boar
 }

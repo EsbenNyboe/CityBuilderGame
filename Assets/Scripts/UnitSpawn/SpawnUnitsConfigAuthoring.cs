@@ -1,28 +1,31 @@
 using Unity.Entities;
 using UnityEngine;
 
-public class SpawnUnitsConfigAuthoring : MonoBehaviour
+namespace UnitSpawn
 {
-    [SerializeField] private GameObject _objectToSpawn;
-
-    [SerializeField] private int _amountToSpawn;
-
-    public class Baker : Baker<SpawnUnitsConfigAuthoring>
+    public class SpawnUnitsConfigAuthoring : MonoBehaviour
     {
-        public override void Bake(SpawnUnitsConfigAuthoring authoring)
+        [SerializeField] private GameObject _objectToSpawn;
+
+        [SerializeField] private int _amountToSpawn;
+
+        public class Baker : Baker<SpawnUnitsConfigAuthoring>
         {
-            var entity = GetEntity(TransformUsageFlags.None);
-            AddComponent(entity, new SpawnUnitsConfig
+            public override void Bake(SpawnUnitsConfigAuthoring authoring)
             {
-                ObjectToSpawn = GetEntity(authoring._objectToSpawn, TransformUsageFlags.Dynamic),
-                AmountToSpawn = authoring._amountToSpawn
-            });
+                var entity = GetEntity(TransformUsageFlags.None);
+                AddComponent(entity, new SpawnUnitsConfig
+                {
+                    ObjectToSpawn = GetEntity(authoring._objectToSpawn, TransformUsageFlags.Dynamic),
+                    AmountToSpawn = authoring._amountToSpawn
+                });
+            }
         }
     }
-}
 
-public struct SpawnUnitsConfig : IComponentData
-{
-    public Entity ObjectToSpawn;
-    public int AmountToSpawn;
+    public struct SpawnUnitsConfig : IComponentData
+    {
+        public Entity ObjectToSpawn;
+        public int AmountToSpawn;
+    }
 }
