@@ -1,5 +1,6 @@
 using Debugging;
 using Effects.SocialEffectsRendering;
+using Grid;
 using UnitBehaviours;
 using UnitState;
 using Unity.Burst;
@@ -11,7 +12,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace Grid
+namespace PathInvalidation
 {
     public struct PathInvalidationDebugEvent : IComponentData
     {
