@@ -1,20 +1,23 @@
 using Statistics.StatsDisplays;
 using UnityEngine;
 
-public class SelectedUnitStats : MonoBehaviour
+namespace Statistics
 {
-    public static SelectedUnitStats Instance;
-
-    public SelectedUnitStatDisplay Sleepiness;
-    public SelectedUnitStatDisplay Loneliness;
-
-    private void Awake()
+    public class SelectedUnitStats : MonoBehaviour
     {
-        Instance = this;
-    }
+        public static SelectedUnitStats Instance;
 
-    public void SetActive(bool hasSelection)
-    {
-        gameObject.SetActive(hasSelection);
+        public SelectedUnitStatDisplay Sleepiness;
+        public SelectedUnitStatDisplay Loneliness;
+
+        private void Awake()
+        {
+            Instance = this;
+        }
+
+        public void SetActive(bool hasSelection)
+        {
+            gameObject.SetActive(hasSelection);
+        }
     }
 }

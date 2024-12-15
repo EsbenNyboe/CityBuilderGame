@@ -1,29 +1,32 @@
 using TMPro;
 using UnityEngine;
 
-public abstract class UnitStatsDisplay : MonoBehaviour
+namespace Statistics.StatsDisplays
 {
-    [SerializeField] private TextMeshProUGUI _statsValueText;
-    private int _currentValue;
-    private int _previousValue;
-
-    private void Update()
+    public abstract class UnitStatsDisplay : MonoBehaviour
     {
-        OnUpdate();
+        [SerializeField] private TextMeshProUGUI _statsValueText;
+        private int _currentValue;
+        private int _previousValue;
 
-        if (_currentValue != _previousValue)
+        private void Update()
         {
-            _previousValue = _currentValue;
-            _statsValueText.text = _currentValue.ToString();
+            OnUpdate();
+
+            if (_currentValue != _previousValue)
+            {
+                _previousValue = _currentValue;
+                _statsValueText.text = _currentValue.ToString();
+            }
         }
+
+        protected abstract int GetTextValue(int rawValue);
+
+        public void SetStatsValue(int rawValue)
+        {
+            _currentValue = GetTextValue(rawValue);
+        }
+
+        protected abstract void OnUpdate() ;
     }
-
-    protected abstract int GetTextValue(int rawValue);
-
-    public void SetStatsValue(int rawValue)
-    {
-        _currentValue = GetTextValue(rawValue);
-    }
-
-    protected abstract void OnUpdate() ;
 }

@@ -1,18 +1,21 @@
 using UnityEngine;
 
-public class UnitStatsDisplayPerSecond : UnitStatsDisplay
+namespace Statistics.StatsDisplays
 {
-    private float _valuePerSecond;
-
-    protected override int GetTextValue(int rawValue)
+    public class UnitStatsDisplayPerSecond : UnitStatsDisplay
     {
-        _valuePerSecond += rawValue;
-        var currentStatsValuePerSecond = Mathf.FloorToInt(_valuePerSecond);
-        return currentStatsValuePerSecond;
-    }
+        private float _valuePerSecond;
 
-    protected override void OnUpdate()
-    {
-        _valuePerSecond *= 1 - Time.deltaTime;
+        protected override int GetTextValue(int rawValue)
+        {
+            _valuePerSecond += rawValue;
+            var currentStatsValuePerSecond = Mathf.FloorToInt(_valuePerSecond);
+            return currentStatsValuePerSecond;
+        }
+
+        protected override void OnUpdate()
+        {
+            _valuePerSecond *= 1 - Time.deltaTime;
+        }
     }
 }

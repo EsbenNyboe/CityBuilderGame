@@ -1,3 +1,4 @@
+using Statistics.StatsDisplays;
 using UnityEngine;
 
 namespace Statistics

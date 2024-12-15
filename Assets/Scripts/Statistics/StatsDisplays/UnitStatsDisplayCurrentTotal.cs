@@ -1,11 +1,14 @@
-public class UnitStatsDisplayCurrentTotal : UnitStatsDisplay
+namespace Statistics.StatsDisplays
 {
-    protected override int GetTextValue(int rawValue)
+    public class UnitStatsDisplayCurrentTotal : UnitStatsDisplay
     {
-        return rawValue;
-    }
+        protected override int GetTextValue(int rawValue)
+        {
+            return rawValue;
+        }
 
-    protected override void OnUpdate()
-    {
+        protected override void OnUpdate()
+        {
+        }
     }
 }
