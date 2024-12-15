@@ -1,42 +1,44 @@
-using Audio;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
-[UpdateInGroup(typeof(LateSimulationSystemGroup))]
-public partial class DotsSoundManagerSystem : SystemBase
+namespace Audio
 {
-    protected override void OnCreate()
+    [UpdateInGroup(typeof(LateSimulationSystemGroup))]
+    public partial class DotsSoundManagerSystem : SystemBase
     {
-        EntityManager.AddComponent<DotsSoundManager>(SystemHandle);
-        SystemAPI.SetComponent(SystemHandle, new DotsSoundManager
+        protected override void OnCreate()
         {
-            ChopSoundRequests = new NativeQueue<float3>(Allocator.Persistent),
-            DestroyTreeSoundRequests = new NativeQueue<float3>(Allocator.Persistent)
-        });
-    }
-
-    protected override void OnUpdate()
-    {
-        var dotsSoundManager = SystemAPI.GetComponent<DotsSoundManager>(SystemHandle);
-        var chopSoundRequests = dotsSoundManager.ChopSoundRequests;
-        while (chopSoundRequests.Count > 0)
-        {
-            var position = chopSoundRequests.Dequeue();
-            SoundManager.Instance.PlayChopSound(position);
+            EntityManager.AddComponent<DotsSoundManager>(SystemHandle);
+            SystemAPI.SetComponent(SystemHandle, new DotsSoundManager
+            {
+                ChopSoundRequests = new NativeQueue<float3>(Allocator.Persistent),
+                DestroyTreeSoundRequests = new NativeQueue<float3>(Allocator.Persistent)
+            });
         }
 
-        var destroyTreeSoundRequests = dotsSoundManager.DestroyTreeSoundRequests;
-        while (destroyTreeSoundRequests.Count > 0)
+        protected override void OnUpdate()
         {
-            SoundManager.Instance.PlayDestroyTreeSound(destroyTreeSoundRequests.Dequeue());
-        }
-    }
+            var dotsSoundManager = SystemAPI.GetComponent<DotsSoundManager>(SystemHandle);
+            var chopSoundRequests = dotsSoundManager.ChopSoundRequests;
+            while (chopSoundRequests.Count > 0)
+            {
+                var position = chopSoundRequests.Dequeue();
+                SoundManager.Instance.PlayChopSound(position);
+            }
 
-    protected override void OnDestroy()
-    {
-        var dotsSoundManager = SystemAPI.GetComponent<DotsSoundManager>(SystemHandle);
-        dotsSoundManager.ChopSoundRequests.Dispose();
-        dotsSoundManager.DestroyTreeSoundRequests.Dispose();
+            var destroyTreeSoundRequests = dotsSoundManager.DestroyTreeSoundRequests;
+            while (destroyTreeSoundRequests.Count > 0)
+            {
+                SoundManager.Instance.PlayDestroyTreeSound(destroyTreeSoundRequests.Dequeue());
+            }
+        }
+
+        protected override void OnDestroy()
+        {
+            var dotsSoundManager = SystemAPI.GetComponent<DotsSoundManager>(SystemHandle);
+            dotsSoundManager.ChopSoundRequests.Dispose();
+            dotsSoundManager.DestroyTreeSoundRequests.Dispose();
+        }
     }
 }

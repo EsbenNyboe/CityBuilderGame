@@ -1,15 +1,18 @@
 using Effects;
 using UnityEngine;
 
-public class AudioSourcePoolManager : PoolManager<AudioSource>
+namespace Audio
 {
-    protected override bool IsActive(AudioSource poolItem)
+    public class AudioSourcePoolManager : PoolManager<AudioSource>
     {
-        return poolItem.isPlaying;
-    }
+        protected override bool IsActive(AudioSource poolItem)
+        {
+            return poolItem.isPlaying;
+        }
 
-    protected override void Play(AudioSource poolItem)
-    {
-        poolItem.Play();
+        protected override void Play(AudioSource poolItem)
+        {
+            poolItem.Play();
+        }
     }
 }
