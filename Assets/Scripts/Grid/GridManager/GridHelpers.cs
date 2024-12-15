@@ -48,11 +48,6 @@ namespace Grid
 
         #region GenericGrid
 
-        public static int GetIndex(GridManager gridManager, int x, int y)
-        {
-            return GetIndex(gridManager.Height, x, y);
-        }
-
         public static int GetIndex(int gridHeight, int x, int y)
         {
             return x * gridHeight + y;
