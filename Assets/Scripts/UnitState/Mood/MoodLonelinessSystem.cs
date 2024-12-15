@@ -3,7 +3,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
-namespace UnitState
+namespace UnitState.Mood
 {
     public struct MoodLoneliness : IComponentData
     {

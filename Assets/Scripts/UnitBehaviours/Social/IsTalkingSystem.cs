@@ -1,5 +1,6 @@
 using UnitAgency;
 using UnitState;
+using UnitState.Mood;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;

@@ -2,7 +2,7 @@ using Unity.Burst;
 using Unity.Entities;
 using UnityEngine;
 
-namespace UnitState
+namespace UnitState.Mood
 {
     public partial struct MoodInitiative : IComponentData
     {

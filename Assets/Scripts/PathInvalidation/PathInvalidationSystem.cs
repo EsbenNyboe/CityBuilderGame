@@ -3,6 +3,7 @@ using Effects.SocialEffectsRendering;
 using Grid;
 using UnitBehaviours;
 using UnitState;
+using UnitState.Mood;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;

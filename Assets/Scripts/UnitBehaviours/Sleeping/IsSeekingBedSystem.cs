@@ -1,6 +1,6 @@
 using Debugging;
 using UnitAgency;
-using UnitState;
+using UnitState.Mood;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;

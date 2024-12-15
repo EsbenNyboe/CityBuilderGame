@@ -1,5 +1,6 @@
 using Inventory;
 using Rendering;
+using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
 using Unity.Burst;

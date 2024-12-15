@@ -1,4 +1,4 @@
-using UnitState;
+using UnitState.Mood;
 using Unity.Entities;
 
 namespace Statistics

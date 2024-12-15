@@ -5,6 +5,7 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using UnitSpawn;
 using UnitState;
+using UnitState.Mood;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;

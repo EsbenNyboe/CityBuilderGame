@@ -8,6 +8,7 @@ using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
 using UnitSpawn;
 using UnitState;
+using UnitState.Mood;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;

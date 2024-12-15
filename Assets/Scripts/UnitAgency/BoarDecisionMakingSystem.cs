@@ -3,7 +3,7 @@ using UnitBehaviours;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using UnitSpawn;
-using UnitState;
+using UnitState.Mood;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
