@@ -1,3 +1,4 @@
+using Effects;
 using UnityEngine;
 
 public class AudioSourcePoolManager : PoolManager<AudioSource>
