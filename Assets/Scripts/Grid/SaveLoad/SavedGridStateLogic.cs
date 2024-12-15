@@ -1,5 +1,6 @@
 using Inventory;
 using Rendering;
+using UnitBehaviours.Pathing;
 using UnitSpawn;
 using UnitState;
 using Unity.Collections;

@@ -1,4 +1,5 @@
 using UnitBehaviours.Idle;
+using UnitBehaviours.Pathing;
 using UnitState.Mood;
 using Unity.Burst;
 using Unity.Collections;

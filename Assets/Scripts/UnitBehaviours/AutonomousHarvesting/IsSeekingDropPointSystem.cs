@@ -1,6 +1,7 @@
 ﻿using Debugging;
 using Inventory;
 using UnitAgency;
+using UnitBehaviours.Pathing;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;

@@ -2,6 +2,7 @@ using Debugging;
 using Effects.SocialEffectsRendering;
 using Grid;
 using UnitBehaviours;
+using UnitBehaviours.Pathing;
 using UnitState;
 using UnitState.Mood;
 using Unity.Burst;

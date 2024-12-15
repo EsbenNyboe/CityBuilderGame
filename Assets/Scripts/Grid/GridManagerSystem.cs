@@ -1,4 +1,5 @@
 using GridEntityNS;
+using UnitBehaviours.Pathing;
 using UnitState;
 using Unity.Collections;
 using Unity.Entities;

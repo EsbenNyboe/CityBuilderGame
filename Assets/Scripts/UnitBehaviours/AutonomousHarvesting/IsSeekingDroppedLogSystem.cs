@@ -1,5 +1,6 @@
 using Inventory;
 using UnitAgency;
+using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using Unity.Burst;
 using Unity.Entities;

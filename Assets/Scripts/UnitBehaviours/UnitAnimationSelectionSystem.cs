@@ -1,5 +1,6 @@
 using Inventory;
 using Rendering;
+using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;

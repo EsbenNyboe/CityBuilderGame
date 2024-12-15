@@ -1,4 +1,5 @@
 using UnitAgency;
+using UnitBehaviours.Pathing;
 using Unity.Burst;
 using Unity.Entities;
 
