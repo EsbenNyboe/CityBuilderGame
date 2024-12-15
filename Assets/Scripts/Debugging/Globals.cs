@@ -1,18 +1,21 @@
 ﻿using UnityEngine;
 
-public class Globals : MonoBehaviour
+namespace Debugging
 {
-    private static Globals _instance;
-
-    [SerializeField] private float _gameSpeed = 1f;
-
-    private void Awake()
+    public class Globals : MonoBehaviour
     {
-        _instance = this;
-    }
+        private static Globals _instance;
 
-    public static float GameSpeed()
-    {
-        return _instance._gameSpeed;
+        [SerializeField] private float _gameSpeed = 1f;
+
+        private void Awake()
+        {
+            _instance = this;
+        }
+
+        public static float GameSpeed()
+        {
+            return _instance._gameSpeed;
+        }
     }
 }

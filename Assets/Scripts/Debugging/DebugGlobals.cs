@@ -1,30 +1,33 @@
 ﻿using UnityEngine;
 
-public class DebugGlobals : MonoBehaviour
+namespace Debugging
 {
-    public static DebugGlobals Instance;
-
-    [SerializeField] private bool _showOccupiableGrid;
-    [SerializeField] private bool _showWalkableGrid;
-    [SerializeField] private bool _showInteractableGrid;
-
-    private void Awake()
+    public class DebugGlobals : MonoBehaviour
     {
-        Instance = this;
-    }
+        public static DebugGlobals Instance;
 
-    public static bool ShowOccupationGrid()
-    {
-        return Instance._showOccupiableGrid;
-    }
+        [SerializeField] private bool _showOccupiableGrid;
+        [SerializeField] private bool _showWalkableGrid;
+        [SerializeField] private bool _showInteractableGrid;
 
-    public static bool ShowWalkableGrid()
-    {
-        return Instance._showWalkableGrid;
-    }
+        private void Awake()
+        {
+            Instance = this;
+        }
 
-    public static bool ShowInteractableGrid()
-    {
-        return Instance._showInteractableGrid;
+        public static bool ShowOccupationGrid()
+        {
+            return Instance._showOccupiableGrid;
+        }
+
+        public static bool ShowWalkableGrid()
+        {
+            return Instance._showWalkableGrid;
+        }
+
+        public static bool ShowInteractableGrid()
+        {
+            return Instance._showInteractableGrid;
+        }
     }
 }
