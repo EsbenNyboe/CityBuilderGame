@@ -3,55 +3,57 @@ using UnitState.Mood;
 using Unity.Burst;
 using Unity.Entities;
 
-public struct IsIdle : IComponentData
+namespace UnitBehaviours.Idle
 {
-}
-
-
-[UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
-public partial struct IsIdleSystem : ISystem
-{
-    private EntityQuery _query;
-
-    public void OnCreate(ref SystemState state)
+    public struct IsIdle : IComponentData
     {
-        state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-        _query = state.GetEntityQuery(ComponentType.ReadOnly<IsIdle>(),
-            ComponentType.ReadOnly<PathFollow>(),
-            ComponentType.ReadWrite<MoodRestlessness>());
     }
 
-    private const float MaxIdleTime = 1f;
-
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state)
+    [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
+    public partial struct IsIdleSystem : ISystem
     {
-        var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-            .CreateCommandBuffer(state.WorldUnmanaged);
+        private EntityQuery _query;
 
-        new IsIdleJob
+        public void OnCreate(ref SystemState state)
         {
-            EcbParallelWriter = ecb.AsParallelWriter()
-        }.ScheduleParallel(_query);
-    }
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            _query = state.GetEntityQuery(ComponentType.ReadOnly<IsIdle>(),
+                ComponentType.ReadOnly<PathFollow>(),
+                ComponentType.ReadWrite<MoodRestlessness>());
+        }
 
-    [BurstCompile]
-    private partial struct IsIdleJob : IJobEntity
-    {
-        public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
+        private const float MaxIdleTime = 1f;
 
-        public void Execute(in Entity entity, in PathFollow pathFollow, ref MoodRestlessness moodRestlessness)
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
-            if (pathFollow.IsMoving())
-            {
-                return;
-            }
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
 
-            if (moodRestlessness.Restlessness >= MaxIdleTime)
+            new IsIdleJob
             {
-                moodRestlessness.Restlessness = 0;
-                EcbParallelWriter.RemoveComponent<IsIdle>(entity.Index, entity);
-                EcbParallelWriter.AddComponent(entity.Index, entity, new IsDeciding());
+                EcbParallelWriter = ecb.AsParallelWriter()
+            }.ScheduleParallel(_query);
+        }
+
+        [BurstCompile]
+        private partial struct IsIdleJob : IJobEntity
+        {
+            public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
+
+            public void Execute(in Entity entity, in PathFollow pathFollow, ref MoodRestlessness moodRestlessness)
+            {
+                if (pathFollow.IsMoving())
+                {
+                    return;
+                }
+
+                if (moodRestlessness.Restlessness >= MaxIdleTime)
+                {
+                    moodRestlessness.Restlessness = 0;
+                    EcbParallelWriter.RemoveComponent<IsIdle>(entity.Index, entity);
+                    EcbParallelWriter.AddComponent(entity.Index, entity, new IsDeciding());
+                }
             }
         }
     }

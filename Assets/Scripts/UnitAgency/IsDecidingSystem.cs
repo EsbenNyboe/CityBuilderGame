@@ -2,6 +2,7 @@ using Inventory;
 using Rendering;
 using UnitBehaviours;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;

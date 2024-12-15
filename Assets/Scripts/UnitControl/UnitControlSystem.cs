@@ -3,6 +3,7 @@ using System.Text;
 using CodeMonkey.Utils;
 using Rendering;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;

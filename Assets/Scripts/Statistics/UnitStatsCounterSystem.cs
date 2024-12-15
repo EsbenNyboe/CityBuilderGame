@@ -3,6 +3,7 @@ using Rendering;
 using UnitAgency;
 using UnitBehaviours;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;

@@ -1,5 +1,6 @@
 using Rendering;
 using UnitBehaviours;
+using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using UnitSpawn;
