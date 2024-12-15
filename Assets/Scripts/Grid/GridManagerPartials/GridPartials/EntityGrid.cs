@@ -5,6 +5,13 @@ using UnityEngine;
 
 namespace Grid
 {
+    public enum GridEntityType
+    {
+        None,
+        DropPoint,
+        Tree
+    }
+
     public partial struct GridManager
     {
         #region EntityGrid Core
@@ -155,11 +162,4 @@ namespace Grid
 
         #endregion
     }
-}
-
-public enum GridEntityType
-{
-    None,
-    DropPoint,
-    Tree
 }

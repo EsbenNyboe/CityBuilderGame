@@ -3,6 +3,18 @@ using UnityEngine;
 
 namespace Grid
 {
+    public struct InteractableCell
+    {
+        public InteractableCellType InteractableCellType;
+        public bool IsDirty;
+    }
+
+    public enum InteractableCellType
+    {
+        None,
+        Bed
+    }
+
     public partial struct GridManager
     {
         #region InteractableGrid Core
@@ -125,16 +137,4 @@ namespace Grid
 
         #endregion
     }
-}
-
-public struct InteractableCell
-{
-    public InteractableCellType InteractableCellType;
-    public bool IsDirty;
-}
-
-public enum InteractableCellType
-{
-    None,
-    Bed
 }

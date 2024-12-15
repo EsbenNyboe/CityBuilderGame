@@ -3,6 +3,13 @@ using UnityEngine;
 
 namespace Grid
 {
+    public struct DamageableCell
+    {
+        public float Health;
+        public float MaxHealth;
+        public bool IsDirty;
+    }
+
     public partial struct GridManager
     {
         #region DamageableGrid Core
@@ -116,11 +123,4 @@ namespace Grid
 
         #endregion
     }
-}
-
-public struct DamageableCell
-{
-    public float Health;
-    public float MaxHealth;
-    public bool IsDirty;
 }

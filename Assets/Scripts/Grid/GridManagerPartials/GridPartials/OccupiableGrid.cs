@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace Grid
 {
+    public struct OccupiableCell
+    {
+        public Entity Occupant;
+        public bool IsDirty;
+    }
+
     public partial struct GridManager
     {
         #region OccupiableGrid Core
@@ -170,10 +176,4 @@ namespace Grid
 
         #endregion
     }
-}
-
-public struct OccupiableCell
-{
-    public Entity Occupant;
-    public bool IsDirty;
 }

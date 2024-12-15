@@ -3,6 +3,13 @@ using UnityEngine;
 
 namespace Grid
 {
+    public struct WalkableCell
+    {
+        public bool IsWalkable;
+        public bool IsDirty;
+        public int Section;
+    }
+
     public partial struct GridManager
     {
         #region WalkableGrid Core
@@ -97,11 +104,4 @@ namespace Grid
             return WalkableGrid[gridIndex].Section;
         }
     }
-}
-
-public struct WalkableCell
-{
-    public bool IsWalkable;
-    public bool IsDirty;
-    public int Section;
 }
