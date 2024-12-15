@@ -8,9 +8,6 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
-using ISystem = Unity.Entities.ISystem;
-using SystemAPI = Unity.Entities.SystemAPI;
-using SystemState = Unity.Entities.SystemState;
 
 namespace UnitBehaviours.Sleeping
 {
