@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CodeMonkey.Utils;
+using Grid;
 using Rendering;
 using SystemGroups;
 using UnitBehaviours;
@@ -229,7 +230,8 @@ namespace UnitSpawn
             }
         }
 
-        private void TrySpawnDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager, int2 cell,
+        private void TrySpawnDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager,
+            int2 cell,
             Entity prefab)
         {
             if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&

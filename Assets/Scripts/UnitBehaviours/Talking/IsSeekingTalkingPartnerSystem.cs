@@ -1,4 +1,5 @@
-﻿using UnitAgency;
+﻿using Grid;
+using UnitAgency;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using UnitState;

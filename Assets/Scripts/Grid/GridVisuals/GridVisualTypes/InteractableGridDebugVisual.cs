@@ -1,4 +1,5 @@
 using System;
+using Grid;
 using UnityEngine;
 
 public class InteractableGridDebugVisual : GridVisual

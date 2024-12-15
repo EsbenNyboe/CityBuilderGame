@@ -1,3 +1,4 @@
+using Grid;
 using UnityEngine;
 
 public class OccupationDebugGridVisual : GridVisual

@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using Grid;
+using Unity.Entities;
 using UnityEngine;
 
 public class GridVisualsManager : MonoBehaviour

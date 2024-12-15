@@ -1,6 +1,6 @@
 using Events;
+using Grid;
 using UnitBehaviours;
-using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using Unity.Burst;
 using Unity.Collections;

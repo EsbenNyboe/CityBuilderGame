@@ -1,6 +1,6 @@
 using Audio;
+using Grid;
 using UnitAgency;
-using UnitBehaviours.Pathing;
 using UnitSpawn;
 using Unity.Burst;
 using Unity.Entities;
