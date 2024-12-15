@@ -1,0 +1,21 @@
+{
+    "name": "GridVisuals",
+    "rootNamespace": "",
+    "references": [
+        "GUID:734d92eba21c94caba915361bd5ac177",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:cc1321d3436f99243a2d3fa8df57ca66",
+        "GUID:d3729cfa33a97384680650c3b3e572d2",
+        "GUID:77cb7d6edd6ae8c4ba572e0181fa4b6f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
