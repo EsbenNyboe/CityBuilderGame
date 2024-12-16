@@ -13,7 +13,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace UnitAgency
+namespace UnitAgency.Logic
 {
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup), OrderLast = true)]
     public partial struct BoarDecisionMakingSystem : ISystem
