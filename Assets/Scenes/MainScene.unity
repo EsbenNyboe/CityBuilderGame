@@ -9834,7 +9834,6 @@ MonoBehaviour:
   _healthBarMeshPrefab: {fileID: 8827736116127618180, guid: f6f7339ab80946e44910e0a7b1a229fe, type: 3}
   _pathDebugMeshFilter: {fileID: 1952215288}
   _interactableMeshFilter: {fileID: 2052204911}
-  _healthBarMeshFilter: {fileID: 0}
   _occupationDebugMeshFilter: {fileID: 1173363237}
 --- !u!4 &1762969891
 Transform:

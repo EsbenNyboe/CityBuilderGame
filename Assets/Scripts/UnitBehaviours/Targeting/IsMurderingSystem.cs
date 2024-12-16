@@ -1,6 +1,10 @@
 using Events;
-using UnitAgency;
-using UnitState;
+using Rendering.SpriteTransformNS;
+using SystemGroups;
+using UnitAgency.Data;
+using UnitBehaviours.UnitManagers;
+using UnitState.AliveState;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;

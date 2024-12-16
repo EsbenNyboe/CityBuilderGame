@@ -1,33 +1,36 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class TimedImage : MonoBehaviour
+namespace Effects
 {
-    [SerializeField] private Image _image;
-    [SerializeField] private RectTransform _rectTransform;
-    [SerializeField] private float _duration;
-    private float _timeOfEnable;
-
-    private void Update()
+    public class TimedImage : MonoBehaviour
     {
-        if (_timeOfEnable + _duration < Time.time)
+        [SerializeField] private Image _image;
+        [SerializeField] private RectTransform _rectTransform;
+        [SerializeField] private float _duration;
+        private float _timeOfEnable;
+
+        private void Update()
         {
-            gameObject.SetActive(false);
+            if (_timeOfEnable + _duration < Time.time)
+            {
+                gameObject.SetActive(false);
+            }
         }
-    }
 
-    private void OnEnable()
-    {
-        _timeOfEnable = Time.time;
-    }
+        private void OnEnable()
+        {
+            _timeOfEnable = Time.time;
+        }
 
-    public void SetPosition(Vector3 position)
-    {
-        transform.position = position;
-    }
+        public void SetPosition(Vector3 position)
+        {
+            transform.position = position;
+        }
 
-    public void SetParent(Transform parent)
-    {
-        _rectTransform.SetParent(parent);
+        public void SetParent(Transform parent)
+        {
+            _rectTransform.SetParent(parent);
+        }
     }
 }

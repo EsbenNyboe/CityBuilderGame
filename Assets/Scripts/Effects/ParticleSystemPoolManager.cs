@@ -1,14 +1,17 @@
 using UnityEngine;
 
-public class ParticleSystemPoolManager : PoolManager<ParticleSystem>
+namespace Effects
 {
-    protected override bool IsActive(ParticleSystem poolItem)
+    public class ParticleSystemPoolManager : PoolManager<ParticleSystem>
     {
-        return poolItem.isPlaying;
-    }
+        protected override bool IsActive(ParticleSystem poolItem)
+        {
+            return poolItem.isPlaying;
+        }
 
-    protected override void Play(ParticleSystem poolItem)
-    {
-        poolItem.Play();
+        protected override void Play(ParticleSystem poolItem)
+        {
+            poolItem.Play();
+        }
     }
 }

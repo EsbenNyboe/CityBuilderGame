@@ -1,6 +1,8 @@
 using Audio;
-using UnitAgency;
-using UnitSpawn;
+using Grid;
+using Rendering.SpriteTransformNS;
+using UnitAgency.Data;
+using UnitBehaviours.ActionGateNS;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -33,24 +35,50 @@ namespace UnitBehaviours.Targeting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
+            var ecb = SystemAPI
+                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
             var localTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>();
 
-            foreach (var (isThrowingSpear, actionGate, entity) in SystemAPI.Query<RefRW<IsThrowingSpear>, RefRO<ActionGate>>()
-                         .WithNone<IsHoldingSpear>().WithEntityAccess())
+            foreach (
+                var (isThrowingSpear, actionGate, entity) in SystemAPI
+                    .Query<RefRW<IsThrowingSpear>, RefRO<ActionGate>>()
+                    .WithNone<IsHoldingSpear>()
+                    .WithEntityAccess()
+            )
             {
-                if (SystemAPI.Time.ElapsedTime > actionGate.ValueRO.MinTimeOfAction + ThrowingSpearTime + PostThrowWaitTime)
+                if (
+                    SystemAPI.Time.ElapsedTime
+                    > actionGate.ValueRO.MinTimeOfAction + ThrowingSpearTime + PostThrowWaitTime
+                )
                 {
                     ecb.RemoveComponent<IsThrowingSpear>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                 }
             }
 
-            foreach (var (isThrowingSpear, localTransform, spriteTransform, actionGate, entity) in SystemAPI
-                         .Query<RefRW<IsThrowingSpear>, RefRO<LocalTransform>, RefRW<SpriteTransform>, RefRO<ActionGate>>().WithEntityAccess()
-                         .WithAll<IsHoldingSpear>())
+            foreach (
+                var (
+                    isThrowingSpear,
+                    localTransform,
+                    spriteTransform,
+                    actionGate,
+                    entity
+                    ) in SystemAPI
+                    .Query<
+                        RefRW<IsThrowingSpear>,
+                        RefRO<LocalTransform>,
+                        RefRW<SpriteTransform>,
+                        RefRO<ActionGate>
+                    >()
+                    .WithEntityAccess()
+                    .WithAll<IsHoldingSpear>()
+            )
             {
-                if (isThrowingSpear.ValueRO.Target == Entity.Null || !state.WorldUnmanaged.EntityManager.Exists(isThrowingSpear.ValueRO.Target))
+                if (
+                    isThrowingSpear.ValueRO.Target == Entity.Null
+                    || !state.WorldUnmanaged.EntityManager.Exists(isThrowingSpear.ValueRO.Target)
+                )
                 {
                     ecb.RemoveComponent<IsHoldingSpear>(entity);
                     ecb.RemoveComponent<IsThrowingSpear>(entity);
@@ -66,23 +94,32 @@ namespace UnitBehaviours.Targeting
                 var attackDirection = ((Vector3)(targetPosition - position)).normalized;
 
                 var angleInDegrees = attackDirection.x > 0 ? 0f : 180f;
-                var spriteRotationOffset = quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0);
+                var spriteRotationOffset = quaternion.EulerZXY(
+                    0,
+                    math.PI / 180 * angleInDegrees,
+                    0
+                );
                 spriteTransform.ValueRW.Rotation = spriteRotationOffset;
 
-                if (SystemAPI.Time.ElapsedTime > actionGate.ValueRO.MinTimeOfAction + ThrowingSpearTime)
+                if (
+                    SystemAPI.Time.ElapsedTime
+                    > actionGate.ValueRO.MinTimeOfAction + ThrowingSpearTime
+                )
                 {
                     ecb.RemoveComponent<IsHoldingSpear>(entity);
-                    ecb.AddComponent(ecb.CreateEntity(), new Spear
-                    {
-                        Direction = new float2(attackDirection.x, attackDirection.y),
-                        CurrentPosition = cell,
-                        Target = target
-                    });
-                    ecb.AddComponent(ecb.CreateEntity(), new SoundEvent
-                    {
-                        Position = position,
-                        Type = SoundEventType.SpearThrow
-                    });
+                    ecb.AddComponent(
+                        ecb.CreateEntity(),
+                        new Spear
+                        {
+                            Direction = new float2(attackDirection.x, attackDirection.y),
+                            CurrentPosition = cell,
+                            Target = target
+                        }
+                    );
+                    ecb.AddComponent(
+                        ecb.CreateEntity(),
+                        new SoundEvent { Position = position, Type = SoundEventType.SpearThrow }
+                    );
                 }
             }
         }

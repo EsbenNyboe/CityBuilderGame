@@ -1,7 +1,8 @@
 using Audio;
 using Events;
 using Rendering;
-using UnitState;
+using UnitBehaviours.Tags;
+using UnitState.AliveState;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;

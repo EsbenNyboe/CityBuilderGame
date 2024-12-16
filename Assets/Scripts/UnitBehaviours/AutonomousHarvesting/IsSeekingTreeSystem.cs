@@ -1,6 +1,10 @@
 ﻿using Debugging;
+using Grid;
+using SystemGroups;
 using UnitAgency;
-using UnitState;
+using UnitAgency.Data;
+using UnitBehaviours.Pathing;
+using UnitState.Mood;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;

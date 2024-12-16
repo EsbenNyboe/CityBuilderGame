@@ -1,12 +1,15 @@
-public class TimedImagePoolManager : PoolManager<TimedImage>
+namespace Effects
 {
-    protected override bool IsActive(TimedImage poolItem)
+    public class TimedImagePoolManager : PoolManager<TimedImage>
     {
-        return poolItem.gameObject.activeSelf;
-    }
+        protected override bool IsActive(TimedImage poolItem)
+        {
+            return poolItem.gameObject.activeSelf;
+        }
 
-    protected override void Play(TimedImage poolItem)
-    {
-        poolItem.gameObject.SetActive(true);
+        protected override void Play(TimedImage poolItem)
+        {
+            poolItem.gameObject.SetActive(true);
+        }
     }
 }

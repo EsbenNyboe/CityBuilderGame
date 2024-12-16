@@ -1,5 +1,11 @@
-﻿using UnitAgency;
-using UnitState;
+﻿using Audio;
+using Grid;
+using Inventory;
+using Rendering.SpriteTransformNS;
+using SystemGroups;
+using UnitAgency.Data;
+using UnitBehaviours.UnitManagers;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -41,7 +47,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
             foreach (var (attackAnimation, inventory, localTransform, entity)
                      in SystemAPI
-                         .Query<RefRW<AttackAnimation>, RefRW<Inventory>, RefRO<LocalTransform>>()
+                         .Query<RefRW<AttackAnimation>, RefRW<InventoryState>, RefRO<LocalTransform>>()
                          .WithEntityAccess().WithAll<IsHarvesting>())
             {
                 if (!gridManager.IsDamageable((int2)attackAnimation.ValueRO.Target))
@@ -81,7 +87,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             ref GridManager gridManager,
             UnitBehaviourManager unitBehaviourManager,
             int2 treeCoords,
-            RefRW<Inventory> inventory)
+            RefRW<InventoryState> inventory)
         {
             var treeGridIndex = gridManager.GetIndex(treeCoords);
             gridManager.AddDamage(treeGridIndex, unitBehaviourManager.DamagePerChop);

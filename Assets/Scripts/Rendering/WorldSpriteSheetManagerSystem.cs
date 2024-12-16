@@ -1,5 +1,5 @@
 using System;
-using UnitState;
+using Inventory;
 using Unity.Assertions;
 using Unity.Collections;
 using Unity.Entities;

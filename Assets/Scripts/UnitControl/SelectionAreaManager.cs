@@ -1,26 +1,28 @@
-using ECS_AnimationSystem;
 using UnityEngine;
 
-public class SelectionAreaManager : MonoBehaviour
+namespace UnitControl
 {
-    public static SelectionAreaManager Instance;
-    public Transform SelectionArea;
-    public Material UnitSelectedMaterial;
-
-    [HideInInspector] public Mesh UnitSelectedMesh;
-    [SerializeField] private float _meshWidth;
-    [SerializeField] private float _meshHeight;
-    [SerializeField] private float _minSelectionArea = 2f;
-
-    private void Awake()
+    public class SelectionAreaManager : MonoBehaviour
     {
-        Instance = this;
+        public static SelectionAreaManager Instance;
+        public Transform SelectionArea;
+        public Material UnitSelectedMaterial;
 
-        UnitSelectedMesh = ECS_Animation.CreateMesh(_meshWidth, _meshHeight);
-    }
+        [HideInInspector] public Mesh UnitSelectedMesh;
+        [SerializeField] private float _meshWidth;
+        [SerializeField] private float _meshHeight;
+        [SerializeField] private float _minSelectionArea = 2f;
 
-    public float GetMinSelectionArea()
-    {
-        return _minSelectionArea;
+        private void Awake()
+        {
+            Instance = this;
+
+            UnitSelectedMesh = ECS_Animation.CreateMesh(_meshWidth, _meshHeight);
+        }
+
+        public float GetMinSelectionArea()
+        {
+            return _minSelectionArea;
+        }
     }
 }

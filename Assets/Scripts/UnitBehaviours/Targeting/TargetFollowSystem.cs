@@ -1,11 +1,14 @@
 using Debugging;
+using Grid;
+using SystemGroups;
+using UnitBehaviours.Pathing;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace UnitBehaviours.Pathing
+namespace UnitBehaviours.Targeting
 {
     public struct TargetFollow : IComponentData
     {

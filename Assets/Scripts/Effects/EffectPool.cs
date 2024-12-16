@@ -1,14 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class EffectPool<T> where T : Component
+namespace Effects
 {
-    public GameObject Prefab;
-    public Queue<T> Pool;
+    public abstract class EffectPool<T> where T : Component
+    {
+        public GameObject Prefab;
+        public Queue<T> Pool;
 
-    // public T CreatePoolItem(GameObject prefab, Transform transform)
-    // {
-    // }
+        // public T CreatePoolItem(GameObject prefab, Transform transform)
+        // {
+        // }
 
-    public abstract bool IsAvailable();
+        public abstract bool IsAvailable();
+    }
 }

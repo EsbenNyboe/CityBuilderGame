@@ -1,35 +1,39 @@
+using SystemGroups;
 using Unity.Burst;
 using Unity.Entities;
 
-public struct TickManager : IComponentData
+namespace UnitBehaviours.Idle
 {
-    public float TimeSinceLastTick;
-    public bool IsTicking;
-}
-
-[UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
-public partial struct TickManagerSystem : ISystem
-{
-    private const float TimeBetweenTicks = 1f;
-
-    [BurstCompile]
-    public void OnCreate(ref SystemState state)
+    public struct TickManager : IComponentData
     {
-        state.EntityManager.AddComponent<TickManager>(state.SystemHandle);
+        public float TimeSinceLastTick;
+        public bool IsTicking;
     }
 
-    [BurstCompile]
-    public void OnUpdate(ref SystemState state)
+    [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
+    public partial struct TickManagerSystem : ISystem
     {
-        var tickManager = SystemAPI.GetComponent<TickManager>(state.SystemHandle);
-        tickManager.TimeSinceLastTick += SystemAPI.Time.DeltaTime;
-        tickManager.IsTicking = false;
-        if (tickManager.TimeSinceLastTick > TimeBetweenTicks)
+        private const float TimeBetweenTicks = 1f;
+
+        [BurstCompile]
+        public void OnCreate(ref SystemState state)
         {
-            tickManager.TimeSinceLastTick = 0;
-            tickManager.IsTicking = true;
+            state.EntityManager.AddComponent<TickManager>(state.SystemHandle);
         }
 
-        SystemAPI.SetComponent(state.SystemHandle, tickManager);
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
+        {
+            var tickManager = SystemAPI.GetComponent<TickManager>(state.SystemHandle);
+            tickManager.TimeSinceLastTick += SystemAPI.Time.DeltaTime;
+            tickManager.IsTicking = false;
+            if (tickManager.TimeSinceLastTick > TimeBetweenTicks)
+            {
+                tickManager.TimeSinceLastTick = 0;
+                tickManager.IsTicking = true;
+            }
+
+            SystemAPI.SetComponent(state.SystemHandle, tickManager);
+        }
     }
 }

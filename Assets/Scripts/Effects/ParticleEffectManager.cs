@@ -1,7 +1,7 @@
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Events
+namespace Effects
 {
     public class ParticleEffectManager : MonoBehaviour
     {

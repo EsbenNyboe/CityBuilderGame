@@ -1,10 +1,13 @@
-using UnitAgency;
+using SystemGroups;
+using UnitAgency.Data;
+using UnitBehaviours.Pathing;
+using UnitBehaviours.UnitManagers;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace UnitBehaviours.Pathing
+namespace UnitBehaviours.Targeting
 {
     public struct IsAttemptingMurder : IComponentData
     {

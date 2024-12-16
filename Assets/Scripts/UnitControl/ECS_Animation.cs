@@ -12,7 +12,7 @@
 
 using UnityEngine;
 
-namespace ECS_AnimationSystem
+namespace UnitControl
 {
     public static class ECS_Animation
     {

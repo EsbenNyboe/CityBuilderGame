@@ -1,21 +1,22 @@
+using GridEntityNS;
+using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting;
 using Unity.Entities;
 using UnityEngine;
 
-public class DropPointAuthoring : MonoBehaviour
+namespace UnitBehaviours.AutonomousHarvesting
 {
-    public class Baker : Baker<DropPointAuthoring>
+    public class DropPointAuthoring : MonoBehaviour
     {
-        public override void Bake(DropPointAuthoring authoring)
+        public class Baker : Baker<DropPointAuthoring>
         {
-            var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
-            AddComponent<DropPoint>(entity);
-            AddComponent<GridEntity>(entity);
-            AddComponent<QuadrantEntity>(entity);
+            public override void Bake(DropPointAuthoring authoring)
+            {
+                var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
+                AddComponent<DropPoint>(entity);
+                AddComponent<GridEntity>(entity);
+                AddComponent<QuadrantEntity>(entity);
+            }
         }
     }
-}
-
-public struct DropPoint : IComponentData
-{
 }
