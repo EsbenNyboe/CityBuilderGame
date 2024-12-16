@@ -3,7 +3,7 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace UnitSpawn
+namespace UnitBehaviours.ActionGateNS
 {
     public struct RandomContainer : IComponentData, IEnableableComponent
     {

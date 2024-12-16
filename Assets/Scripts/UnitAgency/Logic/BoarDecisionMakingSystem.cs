@@ -3,6 +3,7 @@ using Rendering.SpriteTransformNS;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours;
+using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;

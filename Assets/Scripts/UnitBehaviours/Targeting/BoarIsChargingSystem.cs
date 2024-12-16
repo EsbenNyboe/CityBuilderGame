@@ -1,9 +1,8 @@
 using Audio;
 using Grid;
-using UnitAgency;
 using UnitAgency.Data;
+using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.UnitManagers;
-using UnitSpawn;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;

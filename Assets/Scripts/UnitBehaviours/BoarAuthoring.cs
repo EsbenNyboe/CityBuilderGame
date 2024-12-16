@@ -1,12 +1,11 @@
 using Inventory;
 using Rendering;
 using Rendering.SpriteTransformNS;
-using UnitAgency;
 using UnitAgency.Data;
+using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using UnitControl;
-using UnitSpawn;
 using UnitState;
 using UnitState.Mood;
 using Unity.Entities;
