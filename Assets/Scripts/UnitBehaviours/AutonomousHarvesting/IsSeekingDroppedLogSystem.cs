@@ -1,6 +1,7 @@
 using Grid;
 using Inventory;
 using UnitAgency;
+using UnitAgency.Data;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using Unity.Burst;

@@ -2,6 +2,7 @@ using Debugging;
 using Grid;
 using SystemGroups;
 using UnitAgency;
+using UnitAgency.Data;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.UnitManagers;
 using UnitState.Mood;

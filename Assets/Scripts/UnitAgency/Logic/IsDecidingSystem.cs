@@ -2,6 +2,7 @@ using Grid;
 using Inventory;
 using Rendering.SpriteTransformNS;
 using SystemGroups;
+using UnitAgency.Data;
 using UnitBehaviours;
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Idle;

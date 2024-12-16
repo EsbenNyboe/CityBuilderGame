@@ -4,6 +4,7 @@ using Inventory;
 using Rendering.SpriteTransformNS;
 using SystemGroups;
 using UnitAgency;
+using UnitAgency.Data;
 using UnitBehaviours.UnitManagers;
 using UnitState;
 using Unity.Burst;

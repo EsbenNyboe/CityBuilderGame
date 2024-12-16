@@ -1,6 +1,7 @@
 using Grid;
 using Rendering.SpriteTransformNS;
 using SystemGroups;
+using UnitAgency.Data;
 using UnitBehaviours;
 using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;

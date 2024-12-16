@@ -1,6 +1,7 @@
 using Grid;
 using SystemGroups;
 using UnitAgency;
+using UnitAgency.Data;
 using UnitBehaviours.Pathing;
 using Unity.Burst;
 using Unity.Entities;

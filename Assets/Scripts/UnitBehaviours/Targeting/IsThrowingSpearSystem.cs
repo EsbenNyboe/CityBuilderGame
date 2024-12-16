@@ -2,6 +2,7 @@ using Audio;
 using Grid;
 using Rendering.SpriteTransformNS;
 using UnitAgency;
+using UnitAgency.Data;
 using UnitSpawn;
 using Unity.Burst;
 using Unity.Entities;

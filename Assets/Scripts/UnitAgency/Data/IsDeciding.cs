@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace UnitAgency
+namespace UnitAgency.Data
 {
     /// <summary>
     ///     Tag component to signify the entity is ready to decide its next behaviour.
