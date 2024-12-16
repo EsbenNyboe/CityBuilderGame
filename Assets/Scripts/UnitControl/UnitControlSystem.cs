@@ -21,10 +21,6 @@ using UnityEngine;
 
 namespace UnitControl
 {
-    public struct UnitSelection : IComponentData
-    {
-    }
-
     [UpdateBefore(typeof(PathfindingSystem))]
     [UpdateAfter(typeof(PathFollowSystem))]
     [UpdateInGroup(typeof(UnitStateSystemGroup))]
