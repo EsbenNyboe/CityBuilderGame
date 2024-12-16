@@ -3,6 +3,7 @@ using UnitAgency.Data;
 using UnitBehaviours.Pathing;
 using UnitState.Mood;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 
 namespace UnitBehaviours.Idle
@@ -34,7 +35,8 @@ namespace UnitBehaviours.Idle
 
             new IsIdleJob
             {
-                EcbParallelWriter = ecb.AsParallelWriter()
+                EcbParallelWriter = ecb.AsParallelWriter(),
+                DeltaTime = SystemAPI.Time.DeltaTime
             }.ScheduleParallel(_query);
         }
 
@@ -42,6 +44,7 @@ namespace UnitBehaviours.Idle
         private partial struct IsIdleJob : IJobEntity
         {
             public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
+            [ReadOnly] public float DeltaTime;
 
             public void Execute(in Entity entity, in PathFollow pathFollow, ref MoodRestlessness moodRestlessness)
             {
@@ -50,6 +53,7 @@ namespace UnitBehaviours.Idle
                     return;
                 }
 
+                moodRestlessness.Restlessness += DeltaTime;
                 if (moodRestlessness.Restlessness >= MaxIdleTime)
                 {
                     moodRestlessness.Restlessness = 0;
