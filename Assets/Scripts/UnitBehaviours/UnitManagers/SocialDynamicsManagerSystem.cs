@@ -1,7 +1,7 @@
 using System;
 using Unity.Entities;
 
-namespace UnitBehaviours
+namespace UnitBehaviours.UnitManagers
 {
     public struct SocialDynamicsManager : IComponentData
     {

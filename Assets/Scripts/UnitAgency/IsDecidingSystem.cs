@@ -9,6 +9,7 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
+using UnitBehaviours.UnitManagers;
 using UnitSpawn;
 using UnitState;
 using UnitState.Mood;

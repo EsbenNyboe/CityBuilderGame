@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace UnitBehaviours
+namespace UnitBehaviours.UnitManagers
 {
     public struct UnitBehaviourManager : IComponentData
     {

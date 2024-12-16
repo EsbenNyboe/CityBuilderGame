@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnitBehaviours
+namespace UnitBehaviours.UnitManagers
 {
     public class UnitBehaviourManagerConfig : MonoBehaviour
     {

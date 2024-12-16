@@ -1,6 +1,7 @@
 using SystemGroups;
 using UnitAgency;
 using UnitBehaviours.Pathing;
+using UnitBehaviours.UnitManagers;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
