@@ -4,7 +4,7 @@ using Grid;
 using Inventory;
 using SystemGroups;
 using UnitBehaviours.AutonomousHarvesting;
-using UnitState;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;

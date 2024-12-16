@@ -1,6 +1,7 @@
 using SystemGroups;
 using UnitBehaviours.UnitManagers;
 using UnitSpawn;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;

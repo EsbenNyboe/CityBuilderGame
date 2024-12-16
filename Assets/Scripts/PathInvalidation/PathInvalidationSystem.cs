@@ -8,6 +8,7 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.UnitManagers;
 using UnitState;
 using UnitState.Mood;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;

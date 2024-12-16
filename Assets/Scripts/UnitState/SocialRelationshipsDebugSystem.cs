@@ -1,6 +1,7 @@
 using Debugging;
 using Grid;
 using UnitControl;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;

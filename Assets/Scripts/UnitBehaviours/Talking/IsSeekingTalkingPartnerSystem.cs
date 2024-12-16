@@ -1,9 +1,8 @@
 ﻿using Grid;
-using UnitAgency;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
-using UnitState;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;

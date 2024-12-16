@@ -1,6 +1,7 @@
 ﻿using SystemGroups;
 using UnitBehaviours.UnitManagers;
 using UnitSpawn;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -9,12 +10,6 @@ using Unity.Jobs;
 
 namespace UnitState
 {
-    public struct SocialRelationships : ICleanupComponentData
-    {
-        public NativeParallelHashMap<Entity, float> Relationships;
-        public float TimeOfLastEvaluation;
-    }
-
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct SocialRelationshipsSystem : ISystem
     {

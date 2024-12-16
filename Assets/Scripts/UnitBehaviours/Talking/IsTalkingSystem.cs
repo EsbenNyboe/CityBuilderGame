@@ -1,11 +1,10 @@
 using Grid;
 using Rendering.SpriteTransformNS;
 using SystemGroups;
-using UnitAgency;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
-using UnitState;
 using UnitState.Mood;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
