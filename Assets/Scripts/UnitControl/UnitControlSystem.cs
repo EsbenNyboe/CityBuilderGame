@@ -12,7 +12,7 @@ using UnitBehaviours.Sleeping;
 using UnitBehaviours.Tags;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
-using UnitSpawn;
+using UnitSpawn.Spawning;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;

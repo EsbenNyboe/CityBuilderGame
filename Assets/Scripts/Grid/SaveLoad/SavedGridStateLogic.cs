@@ -2,7 +2,7 @@ using Grid.Dimensions;
 using Inventory;
 using Rendering;
 using UnitBehaviours.Pathing;
-using UnitSpawn;
+using UnitSpawn.Spawning;
 using UnitState.AliveLogic;
 using UnitState.AliveState;
 using Unity.Collections;

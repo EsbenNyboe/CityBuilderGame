@@ -6,7 +6,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace UnitSpawn
+namespace UnitSpawn.Spawning
 {
     [UpdateInGroup(typeof(LifetimeSystemGroup), OrderFirst = true)]
     public partial class SpawnUnitsSystem : SystemBase

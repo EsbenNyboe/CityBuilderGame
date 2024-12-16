@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UnitSpawn
+namespace UnitSpawn.Spawning
 {
     public class SpawnSelector : MonoBehaviour
     {

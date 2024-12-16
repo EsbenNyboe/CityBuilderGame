@@ -1,7 +1,7 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace UnitSpawn
+namespace UnitSpawn.Spawning
 {
     public struct SpawnManager : IComponentData
     {
