@@ -105,17 +105,17 @@ namespace UnitState
             }
 
             // Play death effect
-            JobChunkExtensions.ScheduleParallel(new PlayDeathEffectJob
+            new PlayDeathEffectJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 UnitType = UnitType.Villager
-            }, _deadVillagerQuery, state.Dependency).Complete();
+            }.ScheduleParallel(_deadVillagerQuery, state.Dependency).Complete();
 
-            JobChunkExtensions.ScheduleParallel(new PlayDeathEffectJob
+            new PlayDeathEffectJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 UnitType = UnitType.Boar
-            }, _deadBoarQuery, state.Dependency).Complete();
+            }.ScheduleParallel(_deadBoarQuery, state.Dependency).Complete();
 
             // Cleanup grid
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>()
