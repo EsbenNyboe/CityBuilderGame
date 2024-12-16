@@ -2,6 +2,7 @@ using Audio;
 using Grid;
 using UnitAgency.Data;
 using UnitBehaviours.ActionGateNS;
+using UnitBehaviours.Targeting.Core;
 using UnitBehaviours.UnitManagers;
 using Unity.Burst;
 using Unity.Entities;

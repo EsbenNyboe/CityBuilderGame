@@ -1,9 +1,8 @@
 using Grid;
 using Inventory;
-using UnitAgency;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
-using UnitBehaviours.Targeting;
+using UnitBehaviours.Targeting.Core;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;

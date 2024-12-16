@@ -7,6 +7,7 @@ using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting;
+using UnitBehaviours.Targeting.Core;
 using UnitBehaviours.UnitManagers;
 using UnitState.Mood;
 using Unity.Burst;

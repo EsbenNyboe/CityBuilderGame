@@ -6,6 +6,7 @@ using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting;
+using UnitBehaviours.Targeting.Core;
 using UnitState.AliveState;
 using UnitState.Mood;
 using Unity.Entities;

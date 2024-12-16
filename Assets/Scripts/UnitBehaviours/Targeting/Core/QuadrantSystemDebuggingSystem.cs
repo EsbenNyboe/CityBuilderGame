@@ -6,7 +6,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace UnitBehaviours.Targeting
+namespace UnitBehaviours.Targeting.Core
 {
     public struct QuadrantSystemDebugging : IComponentData
     {

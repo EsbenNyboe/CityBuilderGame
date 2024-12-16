@@ -11,6 +11,7 @@ using UnitBehaviours.Sleeping;
 using UnitBehaviours.Tags;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
+using UnitBehaviours.Targeting.Core;
 using UnitBehaviours.UnitManagers;
 using UnitState.Mood;
 using UnitState.SocialState;
