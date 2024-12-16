@@ -2,7 +2,7 @@ using SystemGroups;
 using Unity.Burst;
 using Unity.Entities;
 
-namespace UnitSpawn
+namespace UnitSpawn.SpawnedUnitNS
 {
     public struct SpawnedUnit : IComponentData
     {

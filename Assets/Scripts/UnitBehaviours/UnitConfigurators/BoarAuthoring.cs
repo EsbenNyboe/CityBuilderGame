@@ -6,14 +6,13 @@ using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting;
-using UnitControl;
 using UnitState.AliveState;
 using UnitState.Mood;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace UnitBehaviours
+namespace UnitBehaviours.UnitConfigurators
 {
     public class BoarAuthoring : MonoBehaviour
     {

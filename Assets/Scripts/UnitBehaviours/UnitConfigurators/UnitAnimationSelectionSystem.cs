@@ -9,7 +9,7 @@ using UnitBehaviours.Targeting;
 using Unity.Burst;
 using Unity.Entities;
 
-namespace UnitBehaviours
+namespace UnitBehaviours.UnitConfigurators
 {
     [UpdateInGroup(typeof(AnimationSystemGroup))]
     [UpdateBefore(typeof(WorldSpriteSheetAnimationSystem))]

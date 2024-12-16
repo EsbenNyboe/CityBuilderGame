@@ -9,6 +9,7 @@ using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
+using UnitBehaviours.Tags;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
 using UnitSpawn;
@@ -21,10 +22,6 @@ using UnityEngine;
 namespace UnitControl
 {
     public struct UnitSelection : IComponentData
-    {
-    }
-
-    public struct Selectable : IComponentData
     {
     }
 
