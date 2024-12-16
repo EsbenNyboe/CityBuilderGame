@@ -1,6 +1,6 @@
 using Effects.SocialEffectsRendering;
 using UnitBehaviours;
-using UnitState.SocialEventState;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;

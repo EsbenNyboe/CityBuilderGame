@@ -5,7 +5,7 @@ using Rendering.SpriteTransformNS;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.UnitManagers;
-using UnitState.SocialEventState;
+using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;

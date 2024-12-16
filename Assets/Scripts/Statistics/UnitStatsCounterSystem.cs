@@ -8,7 +8,7 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
-using UnitState.SocialEventState;
+using UnitState.SocialState;
 using Unity.Entities;
 
 namespace Statistics

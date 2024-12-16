@@ -1,7 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace UnitState.SocialEventState
+namespace UnitState.SocialState
 {
     public struct SocialEvent : IComponentData
     {
