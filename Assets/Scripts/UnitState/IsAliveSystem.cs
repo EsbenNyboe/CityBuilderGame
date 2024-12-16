@@ -16,6 +16,7 @@ namespace UnitState
     {
     }
 
+
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial struct IsAliveSystem : ISystem
     {

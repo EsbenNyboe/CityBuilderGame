@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace UnitSpawn
 {
-    [UpdateInGroup(typeof(LifetimeSystemGroup))]
+    [UpdateInGroup(typeof(LifetimeSystemGroup), OrderFirst = true)]
     public partial class SpawnUnitsSystem : SystemBase
     {
         protected override void OnCreate()

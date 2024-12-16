@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace UnitSpawn
 {
-    [UpdateInGroup(typeof(LifetimeSystemGroup))]
+    [UpdateInGroup(typeof(LifetimeSystemGroup), OrderFirst = true)]
     public partial class SpawnManagerSystem : SystemBase
     {
         private bool _initialized;
