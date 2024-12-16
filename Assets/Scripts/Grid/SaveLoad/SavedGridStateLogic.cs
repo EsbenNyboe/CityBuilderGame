@@ -3,7 +3,7 @@ using Inventory;
 using Rendering;
 using UnitBehaviours.Pathing;
 using UnitSpawn;
-using UnitState;
+using UnitState.AliveLogic;
 using UnitState.AliveState;
 using Unity.Collections;
 using Unity.Entities;

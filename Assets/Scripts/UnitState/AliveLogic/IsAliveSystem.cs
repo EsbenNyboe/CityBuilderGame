@@ -13,7 +13,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace UnitState
+namespace UnitState.AliveLogic
 {
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     [UpdateAfter(typeof(SocialEventSystem))]

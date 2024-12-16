@@ -1,7 +1,7 @@
 using Grid.GridVisuals;
 using GridEntityNS;
 using UnitBehaviours.Pathing;
-using UnitState;
+using UnitState.AliveLogic;
 using UnitState.AliveState;
 using Unity.Collections;
 using Unity.Entities;
