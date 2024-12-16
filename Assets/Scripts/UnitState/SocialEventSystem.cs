@@ -9,7 +9,7 @@ using UnityEngine;
 namespace UnitState
 {
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
-    [UpdateAfter(typeof(IsAliveSystem))]
+    [UpdateBefore(typeof(IsAliveSystem))]
     public partial struct SocialEventSystem : ISystem
     {
         private EntityQuery _socialEventQuery;

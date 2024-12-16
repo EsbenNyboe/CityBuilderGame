@@ -67,43 +67,15 @@ namespace UnitState
         public void OnUpdate(ref SystemState state)
         {
             state.Dependency.Complete();
-            if (_deadVillagerQuery.CalculateEntityCount() <= 0)
+            if (_deadVillagerQuery.CalculateEntityCount() <= 0 && _deadBoarQuery.CalculateEntityCount() <= 0)
             {
                 return;
             }
 
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var deadVillagers = _deadVillagerQuery.ToEntityArray(Allocator.TempJob);
-            using var invalidSocialEvents = new NativeList<Entity>(Allocator.Temp);
-            using var invalidSocialEventsWithVictim = new NativeList<Entity>(Allocator.Temp);
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
-
-            // Cleanup social events
-            foreach (var (socialEvent, entity) in SystemAPI.Query<RefRO<SocialEvent>>().WithEntityAccess())
-            {
-                for (var i = 0; i < deadVillagers.Length; i++)
-                {
-                    if (socialEvent.ValueRO.Perpetrator == deadVillagers[i])
-                    {
-                        invalidSocialEvents.Add(entity);
-                    }
-                }
-            }
-
-            // Cleanup social events with victim
-            foreach (var (socialEventWithVictim, entity) in SystemAPI.Query<RefRO<SocialEventWithVictim>>()
-                         .WithEntityAccess())
-            {
-                for (var i = 0; i < deadVillagers.Length; i++)
-                {
-                    if (socialEventWithVictim.ValueRO.Perpetrator == deadVillagers[i] ||
-                        socialEventWithVictim.ValueRO.Victim == deadVillagers[i])
-                    {
-                        invalidSocialEventsWithVictim.Add(entity);
-                    }
-                }
-            }
-
+            
             // Play death effect
             new PlayDeathEffectJob
             {
@@ -182,8 +154,6 @@ namespace UnitState
             state.EntityManager.DestroyEntity(_deadVillagerQuery);
             state.EntityManager.DestroyEntity(_deadBoarQuery);
             deadVillagers.Dispose();
-            state.EntityManager.DestroyEntity(invalidSocialEvents.AsArray());
-            state.EntityManager.DestroyEntity(invalidSocialEventsWithVictim.AsArray());
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
         }
