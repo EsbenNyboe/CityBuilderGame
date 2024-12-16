@@ -3,7 +3,6 @@ using Grid;
 using GridDebugging;
 using Rendering.SpriteTransformNS;
 using SystemGroups;
-using UnitAgency;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
 using UnitState.Mood;
