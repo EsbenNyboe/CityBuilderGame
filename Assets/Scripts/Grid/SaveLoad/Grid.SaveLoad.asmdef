@@ -1,0 +1,30 @@
+{
+    "name": "Grid.SaveLoad",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:734d92eba21c94caba915361bd5ac177",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:a5baed0c9693541a5bd947d336ec7659",
+        "GUID:2665a8d13d1b3f18800f46e256720795",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:64605a6d41928c749bd19e1c638118c3",
+        "GUID:77cb7d6edd6ae8c4ba572e0181fa4b6f",
+        "GUID:e2e57ed55f2dacc428217657f0ad5abe",
+        "GUID:0ce9bb3cbcc2c3a489fcca700ca05db8",
+        "GUID:08338cc7cfae87c4aa7664548c0ecaad",
+        "GUID:77a369867fe95fa41916d0b521ec91e0",
+        "GUID:b5763c641d0da06459a919ab0328df42",
+        "GUID:f0c834daa8711d1479a5901349a5e0a1",
+        "GUID:3bfbb78b9f106864082119014a2a55ba"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
