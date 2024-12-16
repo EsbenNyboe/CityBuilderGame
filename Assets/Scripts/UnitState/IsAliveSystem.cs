@@ -1,6 +1,6 @@
 using Events;
 using Grid;
-using UnitBehaviours;
+using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting;
 using UnitState.AliveState;
 using UnitState.SocialState;

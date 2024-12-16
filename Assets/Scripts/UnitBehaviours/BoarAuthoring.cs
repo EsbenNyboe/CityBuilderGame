@@ -4,6 +4,7 @@ using Rendering.SpriteTransformNS;
 using UnitAgency.Data;
 using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.Pathing;
+using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting;
 using UnitControl;
 using UnitState.AliveState;
@@ -14,10 +15,6 @@ using UnityEngine;
 
 namespace UnitBehaviours
 {
-    public struct Boar : IComponentData
-    {
-    }
-
     public class BoarAuthoring : MonoBehaviour
     {
         [SerializeField] private float _maxHealth;

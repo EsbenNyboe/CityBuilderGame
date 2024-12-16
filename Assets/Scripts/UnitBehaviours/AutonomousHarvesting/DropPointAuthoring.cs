@@ -1,4 +1,5 @@
 using GridEntityNS;
+using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting;
 using Unity.Entities;
 using UnityEngine;
@@ -17,9 +18,5 @@ namespace UnitBehaviours.AutonomousHarvesting
                 AddComponent<QuadrantEntity>(entity);
             }
         }
-    }
-
-    public struct DropPoint : IComponentData
-    {
     }
 }

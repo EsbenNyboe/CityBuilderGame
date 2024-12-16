@@ -4,6 +4,7 @@ using Rendering.SpriteTransformNS;
 using UnitAgency.Data;
 using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.Pathing;
+using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting;
 using UnitControl;
 using UnitSpawn;
@@ -15,10 +16,6 @@ using UnityEngine;
 
 namespace UnitBehaviours
 {
-    public struct Villager : IComponentData
-    {
-    }
-
     public class VillagerAuthoring : MonoBehaviour
     {
         [SerializeField] private float _maxHealth = 100f;

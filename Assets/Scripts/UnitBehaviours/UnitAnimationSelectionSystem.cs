@@ -3,6 +3,7 @@ using Rendering;
 using SystemGroups;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
+using UnitBehaviours.Tags;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
 using Unity.Burst;

@@ -2,9 +2,9 @@
 using Grid;
 using Inventory;
 using SystemGroups;
-using UnitAgency;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
+using UnitBehaviours.Tags;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;

@@ -1,5 +1,5 @@
 using Effects.SocialEffectsRendering;
-using UnitBehaviours;
+using UnitBehaviours.Tags;
 using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Entities;
