@@ -3,6 +3,7 @@ using Grid;
 using UnitBehaviours;
 using UnitBehaviours.Targeting;
 using UnitState.AliveState;
+using UnitState.SocialEventState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;

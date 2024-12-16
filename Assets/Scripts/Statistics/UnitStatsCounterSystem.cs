@@ -1,6 +1,5 @@
 using PathInvalidation;
 using Rendering.SpriteTransformNS;
-using UnitAgency;
 using UnitAgency.Data;
 using UnitBehaviours;
 using UnitBehaviours.AutonomousHarvesting;
@@ -9,7 +8,7 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
-using UnitState;
+using UnitState.SocialEventState;
 using Unity.Entities;
 
 namespace Statistics
