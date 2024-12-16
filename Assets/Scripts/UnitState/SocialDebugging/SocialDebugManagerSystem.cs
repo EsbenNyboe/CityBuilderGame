@@ -1,7 +1,7 @@
 using System;
 using Unity.Entities;
 
-namespace UnitState
+namespace UnitState.SocialDebugging
 {
     public struct SocialDebugManager : IComponentData
     {

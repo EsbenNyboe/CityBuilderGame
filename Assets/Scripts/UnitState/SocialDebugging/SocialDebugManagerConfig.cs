@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnitState
+namespace UnitState.SocialDebugging
 {
     public class SocialDebugManagerConfig : MonoBehaviour
     {
