@@ -4,6 +4,7 @@ using Rendering;
 using UnitBehaviours.Pathing;
 using UnitSpawn;
 using UnitState;
+using UnitState.AliveState;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;

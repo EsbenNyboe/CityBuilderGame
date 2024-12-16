@@ -2,6 +2,7 @@ using Grid.GridVisuals;
 using GridEntityNS;
 using UnitBehaviours.Pathing;
 using UnitState;
+using UnitState.AliveState;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;

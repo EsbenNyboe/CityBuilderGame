@@ -1,7 +1,7 @@
 using Grid;
 using Rendering;
 using SystemGroups;
-using UnitState;
+using UnitState.AliveState;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;

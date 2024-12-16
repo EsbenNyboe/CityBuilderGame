@@ -4,6 +4,7 @@ using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.UnitManagers;
 using UnitState;
+using UnitState.AliveState;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;

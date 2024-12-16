@@ -7,7 +7,7 @@ using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using UnitControl;
 using UnitSpawn;
-using UnitState;
+using UnitState.AliveState;
 using UnitState.Mood;
 using Unity.Entities;
 using Unity.Mathematics;

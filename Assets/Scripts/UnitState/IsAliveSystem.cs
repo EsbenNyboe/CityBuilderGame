@@ -2,6 +2,7 @@ using Events;
 using Grid;
 using UnitBehaviours;
 using UnitBehaviours.Targeting;
+using UnitState.AliveState;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -12,11 +13,6 @@ using Unity.Transforms;
 
 namespace UnitState
 {
-    public struct IsAlive : IComponentData, IEnableableComponent
-    {
-    }
-
-
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
     public partial struct IsAliveSystem : ISystem
     {
@@ -108,17 +104,17 @@ namespace UnitState
             }
 
             // Play death effect
-            new PlayDeathEffectJob
+            JobChunkExtensions.ScheduleParallel(new PlayDeathEffectJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 UnitType = UnitType.Villager
-            }.ScheduleParallel(_deadVillagerQuery, state.Dependency).Complete();
+            }, _deadVillagerQuery, state.Dependency).Complete();
 
-            new PlayDeathEffectJob
+            JobChunkExtensions.ScheduleParallel(new PlayDeathEffectJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 UnitType = UnitType.Boar
-            }.ScheduleParallel(_deadBoarQuery, state.Dependency).Complete();
+            }, _deadBoarQuery, state.Dependency).Complete();
 
             // Cleanup grid
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithDisabled<IsAlive>()

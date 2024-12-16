@@ -6,7 +6,7 @@ using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting;
 using UnitControl;
-using UnitState;
+using UnitState.AliveState;
 using UnitState.Mood;
 using Unity.Entities;
 using Unity.Mathematics;
