@@ -1,6 +1,6 @@
 using GridEntityNS;
 using UnitBehaviours.Tags;
-using UnitBehaviours.Targeting;
+using UnitBehaviours.Targeting.Core;
 using Unity.Entities;
 using UnityEngine;
 

@@ -1,7 +1,7 @@
 ﻿using Grid;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
-using UnitBehaviours.Targeting;
+using UnitBehaviours.Targeting.Core;
 using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Collections;

@@ -2,16 +2,17 @@
     "name": "Rendering",
     "rootNamespace": "",
     "references": [
-        "GUID:734d92eba21c94caba915361bd5ac177",
-        "GUID:a5baed0c9693541a5bd947d336ec7659",
         "GUID:d8b63aba1907145bea998dd612889d6b",
-        "GUID:2665a8d13d1b3f18800f46e256720795",
+        "GUID:734d92eba21c94caba915361bd5ac177",
         "GUID:e0cd26848372d4e5c891c569017e11f1",
-        "GUID:0ce9bb3cbcc2c3a489fcca700ca05db8",
+        "GUID:a5baed0c9693541a5bd947d336ec7659",
+        "GUID:2665a8d13d1b3f18800f46e256720795",
+        "GUID:8819f35a0fc84499b990e90a4ca1911f",
         "GUID:6411a8170146f004ab12f497fc69cf0c",
         "GUID:64605a6d41928c749bd19e1c638118c3",
-        "GUID:8819f35a0fc84499b990e90a4ca1911f",
-        "GUID:fe58759d104d0ca48a418f92469a3dc8"
+        "GUID:fe58759d104d0ca48a418f92469a3dc8",
+        "GUID:b6c21cf4ec714c747b3d5473b8674beb",
+        "GUID:0ce9bb3cbcc2c3a489fcca700ca05db8"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -11,7 +11,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace UnitBehaviours.Targeting
+namespace UnitBehaviours.Targeting.Core
 {
     public struct QuadrantEntity : IComponentData
     {

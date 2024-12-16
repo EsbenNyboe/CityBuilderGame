@@ -1,5 +1,5 @@
 using GridEntityNS;
-using UnitBehaviours.Targeting;
+using UnitBehaviours.Targeting.Core;
 using Unity.Entities;
 using UnityEngine;
 
