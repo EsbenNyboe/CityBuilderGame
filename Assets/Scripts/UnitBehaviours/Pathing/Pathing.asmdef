@@ -1,0 +1,26 @@
+{
+    "name": "Pathing",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:734d92eba21c94caba915361bd5ac177",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:2665a8d13d1b3f18800f46e256720795",
+        "GUID:a5baed0c9693541a5bd947d336ec7659",
+        "GUID:64605a6d41928c749bd19e1c638118c3",
+        "GUID:77cb7d6edd6ae8c4ba572e0181fa4b6f",
+        "GUID:48f9851da0e33394db4fe25b5e584188",
+        "GUID:cc1321d3436f99243a2d3fa8df57ca66",
+        "GUID:08338cc7cfae87c4aa7664548c0ecaad",
+        "GUID:91b910287b45a1f4f98212f6a426771c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
