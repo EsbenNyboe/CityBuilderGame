@@ -12,7 +12,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace UnitState
+namespace UnitState.SocialLogic
 {
     public partial struct SocialRelationshipsDebugSystem : ISystem
     {

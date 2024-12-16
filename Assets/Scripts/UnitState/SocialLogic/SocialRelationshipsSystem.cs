@@ -8,7 +8,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 
-namespace UnitState
+namespace UnitState.SocialLogic
 {
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct SocialRelationshipsSystem : ISystem

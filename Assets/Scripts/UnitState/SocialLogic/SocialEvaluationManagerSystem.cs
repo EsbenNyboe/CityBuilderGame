@@ -9,7 +9,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace UnitState
+namespace UnitState.SocialLogic
 {
     public struct SocialEvaluationManager : IComponentData
     {

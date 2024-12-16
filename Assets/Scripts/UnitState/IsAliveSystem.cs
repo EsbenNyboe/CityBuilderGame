@@ -3,6 +3,7 @@ using Grid;
 using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting;
 using UnitState.AliveState;
+using UnitState.SocialLogic;
 using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Collections;
@@ -15,6 +16,7 @@ using Unity.Transforms;
 namespace UnitState
 {
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
+    [UpdateAfter(typeof(SocialEventSystem))]
     public partial struct IsAliveSystem : ISystem
     {
         private EntityQuery _aliveVillagerQuery;
@@ -75,7 +77,7 @@ namespace UnitState
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var deadVillagers = _deadVillagerQuery.ToEntityArray(Allocator.TempJob);
             var ecb = new EntityCommandBuffer(Allocator.TempJob);
-            
+
             // Play death effect
             new PlayDeathEffectJob
             {

@@ -7,10 +7,9 @@ using Unity.Entities;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace UnitState
+namespace UnitState.SocialLogic
 {
     [UpdateInGroup(typeof(PresentationSystemGroup), OrderLast = true)]
-    [UpdateBefore(typeof(IsAliveSystem))]
     public partial struct SocialEventSystem : ISystem
     {
         private EntityQuery _socialEventQuery;
