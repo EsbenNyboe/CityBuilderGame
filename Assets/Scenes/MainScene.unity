@@ -7203,7 +7203,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 1323b19f37a453a4a9936361b9a0ef2f, type: 2}
+  - {fileID: 2100000, guid: d1abcd275ffea6d4ebee7ad0e905954b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7313,9 +7313,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6756d81dbd32014bbe35442b31baf53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _showOccupiableGrid: 0
-  _showWalkableGrid: 0
-  _showInteractableGrid: 0
+  _showOccupiableGrid: 1
+  _showWalkableGrid: 1
+  _showInteractableGrid: 1
 --- !u!4 &1176266414
 Transform:
   m_ObjectHideFlags: 0
@@ -9830,11 +9830,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2834f6b9a8315841a9e3ad9c3eba819, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _pathMeshPrefab: {fileID: 7977446665837032940, guid: 7aec4fee79d6fcc4c8fcd9b45b67502e, type: 3}
-  _healthBarMeshPrefab: {fileID: 8827736116127618180, guid: f6f7339ab80946e44910e0a7b1a229fe, type: 3}
-  _pathDebugMeshFilter: {fileID: 1952215288}
-  _interactableMeshFilter: {fileID: 2052204911}
-  _occupationDebugMeshFilter: {fileID: 1173363237}
+  _meshRendererPrefab: {fileID: 7977446665837032940, guid: 2038d980da9f0164c944fc8709fcea55, type: 3}
+  _groundMaterial: {fileID: 2100000, guid: 94133514676751d499aad5421638e0f1, type: 2}
+  _healthBarMaterial: {fileID: 2100000, guid: 1323b19f37a453a4a9936361b9a0ef2f, type: 2}
+  _pathDebugMaterial: {fileID: 2100000, guid: 50ef91a3bef6480419ea89a59475bfeb, type: 2}
+  _interactableDebugMaterial: {fileID: 2100000, guid: 21187d45f3f5f034abb828bee2d30340, type: 2}
+  _occupationDebugMaterial: {fileID: 2100000, guid: d1abcd275ffea6d4ebee7ad0e905954b, type: 2}
 --- !u!4 &1762969891
 Transform:
   m_ObjectHideFlags: 0
@@ -9848,7 +9849,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1952215290}
   - {fileID: 2052204913}
   - {fileID: 1173363239}
   m_Father: {fileID: 0}
@@ -11090,89 +11090,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1942020713}
   m_CullTransparentMesh: 1
---- !u!1 &1952215287
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1952215290}
-  - component: {fileID: 1952215288}
-  - component: {fileID: 1952215289}
-  m_Layer: 0
-  m_Name: DebugPathMesh
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!33 &1952215288
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1952215287}
-  m_Mesh: {fileID: 0}
---- !u!23 &1952215289
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1952215287}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 50ef91a3bef6480419ea89a59475bfeb, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!4 &1952215290
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1952215287}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1762969891}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1963309746
 GameObject:
   m_ObjectHideFlags: 0

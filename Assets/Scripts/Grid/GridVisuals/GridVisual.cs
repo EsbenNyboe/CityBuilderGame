@@ -16,7 +16,7 @@ namespace Grid.GridVisuals
         private int[] _meshStartXs;
         private MeshData[] _meshDatas;
 
-        public void CreateMeshFilters(int gridHeight, int gridWidth, GameObject prefab, Transform parent)
+        public void CreateMeshFilters(int gridHeight, int gridWidth, GameObject prefab, Transform parent, Material material)
         {
             if (_meshFilters != null)
             {
@@ -43,7 +43,10 @@ namespace Grid.GridVisuals
             var meshWidthSum = 0;
             for (var i = 0; i < meshCount; i++)
             {
-                _meshFilters[i] = Object.Instantiate(prefab).GetComponent<MeshFilter>();
+                var meshRenderer = Object.Instantiate(prefab).GetComponent<MeshRenderer>();
+                meshRenderer.material = material;
+                meshRenderer.gameObject.name = "Mesh: " + material.name;
+                _meshFilters[i] = meshRenderer.GetComponent<MeshFilter>();
                 _meshFilters[i].transform.SetParent(parent);
                 _meshFilters[i].mesh = _meshes[i] = new Mesh();
                 var meshWidth = maxMeshWidth;
@@ -61,7 +64,7 @@ namespace Grid.GridVisuals
             }
         }
 
-        public void UpdateVisualNew(GridManager gridManager)
+        public void UpdateVisual(GridManager gridManager)
         {
             for (var i = 0; i < _meshes.Length; i++)
             {
@@ -74,7 +77,8 @@ namespace Grid.GridVisuals
                     for (var y = 0; y < gridHeight; y++)
                     {
                         var index = gridManager.GetIndex(x, y);
-                        var worldPosition = new Vector3(x, y, 0f); // GridManager currently only supports a cellSize of one, and originPosition of zero
+                        var worldPosition =
+                            new Vector3(x, y, 0f); // GridManager currently only supports a cellSize of one, and originPosition of zero
                         var quadSize = Vector3.one; // GridManager currently only supports a cellSize of one
 
                         if (!TryGetUpdatedCellVisual(gridManager, index, out var uv00, out var uv11, ref quadSize, ref worldPosition))
@@ -95,51 +99,12 @@ namespace Grid.GridVisuals
             }
         }
 
-        public void CreateMeshContainer(int length)
+        public void SetActive(bool active)
         {
-            _meshes = new Mesh[length];
-        }
-
-        public Mesh GetMesh(int index = 0)
-        {
-            _meshes[index] = new Mesh();
-            return _meshes[index];
-        }
-
-        public void InitializeMeshData(int gridSize, int slicedWidth = 0)
-        {
-            _meshWidth = slicedWidth;
-            MeshUtils.CreateEmptyMeshArrays(gridSize, out _vertices, out _uvs,
-                out _triangles);
-        }
-
-        public void UpdateVisual(GridManager gridManager, int meshIndex = 0, int startX = 0)
-        {
-            var gridWidth = _meshWidth > 0 ? startX + _meshWidth : gridManager.Width;
-            var gridHeight = gridManager.Height;
-
-            for (var x = startX; x < gridWidth; x++)
+            foreach (var meshFilter in _meshFilters)
             {
-                for (var y = 0; y < gridHeight; y++)
-                {
-                    var index = gridManager.GetIndex(x, y);
-                    var worldPosition = new Vector3(x, y, 0f); // GridManager currently only supports a cellSize of one, and originPosition of zero
-                    var quadSize = Vector3.one; // GridManager currently only supports a cellSize of one
-
-                    if (!TryGetUpdatedCellVisual(gridManager, index, out var uv00, out var uv11, ref quadSize, ref worldPosition))
-                    {
-                        continue;
-                    }
-
-                    MeshUtils.AddToMeshArrays(_vertices, _uvs, _triangles, index - startX * gridHeight, worldPosition + quadSize * .0f, 0,
-                        quadSize,
-                        uv00, uv11);
-                }
+                meshFilter.gameObject.SetActive(active);
             }
-
-            _meshes[meshIndex].vertices = _vertices;
-            _meshes[meshIndex].uv = _uvs;
-            _meshes[meshIndex].triangles = _triangles;
         }
 
         protected abstract bool TryGetUpdatedCellVisual(GridManager gridManager, int index, out Vector2 uv00, out Vector2 uv11, ref Vector3 quadSize,
