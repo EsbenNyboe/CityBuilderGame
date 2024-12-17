@@ -7203,7 +7203,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 1323b19f37a453a4a9936361b9a0ef2f, type: 2}
+  - {fileID: 2100000, guid: d1abcd275ffea6d4ebee7ad0e905954b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7313,9 +7313,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6756d81dbd32014bbe35442b31baf53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _showOccupiableGrid: 0
-  _showWalkableGrid: 0
-  _showInteractableGrid: 0
+  _showOccupiableGrid: 1
+  _showWalkableGrid: 1
+  _showInteractableGrid: 1
 --- !u!4 &1176266414
 Transform:
   m_ObjectHideFlags: 0
@@ -9834,8 +9834,8 @@ MonoBehaviour:
   _groundMaterial: {fileID: 2100000, guid: 94133514676751d499aad5421638e0f1, type: 2}
   _healthBarMaterial: {fileID: 2100000, guid: 1323b19f37a453a4a9936361b9a0ef2f, type: 2}
   _pathDebugMaterial: {fileID: 2100000, guid: 50ef91a3bef6480419ea89a59475bfeb, type: 2}
-  _interactableMeshFilter: {fileID: 2052204911}
-  _occupationDebugMeshFilter: {fileID: 1173363237}
+  _interactableDebugMaterial: {fileID: 2100000, guid: 21187d45f3f5f034abb828bee2d30340, type: 2}
+  _occupationDebugMaterial: {fileID: 2100000, guid: d1abcd275ffea6d4ebee7ad0e905954b, type: 2}
 --- !u!4 &1762969891
 Transform:
   m_ObjectHideFlags: 0

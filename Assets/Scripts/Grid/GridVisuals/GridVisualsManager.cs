@@ -13,15 +13,14 @@ namespace Grid.GridVisuals
         [SerializeField] private Material _groundMaterial;
         [SerializeField] private Material _healthBarMaterial;
         [SerializeField] private Material _pathDebugMaterial;
-
-        [SerializeField] private MeshFilter _interactableMeshFilter;
-        [SerializeField] private MeshFilter _occupationDebugMeshFilter;
+        [SerializeField] private Material _interactableDebugMaterial;
+        [SerializeField] private Material _occupationDebugMaterial;
 
         private readonly PathGridVisual _groundVisual = new();
         private readonly PathGridDebugVisual _pathDebugVisual = new();
-        private readonly InteractableGridDebugVisual _interactableGridVisual = new();
+        private readonly InteractableGridDebugVisual _interactableDebugVisual = new();
         private readonly HealthbarGridVisual _healthBarVisual = new();
-        private readonly OccupationDebugGridVisual _occupationDebugGridVisual = new();
+        private readonly OccupationDebugGridVisual _occupationDebugVisual = new();
 
         private bool _hasUpdatedOnce;
 
@@ -56,16 +55,8 @@ namespace Grid.GridVisuals
                 _groundVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _groundMaterial);
                 _healthBarVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _healthBarMaterial);
                 _pathDebugVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _pathDebugMaterial);
-
-                _interactableGridVisual.CreateMeshContainer(1);
-                _occupationDebugGridVisual.CreateMeshContainer(1);
-
-                _interactableMeshFilter.mesh = _interactableGridVisual.GetMesh();
-                _occupationDebugMeshFilter.mesh = _occupationDebugGridVisual.GetMesh();
-
-                var gridSize = gridManager.WalkableGrid.Length;
-                _interactableGridVisual.InitializeMeshData(gridSize);
-                _occupationDebugGridVisual.InitializeMeshData(gridSize);
+                _interactableDebugVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _interactableDebugMaterial);
+                _occupationDebugVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _occupationDebugMaterial);
             }
 
             var wasDirty = false;
@@ -102,12 +93,12 @@ namespace Grid.GridVisuals
                 if (!_hasUpdatedOnce)
                 {
                     // This visual is a static background:
-                    _groundVisual.UpdateVisualNew(gridManager);
+                    _groundVisual.UpdateVisual(gridManager);
                 }
 
                 if (showDebug)
                 {
-                    _pathDebugVisual.UpdateVisualNew(gridManager);
+                    _pathDebugVisual.UpdateVisual(gridManager);
                 }
             }
         }
@@ -119,14 +110,14 @@ namespace Grid.GridVisuals
                 gridManager.DamageableGridIsDirty = false;
                 wasDirty = true;
 
-                _healthBarVisual.UpdateVisualNew(gridManager);
+                _healthBarVisual.UpdateVisual(gridManager);
             }
         }
 
         private void TryUpdateOccupiableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
         {
             var showDebug = DebugGlobals.ShowOccupationGrid();
-            _occupationDebugMeshFilter.gameObject.SetActive(showDebug);
+            _occupationDebugVisual.SetActive(showDebug);
 
             if (!showDebug)
             {
@@ -137,17 +128,20 @@ namespace Grid.GridVisuals
             {
                 gridManager.OccupiableGridIsDirty = false;
                 wasDirty = true;
-                _occupationDebugGridVisual.UpdateVisual(gridManager);
+                _occupationDebugVisual.UpdateVisual(gridManager);
             }
         }
 
         private void TryUpdateInteractableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
         {
+            var showDebug = DebugGlobals.ShowInteractableGrid();
+            _interactableDebugVisual.SetActive(showDebug);
+
             if (gridManager.InteractableGridIsDirty)
             {
                 gridManager.InteractableGridIsDirty = false;
                 wasDirty = true;
-                _interactableGridVisual.UpdateVisual(gridManager);
+                _interactableDebugVisual.UpdateVisual(gridManager);
             }
         }
     }
