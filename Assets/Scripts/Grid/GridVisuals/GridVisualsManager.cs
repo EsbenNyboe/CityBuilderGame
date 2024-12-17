@@ -11,7 +11,6 @@ namespace Grid.GridVisuals
         [SerializeField] private GameObject _meshRendererPrefab;
 
         [SerializeField] private Material _groundMaterial;
-        [SerializeField] private Material _healthBarMaterial;
         [SerializeField] private Material _pathDebugMaterial;
         [SerializeField] private Material _interactableDebugMaterial;
         [SerializeField] private Material _occupationDebugMaterial;
@@ -19,7 +18,6 @@ namespace Grid.GridVisuals
         private readonly PathGridVisual _groundVisual = new();
         private readonly PathGridDebugVisual _pathDebugVisual = new();
         private readonly InteractableGridDebugVisual _interactableDebugVisual = new();
-        private readonly HealthbarGridVisual _healthBarVisual = new();
         private readonly OccupationDebugGridVisual _occupationDebugVisual = new();
 
         private bool _hasUpdatedOnce;
@@ -53,7 +51,6 @@ namespace Grid.GridVisuals
                 var height = gridManager.Height;
                 var width = gridManager.Width;
                 _groundVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _groundMaterial);
-                _healthBarVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _healthBarMaterial);
                 _pathDebugVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _pathDebugMaterial);
                 _interactableDebugVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _interactableDebugMaterial);
                 _occupationDebugVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _occupationDebugMaterial);
@@ -109,8 +106,6 @@ namespace Grid.GridVisuals
             {
                 gridManager.DamageableGridIsDirty = false;
                 wasDirty = true;
-
-                _healthBarVisual.UpdateVisual(gridManager);
             }
         }
 
