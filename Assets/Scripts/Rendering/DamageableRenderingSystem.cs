@@ -89,11 +89,11 @@ namespace Rendering
                     > 0.4f => yellow,
                     _ => red
                 };
-                SpriteUvArray[index] = new Vector4(0.1f, 1f, color, 0);
+                SpriteUvArray[index] = new Vector4(0, 1f, color, 0);
 
                 var quadHeight = 0.1f;
                 var widthPercentage = 0.75f;
-                var quadWidth = health * widthPercentage;
+                var quadWidth = health >= 1 ? 0 : health * widthPercentage;
                 position.x -= (1 - health) / 2;
                 position.y += 0.4f;
 
