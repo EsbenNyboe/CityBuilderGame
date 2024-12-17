@@ -9830,8 +9830,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2834f6b9a8315841a9e3ad9c3eba819, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _pathMeshPrefab: {fileID: 7977446665837032940, guid: 7aec4fee79d6fcc4c8fcd9b45b67502e, type: 3}
-  _healthBarMeshPrefab: {fileID: 8827736116127618180, guid: f6f7339ab80946e44910e0a7b1a229fe, type: 3}
+  _meshRendererPrefab: {fileID: 7977446665837032940, guid: 2038d980da9f0164c944fc8709fcea55, type: 3}
+  _groundMaterial: {fileID: 2100000, guid: 94133514676751d499aad5421638e0f1, type: 2}
+  _healthBarMaterial: {fileID: 2100000, guid: 1323b19f37a453a4a9936361b9a0ef2f, type: 2}
   _pathDebugMeshFilter: {fileID: 1952215288}
   _interactableMeshFilter: {fileID: 2052204911}
   _occupationDebugMeshFilter: {fileID: 1173363237}

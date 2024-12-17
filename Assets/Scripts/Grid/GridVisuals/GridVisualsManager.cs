@@ -8,8 +8,10 @@ namespace Grid.GridVisuals
     {
         public static GridVisualsManager Instance;
 
-        [SerializeField] private GameObject _pathMeshPrefab;
-        [SerializeField] private GameObject _healthBarMeshPrefab;
+        [SerializeField] private GameObject _meshRendererPrefab;
+
+        [SerializeField] private Material _groundMaterial;
+        [SerializeField] private Material _healthBarMaterial;
 
         [SerializeField] private MeshFilter _pathDebugMeshFilter;
         [SerializeField] private MeshFilter _interactableMeshFilter;
@@ -51,8 +53,8 @@ namespace Grid.GridVisuals
 
                 var height = gridManager.Height;
                 var width = gridManager.Width;
-                _pathGridVisual.CreateMeshFilters(height, width, _pathMeshPrefab, transform);
-                _healthbarGridVisual.CreateMeshFilters(height, width, _healthBarMeshPrefab, transform);
+                _pathGridVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _groundMaterial);
+                _healthbarGridVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _healthBarMaterial);
 
                 _pathGridDebugVisual.CreateMeshContainer(1);
                 _interactableGridVisual.CreateMeshContainer(1);

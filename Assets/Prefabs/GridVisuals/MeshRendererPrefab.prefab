@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5459361438225774732}
   - component: {fileID: 4368989327745327205}
   m_Layer: 0
-  m_Name: PathMesh
+  m_Name: MeshRendererPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -60,8 +60,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 94133514676751d499aad5421638e0f1, type: 2}
+  m_Materials: []
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
