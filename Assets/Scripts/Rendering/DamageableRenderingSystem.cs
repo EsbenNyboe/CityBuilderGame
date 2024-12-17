@@ -29,15 +29,15 @@ namespace Rendering
             var spriteUvArray = new NativeArray<Vector4>(damageableCount, Allocator.TempJob);
             var spriteMatrixArray = new NativeArray<Matrix4x4>(damageableCount, Allocator.TempJob);
 
-            var damageableTransforms = _damageableQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
             var damageables = _damageableQuery.ToComponentDataArray<Damageable>(Allocator.TempJob);
-            var createSpriteArraysJob = new CreateSpriteArraysJob
+            var damageableTransforms = _damageableQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
+            new CreateSpriteArraysJob
             {
                 Damageables = damageables,
                 DamageableTransforms = damageableTransforms,
                 SpriteUvArray = spriteUvArray,
                 SpriteMatrixArray = spriteMatrixArray
-            };
+            }.Schedule(damageableCount, 10).Complete();
 
             var mesh = DamageableRenderingConfig.Instance.Mesh;
             var material = DamageableRenderingConfig.Instance.Material;
@@ -78,7 +78,26 @@ namespace Rendering
 
             public void Execute(int index)
             {
-                // SpriteUvArray[index] = new Vector4()
+                var health = Damageables[index].HealthNormalized;
+                var position = DamageableTransforms[index].Position;
+                var green = 0.9f;
+                var yellow = 0.4f;
+                var red = 0.1f;
+                var color = health switch
+                {
+                    > 0.85f => green,
+                    > 0.4f => yellow,
+                    _ => red
+                };
+                SpriteUvArray[index] = new Vector4(0.1f, 1f, color, 0);
+
+                var quadHeight = 0.1f;
+                var widthPercentage = 0.75f;
+                var quadWidth = health * widthPercentage;
+                position.x -= (1 - health) / 2;
+                position.y += 0.4f;
+
+                SpriteMatrixArray[index] = Matrix4x4.TRS(position, quaternion.identity, new Vector3(quadWidth, quadHeight, 1));
             }
         }
     }
