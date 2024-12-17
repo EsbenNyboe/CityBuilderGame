@@ -14,6 +14,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
                 AddComponent<Tree>(entity);
                 AddComponent<GridEntity>(entity);
+                AddComponent<Damageable>(entity);
                 AddComponent<QuadrantEntity>(entity);
             }
         }

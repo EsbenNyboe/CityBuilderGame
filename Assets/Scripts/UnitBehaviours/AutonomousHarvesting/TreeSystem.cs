@@ -1,31 +1,28 @@
-using Grid;
+using GridEntityNS;
 using Rendering;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
-using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
+    [UpdateAfter(typeof(DamageableSystem))]
     public partial struct TreeSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<WorldSpriteSheetManager>();
-            state.RequireForUpdate<GridManager>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
 
             new SetTreeStateJob
             {
-                GridManager = gridManager,
                 WorldSpriteSheetManager = worldSpriteSheetManager
             }.ScheduleParallel(state.Dependency).Complete();
         }
@@ -33,15 +30,12 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         private partial struct SetTreeStateJob : IJobEntity
         {
-            [ReadOnly] public GridManager GridManager;
-
             [ReadOnly] [NativeDisableContainerSafetyRestriction]
             public WorldSpriteSheetManager WorldSpriteSheetManager;
 
-            public void Execute(in Tree _, in LocalTransform localTransform, ref WorldSpriteSheetState worldSpriteSheetState)
+            public void Execute(in Tree _, in Damageable damageable, ref WorldSpriteSheetState worldSpriteSheetState)
             {
-                var gridIndex = GridManager.GetIndex(localTransform.Position);
-                var health = GridManager.GetHealthNormalized(gridIndex);
+                var health = damageable.HealthNormalized;
                 var damagedTreeVariants = WorldSpriteSheetManager.Entries[(int)WorldSpriteSheetEntryType.TreeDamaged];
                 var damagedTreeVariantsCount = damagedTreeVariants.EntryColumns.Length;
 
