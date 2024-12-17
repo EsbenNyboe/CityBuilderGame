@@ -99,6 +99,14 @@ namespace Grid.GridVisuals
             }
         }
 
+        public void SetActive(bool active)
+        {
+            foreach (var meshFilter in _meshFilters)
+            {
+                meshFilter.gameObject.SetActive(active);
+            }
+        }
+
         public void CreateMeshContainer(int length)
         {
             _meshes = new Mesh[length];

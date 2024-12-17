@@ -12,15 +12,15 @@ namespace Grid.GridVisuals
 
         [SerializeField] private Material _groundMaterial;
         [SerializeField] private Material _healthBarMaterial;
+        [SerializeField] private Material _pathDebugMaterial;
 
-        [SerializeField] private MeshFilter _pathDebugMeshFilter;
         [SerializeField] private MeshFilter _interactableMeshFilter;
         [SerializeField] private MeshFilter _occupationDebugMeshFilter;
 
-        private readonly PathGridVisual _pathGridVisual = new();
-        private readonly PathGridDebugVisual _pathGridDebugVisual = new();
+        private readonly PathGridVisual _groundVisual = new();
+        private readonly PathGridDebugVisual _pathDebugVisual = new();
         private readonly InteractableGridDebugVisual _interactableGridVisual = new();
-        private readonly HealthbarGridVisual _healthbarGridVisual = new();
+        private readonly HealthbarGridVisual _healthBarVisual = new();
         private readonly OccupationDebugGridVisual _occupationDebugGridVisual = new();
 
         private bool _hasUpdatedOnce;
@@ -53,19 +53,17 @@ namespace Grid.GridVisuals
 
                 var height = gridManager.Height;
                 var width = gridManager.Width;
-                _pathGridVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _groundMaterial);
-                _healthbarGridVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _healthBarMaterial);
+                _groundVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _groundMaterial);
+                _healthBarVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _healthBarMaterial);
+                _pathDebugVisual.CreateMeshFilters(height, width, _meshRendererPrefab, transform, _pathDebugMaterial);
 
-                _pathGridDebugVisual.CreateMeshContainer(1);
                 _interactableGridVisual.CreateMeshContainer(1);
                 _occupationDebugGridVisual.CreateMeshContainer(1);
 
-                _pathDebugMeshFilter.mesh = _pathGridDebugVisual.GetMesh();
                 _interactableMeshFilter.mesh = _interactableGridVisual.GetMesh();
                 _occupationDebugMeshFilter.mesh = _occupationDebugGridVisual.GetMesh();
 
                 var gridSize = gridManager.WalkableGrid.Length;
-                _pathGridDebugVisual.InitializeMeshData(gridSize);
                 _interactableGridVisual.InitializeMeshData(gridSize);
                 _occupationDebugGridVisual.InitializeMeshData(gridSize);
             }
@@ -94,7 +92,7 @@ namespace Grid.GridVisuals
         private void TryUpdateWalkableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
         {
             var showDebug = DebugGlobals.ShowWalkableGrid();
-            _pathDebugMeshFilter.gameObject.SetActive(showDebug);
+            _pathDebugVisual.SetActive(showDebug);
 
             if (gridManager.WalkableGridIsDirty)
             {
@@ -104,12 +102,12 @@ namespace Grid.GridVisuals
                 if (!_hasUpdatedOnce)
                 {
                     // This visual is a static background:
-                    _pathGridVisual.UpdateVisualNew(gridManager);
+                    _groundVisual.UpdateVisualNew(gridManager);
                 }
 
                 if (showDebug)
                 {
-                    _pathGridDebugVisual.UpdateVisual(gridManager);
+                    _pathDebugVisual.UpdateVisualNew(gridManager);
                 }
             }
         }
@@ -121,7 +119,7 @@ namespace Grid.GridVisuals
                 gridManager.DamageableGridIsDirty = false;
                 wasDirty = true;
 
-                _healthbarGridVisual.UpdateVisualNew(gridManager);
+                _healthBarVisual.UpdateVisualNew(gridManager);
             }
         }
 
