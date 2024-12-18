@@ -29,6 +29,11 @@ namespace Rendering
             };
         }
 
+        public readonly int GetAnimationLength(WorldSpriteSheetEntryType type)
+        {
+            return Entries[(int)type].EntryRows.Length;
+        }
+
         public readonly void GetInventoryItemCoordinates(InventoryItem inventoryItem, out int column, out int row)
         {
             var entryType = inventoryItem switch
