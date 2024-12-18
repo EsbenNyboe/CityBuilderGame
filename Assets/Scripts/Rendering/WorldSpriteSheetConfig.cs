@@ -54,6 +54,7 @@ namespace Rendering
         BuildingStorageB,
         BoarStand,
         BoarRun,
+        BoarDead,
         SpearHolding,
         SpearThrowing,
         Spear,
