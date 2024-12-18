@@ -11,19 +11,28 @@ namespace Rendering.Cullable
 
     public partial struct RenderableSystem : ISystem
     {
-        private EntityQuery _query;
+        private EntityQuery _enabledQuery;
+        private EntityQuery _disabledQuery;
 
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<CameraInformation>();
-            _query = state.GetEntityQuery(new EntityQueryDesc
+            _enabledQuery = state.GetEntityQuery(new EntityQueryDesc
+            {
+                All = new ComponentType[]
+                {
+                    typeof(LocalTransform),
+                    typeof(Renderable)
+                }
+            });
+            _disabledQuery = state.GetEntityQuery(new EntityQueryDesc
             {
                 All = new ComponentType[]
                 {
                     typeof(LocalTransform)
                 },
-                Present = new ComponentType[]
+                Disabled = new ComponentType[]
                 {
                     typeof(Renderable)
                 }
@@ -35,15 +44,28 @@ namespace Rendering.Cullable
         {
             GetCameraBounds(ref state, out var yTop, out var yBottom, out var xLeft, out var xRight);
 
-            new CullJob
+            var ecbParallelWriter = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter();
+
+            state.Dependency = new CullJob
             {
-                EcbParallelWriter = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                    .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+                EcbParallelWriter = ecbParallelWriter,
                 XLeft = xLeft,
                 XRight = xRight,
                 YTop = yTop,
-                YBottom = yBottom
-            }.ScheduleParallel(_query, state.Dependency).Complete();
+                YBottom = yBottom,
+                WasVisible =  true
+            }.ScheduleParallel(_enabledQuery, state.Dependency);
+
+            state.Dependency = new CullJob
+            {
+                EcbParallelWriter = ecbParallelWriter,
+                XLeft = xLeft,
+                XRight = xRight,
+                YTop = yTop,
+                YBottom = yBottom,
+                WasVisible =  false
+            }.ScheduleParallel(_disabledQuery, state.Dependency);
         }
 
         [BurstCompile]
@@ -56,10 +78,15 @@ namespace Rendering.Cullable
             [ReadOnly] public float YTop; // Top most cull position
             [ReadOnly] public float YBottom; // Bottom most cull position
 
+            [ReadOnly] public bool WasVisible;
+
             public void Execute(in Entity entity, in LocalTransform localTransform, [EntityIndexInChunk] int index)
             {
                 var isVisible = IsWithinCameraBounds(localTransform);
-                EcbParallelWriter.SetComponentEnabled<Renderable>(index, entity, isVisible);
+                if (isVisible != WasVisible)
+                {
+                    EcbParallelWriter.SetComponentEnabled<Renderable>(index, entity, isVisible);
+                }
             }
 
             private bool IsWithinCameraBounds(LocalTransform localTransform)
