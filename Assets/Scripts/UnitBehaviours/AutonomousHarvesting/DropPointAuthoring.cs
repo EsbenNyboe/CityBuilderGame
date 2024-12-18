@@ -1,4 +1,5 @@
 using GridEntityNS;
+using Rendering.Cullable;
 using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting.Core;
 using Unity.Entities;
@@ -15,6 +16,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
                 AddComponent<DropPoint>(entity);
                 AddComponent<GridEntity>(entity);
+                AddComponent<Renderable>(entity);
                 AddComponent<QuadrantEntity>(entity);
             }
         }

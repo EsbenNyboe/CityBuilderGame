@@ -1,4 +1,5 @@
 using GridEntityNS;
+using Rendering.Cullable;
 using UnitBehaviours.Targeting.Core;
 using Unity.Entities;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
                 AddComponent<Tree>(entity);
                 AddComponent<GridEntity>(entity);
+                AddComponent<Renderable>(entity);
                 AddComponent<Damageable>(entity);
                 AddComponent<QuadrantEntity>(entity);
             }
