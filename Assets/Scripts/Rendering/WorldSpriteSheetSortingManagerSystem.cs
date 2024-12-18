@@ -1,5 +1,6 @@
 using GridEntityNS;
 using Inventory;
+using Rendering.Cullable;
 using SystemGroups;
 using Unity.Burst;
 using Unity.Collections;
@@ -45,7 +46,8 @@ namespace Rendering
                 ComponentType.ReadOnly<LocalTransform>());
             _gridEntityQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
                 ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<GridEntity>());
+                ComponentType.ReadOnly<GridEntity>(),
+                ComponentType.ReadOnly<Renderable>());
 
             state.RequireForUpdate<BeginPresentationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<WorldSpriteSheetSortingManager>();
@@ -215,10 +217,6 @@ namespace Rendering
 
             new CullJobOnGridEntities
             {
-                XLeft = xLeft,
-                XRight = xRight,
-                YTop = yTop,
-                YBottom = yBottom,
                 Pivots = pivots,
                 PivotCount = pivotCount,
                 SortingQueues = sortingQueues
@@ -549,11 +547,6 @@ namespace Rendering
         [BurstCompile]
         private partial struct CullJobOnGridEntities : IJobEntity
         {
-            [ReadOnly] public float XLeft; // Left most cull position
-            [ReadOnly] public float XRight; // Right most cull position
-            [ReadOnly] public float YTop; // Top most cull position
-            [ReadOnly] public float YBottom; // Bottom most cull position
-
             [ReadOnly] public NativeArray<float> Pivots;
             [ReadOnly] public int PivotCount;
 
@@ -563,20 +556,6 @@ namespace Rendering
             public void Execute(in Entity entity, in WorldSpriteSheetState worldSpriteSheetState, in LocalTransform localTransform)
             {
                 var position = localTransform.Position;
-                var positionX = position.x;
-                if (!(positionX > XLeft) || !(positionX < XRight))
-                {
-                    // Item is not within horizontal view-bounds. No need to render.
-                    return;
-                }
-
-                var positionY = position.y;
-                if (!(positionY > YBottom) || !(positionY < YTop))
-                {
-                    // Item is not within vertical view-bounds. No need to render.
-                    return;
-                }
-
                 var renderData = new RenderData
                 {
                     Entity = entity,
