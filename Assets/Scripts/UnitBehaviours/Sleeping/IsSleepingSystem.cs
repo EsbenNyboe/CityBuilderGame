@@ -14,11 +14,6 @@ using UnityEngine;
 
 namespace UnitBehaviours.Sleeping
 {
-    public struct IsSleeping : IComponentData
-    {
-        public bool IsInitialized;
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
     public partial struct IsSleepingSystem : ISystem
     {

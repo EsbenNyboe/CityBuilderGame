@@ -4,7 +4,7 @@ using Grid;
 using Grid.SectionSorting;
 using SystemGroups;
 using UnitBehaviours.Pathing;
-using UnitBehaviours.Tags;
+using UnitBehaviours.UnitConfigurators;
 using UnitBehaviours.UnitManagers;
 using UnitState.Mood;
 using UnitState.SocialDebugging;

@@ -6,11 +6,6 @@ using Unity.Transforms;
 
 namespace GridEntityNS
 {
-    public struct Damageable : IComponentData
-    {
-        public float HealthNormalized;
-    }
-
     public partial struct DamageableSystem : ISystem
     {
         public void OnCreate(ref SystemState state)

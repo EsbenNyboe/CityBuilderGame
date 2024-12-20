@@ -14,11 +14,6 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.Sleeping
 {
-    public struct IsSeekingBed : IComponentData
-    {
-        public int Attempts;
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsSeekingBedSystem : ISystem
     {

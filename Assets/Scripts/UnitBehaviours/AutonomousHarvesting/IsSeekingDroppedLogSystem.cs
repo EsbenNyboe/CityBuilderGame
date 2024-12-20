@@ -10,11 +10,6 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
-    public struct IsSeekingDroppedLog : IComponentData
-    {
-        public bool HasStartedMoving;
-    }
-
     public partial struct IsSeekingDroppedLogSystem : ISystem
     {
         [BurstCompile]

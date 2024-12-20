@@ -10,10 +10,6 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.Targeting
 {
-    public struct BoarIsCharging : IComponentData
-    {
-    }
-
     public partial struct BoarIsChargingSystem : ISystem
     {
         [BurstCompile]

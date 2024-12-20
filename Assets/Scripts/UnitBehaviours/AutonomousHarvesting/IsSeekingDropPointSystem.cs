@@ -4,7 +4,6 @@ using Inventory;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
-using UnitBehaviours.Tags;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -12,10 +11,6 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
-    public struct IsSeekingDropPoint : IComponentData
-    {
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsSeekingDropPointSystem : ISystem
     {

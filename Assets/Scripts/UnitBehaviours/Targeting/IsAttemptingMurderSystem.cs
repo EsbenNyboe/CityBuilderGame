@@ -9,10 +9,6 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.Targeting
 {
-    public struct IsAttemptingMurder : IComponentData
-    {
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsAttemptingMurderSystem : ISystem
     {

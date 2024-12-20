@@ -1,7 +1,7 @@
 using Audio;
 using Effects;
 using Rendering;
-using UnitBehaviours.Tags;
+using UnitBehaviours.UnitConfigurators;
 using UnitState.AliveState;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -10,13 +10,6 @@ using UnityEngine;
 
 namespace UnitBehaviours.Targeting
 {
-    public struct Spear : IComponentData
-    {
-        public float2 Direction;
-        public float2 CurrentPosition;
-        public int2 Target;
-    }
-
     public partial struct SpearSystem : ISystem
     {
         private EntityQuery _query;

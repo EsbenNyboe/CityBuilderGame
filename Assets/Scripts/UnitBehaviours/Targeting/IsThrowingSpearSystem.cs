@@ -11,15 +11,6 @@ using UnityEngine;
 
 namespace UnitBehaviours.Targeting
 {
-    public struct IsThrowingSpear : IComponentData
-    {
-        public Entity Target;
-    }
-
-    public struct IsHoldingSpear : IComponentData
-    {
-    }
-
     public partial struct IsThrowingSpearSystem : ISystem
     {
         public static readonly float Range = 5f;

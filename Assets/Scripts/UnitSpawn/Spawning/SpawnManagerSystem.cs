@@ -4,7 +4,7 @@ using CodeMonkey.Utils;
 using Grid;
 using Rendering;
 using SystemGroups;
-using UnitBehaviours.Tags;
+using UnitBehaviours.UnitConfigurators;
 using UnitState.AliveState;
 using Unity.Entities;
 using Unity.Mathematics;

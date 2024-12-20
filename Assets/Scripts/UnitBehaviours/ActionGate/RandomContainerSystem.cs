@@ -5,16 +5,6 @@ using Unity.Mathematics;
 
 namespace UnitBehaviours.ActionGateNS
 {
-    public struct RandomContainer : IComponentData, IEnableableComponent
-    {
-        public Random Random;
-    }
-
-    public struct ActionGate : IComponentData
-    {
-        public float MinTimeOfAction;
-    }
-
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct RandomContainerSystem : ISystem
     {

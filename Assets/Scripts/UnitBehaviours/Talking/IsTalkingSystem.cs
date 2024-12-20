@@ -13,13 +13,6 @@ using UnityEngine;
 
 namespace UnitBehaviours.Talking
 {
-    /// <summary>
-    ///     Indicates that we are talking with someone, or trying to, at least!
-    /// </summary>
-    public struct IsTalking : IComponentData, IEnableableComponent
-    {
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsTalkingSystem : ISystem
     {

@@ -5,9 +5,9 @@ using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
-using UnitBehaviours.Tags;
 using UnitBehaviours.Talking;
 using UnitBehaviours.Targeting;
+using UnitBehaviours.UnitConfigurators;
 using UnitState.SocialState;
 using Unity.Entities;
 

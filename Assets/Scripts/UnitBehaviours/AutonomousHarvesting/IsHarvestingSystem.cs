@@ -14,10 +14,6 @@ using UnityEngine;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
-    public struct IsHarvesting : IComponentData
-    {
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
     public partial struct IsHarvestingSystem : ISystem
     {

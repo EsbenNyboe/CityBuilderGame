@@ -4,11 +4,6 @@ using Unity.Entities;
 
 namespace UnitState.Mood
 {
-    public struct MoodSleepiness : IComponentData
-    {
-        public float Sleepiness;
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct MoodSleepinessSystem : ISystem
     {
