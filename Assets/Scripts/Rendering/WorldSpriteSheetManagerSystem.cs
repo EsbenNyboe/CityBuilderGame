@@ -1,7 +1,7 @@
+using Inventory;
 using Unity.Assertions;
 using Unity.Collections;
 using Unity.Entities;
-using Utilities;
 
 namespace Rendering
 {
@@ -48,7 +48,7 @@ namespace Rendering
             singleton.RowScale = 1f / config.RowCount;
 
             var configEntryCount = config.SpriteSheetEntries.Length;
-            var enumLength = EnumHelpers.GetMaxEnumValue<WorldSpriteSheetEntryType>() + 1;
+            var enumLength = SystemAPI.GetSingleton<InventoryEnum>().ItemEnumLength;
 
             if (!singleton.Entries.IsCreated ||
                 configEntryCount != singleton.Entries.Length)

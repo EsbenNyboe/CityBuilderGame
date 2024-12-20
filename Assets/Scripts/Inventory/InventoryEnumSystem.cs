@@ -3,11 +3,6 @@ using Utilities;
 
 namespace Inventory
 {
-    public struct InventoryEnum : IComponentData
-    {
-        public int ItemEnumLength;
-    }
-
     public partial struct InventoryEnumSystem : ISystem
     {
         public void OnCreate(ref SystemState state)
