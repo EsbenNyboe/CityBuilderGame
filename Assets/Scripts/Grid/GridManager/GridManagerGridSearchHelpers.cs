@@ -1,7 +1,7 @@
-using Debugging;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Grid
@@ -199,7 +199,7 @@ namespace Grid
 
             if (isDebugging)
             {
-                DebugHelper.LogWarning("No available chopping cell was found within the search-range");
+                Debug.LogWarning("No available chopping cell was found within the search-range");
             }
 
             availableChoppingCell = -1;
@@ -234,7 +234,7 @@ namespace Grid
 
             if (isDebugging)
             {
-                DebugHelper.LogWarning("No available bed was found within the search-range");
+                Debug.LogWarning("No available bed was found within the search-range");
             }
 
             availableBed = new int2(-1, -1);
@@ -277,7 +277,7 @@ namespace Grid
 
             if (isDebugging)
             {
-                DebugHelper.LogError("No empty cell was found near current target");
+                Debug.LogError("No empty cell was found near current target");
             }
 
             newTarget = new int2(-1, -1);
@@ -324,7 +324,7 @@ namespace Grid
 
             if (isDebugging)
             {
-                DebugHelper.LogError("No nearby empty cell was found");
+                Debug.LogError("No nearby empty cell was found");
             }
 
             nearbyCell = new int2(-1, -1);
@@ -359,7 +359,7 @@ namespace Grid
                 }
             }
 
-            DebugHelper.LogError("No nearby vacant cell was found");
+            Debug.LogError("No nearby vacant cell was found");
 
             nearbyCell = new int2(-1, -1);
             return false;
@@ -391,7 +391,7 @@ namespace Grid
                 }
             }
 
-            DebugHelper.LogError("No nearby walkable cell was found");
+            Debug.LogError("No nearby walkable cell was found");
 
             nearbyCell = new int2(-1, -1);
             return false;

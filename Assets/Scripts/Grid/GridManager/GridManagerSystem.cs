@@ -1,4 +1,3 @@
-using SystemGroups;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -35,7 +34,7 @@ namespace Grid
         public uint RandomSeed;
     }
 
-    [UpdateInGroup(typeof(GridSystemGroup), OrderFirst = true)]
+    [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public partial class GridManagerSystem : SystemBase
     {
         private const int MaxHealth = 100;
