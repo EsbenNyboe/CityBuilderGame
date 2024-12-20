@@ -1,6 +1,5 @@
 using Grid;
 using SystemGroups;
-using UnitAgency;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
 using Unity.Burst;
@@ -9,14 +8,6 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.Talking
 {
-    /// <summary>
-    ///     Indicates that we are standing around and waiting for someone to talk to.
-    /// </summary>
-    public struct IsTalkative : IComponentData
-    {
-        public float Patience;
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsTalkativeSystem : ISystem
     {

@@ -4,10 +4,6 @@ using Unity.Entities;
 
 namespace UnitSpawn.SpawnedUnitNS
 {
-    public struct SpawnedUnit : IComponentData
-    {
-    }
-
     [UpdateInGroup(typeof(LifetimeSystemGroup), OrderLast = true)]
     public partial struct SpawnedUnitSystem : ISystem
     {

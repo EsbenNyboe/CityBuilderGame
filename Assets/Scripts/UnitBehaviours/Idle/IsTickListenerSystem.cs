@@ -6,10 +6,6 @@ using Unity.Entities;
 
 namespace UnitBehaviours.Idle
 {
-    public struct IsTickListener : IComponentData
-    {
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     [UpdateAfter(typeof(TickManagerSystem))]
     public partial struct IsTickListenerSystem : ISystem

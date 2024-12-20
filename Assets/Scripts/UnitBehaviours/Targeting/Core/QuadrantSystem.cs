@@ -3,7 +3,8 @@ using Debugging;
 using Grid;
 using Inventory;
 using SystemGroups;
-using UnitBehaviours.Tags;
+using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.UnitConfigurators;
 using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Collections;
@@ -13,10 +14,6 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.Targeting.Core
 {
-    public struct QuadrantEntity : IComponentData
-    {
-    }
-
     public struct QuadrantDataManager : IComponentData
     {
         public NativeParallelMultiHashMap<int, QuadrantData> VillagerQuadrantMap;

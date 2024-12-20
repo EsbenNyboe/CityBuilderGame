@@ -5,11 +5,6 @@ using Unity.Entities;
 
 namespace UnitState.Mood
 {
-    public struct MoodLoneliness : IComponentData
-    {
-        public float Loneliness;
-    }
-
     internal partial struct MoodLonelinessSystem : ISystem
     {
         [BurstCompile]

@@ -10,19 +10,6 @@ using UnityEngine;
 
 namespace UnitBehaviours.Targeting
 {
-    public struct TargetFollow : IComponentData
-    {
-        public Entity Target;
-        public float DesiredRange;
-        public float CurrentDistanceToTarget;
-
-        public readonly bool TryGetTarget(out Entity target)
-        {
-            target = Target;
-            return target != Entity.Null;
-        }
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct TargetFollowSystem : ISystem
     {

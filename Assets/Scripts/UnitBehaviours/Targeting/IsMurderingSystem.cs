@@ -1,5 +1,5 @@
-using Events;
-using Rendering.SpriteTransformNS;
+using Effects;
+using SpriteTransformNS;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.UnitManagers;
@@ -12,17 +12,6 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.Targeting
 {
-    public struct Health : IComponentData
-    {
-        public float CurrentHealth;
-        public float MaxHealth;
-    }
-
-    public struct IsMurdering : IComponentData
-    {
-        public Entity Target;
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsMurderingSystem : ISystem
     {

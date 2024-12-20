@@ -2,11 +2,6 @@ using Unity.Entities;
 
 namespace SystemGroups
 {
-    [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
-    public partial class GridSystemGroup : ComponentSystemGroup
-    {
-    }
-
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class LifetimeSystemGroup : ComponentSystemGroup
     {

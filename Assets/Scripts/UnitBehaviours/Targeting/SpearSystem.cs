@@ -1,25 +1,16 @@
 using Audio;
-using Events;
+using Effects;
 using Rendering;
-using UnitBehaviours.Tags;
+using UnitBehaviours.UnitConfigurators;
 using UnitState.AliveState;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace UnitBehaviours.Targeting
 {
-    public struct Spear : IComponentData
-    {
-        public float2 Direction;
-        public float2 CurrentPosition;
-        public int2 Target;
-    }
-
     public partial struct SpearSystem : ISystem
     {
-        private EntityQuery _query;
         private const float SpearSpeed = 15f;
         private const float SpearDamageRadius = 0.5f;
         private const float SpearDamage = 10f;
@@ -28,41 +19,16 @@ namespace UnitBehaviours.Targeting
         {
             state.RequireForUpdate<WorldSpriteSheetManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-
-            _query = state.GetEntityQuery(typeof(Spear));
         }
 
 
         public void OnUpdate(ref SystemState state)
         {
-            var entityCount = _query.CalculateEntityCount();
-            if (entityCount <= 0)
-            {
-                return;
-            }
-
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
-            var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
-            var unitMesh = WorldSpriteSheetConfig.Instance.UnitMesh;
-            var unitMaterial = WorldSpriteSheetConfig.Instance.UnitMaterial;
-            var uvArray = new Vector4[entityCount];
-            var matrix4X4Array = new Matrix4x4[entityCount];
 
-            var index = 0;
             foreach (var (spear, entity) in SystemAPI.Query<RefRW<Spear>>().WithEntityAccess())
             {
-                uvArray[index] = new Vector4
-                {
-                    x = worldSpriteSheetManager.ColumnScale,
-                    y = worldSpriteSheetManager.RowScale,
-                    z = worldSpriteSheetManager.ColumnScale * worldSpriteSheetManager.Entries[(int)WorldSpriteSheetEntryType.Spear].EntryColumns[0],
-                    w = worldSpriteSheetManager.RowScale * worldSpriteSheetManager.Entries[(int)WorldSpriteSheetEntryType.Spear].EntryRows[0]
-                };
                 var position = spear.ValueRO.CurrentPosition;
-                var angleInDegrees = spear.ValueRO.Direction.x > 0 ? 0f : 180f;
-                matrix4X4Array[index] = Matrix4x4.TRS(new Vector3(position.x, position.y), quaternion.EulerZXY(0, math.PI / 180 * angleInDegrees, 0),
-                    Vector3.one);
-                index++;
 
                 var distanceBeforeMoving = math.distance(position, spear.ValueRO.Target);
                 spear.ValueRW.CurrentPosition = position += spear.ValueRO.Direction * SystemAPI.Time.DeltaTime * SpearSpeed;
@@ -106,8 +72,6 @@ namespace UnitBehaviours.Targeting
                     }
                 }
             }
-
-            WorldSpriteSheetRendererSystem.DrawMesh(new MaterialPropertyBlock(), unitMesh, unitMaterial, uvArray, matrix4X4Array, uvArray.Length);
         }
     }
 }

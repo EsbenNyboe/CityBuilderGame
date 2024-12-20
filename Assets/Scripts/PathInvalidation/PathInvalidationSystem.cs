@@ -4,7 +4,7 @@ using Grid;
 using Grid.SectionSorting;
 using SystemGroups;
 using UnitBehaviours.Pathing;
-using UnitBehaviours.Tags;
+using UnitBehaviours.UnitConfigurators;
 using UnitBehaviours.UnitManagers;
 using UnitState.Mood;
 using UnitState.SocialDebugging;
@@ -20,11 +20,6 @@ using UnityEngine;
 
 namespace PathInvalidation
 {
-    public struct PathInvalidationDebugEvent : IComponentData
-    {
-        public int Count;
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup), OrderLast = true)]
     [UpdateAfter(typeof(GridManagerSectionSortingSystem))]
     public partial struct PathInvalidationSystem : ISystem

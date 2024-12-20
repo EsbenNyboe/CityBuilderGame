@@ -1,6 +1,6 @@
 using Audio;
 using Grid;
-using Rendering.SpriteTransformNS;
+using SpriteTransformNS;
 using UnitAgency.Data;
 using UnitBehaviours.ActionGateNS;
 using Unity.Burst;
@@ -11,15 +11,6 @@ using UnityEngine;
 
 namespace UnitBehaviours.Targeting
 {
-    public struct IsThrowingSpear : IComponentData
-    {
-        public Entity Target;
-    }
-
-    public struct IsHoldingSpear : IComponentData
-    {
-    }
-
     public partial struct IsThrowingSpearSystem : ISystem
     {
         public static readonly float Range = 5f;

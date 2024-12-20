@@ -13,10 +13,6 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
-    public struct IsSeekingTree : IComponentData
-    {
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsSeekingTreeSystem : ISystem
     {

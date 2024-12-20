@@ -12,13 +12,6 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.Pathing
 {
-    public struct Pathfinding : IComponentData
-    {
-        public int2 StartPosition;
-        public int2 EndPosition;
-        public bool AllowNonWalkabes;
-    }
-
     [UpdateInGroup(typeof(UnitStateSystemGroup))]
     [UpdateAfter(typeof(PathFollowSystem))]
     public partial struct PathfindingSystem : ISystem

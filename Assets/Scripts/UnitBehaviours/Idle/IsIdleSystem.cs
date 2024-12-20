@@ -8,10 +8,6 @@ using Unity.Entities;
 
 namespace UnitBehaviours.Idle
 {
-    public struct IsIdle : IComponentData
-    {
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsIdleSystem : ISystem
     {

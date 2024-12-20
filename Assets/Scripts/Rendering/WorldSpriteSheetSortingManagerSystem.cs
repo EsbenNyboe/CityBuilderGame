@@ -12,12 +12,6 @@ using UnityEngine;
 
 namespace Rendering
 {
-    public struct WorldSpriteSheetSortingManager : ICleanupComponentData
-    {
-        public NativeArray<Matrix4x4> SpriteMatrixArray;
-        public NativeArray<Vector4> SpriteUvArray;
-    }
-
     [UpdateInGroup(typeof(PreRenderingSystemGroup), OrderLast = true)]
     [BurstCompile]
     public partial struct WorldSpriteSheetSortingManagerSystem : ISystem

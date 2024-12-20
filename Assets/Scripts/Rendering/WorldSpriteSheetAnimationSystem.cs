@@ -1,4 +1,4 @@
-using Rendering.SpriteTransformNS;
+using SpriteTransformNS;
 using SystemGroups;
 using Unity.Burst;
 using Unity.Collections;
@@ -9,18 +9,6 @@ using UnityEngine;
 
 namespace Rendering
 {
-    public struct WorldSpriteSheetAnimation : IComponentData
-    {
-        public int CurrentFrame;
-        public float FrameTimer;
-    }
-
-    public struct WorldSpriteSheetState : IComponentData
-    {
-        public Vector4 Uv;
-        public Matrix4x4 Matrix;
-    }
-
     [UpdateInGroup(typeof(AnimationSystemGroup))]
     public partial struct WorldSpriteSheetAnimationSystem : ISystem
     {

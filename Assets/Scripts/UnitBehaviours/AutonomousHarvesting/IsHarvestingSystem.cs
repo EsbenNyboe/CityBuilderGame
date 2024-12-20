@@ -1,7 +1,7 @@
 ﻿using Audio;
 using Grid;
 using Inventory;
-using Rendering.SpriteTransformNS;
+using SpriteTransformNS;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.UnitManagers;
@@ -14,20 +14,14 @@ using UnityEngine;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
-    public struct IsHarvesting : IComponentData
-    {
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
     public partial struct IsHarvestingSystem : ISystem
     {
-        private SystemHandle _soundManagerSystemHandle;
-
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<DotsSoundManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
-            _soundManagerSystemHandle = state.World.GetExistingSystem<DotsSoundManagerSystem>();
             state.RequireForUpdate<AttackAnimationManager>();
             state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<SocialDynamicsManager>();
@@ -40,7 +34,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
             var gridManager = SystemAPI.GetSingleton<GridManager>();
-            var soundManager = SystemAPI.GetComponent<DotsSoundManager>(_soundManagerSystemHandle);
+            var soundManager = SystemAPI.GetSingleton<DotsSoundManager>();
             var attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
             var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();

@@ -15,7 +15,6 @@ namespace Rendering
         [SerializeField] private StructureConfig _previewStructure;
         [SerializeField] private StorageConfig _previewStorage;
 
-        private CameraController _cameraController;
         private int _currentFrame;
         private float _frameTimer;
 
@@ -37,10 +36,9 @@ namespace Rendering
                 return;
             }
 
-            if (_cameraController == default)
+            if (Camera.main)
             {
-                _cameraController = FindObjectOfType<CameraController>();
-                _cameraController.SetMaxSize(1.8f);
+                Camera.main.orthographicSize = 1.8f;
             }
 
             var uvList = new List<Vector4>();

@@ -1,7 +1,7 @@
 using Debugging;
 using Grid;
 using GridDebugging;
-using Rendering.SpriteTransformNS;
+using SpriteTransformNS;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
@@ -14,11 +14,6 @@ using UnityEngine;
 
 namespace UnitBehaviours.Sleeping
 {
-    public struct IsSleeping : IComponentData
-    {
-        public bool IsInitialized;
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
     public partial struct IsSleepingSystem : ISystem
     {
