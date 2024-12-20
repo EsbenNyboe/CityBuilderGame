@@ -11,11 +11,6 @@ using Unity.Mathematics;
 
 namespace UnitState.SocialLogic
 {
-    public struct SocialEvaluationManager : IComponentData
-    {
-        public NativeQueue<Entity> SocialEvaluationQueue;
-    }
-
     [UpdateInGroup(typeof(LifetimeSystemGroup))]
     public partial struct SocialEvaluationManagerSystem : ISystem
     {

@@ -6,17 +6,6 @@ using UnityEngine;
 
 namespace Effects.SocialEffectsRendering
 {
-    public struct SocialEffectSortingManager : IComponentData
-    {
-        public NativeQueue<SocialEffectData> SocialEffectQueue;
-        public NativeArray<Matrix4x4> SpriteMatrixArray;
-        public NativeArray<Vector4> SpriteUvArray;
-        public float Scale;
-        public float Offset;
-        public float Lifetime;
-        public float MoveSpeed;
-    }
-
     public struct SocialEffectData
     {
         public Entity Entity;

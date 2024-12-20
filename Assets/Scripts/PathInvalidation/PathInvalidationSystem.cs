@@ -20,11 +20,6 @@ using UnityEngine;
 
 namespace PathInvalidation
 {
-    public struct PathInvalidationDebugEvent : IComponentData
-    {
-        public int Count;
-    }
-
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup), OrderLast = true)]
     [UpdateAfter(typeof(GridManagerSectionSortingSystem))]
     public partial struct PathInvalidationSystem : ISystem

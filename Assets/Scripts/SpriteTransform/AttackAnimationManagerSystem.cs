@@ -3,13 +3,6 @@ using Unity.Entities;
 
 namespace SpriteTransformNS
 {
-    public struct AttackAnimationManager : IComponentData
-    {
-        public float AttackDuration;
-        public float AttackAnimationSize;
-        public float AttackAnimationIdleTime;
-    }
-
     [UpdateInGroup(typeof(AnimationSystemGroup))]
     public partial class AttackAnimationManagerSystem : SystemBase
     {

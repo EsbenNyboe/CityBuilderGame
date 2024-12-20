@@ -1,17 +1,9 @@
 using System;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace Rendering
 {
-    public struct CameraInformation : IComponentData
-    {
-        public float3 CameraPosition;
-        public float OrthographicSize;
-        public float ScreenRatio;
-    }
-
     public partial struct CameraInformationSystem : ISystem
     {
         public void OnCreate(ref SystemState state)

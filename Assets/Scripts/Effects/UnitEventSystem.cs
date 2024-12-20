@@ -1,34 +1,9 @@
 using System;
 using Audio;
 using Unity.Entities;
-using Unity.Mathematics;
 
 namespace Effects
 {
-    public struct DamageEvent : IComponentData
-    {
-        public float3 Position;
-        public UnitType TargetType;
-    }
-
-    public struct DeathEvent : IComponentData
-    {
-        public float3 Position;
-        public UnitType TargetType;
-    }
-
-    public enum AttackType
-    {
-        Punch,
-        Stab
-    }
-
-    public enum UnitType
-    {
-        Villager,
-        Boar
-    }
-
     public partial class UnitEventSystem : SystemBase
     {
         protected override void OnUpdate()
