@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 
-namespace Debugging
+namespace Grid.GridVisuals
 {
-    public class DebugGlobals : MonoBehaviour
+    public class GridDebugVisuals : MonoBehaviour
     {
-        public static DebugGlobals Instance;
+        public static GridDebugVisuals Instance;
 
         [SerializeField] private bool _showOccupiableGrid;
         [SerializeField] private bool _showWalkableGrid;

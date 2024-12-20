@@ -1,5 +1,4 @@
-﻿using Debugging;
-using Unity.Entities;
+﻿using Unity.Entities;
 using UnityEngine;
 
 namespace Grid.GridVisuals
@@ -79,7 +78,7 @@ namespace Grid.GridVisuals
 
         private void TryUpdateWalkableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
         {
-            var showDebug = DebugGlobals.ShowWalkableGrid();
+            var showDebug = GridDebugVisuals.ShowWalkableGrid();
             _pathDebugVisual.SetActive(showDebug);
 
             if (gridManager.WalkableGridIsDirty)
@@ -111,7 +110,7 @@ namespace Grid.GridVisuals
 
         private void TryUpdateOccupiableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
         {
-            var showDebug = DebugGlobals.ShowOccupationGrid();
+            var showDebug = GridDebugVisuals.ShowOccupationGrid();
             _occupationDebugVisual.SetActive(showDebug);
 
             if (!showDebug)
@@ -129,7 +128,7 @@ namespace Grid.GridVisuals
 
         private void TryUpdateInteractableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
         {
-            var showDebug = DebugGlobals.ShowInteractableGrid();
+            var showDebug = GridDebugVisuals.ShowInteractableGrid();
             _interactableDebugVisual.SetActive(showDebug);
 
             if (gridManager.InteractableGridIsDirty)
