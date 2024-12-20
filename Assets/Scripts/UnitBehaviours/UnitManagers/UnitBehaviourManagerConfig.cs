@@ -11,6 +11,7 @@ namespace UnitBehaviours.UnitManagers
         public float MoveSpeedWhenAttemptingMurder = 0.5f;
         public int MaxSeekAttempts = 3;
         public int BoarQuadrantRange = 2;
+        public float DecompositionDuration = 5;
 
         private void Awake()
         {

@@ -10,5 +10,6 @@ namespace UnitBehaviours.UnitManagers
         public float MoveSpeedWhenAttemptingMurder;
         public int MaxSeekAttempts;
         public int BoarQuadrantRange;
+        public float DecompositionDuration;
     }
 }

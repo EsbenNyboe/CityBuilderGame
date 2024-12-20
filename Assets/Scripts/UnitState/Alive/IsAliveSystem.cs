@@ -3,6 +3,7 @@ using Grid;
 using UnitBehaviours.Targeting;
 using UnitBehaviours.UnitConfigurators;
 using UnitState.AliveState;
+using UnitState.Dead;
 using UnitState.SocialLogic;
 using UnitState.SocialState;
 using Unity.Burst;
@@ -89,6 +90,12 @@ namespace UnitState.AliveLogic
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 UnitType = UnitType.Boar
+            }.ScheduleParallel(_deadBoarQuery, state.Dependency).Complete();
+
+            new SpawnDeadBoarJob
+            {
+                EcbParallelWriter = ecb.AsParallelWriter(),
+                ElapsedTime = (float)SystemAPI.Time.ElapsedTime
             }.ScheduleParallel(_deadBoarQuery, state.Dependency).Complete();
 
             // Cleanup grid
@@ -228,6 +235,28 @@ namespace UnitState.AliveLogic
                     Position = localTransform.Position,
                     TargetType = UnitType
                 });
+        }
+    }
+
+    [BurstCompile]
+    public partial struct SpawnDeadBoarJob : IJobEntity
+    {
+        public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
+        [ReadOnly] public float ElapsedTime;
+
+        public void Execute(in LocalTransform localTransform, [EntityIndexInChunk] int entityIndexInChunk)
+        {
+            var entity = EcbParallelWriter.CreateEntity(entityIndexInChunk);
+            EcbParallelWriter.AddComponent(entityIndexInChunk, entity, new Corpse
+            {
+                TimeOfDeath = ElapsedTime
+            });
+            EcbParallelWriter.AddComponent(entityIndexInChunk, entity, new LocalTransform
+            {
+                Position = localTransform.Position,
+                Scale = localTransform.Scale,
+                Rotation = localTransform.Rotation
+            });
         }
     }
 }
