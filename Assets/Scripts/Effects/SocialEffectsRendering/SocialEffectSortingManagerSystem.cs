@@ -6,13 +6,6 @@ using UnityEngine;
 
 namespace Effects.SocialEffectsRendering
 {
-    public struct SocialEffectData
-    {
-        public Entity Entity;
-        public float TimeCreated;
-        public SocialEffectType Type;
-    }
-
     public partial struct SocialEffectSortingManagerSystem : ISystem
     {
         public void OnCreate(ref SystemState state)

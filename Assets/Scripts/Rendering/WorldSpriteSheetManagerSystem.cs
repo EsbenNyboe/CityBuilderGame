@@ -5,13 +5,6 @@ using Utilities;
 
 namespace Rendering
 {
-    public struct WorldSpriteSheetEntry
-    {
-        public NativeArray<int> EntryColumns;
-        public NativeArray<int> EntryRows;
-        public float FrameInterval;
-    }
-
     public partial class WorldSpriteSheetManagerSystem : SystemBase
     {
         protected override void OnCreate()

@@ -12,18 +12,6 @@ using ISystem = Unity.Entities.ISystem;
 
 namespace UnitBehaviours.Pathing
 {
-    public partial struct PathFollow : IComponentData
-    {
-        public int PathIndex;
-        public float MoveSpeedMultiplier;
-
-        public PathFollow(int pathIndex, float moveSpeedMultiplier = 1)
-        {
-            PathIndex = pathIndex;
-            MoveSpeedMultiplier = moveSpeedMultiplier;
-        }
-    }
-
     [UpdateInGroup(typeof(UnitStateSystemGroup))]
     public partial struct PathFollowSystem : ISystem
     {

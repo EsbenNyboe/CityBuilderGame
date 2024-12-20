@@ -14,4 +14,11 @@ namespace Effects.SocialEffectsRendering
         public float Lifetime;
         public float MoveSpeed;
     }
+
+    public struct SocialEffectData
+    {
+        public Entity Entity;
+        public float TimeCreated;
+        public SocialEffectType Type;
+    }
 }

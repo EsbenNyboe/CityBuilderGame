@@ -53,4 +53,44 @@ namespace Rendering
             return Entries.IsCreated;
         }
     }
+
+    public struct WorldSpriteSheetEntry
+    {
+        public NativeArray<int> EntryColumns;
+        public NativeArray<int> EntryRows;
+        public float FrameInterval;
+    }
+
+    [Serializable]
+    public struct SpriteSheetEntry
+    {
+        public WorldSpriteSheetEntryType Identifier;
+        [Min(1)] public int FrameCount;
+        [Min(0.001f)] public float FrameInterval;
+    }
+
+    public enum WorldSpriteSheetEntryType
+    {
+        None,
+        Idle,
+        Walk,
+        IdleHolding,
+        WalkHolding,
+        Talk,
+        Sleep,
+        ItemWood,
+        ItemMeat,
+        ItemBerries,
+        BuildingStorageA,
+        BuildingStorageB,
+        BoarStand,
+        BoarRun,
+        SpearHolding,
+        SpearThrowing,
+        Spear,
+        DropPoint,
+        TreeDamaged,
+        Tree,
+        Bed
+    }
 }
