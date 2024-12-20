@@ -19,6 +19,7 @@ namespace UnitBehaviours.UnitManagers
             singleton.MoveSpeedWhenAttemptingMurder = config.MoveSpeedWhenAttemptingMurder;
             singleton.MaxSeekAttempts = config.MaxSeekAttempts;
             singleton.BoarQuadrantRange = config.BoarQuadrantRange;
+            singleton.DecompositionDuration = config.DecompositionDuration;
             SystemAPI.SetSingleton(singleton);
         }
     }

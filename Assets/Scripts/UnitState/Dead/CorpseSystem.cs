@@ -1,5 +1,6 @@
 using GridEntityNS;
 using Rendering;
+using UnitBehaviours.UnitManagers;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -18,11 +19,10 @@ namespace UnitState.Dead
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<WorldSpriteSheetManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
-
-        private const float DecompositionDuration = 5f;
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
@@ -33,7 +33,8 @@ namespace UnitState.Dead
                 return;
             }
 
-            var timeOfDecomposition = (float)SystemAPI.Time.ElapsedTime - DecompositionDuration;
+            var decompositionDuration = SystemAPI.GetSingleton<UnitBehaviourManager>().DecompositionDuration;
+            var timeOfDecomposition = (float)SystemAPI.Time.ElapsedTime - decompositionDuration;
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
             var deathFrames = worldSpriteSheetManager.GetAnimationLength(WorldSpriteSheetEntryType.BoarDead);
 
@@ -44,7 +45,7 @@ namespace UnitState.Dead
                 ecb.AddComponent(entity, new WorldSpriteSheetState
                 {
                     Uv = worldSpriteSheetManager.GetUv(WorldSpriteSheetEntryType.BoarDead,
-                        GetDeathFrame(deathFrames, corpse.ValueRO.TimeOfDeath, timeOfDecomposition)),
+                        GetDeathFrame(deathFrames, corpse.ValueRO.TimeOfDeath, timeOfDecomposition, decompositionDuration)),
                     Matrix = Matrix4x4.TRS(localTransform.ValueRO.Position, localTransform.ValueRO.Rotation, Vector3.one)
                 });
                 ecb.AddComponent<GridEntity>(entity);
@@ -54,7 +55,7 @@ namespace UnitState.Dead
                          .Query<RefRO<Corpse>, RefRW<WorldSpriteSheetState>>().WithEntityAccess())
             {
                 worldSpriteSheetState.ValueRW.Uv = worldSpriteSheetManager.GetUv(WorldSpriteSheetEntryType.BoarDead,
-                    GetDeathFrame(deathFrames, corpse.ValueRO.TimeOfDeath, timeOfDecomposition));
+                    GetDeathFrame(deathFrames, corpse.ValueRO.TimeOfDeath, timeOfDecomposition, decompositionDuration));
 
                 if (corpse.ValueRO.TimeOfDeath < timeOfDecomposition)
                 {
@@ -63,10 +64,10 @@ namespace UnitState.Dead
             }
         }
 
-        private int GetDeathFrame(int deathFrames, float timeOfDeath, float timeOfDecomposition)
+        private int GetDeathFrame(int deathFrames, float timeOfDeath, float timeOfDecomposition, float decompositionDuration)
         {
             var timeLeft = math.max(0, timeOfDeath - timeOfDecomposition);
-            var timeLeftNormalized = timeLeft / DecompositionDuration;
+            var timeLeftNormalized = timeLeft / decompositionDuration;
             timeLeftNormalized *= deathFrames;
             return math.max(0, deathFrames - 1 - Mathf.FloorToInt(timeLeftNormalized));
         }
