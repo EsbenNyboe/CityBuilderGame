@@ -1,4 +1,4 @@
-using Rendering.SpriteTransformNS;
+using SpriteTransformNS;
 using SystemGroups;
 using Unity.Burst;
 using Unity.Collections;

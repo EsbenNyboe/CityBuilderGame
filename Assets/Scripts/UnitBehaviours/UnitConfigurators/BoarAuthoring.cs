@@ -1,6 +1,6 @@
 using Inventory;
 using Rendering;
-using Rendering.SpriteTransformNS;
+using SpriteTransformNS;
 using UnitAgency.Data;
 using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.Pathing;

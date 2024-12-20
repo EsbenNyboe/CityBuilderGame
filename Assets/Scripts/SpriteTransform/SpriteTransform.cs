@@ -1,7 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace Rendering.SpriteTransformNS
+namespace SpriteTransformNS
 {
     public struct SpriteTransform : IComponentData
     {

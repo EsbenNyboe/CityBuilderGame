@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Rendering.SpriteTransformNS
+namespace SpriteTransformNS
 {
     public class AttackAnimationManagerConfig : MonoBehaviour
     {

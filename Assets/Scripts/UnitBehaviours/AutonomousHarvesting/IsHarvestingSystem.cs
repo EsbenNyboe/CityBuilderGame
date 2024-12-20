@@ -1,7 +1,7 @@
 ﻿using Audio;
 using Grid;
 using Inventory;
-using Rendering.SpriteTransformNS;
+using SpriteTransformNS;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.UnitManagers;
