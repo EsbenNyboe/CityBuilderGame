@@ -129,7 +129,7 @@ namespace Grid.GridVisuals
         private void TryUpdateInteractableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
         {
             var showDebug = GridDebugVisuals.ShowInteractableGrid();
-            _interactableDebugVisual.SetActive(showDebug);
+            _interactableDebugVisual.SetActive(true);
 
             if (gridManager.InteractableGridIsDirty)
             {
