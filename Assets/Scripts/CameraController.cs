@@ -77,7 +77,6 @@ namespace Rendering
 
         private void CameraZoom()
         {
-            var size = Camera.main.orthographicSize;
             var scrollAmount = Input.GetAxis("Mouse ScrollWheel");
             if (Input.GetKey(KeyCode.LeftControl))
             {
@@ -87,10 +86,18 @@ namespace Rendering
 
             _zoomMomentum = Mathf.Lerp(_zoomMomentum, 0, _zoomAcceleration);
 
+            var mouseScreenPos = Input.mousePosition;
+            var mouseWorldBefore = Camera.main.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 0));
+
+            var size = Camera.main.orthographicSize;
             size -= scrollAmount * _zoomSpeed;
 
             size = Mathf.Clamp(size, _minSize, _maxSize);
             Camera.main.orthographicSize = size;
+
+            var mouseWorldAfter = Camera.main.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 0));
+            var delta = mouseWorldBefore - mouseWorldAfter;
+            transform.position += delta;
 
             var zoomAmount = (size - _minSize) / _maxSize;
             var listenerProximity = Mathf.Lerp(_minSizeListenerProximity, _maxSizeListenerProximity, zoomAmount);
