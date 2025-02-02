@@ -1,4 +1,5 @@
 using GridEntityNS;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
@@ -65,6 +66,7 @@ namespace Rendering
             }
         }
 
+        [BurstCompile]
         private struct CreateSpriteArraysJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<Damageable> Damageables;
