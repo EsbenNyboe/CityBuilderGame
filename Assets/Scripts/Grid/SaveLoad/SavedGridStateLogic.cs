@@ -1,4 +1,5 @@
-using Grid.Dimensions;
+using Grid.GridVisuals;
+using GridEntityNS;
 using Inventory;
 using Rendering;
 using UnitBehaviours.Pathing;
@@ -83,46 +84,24 @@ namespace Grid.SaveLoad
             Dependency.Complete();
             using var ecb = new EntityCommandBuffer(Allocator.Temp);
             var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
-
-            // DELETE CURRENT STATE
             var gridManager = SystemAPI.GetSingleton<GridManager>();
-            for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
+
+            // DELETE ALL GRID STATE
+            foreach (var (_, entity) in SystemAPI.Query<RefRO<GridEntity>>().WithEntityAccess())
             {
-                // Reset generic grid-state
-                gridManager.SetIsWalkable(i, true);
-                gridManager.SetHealthToZero(i);
-
-                // Delete bed
-                gridManager.SetInteractableNone(i);
-
-                // Delete droppoint
-                if (gridManager.TryGetDropPointEntity(i, out var dropPointEntity))
-                {
-                    gridManager.RemoveGridEntity(i);
-                    ecb.DestroyEntity(dropPointEntity);
-                }
-                // Delete tree
-                else if (gridManager.TryGetTreeEntity(i, out var treeEntity))
-                {
-                    gridManager.RemoveGridEntity(i);
-                    ecb.DestroyEntity(treeEntity);
-                }
+                ecb.DestroyEntity(entity);
             }
 
-            gridManager.WalkableGridIsDirty = true;
-            gridManager.OccupiableGridIsDirty = true;
-            gridManager.DamageableGridIsDirty = true;
-            gridManager.InteractableGridIsDirty = true;
+            GridManagerSystem.DisposeGridData(gridManager);
 
             // LOAD NEW STATE
-
             var trees = SavedGridStateManager.Instance.LoadSavedTrees();
             var beds = SavedGridStateManager.Instance.LoadSavedBeds();
             var dropPoints = SavedGridStateManager.Instance.LoadSavedDropPoints();
             var gridSize = SavedGridStateManager.Instance.TryLoadSavedGridSize(new int2(gridManager.Width, gridManager.Height));
             GridDimensionsConfig.Instance.Width = gridSize.x;
             GridDimensionsConfig.Instance.Height = gridSize.y;
-            GridDimensionsSystem.TryUpdateGridDimensions(ref gridManager);
+            GridManagerSystem.CreateGrids(ref gridManager, GridDimensionsConfig.Instance.Width, GridDimensionsConfig.Instance.Height);
 
             HandleEntitiesOutsideOfGrid(gridManager);
 
@@ -153,8 +132,14 @@ namespace Grid.SaveLoad
                     GridEntityType.DropPoint, WorldSpriteSheetEntryType.DropPoint);
             }
 
+            gridManager.WalkableGridIsDirty = true;
+            gridManager.OccupiableGridIsDirty = true;
+            gridManager.DamageableGridIsDirty = true;
+            gridManager.InteractableGridIsDirty = true;
+
             SystemAPI.SetSingleton(gridManager);
             ecb.Playback(EntityManager);
+            GridVisualsManager.Instance.OnGridSizeChanged();
         }
 
         private void HandleEntitiesOutsideOfGrid(GridManager gridManager)

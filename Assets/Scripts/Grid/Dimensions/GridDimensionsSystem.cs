@@ -16,6 +16,7 @@ namespace Grid.Dimensions
         {
             var gridManager = SystemAPI.GetSingleton<GridManager>();
 
+            Dependency.Complete();
             if (TryUpdateGridDimensions(ref gridManager))
             {
                 InvalidatePathingOutsideOfGrid(gridManager);
@@ -64,7 +65,8 @@ namespace Grid.Dimensions
 
             foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<GridEntity>, RefRO<LocalTransform>>().WithEntityAccess())
             {
-                if (!gridManager.IsPositionInsideGrid(localTransform.ValueRO.Position))
+                var position = localTransform.ValueRO.Position;
+                if (!gridManager.IsPositionInsideGrid(position))
                 {
                     ecb.DestroyEntity(entity);
                 }
@@ -125,8 +127,7 @@ namespace Grid.Dimensions
             NativeArray<DamageableCell> oldDamageableGrid, NativeArray<InteractableCell> oldInteractableGrid,
             NativeArray<OccupiableCell> oldOccupiableGrid, NativeArray<GridEntityType> oldGridEntityTypeGrid, NativeArray<Entity> oldGridEntityGrid)
         {
-            var length = math.min(gridManager.WalkableGrid.Length, oldWalkableGrid.Length);
-            for (var i = 0; i < length; i++)
+            for (var i = 0; i < oldWalkableGrid.Length; i++)
             {
                 var cell = GetXY(i, oldHeight);
                 if (cell.x >= gridManager.Width || cell.y >= gridManager.Height)
