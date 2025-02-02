@@ -17,6 +17,11 @@ namespace Rendering
         {
             var sortingTest = SystemAPI.GetSingleton<SortingJobConfig>();
 
+            if (sortingTest.DisplayRenderInstanceCount)
+            {
+                Object.FindObjectOfType<SortingJobConfigAuthoring>().RenderInstanceCount = sortingTest.RenderInstanceCount;
+            }
+
             if (sortingTest is { EnableDebugLog: false, EnableGizmos: false })
             {
                 return;

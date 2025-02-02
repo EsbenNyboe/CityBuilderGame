@@ -119,6 +119,13 @@ namespace Rendering
                 worldSpriteSheetManager, out var finalArrayOfRenderData);
             GetSingletonDataContainers(ref state, visibleUnitsCount + visibleItemsCount,
                 out var spriteMatrixArray, out var spriteUvArray);
+
+            if (sortingTest.DisplayRenderInstanceCount)
+            {
+                sortingTest.RenderInstanceCount = finalArrayOfRenderData.Length;
+                SystemAPI.SetSingleton(sortingTest);
+            }
+
             dependency = ScheduleWritingToDataContainers(finalArrayOfRenderData, spriteMatrixArray, spriteUvArray,
                 dependency, visibleUnitsCount + visibleItemsCount);
             state.Dependency = dependency;

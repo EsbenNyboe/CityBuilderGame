@@ -227,7 +227,7 @@ GameObject:
   - component: {fileID: 1039008836}
   - component: {fileID: 1039008835}
   m_Layer: 0
-  m_Name: SortingTest
+  m_Name: RenderSortConfig
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
