@@ -10,6 +10,10 @@ namespace Rendering
 
         [SerializeField] private float _movementSpeed;
         [SerializeField] private float _zoomSpeed;
+
+        [Range(0.00001f, 0.99999f)] [SerializeField]
+        private float _zoomAcceleration = 0.067f;
+
         [SerializeField] private float _minSize;
         [SerializeField] private float _maxSize;
         [SerializeField] private float _minSizeListenerProximity;
@@ -19,6 +23,8 @@ namespace Rendering
         private float _followLerpFactor;
 
         private bool _isFollowingSelectedUnit;
+
+        private float _zoomMomentum;
 
         private void Awake()
         {
@@ -72,7 +78,17 @@ namespace Rendering
         private void CameraZoom()
         {
             var size = Camera.main.orthographicSize;
-            size -= Input.GetAxis("Mouse ScrollWheel") * _zoomSpeed;
+            var scrollAmount = Input.GetAxis("Mouse ScrollWheel");
+            if (Input.GetKey(KeyCode.LeftControl))
+            {
+                _zoomMomentum += scrollAmount;
+                scrollAmount = _zoomMomentum;
+            }
+
+            _zoomMomentum = Mathf.Lerp(_zoomMomentum, 0, _zoomAcceleration);
+
+            size -= scrollAmount * _zoomSpeed;
+
             size = Mathf.Clamp(size, _minSize, _maxSize);
             Camera.main.orthographicSize = size;
 
