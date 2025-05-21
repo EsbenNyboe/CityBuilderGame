@@ -239,7 +239,7 @@ namespace UnitSpawn.Spawning
             {
                 gridManager.SetIsWalkable(cell, false);
                 SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.DropPoint,
-                    WorldSpriteSheetEntryType.DropPoint);
+                    WorldSpriteSheetEntryType.BuildingStorageB);
             }
         }
 

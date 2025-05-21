@@ -129,7 +129,7 @@ namespace Grid.SaveLoad
                 gridManager.SetIsWalkable(dropPoints[i], false);
                 SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
                     dropPoints[i], spawnManager.DropPointPrefab,
-                    GridEntityType.DropPoint, WorldSpriteSheetEntryType.DropPoint);
+                    GridEntityType.DropPoint, WorldSpriteSheetEntryType.BuildingStorageB);
             }
 
             gridManager.WalkableGridIsDirty = true;
