@@ -45,7 +45,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 if (cell.Equals(closestDropPointEntrance))
                 {
                     // Drop item at drop point
-                    inventory.ValueRW.CurrentItem = InventoryItem.None;
+                    InventoryHelpers.TryDropItemInStorage(ecb, ref gridManager, ref inventory.ValueRW, position);
                     ecb.RemoveComponent<IsSeekingDropPoint>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     continue;
