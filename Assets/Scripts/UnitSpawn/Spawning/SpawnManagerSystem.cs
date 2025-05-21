@@ -238,18 +238,25 @@ namespace UnitSpawn.Spawning
                 !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
             {
                 gridManager.SetIsWalkable(cell, false);
+                var itemCapacity = 5;
+                gridManager.SetStorageCapacity(cell, itemCapacity);
+                gridManager.SetStorageCount(cell, 0);
+
                 SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.DropPoint,
                     WorldSpriteSheetEntryType.BuildingStorageB);
             }
         }
 
-        private void TryDeleteDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
+        private void TryDeleteDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
         {
-            if (gridManager.IsPositionInsideGrid(position) &&
-                gridManager.TryGetDropPointEntity(position, out var entity))
+            if (gridManager.IsPositionInsideGrid(cell) &&
+                gridManager.TryGetDropPointEntity(cell, out var entity))
             {
-                gridManager.SetIsWalkable(position, true);
-                gridManager.RemoveGridEntity(position);
+                gridManager.SetIsWalkable(cell, true);
+                gridManager.RemoveGridEntity(cell);
+                gridManager.SetStorageCapacity(cell, 0);
+                gridManager.SetStorageCount(cell, 0);
+
                 ecb.DestroyEntity(entity);
             }
         }

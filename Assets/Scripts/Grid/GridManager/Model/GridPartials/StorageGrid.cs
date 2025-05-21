@@ -19,7 +19,7 @@ namespace Grid
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetStorageItemCount(int i, int itemCount)
+        public void SetStorageCount(int i, int itemCount)
         {
             var storageCell = StorageGrid[i];
             storageCell.ItemCount = itemCount;
@@ -32,7 +32,7 @@ namespace Grid
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetItemCapacity(int i, int itemCapacity)
+        public void SetStorageCapacity(int i, int itemCapacity)
         {
             var storageCell = StorageGrid[i];
             storageCell.ItemCapacity = itemCapacity;
@@ -60,23 +60,23 @@ namespace Grid
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetStorageItemCount(Vector3 position, int itemCount)
+        public void SetStorageCount(Vector3 position, int itemCount)
         {
             GridHelpers.GetXY(position, out var x, out var y);
-            SetStorageItemCount(x, y, itemCount);
+            SetStorageCount(x, y, itemCount);
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetStorageItemCount(int2 cell, int itemCount)
+        public void SetStorageCount(int2 cell, int itemCount)
         {
-            SetStorageItemCount(cell.x, cell.y, itemCount);
+            SetStorageCount(cell.x, cell.y, itemCount);
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetStorageItemCount(int x, int y, int itemCount)
+        public void SetStorageCount(int x, int y, int itemCount)
         {
             var gridIndex = GetIndex(x, y);
-            SetStorageItemCount(gridIndex, itemCount);
+            SetStorageCount(gridIndex, itemCount);
         }
 
         #endregion
@@ -100,23 +100,23 @@ namespace Grid
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetItemCapacity(Vector3 position, int itemCapacity)
+        public void SetStorageCapacity(Vector3 position, int itemCapacity)
         {
             GridHelpers.GetXY(position, out var x, out var y);
-            SetItemCapacity(x, y, itemCapacity);
+            SetStorageCapacity(x, y, itemCapacity);
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetItemCapacity(int2 cell, int itemCapacity)
+        public void SetStorageCapacity(int2 cell, int itemCapacity)
         {
-            SetItemCapacity(cell.x, cell.y, itemCapacity);
+            SetStorageCapacity(cell.x, cell.y, itemCapacity);
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetItemCapacity(int x, int y, int itemCapacity)
+        public void SetStorageCapacity(int x, int y, int itemCapacity)
         {
             var gridIndex = GetIndex(x, y);
-            SetItemCapacity(gridIndex, itemCapacity);
+            SetStorageCapacity(gridIndex, itemCapacity);
         }
 
         #endregion

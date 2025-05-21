@@ -30,13 +30,14 @@ namespace Storage
 
             foreach (var storageRequest in SystemAPI.Query<RefRO<StorageRequest>>())
             {
-                var requestedAddAmount = storageRequest.ValueRO.RequestAmount;
+                var requestedAmount = storageRequest.ValueRO.RequestAmount;
 
                 var gridCell = storageRequest.ValueRO.GridCell;
                 var itemCapacity = gridManager.GetStorageItemCapacity(gridCell);
                 var itemCount = gridManager.GetStorageItemCount(gridCell);
+                itemCapacity = 5;
 
-                var requestedItemCountTotal = itemCount + requestedAddAmount;
+                var requestedItemCountTotal = itemCount - requestedAmount;
                 var requestIsValid =
                     requestedItemCountTotal > 0 && requestedItemCountTotal <= itemCapacity;
                 var requesterEntity = storageRequest.ValueRO.RequesterEntity;
@@ -44,6 +45,7 @@ namespace Storage
 
                 if (!requestIsValid)
                 {
+                    Debug.Log("StorageSystem: Invalid Request");
                     if (
                         SystemAPI.Exists(requesterEntity)
                         && SystemAPI.HasComponent<IsSeekingDropPoint>(requesterEntity)
@@ -63,11 +65,11 @@ namespace Storage
                         + requestedItemCountTotal
                     );
                     // Target: storage cell
-                    gridManager.SetStorageItemCount(gridCell, requestedItemCountTotal);
+                    gridManager.SetStorageCount(gridCell, requestedItemCountTotal);
 
                     // Source: inventory
                     inventory.ValueRW.CurrentItem =
-                        requestedAddAmount > 0 ? InventoryItem.None : InventoryItem.LogOfWood;
+                        requestedAmount < 0 ? InventoryItem.None : InventoryItem.LogOfWood;
                 }
             }
 
