@@ -1,4 +1,4 @@
-using Grid;
+using Storage;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -41,36 +41,26 @@ namespace Inventory
             inventory.CurrentItem = InventoryItem.None;
         }
 
-        public static bool TryDropItemInStorage(EntityCommandBuffer ecb, ref GridManager gridManager,
-            ref InventoryState inventory, float3 position)
+        public static void SendRequestForDropItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
         {
-            var droppedItemEntity = ecb.CreateEntity();
-            ecb.AddComponent(droppedItemEntity, new DroppedItem
+            var requestEntity = ecb.CreateEntity();
+            ecb.AddComponent(requestEntity, new StorageRequest
             {
-                Item = inventory.CurrentItem
+                GridCell = targetCell,
+                RequestAmount = -1,
+                RequesterEntity = sourceEntity
             });
-            ecb.AddComponent(droppedItemEntity, new LocalTransform
+        }
+
+        public static void SendRequestForRetrieveItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
+        {
+            var requestEntity = ecb.CreateEntity();
+            ecb.AddComponent(requestEntity, new StorageRequest
             {
-                Position = position,
-                Scale = 1,
-                Rotation = quaternion.identity
+                GridCell = targetCell,
+                RequestAmount = 1,
+                RequesterEntity = sourceEntity
             });
-            inventory.CurrentItem = InventoryItem.None;
-
-            if (!gridManager.TryGetDropPointEntity(position, out var dropPointEntity))
-            {
-                return false;
-            }
-
-            var storageItemCount = gridManager.GetStorageItemCount(position);
-            if (storageItemCount >= 5)
-            {
-                return false;
-            }
-
-            gridManager.SetItemCount(position, storageItemCount + 1);
-
-            return true;
         }
     }
 }

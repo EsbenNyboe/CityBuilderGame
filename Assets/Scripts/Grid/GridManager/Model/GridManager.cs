@@ -18,7 +18,6 @@ namespace Grid
         public NativeArray<Entity> GridEntityGrid;
 
         public bool WalkableGridIsDirty;
-        public bool StorageGridIsDirty;
         public bool DamageableGridIsDirty;
         public bool OccupiableGridIsDirty;
         public bool InteractableGridIsDirty;

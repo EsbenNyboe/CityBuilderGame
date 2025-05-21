@@ -29,6 +29,8 @@ namespace UnitBehaviours.AutonomousHarvesting
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
+
+            // Seek DropPoint
             foreach (var (localTransform, pathFollow, inventory, entity)
                      in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<InventoryState>>()
                          .WithAll<IsSeekingDropPoint>()
@@ -39,15 +41,20 @@ namespace UnitBehaviours.AutonomousHarvesting
                     continue;
                 }
 
-                var position = localTransform.ValueRO.Position;
-                var cell = GridHelpers.GetXY(position);
-                var closestDropPointEntrance = FindClosestDropPointEntrance(ref state, gridManager, position);
-                if (cell.Equals(closestDropPointEntrance))
+                if (inventory.ValueRO.CurrentItem == InventoryItem.None)
                 {
-                    // Drop item at drop point
-                    InventoryHelpers.TryDropItemInStorage(ecb, ref gridManager, ref inventory.ValueRW, position);
                     ecb.RemoveComponent<IsSeekingDropPoint>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
+                    continue;
+                }
+
+                var position = localTransform.ValueRO.Position;
+                var cell = GridHelpers.GetXY(position);
+                var closestDropPointEntrance = FindClosestDropPointEntrance(ref state, gridManager, position, out var closestDropPointCell);
+                if (cell.Equals(closestDropPointEntrance))
+                {
+                    // Try drop item at drop point
+                    InventoryHelpers.SendRequestForDropItem(ecb, entity, closestDropPointCell);
                     continue;
                 }
 
@@ -65,8 +72,9 @@ namespace UnitBehaviours.AutonomousHarvesting
             }
         }
 
-        private int2 FindClosestDropPointEntrance(ref SystemState state, GridManager gridManager, float3 position)
+        private int2 FindClosestDropPointEntrance(ref SystemState state, GridManager gridManager, float3 position, out int2 closestDropPointCell)
         {
+            closestDropPointCell = new int2(-1);
             var closestDropPointEntrance = new int2(-1);
             var shortestDropPointDistance = math.INFINITY;
             var cell = GridHelpers.GetXY(position);
@@ -80,6 +88,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                     gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, dropPointCell, out var dropPointEntrance))
                 {
                     shortestDropPointDistance = dropPointDistance;
+                    closestDropPointCell = dropPointCell;
                     closestDropPointEntrance = dropPointEntrance;
                 }
             }
