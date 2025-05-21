@@ -238,8 +238,7 @@ namespace UnitSpawn.Spawning
                 !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
             {
                 gridManager.SetIsWalkable(cell, false);
-                var itemCapacity = 5;
-                gridManager.SetStorageCapacity(cell, itemCapacity);
+                gridManager.SetDefaultStorageCapacity(cell);
                 gridManager.SetStorageCount(cell, 0);
 
                 SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.DropPoint,

@@ -45,6 +45,7 @@ namespace Storage
 
                 if (!requestIsValid)
                 {
+                    // This should not happen:
                     Debug.Log("StorageSystem: Invalid Request");
                     if (
                         SystemAPI.Exists(requesterEntity)

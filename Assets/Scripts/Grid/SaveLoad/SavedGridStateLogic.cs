@@ -127,6 +127,7 @@ namespace Grid.SaveLoad
             for (var i = 0; i < dropPoints.Length; i++)
             {
                 gridManager.SetIsWalkable(dropPoints[i], false);
+                gridManager.SetDefaultStorageCapacity(dropPoints[i]);
                 SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
                     dropPoints[i], spawnManager.DropPointPrefab,
                     GridEntityType.DropPoint, WorldSpriteSheetEntryType.BuildingStorageB);

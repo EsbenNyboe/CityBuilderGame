@@ -83,6 +83,15 @@ namespace UnitBehaviours.AutonomousHarvesting
             {
                 var dropPointPosition = dropPointTransform.ValueRO.Position;
                 var dropPointCell = GridHelpers.GetXY(dropPointPosition);
+
+                var itemCount = gridManager.GetStorageItemCount(dropPointCell);
+                var itemCapacity = gridManager.GetStorageItemCapacity(dropPointCell);
+
+                if (gridManager.GetStorageItemCount(dropPointCell) >= gridManager.GetStorageItemCapacity(dropPointCell))
+                {
+                    continue;
+                }
+
                 var dropPointDistance = math.distance(position, dropPointPosition);
                 if (dropPointDistance < shortestDropPointDistance &&
                     gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, dropPointCell, out var dropPointEntrance))

@@ -120,5 +120,20 @@ namespace Grid
         }
 
         #endregion
+
+        public void SetDefaultStorageCapacity(Vector3 position)
+        {
+            SetDefaultStorageCapacity(GridHelpers.GetXY(position));
+        }
+
+        public void SetDefaultStorageCapacity(int2 cell)
+        {
+            SetDefaultStorageCapacity(GetIndex(cell));
+        }
+
+        public void SetDefaultStorageCapacity(int index)
+        {
+            SetStorageCapacity(index, 5);
+        }
     }
 }
