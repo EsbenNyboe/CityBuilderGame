@@ -168,6 +168,7 @@ namespace UnitAgency.Logic
                     else
                     {
                         InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
+                        EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                     }
                 }
                 else if (hasAccessToStorageWithSpace &&
