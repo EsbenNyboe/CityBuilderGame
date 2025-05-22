@@ -43,7 +43,7 @@ namespace Grid
 
         #region ItemCount
 
-        public int GetStorageItemCount(Vector3 position)
+        public int GetStorageItemCount(float3 position)
         {
             GridHelpers.GetXY(position, out var x, out var y);
             return GetStorageItemCount(x, y);

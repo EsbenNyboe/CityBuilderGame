@@ -1,5 +1,6 @@
 using Grid;
 using Inventory;
+using Rendering;
 using UnitAgency.Data;
 using UnitBehaviours.AutonomousHarvesting;
 using Unity.Collections;
@@ -15,6 +16,7 @@ namespace Storage
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<StorageRuleManager>();
             state.RequireForUpdate<GridManager>();
 
             _storageRequestQuery = state.GetEntityQuery(
@@ -26,6 +28,7 @@ namespace Storage
         {
             state.Dependency.Complete();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
+            var storageRuleManager = SystemAPI.GetSingleton<StorageRuleManager>();
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             foreach (var storageRequest in SystemAPI.Query<RefRO<StorageRequest>>())
@@ -35,7 +38,7 @@ namespace Storage
                 var gridCell = storageRequest.ValueRO.GridCell;
                 var itemCapacity = gridManager.GetStorageItemCapacity(gridCell);
                 var itemCount = gridManager.GetStorageItemCount(gridCell);
-                itemCapacity = 5;
+                itemCapacity = storageRuleManager.MaxPerStructure;
 
                 var requestedItemCountTotal = itemCount - requestedAmount;
                 var requestIsValid =
