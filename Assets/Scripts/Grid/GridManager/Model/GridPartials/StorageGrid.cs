@@ -133,7 +133,7 @@ namespace Grid
 
         public void SetDefaultStorageCapacity(int index)
         {
-            SetStorageCapacity(index, 5);
+            SetStorageCapacity(index, 12);
         }
     }
 }
