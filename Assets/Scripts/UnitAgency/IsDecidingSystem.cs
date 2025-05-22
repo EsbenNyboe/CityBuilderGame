@@ -105,6 +105,9 @@ namespace UnitAgency.Logic
                 var cell = GridHelpers.GetXY(position);
                 var section = GridManager.GetSection(cell);
 
+                var hasAccessToStorageWithSpace =
+                    QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.DropPointQuadrantMap, GridManager, 50, position);
+
                 var isSleepy = moodSleepiness.Sleepiness > 0.2f;
                 var isMoving = pathFollow.IsMoving();
                 var isLonely = moodLoneliness.Loneliness > 10f;
@@ -158,9 +161,17 @@ namespace UnitAgency.Logic
                 }
                 else if (HasLogOfWood(inventory))
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDropPoint());
+                    if (hasAccessToStorageWithSpace)
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingDropPoint());
+                    }
+                    else
+                    {
+                        InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
+                    }
                 }
-                else if (QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DropPointQuadrantMap, GridManager,
+                else if (hasAccessToStorageWithSpace &&
+                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DropPointQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _) &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedItemQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _))
@@ -208,7 +219,7 @@ namespace UnitAgency.Logic
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingBed());
                 }
-                else if (IsAdjacentToTree(GridManager, cell, out var tree))
+                else if (hasAccessToStorageWithSpace && IsAdjacentToTree(GridManager, cell, out var tree))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
@@ -246,7 +257,7 @@ namespace UnitAgency.Logic
                         });
                     }
                 }
-                else if (hasInitiative)
+                else if (hasInitiative && hasAccessToStorageWithSpace)
                 {
                     moodInitiative.UseInitiative();
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());

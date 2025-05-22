@@ -62,12 +62,6 @@ namespace Storage
                 }
                 else
                 {
-                    Debug.Log(
-                        "StorageSystem: ItemCount before is "
-                        + itemCount
-                        + " ItemCount after is "
-                        + requestedItemCountTotal
-                    );
                     // Target: storage cell
                     gridManager.SetStorageCount(gridCell, requestedItemCountTotal);
 
