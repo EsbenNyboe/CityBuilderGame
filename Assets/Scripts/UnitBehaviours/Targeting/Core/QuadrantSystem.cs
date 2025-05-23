@@ -214,6 +214,38 @@ namespace UnitBehaviours.Targeting.Core
             return closestTargetEntity != Entity.Null;
         }
 
+        public static bool TryFindSpaciousStorageInSection(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
+            GridManager gridManager, int quadrantsToSearch, float3 position)
+        {
+            var section = gridManager.GetSection(position);
+            var hashMapKey = GetHashMapKeyFromPosition(position);
+            var quadrantIndex = 0;
+            while (quadrantIndex < quadrantsToSearch)
+            {
+                var relativeCoordinate = gridManager.RelativePositionList[quadrantIndex];
+                var relativeHashMapKey = relativeCoordinate.x + relativeCoordinate.y * QuadrantYMultiplier;
+                var absoluteHashMapKey = hashMapKey + relativeHashMapKey;
+
+                if (quadrantMultiHashMap.TryGetFirstValue(absoluteHashMapKey, out var quadrantData,
+                        out var nativeParallelMultiHashMapIterator))
+                {
+                    do
+                    {
+                        if (quadrantData.Section == section &&
+                            gridManager.GetStorageItemCount(quadrantData.Position) < gridManager.GetStorageItemCapacity(quadrantData.Position))
+                        {
+                            return true;
+                        }
+                    } while (quadrantMultiHashMap.TryGetNextValue(out quadrantData,
+                                 ref nativeParallelMultiHashMapIterator));
+                }
+
+                quadrantIndex++;
+            }
+
+            return false;
+        }
+
         public static bool TryFindClosestEntity(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap, GridManager gridManager,
             int quadrantsToSearch, float3 position, Entity entity,
             out Entity closestTargetEntity, out float closestTargetDistance)

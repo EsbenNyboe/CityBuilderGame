@@ -3,6 +3,7 @@ using Inventory;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting.Core;
+using UnitBehaviours.UnitManagers;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -15,6 +16,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
@@ -23,6 +25,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
@@ -38,7 +41,8 @@ namespace UnitBehaviours.AutonomousHarvesting
                 var position = localTransform.ValueRO.Position;
                 if (isSeekingDroppedLog.ValueRO.HasStartedMoving)
                 {
-                    if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedItemQuadrantMap, gridManager, 9, position,
+                    if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedItemQuadrantMap, gridManager,
+                            unitBehaviourManager.QuadrantSearchRange, position,
                             entity, out var droppedItemToPickup, out _))
                     {
                         var itemPosition = SystemAPI.GetComponent<LocalTransform>(droppedItemToPickup).Position;

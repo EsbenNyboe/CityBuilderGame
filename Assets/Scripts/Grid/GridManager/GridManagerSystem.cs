@@ -102,6 +102,15 @@ namespace Grid
 
             gridManager.GridEntityGrid = new NativeArray<Entity>(width * height, Allocator.Persistent);
             gridManager.GridEntityTypeGrid = new NativeArray<GridEntityType>(width * height, Allocator.Persistent);
+
+            gridManager.StorageGrid = new NativeArray<StorageCell>(width * height, Allocator.Persistent);
+            for (var i = 0; i < gridManager.StorageGrid.Length; i++)
+            {
+                var cell = gridManager.StorageGrid[i];
+                cell.ItemCapacity = 0;
+                cell.ItemCount = 0;
+                gridManager.StorageGrid[i] = cell;
+            }
         }
 
         private static void CreateGridSearchHelpers(ref GridManager gridManager)

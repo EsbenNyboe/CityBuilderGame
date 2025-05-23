@@ -11,5 +11,6 @@ namespace UnitBehaviours.UnitManagers
         public int MaxSeekAttempts;
         public int BoarQuadrantRange;
         public float DecompositionDuration;
+        public int QuadrantSearchRange;
     }
 }

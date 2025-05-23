@@ -9,6 +9,7 @@ namespace Grid
         public int Width;
         public int Height;
         public NativeArray<WalkableCell> WalkableGrid;
+        public NativeArray<StorageCell> StorageGrid;
         public NativeArray<DamageableCell> DamageableGrid;
         public NativeArray<OccupiableCell> OccupiableGrid;
         public NativeArray<InteractableCell> InteractableGrid;

@@ -1,3 +1,4 @@
+using Storage;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -38,6 +39,28 @@ namespace Inventory
                 Rotation = quaternion.identity
             });
             inventory.CurrentItem = InventoryItem.None;
+        }
+
+        public static void SendRequestForDropItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
+        {
+            var requestEntity = ecb.CreateEntity();
+            ecb.AddComponent(requestEntity, new StorageRequest
+            {
+                GridCell = targetCell,
+                RequestAmount = -1,
+                RequesterEntity = sourceEntity
+            });
+        }
+
+        public static void SendRequestForRetrieveItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
+        {
+            var requestEntity = ecb.CreateEntity();
+            ecb.AddComponent(requestEntity, new StorageRequest
+            {
+                GridCell = targetCell,
+                RequestAmount = 1,
+                RequesterEntity = sourceEntity
+            });
         }
     }
 }

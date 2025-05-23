@@ -1,3 +1,4 @@
+using Grid;
 using GridEntityNS;
 using Inventory;
 using SystemGroups;
@@ -22,6 +23,8 @@ namespace Rendering
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<StorageRuleManager>();
+            state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<InventoryEnum>();
             state.RequireForUpdate<SortingJobConfig>();
             state.RequireForUpdate<WorldSpriteSheetManager>();
@@ -57,6 +60,7 @@ namespace Rendering
         public void OnUpdate(ref SystemState state)
         {
             state.Dependency.Complete();
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
             var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
             if (!worldSpriteSheetManager.IsInitialized())
             {
@@ -96,9 +100,18 @@ namespace Rendering
             var pivots = GetArrayOfPivots(pivotCount, batchQueueCounts, yBottom, yTop);
             var pivotsPerQuickSort = sortingTest.SectionsPerSplitJob - 1;
             GetDataToSort(ref state, worldSpriteSheetManager, yTop, yBottom, xLeft, xRight, out var inventoryRenderDataQueue,
-                pivots, pivotsPerQuickSort, sortingQueues);
+                out var storageRenderDataQueue,
+                pivots, pivotsPerQuickSort, sortingQueues, gridManager);
 
-            var visibleItemsCount = inventoryRenderDataQueue.Count;
+            var storageItemCount = 0;
+            for (var i = 0; i < storageRenderDataQueue.Count; i++)
+            {
+                var storageRenderData = storageRenderDataQueue.Dequeue();
+                storageItemCount += storageRenderData.Amount;
+                storageRenderDataQueue.Enqueue(storageRenderData);
+            }
+
+            var visibleItemsCount = inventoryRenderDataQueue.Count + storageItemCount;
             var visibleUnitsCount = 0;
             for (var i = 0; i < batchQueueCounts[0]; i++)
             {
@@ -116,7 +129,10 @@ namespace Rendering
             var dependency = ScheduleBubbleSortingOfEachSection(sharedSortingArray, startIndexes, endIndexes);
 
             dependency = MergeSortedArrayWithInventoryData(dependency, ref state, sharedSortingArray, inventoryRenderDataQueue,
-                worldSpriteSheetManager, out var finalArrayOfRenderData);
+                worldSpriteSheetManager, out var arrayOfRenderDataWithInventoryItems);
+            dependency = MergeSortedArrayWithStorageData(dependency, ref state, arrayOfRenderDataWithInventoryItems, storageRenderDataQueue,
+                worldSpriteSheetManager, out var arrayOfRenderDataWithStorageItems, storageItemCount);
+            var finalArrayOfRenderData = arrayOfRenderDataWithStorageItems;
             GetSingletonDataContainers(ref state, visibleUnitsCount + visibleItemsCount,
                 out var spriteMatrixArray, out var spriteUvArray);
 
@@ -183,14 +199,69 @@ namespace Rendering
             return newDependency;
         }
 
+        private JobHandle MergeSortedArrayWithStorageData(JobHandle dependency,
+            ref SystemState state,
+            NativeArray<RenderData> sharedSortingArray,
+            NativeQueue<StorageRenderData> storageRenderDataQueue,
+            WorldSpriteSheetManager worldSpriteSheetManager, out NativeArray<RenderData> finalArrayOfRenderData, int itemsToRenderCount)
+        {
+            // Convert this to a job
+            var storageRenderDataHashMap =
+                new NativeParallelHashMap<Entity, StorageRenderData>(storageRenderDataQueue.Count, Allocator.TempJob);
+
+            while (storageRenderDataQueue.Count > 0)
+            {
+                var storageRenderData = storageRenderDataQueue.Dequeue();
+                storageRenderDataHashMap.Add(storageRenderData.Entity, storageRenderData);
+            }
+
+            storageRenderDataQueue.Dispose();
+
+            finalArrayOfRenderData =
+                new NativeArray<RenderData>(sharedSortingArray.Length + itemsToRenderCount, Allocator.TempJob);
+
+            var enumLength = SystemAPI.GetSingleton<InventoryEnum>().ItemEnumLength;
+
+            var itemSpriteSheetColumnLookup = new NativeArray<int>(enumLength, Allocator.TempJob);
+            var itemSpriteSheetRowLookup = new NativeArray<int>(enumLength, Allocator.TempJob);
+            for (var i = 0; i < enumLength; i++)
+            {
+                worldSpriteSheetManager.GetInventoryItemCoordinates((InventoryItem)i, out var column, out var row);
+                itemSpriteSheetColumnLookup[i] = column;
+                itemSpriteSheetRowLookup[i] = row;
+            }
+
+            var newDependency = new MergeSortedArrayWithStorageDataJob
+            {
+                MergedArray = finalArrayOfRenderData,
+                StorageRenderDataHashMap = storageRenderDataHashMap,
+                SortedArray = sharedSortingArray,
+                ColumnScale = worldSpriteSheetManager.ColumnScale,
+                RowScale = worldSpriteSheetManager.RowScale,
+                InventoryItemSpriteSheetColumnLookup = itemSpriteSheetColumnLookup,
+                InventoryItemSpriteSheetRowLookup = itemSpriteSheetRowLookup,
+                StorageRuleManager = SystemAPI.GetSingleton<StorageRuleManager>()
+            }.Schedule(dependency);
+
+            storageRenderDataHashMap.Dispose(newDependency);
+            sharedSortingArray.Dispose(newDependency);
+            itemSpriteSheetColumnLookup.Dispose(newDependency);
+            itemSpriteSheetRowLookup.Dispose(newDependency);
+
+            return newDependency;
+        }
+
         private void GetDataToSort(ref SystemState state, WorldSpriteSheetManager worldSpriteSheetManager,
             float yTop, float yBottom, float xLeft, float xRight, out NativeQueue<InventoryRenderData> inventoryRenderDataQueue,
+            out NativeQueue<StorageRenderData> storageRenderDataQueue,
             NativeArray<float> pivots, int pivotCount,
-            NativeArray<QueueContainer> sortingQueues)
+            NativeArray<QueueContainer> sortingQueues,
+            GridManager gridManager)
         {
             inventoryRenderDataQueue = new NativeQueue<InventoryRenderData>(Allocator.TempJob);
+            storageRenderDataQueue = new NativeQueue<StorageRenderData>(Allocator.TempJob);
 
-            new CullJob
+            new CullJobOnUnit
             {
                 XLeft = xLeft,
                 XRight = xRight,
@@ -220,9 +291,11 @@ namespace Rendering
                 XRight = xRight,
                 YTop = yTop,
                 YBottom = yBottom,
+                StorageRenderDataQueue = storageRenderDataQueue,
                 Pivots = pivots,
                 PivotCount = pivotCount,
-                SortingQueues = sortingQueues
+                SortingQueues = sortingQueues,
+                GridManager = gridManager
             }.Run(_gridEntityQuery);
         }
 
@@ -442,7 +515,7 @@ namespace Rendering
         }
 
         [BurstCompile]
-        private partial struct CullJob : IJobEntity
+        private partial struct CullJobOnUnit : IJobEntity
         {
             [ReadOnly] public float XLeft; // Left most cull position
             [ReadOnly] public float XRight; // Right most cull position
@@ -561,6 +634,10 @@ namespace Rendering
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<QueueContainer> SortingQueues;
 
+            [ReadOnly] public GridManager GridManager;
+
+            public NativeQueue<StorageRenderData> StorageRenderDataQueue { get ; set ; }
+
             public void Execute(in Entity entity, in WorldSpriteSheetState worldSpriteSheetState, in LocalTransform localTransform)
             {
                 var position = localTransform.Position;
@@ -587,6 +664,18 @@ namespace Rendering
                 };
 
                 QuickSortToQueues(Pivots, 0, PivotCount, SortingQueues, 0, renderData);
+
+                var storageCount = GridManager.GetStorageItemCount(position);
+
+                if (storageCount > 0)
+                {
+                    StorageRenderDataQueue.Enqueue(new StorageRenderData
+                    {
+                        Entity = entity,
+                        Item = InventoryItem.LogOfWood,
+                        Amount = storageCount
+                    });
+                }
             }
         }
 
@@ -731,6 +820,98 @@ namespace Rendering
         }
 
         [BurstCompile]
+        private struct MergeSortedArrayWithStorageDataJob : IJob
+        {
+            public NativeArray<RenderData> MergedArray;
+            [ReadOnly] public NativeParallelHashMap<Entity, StorageRenderData> StorageRenderDataHashMap;
+            [ReadOnly] public NativeArray<RenderData> SortedArray;
+            [ReadOnly] public float ColumnScale;
+            [ReadOnly] public float RowScale;
+            [ReadOnly] public NativeArray<int> InventoryItemSpriteSheetColumnLookup;
+            [ReadOnly] public NativeArray<int> InventoryItemSpriteSheetRowLookup;
+            [ReadOnly] public StorageRuleManager StorageRuleManager;
+
+            public void Execute()
+            {
+                var mergedArrayIndex = 0;
+                for (var i = 0; i < SortedArray.Length; i++)
+                {
+                    var renderData = SortedArray[i];
+                    MergedArray[mergedArrayIndex] = renderData;
+                    mergedArrayIndex++;
+
+                    if (StorageRenderDataHashMap.TryGetValue(renderData.Entity, out var itemData))
+                    {
+                        for (var j = 0; j < itemData.Amount; j++)
+                        {
+                            GetMeshConfigurationForStorage(StorageRuleManager, renderData.Position, j, out var matrix);
+                            var inventoryUv = new Vector4(ColumnScale, RowScale, 0, 0)
+                            {
+                                z = ColumnScale * InventoryItemSpriteSheetColumnLookup[(int)itemData.Item],
+                                w = RowScale * InventoryItemSpriteSheetRowLookup[(int)itemData.Item]
+                            };
+
+                            var itemRenderData = new RenderData
+                            {
+                                Position = renderData.Position,
+                                Matrix = matrix,
+                                Uv = inventoryUv
+                            };
+
+                            MergedArray[mergedArrayIndex] = itemRenderData;
+                            mergedArrayIndex++;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void GetMeshConfigurationForStorage(StorageRuleManager storageRuleManager, Vector3 position, int itemIndex,
+            out Matrix4x4 matrix4X4)
+        {
+            var xOffset = storageRuleManager.Padding.x;
+            var yOffset = storageRuleManager.Padding.y;
+            var structureOffsetX = 0;
+            var structureOffsetY = 0;
+            var storageIndex = 0;
+            var stackIndex = 0;
+            for (var j = 0; j < itemIndex; j++)
+            {
+                storageIndex++;
+                stackIndex++;
+                yOffset += storageRuleManager.Spacing.y;
+                if (storageIndex >= storageRuleManager.MaxPerStructure)
+                {
+                    structureOffsetX++;
+                    if (structureOffsetX >= 1) // is this correct?
+                    {
+                        structureOffsetX = 0;
+                        structureOffsetY++;
+                    }
+
+                    storageIndex = 0;
+                    stackIndex = 0;
+                    yOffset = storageRuleManager.Padding.y;
+                    xOffset = storageRuleManager.Padding.x;
+                }
+
+                if (stackIndex >= storageRuleManager.MaxPerStack)
+                {
+                    stackIndex = 0;
+                    yOffset = storageRuleManager.Padding.y;
+                    xOffset += storageRuleManager.Spacing.x;
+                }
+            }
+
+            position.x += structureOffsetX + xOffset;
+            position.y += structureOffsetY + yOffset;
+            position.z = 0;
+            var rotation = quaternion.identity;
+
+            matrix4X4 = Matrix4x4.TRS(position, rotation, Vector3.one);
+        }
+
+        [BurstCompile]
         private struct FillArraysJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<RenderData> SortedArray;
@@ -759,6 +940,13 @@ namespace Rendering
         }
 
         private struct InventoryRenderData
+        {
+            public Entity Entity;
+            public InventoryItem Item;
+            public int Amount;
+        }
+
+        private struct StorageRenderData
         {
             public Entity Entity;
             public InventoryItem Item;

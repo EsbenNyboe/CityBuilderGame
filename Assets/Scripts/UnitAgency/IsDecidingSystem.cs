@@ -31,6 +31,7 @@ namespace UnitAgency.Logic
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<SocialDynamicsManager>();
@@ -56,6 +57,7 @@ namespace UnitAgency.Logic
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
@@ -66,6 +68,7 @@ namespace UnitAgency.Logic
                 GridManager = gridManager,
                 SocialDynamicsManager = socialDynamicsManager,
                 QuadrantDataManager = quadrantDataManager,
+                UnitBehaviourManager = unitBehaviourManager,
                 LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),
                 IsTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>(),
                 IsTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>(),
@@ -82,6 +85,7 @@ namespace UnitAgency.Logic
             [ReadOnly] public GridManager GridManager;
             [ReadOnly] public SocialDynamicsManager SocialDynamicsManager;
             [ReadOnly] public QuadrantDataManager QuadrantDataManager;
+            [ReadOnly] public UnitBehaviourManager UnitBehaviourManager;
             [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
             [ReadOnly] public ComponentLookup<IsTalkative> IsTalkativeLookup;
             [ReadOnly] public ComponentLookup<IsTalking> IsTalkingLookup;
@@ -105,6 +109,9 @@ namespace UnitAgency.Logic
                 var cell = GridHelpers.GetXY(position);
                 var section = GridManager.GetSection(cell);
 
+                var hasAccessToStorageWithSpace =
+                    QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.DropPointQuadrantMap, GridManager, 50, position);
+
                 var isSleepy = moodSleepiness.Sleepiness > 0.2f;
                 var isMoving = pathFollow.IsMoving();
                 var isLonely = moodLoneliness.Loneliness > 10f;
@@ -116,7 +123,7 @@ namespace UnitAgency.Logic
                 // TODO: Convert these into "rings of quadrants to search" instead of "quadrants to search"
                 var friendQuadrantsToSearch = 25;
                 var boarQuadrantsToSearch = 9;
-                var itemQuadrantsToSearch = 50;
+                var itemQuadrantsToSearch = UnitBehaviourManager.QuadrantSearchRange;
 
                 var isStandingOnNonWalkableCell = !GridManager.IsWalkable(cell) && !GridManager.IsBedAvailableToUnit(cell, entity);
 
@@ -158,9 +165,18 @@ namespace UnitAgency.Logic
                 }
                 else if (HasLogOfWood(inventory))
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDropPoint());
+                    if (hasAccessToStorageWithSpace)
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingDropPoint());
+                    }
+                    else
+                    {
+                        InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
+                        EcbParallelWriter.AddComponent(i, entity, new IsIdle());
+                    }
                 }
-                else if (QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DropPointQuadrantMap, GridManager,
+                else if (hasAccessToStorageWithSpace &&
+                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DropPointQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _) &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedItemQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _))
@@ -208,7 +224,7 @@ namespace UnitAgency.Logic
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingBed());
                 }
-                else if (IsAdjacentToTree(GridManager, cell, out var tree))
+                else if (hasAccessToStorageWithSpace && IsAdjacentToTree(GridManager, cell, out var tree))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
@@ -246,7 +262,7 @@ namespace UnitAgency.Logic
                         });
                     }
                 }
-                else if (hasInitiative)
+                else if (hasInitiative && hasAccessToStorageWithSpace)
                 {
                     moodInitiative.UseInitiative();
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
