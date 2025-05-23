@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace CustomTime
+namespace CustomTimeCore
 {
     public class CustomTimeUI : MonoBehaviour
     {

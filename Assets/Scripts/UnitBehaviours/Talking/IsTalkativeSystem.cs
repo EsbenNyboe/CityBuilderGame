@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Grid;
 using SystemGroups;
 using UnitAgency.Data;
@@ -14,6 +15,7 @@ namespace UnitBehaviours.Talking
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
@@ -23,6 +25,7 @@ namespace UnitBehaviours.Talking
         {
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var isTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>();
             var isTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>();
@@ -35,7 +38,7 @@ namespace UnitBehaviours.Talking
                     continue;
                 }
 
-                isTalkative.ValueRW.Patience -= SystemAPI.Time.DeltaTime;
+                isTalkative.ValueRW.Patience -= SystemAPI.Time.DeltaTime * timeScale;
                 if (isTalkative.ValueRW.Patience <= 0)
                 {
                     // I lost my patience...

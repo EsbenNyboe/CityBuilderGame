@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using SystemGroups;
 using UnitBehaviours.UnitManagers;
 using UnitSpawn.SpawnedUnitNS;
@@ -21,6 +22,7 @@ namespace UnitState.SocialLogic
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<SocialDynamicsManager>();
             state.RequireForUpdate<SocialEvaluationManager>();
             state.EntityManager.CreateSingleton<SocialEvaluationManager>();
@@ -34,6 +36,7 @@ namespace UnitState.SocialLogic
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var socialEvaluationManager = SystemAPI.GetSingleton<SocialEvaluationManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
 
@@ -57,7 +60,7 @@ namespace UnitState.SocialLogic
                 JobEntities = entities,
                 AllEntities = allEntities,
                 NeutralizationAmount = socialDynamicsManager.NeutralizationFactor,
-                Time = (float)SystemAPI.Time.ElapsedTime,
+                Time = (float)SystemAPI.Time.ElapsedTime * timeScale,
                 SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
             }.Schedule(entities.Length, 1);
             job.Complete();

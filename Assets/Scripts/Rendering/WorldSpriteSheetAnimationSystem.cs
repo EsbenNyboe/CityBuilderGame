@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using SpriteTransformNS;
 using SystemGroups;
 using Unity.Burst;
@@ -14,12 +15,14 @@ namespace Rendering
     {
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<WorldSpriteSheetManager>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
 
             var uvScaleX = worldSpriteSheetManager.ColumnScale;
@@ -28,7 +31,7 @@ namespace Rendering
 
             new SetAnimationStateJob
             {
-                DeltaTime = SystemAPI.Time.DeltaTime,
+                DeltaTime = SystemAPI.Time.DeltaTime * timeScale,
                 UvTemplate = uvTemplate,
                 WorldSpriteSheetEntries = worldSpriteSheetManager.Entries
             }.ScheduleParallel();

@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Debugging;
 using Grid;
 using SpriteTransformNS;
@@ -18,6 +19,7 @@ namespace UnitBehaviours.Pathing
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<SocialDynamicsManager>();
@@ -28,6 +30,7 @@ namespace UnitBehaviours.Pathing
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
             var isDebuggingPath = debugToggleManager.DebugPathfinding;
             var isDebuggingSearch = debugToggleManager.DebugPathSearchEmptyCells;
@@ -68,7 +71,7 @@ namespace UnitBehaviours.Pathing
 
                 var moveAmount = unitBehaviourManager.MoveSpeed *
                                  pathFollow.ValueRO.MoveSpeedMultiplier *
-                                 SystemAPI.Time.DeltaTime;
+                                 SystemAPI.Time.DeltaTime * timeScale;
 
                 while (distanceToTarget - moveAmount < 0)
                 {

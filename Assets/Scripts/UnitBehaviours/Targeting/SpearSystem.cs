@@ -1,4 +1,5 @@
 using Audio;
+using CustomTimeCore;
 using Effects;
 using Rendering;
 using UnitBehaviours.UnitConfigurators;
@@ -17,6 +18,7 @@ namespace UnitBehaviours.Targeting
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<WorldSpriteSheetManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
@@ -24,6 +26,7 @@ namespace UnitBehaviours.Targeting
 
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
 
             foreach (var (spear, entity) in SystemAPI.Query<RefRW<Spear>>().WithEntityAccess())
@@ -31,7 +34,7 @@ namespace UnitBehaviours.Targeting
                 var position = spear.ValueRO.CurrentPosition;
 
                 var distanceBeforeMoving = math.distance(position, spear.ValueRO.Target);
-                spear.ValueRW.CurrentPosition = position += spear.ValueRO.Direction * SystemAPI.Time.DeltaTime * SpearSpeed;
+                spear.ValueRW.CurrentPosition = position += spear.ValueRO.Direction * SpearSpeed * SystemAPI.Time.DeltaTime * timeScale;
                 var distanceAfterMoving = math.distance(position, spear.ValueRO.Target);
                 if (distanceBeforeMoving <= distanceAfterMoving)
                 {

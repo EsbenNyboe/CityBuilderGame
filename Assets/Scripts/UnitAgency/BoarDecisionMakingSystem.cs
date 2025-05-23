@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Grid;
 using SpriteTransformNS;
 using SystemGroups;
@@ -24,6 +25,7 @@ namespace UnitAgency.Logic
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
@@ -37,6 +39,7 @@ namespace UnitAgency.Logic
             _randomContainerLookup.Update(ref state);
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var quadrantsToSearch = GridHelpers.CalculatePositionListLength(unitBehaviourManager.BoarQuadrantRange);
 
@@ -72,7 +75,7 @@ namespace UnitAgency.Logic
                             var randomDelay = _randomContainerLookup[entity].Random.NextFloat(0, 1);
                             ecb.SetComponent(entity, new ActionGate
                             {
-                                MinTimeOfAction = (float)SystemAPI.Time.ElapsedTime + randomDelay
+                                MinTimeOfAction = randomDelay + (float)SystemAPI.Time.ElapsedTime * timeScale
                             });
                             moodInitiative.ValueRW.UseInitiative();
                             ecb.AddComponent<BoarIsCharging>(entity);

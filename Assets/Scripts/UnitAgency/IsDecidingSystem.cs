@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Grid;
 using Inventory;
 using SpriteTransformNS;
@@ -31,6 +32,7 @@ namespace UnitAgency.Logic
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
@@ -54,6 +56,7 @@ namespace UnitAgency.Logic
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
@@ -64,7 +67,7 @@ namespace UnitAgency.Logic
             var decideNextBehaviourJob = new DecideNextBehaviourJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
-                ElapsedTime = (float)SystemAPI.Time.ElapsedTime,
+                ElapsedTime = (float)SystemAPI.Time.ElapsedTime * timeScale,
                 GridManager = gridManager,
                 SocialDynamicsManager = socialDynamicsManager,
                 QuadrantDataManager = quadrantDataManager,

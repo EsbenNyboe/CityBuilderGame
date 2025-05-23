@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
@@ -15,6 +16,7 @@ namespace UnitBehaviours.Idle
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _query = state.GetEntityQuery(ComponentType.ReadOnly<IsIdle>(),
                 ComponentType.ReadOnly<PathFollow>(),
@@ -26,13 +28,14 @@ namespace UnitBehaviours.Idle
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
             new IsIdleJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
-                DeltaTime = SystemAPI.Time.DeltaTime
+                DeltaTime = SystemAPI.Time.DeltaTime * timeScale
             }.ScheduleParallel(_query);
         }
 
