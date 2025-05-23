@@ -97,6 +97,9 @@ namespace Rendering
         DropPoint,
         TreeDamaged,
         Tree,
-        Bed
+        Bed,
+        BlueprintDropPoint,
+        BlueprintBed,
+        BlueprintStorage
     }
 }
