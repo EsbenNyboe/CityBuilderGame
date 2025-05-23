@@ -7,6 +7,7 @@ namespace Rendering
         public static CameraController Instance;
 
         [HideInInspector] public Vector3 FollowPosition;
+        
 
         [SerializeField] private float _movementSpeed;
         [SerializeField] private float _zoomSpeed;
@@ -23,6 +24,7 @@ namespace Rendering
         private float _followLerpFactor;
 
         private bool _isFollowingSelectedUnit;
+        private bool _isZoomingOnSelectedUnits;
 
         private float _zoomMomentum;
 
@@ -63,9 +65,15 @@ namespace Rendering
 
             transform.position += moveDelta;
 
-            if (Input.GetKeyDown(KeyCode.Return))
+            if (Input.GetKeyDown(KeyCode.Return) && Input.GetKeyDown(KeyCode.LeftControl))
             {
                 _isFollowingSelectedUnit = !_isFollowingSelectedUnit;
+                _isZoomingOnSelectedUnits = !_isZoomingOnSelectedUnits;
+            }
+            else if (Input.GetKeyDown(KeyCode.Return))
+            {
+                _isFollowingSelectedUnit = !_isFollowingSelectedUnit;
+                _isZoomingOnSelectedUnits = false;
             }
 
             if (_isFollowingSelectedUnit && FollowPosition != Vector3.zero)
@@ -93,6 +101,10 @@ namespace Rendering
             size -= scrollAmount * _zoomSpeed;
 
             size = Mathf.Clamp(size, _minSize, _maxSize);
+            if (_isZoomingOnSelectedUnits)
+            {
+                
+            }
             Camera.main.orthographicSize = size;
 
             var mouseWorldAfter = Camera.main.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 0));
