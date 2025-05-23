@@ -5,7 +5,8 @@ namespace CustomTimeCore
     public class CustomTimeUI : MonoBehaviour
     {
         public static CustomTimeUI Instance;
-        public float TimeScale;
+
+        [Range(0.001f, 10)] public float TimeScale;
 
         private void Awake()
         {

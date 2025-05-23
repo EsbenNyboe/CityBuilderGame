@@ -2,14 +2,14 @@ using Unity.Entities;
 
 namespace CustomTimeCore
 {
-    public partial struct CustomTimeSystem : ISystem
+    public partial class CustomTimeSystem : SystemBase
     {
-        public void OnCreate(ref SystemState state)
+        protected override void OnCreate()
         {
-            state.RequireForUpdate<CustomTime>();
+            EntityManager.CreateSingleton<CustomTime>();
         }
 
-        public void OnUpdate(ref SystemState state)
+        protected override void OnUpdate()
         {
             var customTime = SystemAPI.GetSingleton<CustomTime>();
             customTime.TimeScale = CustomTimeUI.Instance.TimeScale;
