@@ -36,7 +36,7 @@ namespace UnitState.Dead
                 return;
             }
 
-            var decompositionDuration = SystemAPI.GetSingleton<UnitBehaviourManager>().DecompositionDuration;
+            var decompositionDuration = SystemAPI.GetSingleton<UnitBehaviourManager>().DecompositionDuration * timeScale;
             var timeOfDecomposition = (float)SystemAPI.Time.ElapsedTime * timeScale - decompositionDuration;
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
             var deathFrames = worldSpriteSheetManager.GetAnimationLength(WorldSpriteSheetEntryType.BoarDead);

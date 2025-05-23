@@ -35,7 +35,7 @@ namespace Effects.SocialEffectsRendering
                 socialEffectSortingManager.SocialEffectQueue = new NativeQueue<SocialEffectData>(Allocator.Persistent);
             }
 
-            var killThreshold = (float)SystemAPI.Time.ElapsedTime * timeScale - socialEffectSortingManager.Lifetime;
+            var killThreshold = (float)SystemAPI.Time.ElapsedTime * timeScale - socialEffectSortingManager.Lifetime * timeScale;
             var queueIsDirty = true;
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);

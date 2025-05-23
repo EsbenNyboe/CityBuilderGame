@@ -67,7 +67,8 @@ namespace UnitAgency.Logic
             var decideNextBehaviourJob = new DecideNextBehaviourJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
-                ElapsedTime = (float)SystemAPI.Time.ElapsedTime * timeScale,
+                ElapsedTime = (float)SystemAPI.Time.ElapsedTime,
+                TimeScale = timeScale,
                 GridManager = gridManager,
                 SocialDynamicsManager = socialDynamicsManager,
                 QuadrantDataManager = quadrantDataManager,
@@ -85,6 +86,7 @@ namespace UnitAgency.Logic
         {
             public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
             [ReadOnly] public float ElapsedTime;
+            [ReadOnly] public float TimeScale;
             [ReadOnly] public GridManager GridManager;
             [ReadOnly] public SocialDynamicsManager SocialDynamicsManager;
             [ReadOnly] public QuadrantDataManager QuadrantDataManager;
@@ -158,7 +160,7 @@ namespace UnitAgency.Logic
                     });
                     EcbParallelWriter.SetComponent(i, entity, new ActionGate
                     {
-                        MinTimeOfAction = ElapsedTime + randomDelay
+                        MinTimeOfAction = ElapsedTime * TimeScale + randomDelay * TimeScale
                     });
 
                     if (HasLogOfWood(inventory))

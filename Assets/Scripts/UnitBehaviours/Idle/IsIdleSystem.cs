@@ -35,7 +35,8 @@ namespace UnitBehaviours.Idle
             new IsIdleJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
-                DeltaTime = SystemAPI.Time.DeltaTime * timeScale
+                DeltaTime = SystemAPI.Time.DeltaTime,
+                TimeScale = timeScale
             }.ScheduleParallel(_query);
         }
 
@@ -44,6 +45,7 @@ namespace UnitBehaviours.Idle
         {
             public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
             [ReadOnly] public float DeltaTime;
+            [ReadOnly] public float TimeScale;
 
             public void Execute(in Entity entity, in PathFollow pathFollow, ref MoodRestlessness moodRestlessness)
             {
@@ -52,8 +54,8 @@ namespace UnitBehaviours.Idle
                     return;
                 }
 
-                moodRestlessness.Restlessness += DeltaTime;
-                if (moodRestlessness.Restlessness >= MaxIdleTime)
+                moodRestlessness.Restlessness += DeltaTime * TimeScale;
+                if (moodRestlessness.Restlessness >= MaxIdleTime * TimeScale)
                 {
                     moodRestlessness.Restlessness = 0;
                     EcbParallelWriter.RemoveComponent<IsIdle>(entity.Index, entity);

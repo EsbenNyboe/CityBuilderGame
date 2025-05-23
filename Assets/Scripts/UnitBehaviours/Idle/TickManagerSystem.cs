@@ -30,7 +30,7 @@ namespace UnitBehaviours.Idle
             var tickManager = SystemAPI.GetComponent<TickManager>(state.SystemHandle);
             tickManager.TimeSinceLastTick += SystemAPI.Time.DeltaTime * timeScale;
             tickManager.IsTicking = false;
-            if (tickManager.TimeSinceLastTick > TimeBetweenTicks)
+            if (tickManager.TimeSinceLastTick > TimeBetweenTicks * timeScale)
             {
                 tickManager.TimeSinceLastTick = 0;
                 tickManager.IsTicking = true;

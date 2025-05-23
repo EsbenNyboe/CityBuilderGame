@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using SystemGroups;
 using Unity.Entities;
 
@@ -13,11 +14,12 @@ namespace SpriteTransformNS
 
         protected override void OnUpdate()
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             SystemAPI.SetSingleton(new AttackAnimationManager
             {
-                AttackDuration = AttackAnimationManagerConfig.Instance.AnimationDuration,
+                AttackDuration = AttackAnimationManagerConfig.Instance.AnimationDuration * timeScale,
                 AttackAnimationSize = AttackAnimationManagerConfig.Instance.AnimationSize,
-                AttackAnimationIdleTime = AttackAnimationManagerConfig.Instance.AnimationIdleTime
+                AttackAnimationIdleTime = AttackAnimationManagerConfig.Instance.AnimationIdleTime * timeScale
             });
         }
     }

@@ -6,7 +6,7 @@ namespace CustomTimeCore
     {
         public static CustomTimeUI Instance;
 
-        [Range(0.001f, 10)] public float TimeScale;
+        [Range(0.01f, 10)] public float TimeScale;
 
         private void Awake()
         {
