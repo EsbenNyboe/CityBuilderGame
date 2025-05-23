@@ -269,7 +269,6 @@ namespace UnitAgency.Logic
                 }
                 else if (hasInitiative && hasAccessToStorageWithSpace)
                 {
-                    moodInitiative.UseInitiative();
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
                 }
                 else

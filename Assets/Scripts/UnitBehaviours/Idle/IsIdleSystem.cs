@@ -12,6 +12,7 @@ namespace UnitBehaviours.Idle
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsIdleSystem : ISystem
     {
+        private const float MaxIdleTime = 1f;
         private EntityQuery _query;
 
         public void OnCreate(ref SystemState state)
@@ -22,8 +23,6 @@ namespace UnitBehaviours.Idle
                 ComponentType.ReadOnly<PathFollow>(),
                 ComponentType.ReadWrite<MoodRestlessness>());
         }
-
-        private const float MaxIdleTime = 1f;
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
@@ -54,8 +53,8 @@ namespace UnitBehaviours.Idle
                     return;
                 }
 
-                moodRestlessness.Restlessness += DeltaTime * TimeScale;
-                if (moodRestlessness.Restlessness >= MaxIdleTime * TimeScale)
+                moodRestlessness.Restlessness += DeltaTime;
+                if (moodRestlessness.Restlessness * TimeScale >= MaxIdleTime * TimeScale)
                 {
                     moodRestlessness.Restlessness = 0;
                     EcbParallelWriter.RemoveComponent<IsIdle>(entity.Index, entity);
