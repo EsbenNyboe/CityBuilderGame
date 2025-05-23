@@ -17,9 +17,9 @@ namespace SpriteTransformNS
             var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             SystemAPI.SetSingleton(new AttackAnimationManager
             {
-                AttackDuration = AttackAnimationManagerConfig.Instance.AnimationDuration * timeScale,
+                AttackDuration = AttackAnimationManagerConfig.Instance.AnimationDuration,
                 AttackAnimationSize = AttackAnimationManagerConfig.Instance.AnimationSize,
-                AttackAnimationIdleTime = AttackAnimationManagerConfig.Instance.AnimationIdleTime * timeScale
+                AttackAnimationIdleTime = AttackAnimationManagerConfig.Instance.AnimationIdleTime
             });
         }
     }
