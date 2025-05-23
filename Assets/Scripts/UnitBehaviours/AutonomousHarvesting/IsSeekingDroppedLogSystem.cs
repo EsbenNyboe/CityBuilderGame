@@ -38,7 +38,8 @@ namespace UnitBehaviours.AutonomousHarvesting
                 var position = localTransform.ValueRO.Position;
                 if (isSeekingDroppedLog.ValueRO.HasStartedMoving)
                 {
-                    if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedItemQuadrantMap, gridManager, 9, position,
+                    // TODO: Put QuadrantsToSearch in UnitBehaviour-manager
+                    if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedItemQuadrantMap, gridManager, 50, position,
                             entity, out var droppedItemToPickup, out _))
                     {
                         var itemPosition = SystemAPI.GetComponent<LocalTransform>(droppedItemToPickup).Position;
