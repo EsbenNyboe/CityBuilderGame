@@ -11252,7 +11252,7 @@ MonoBehaviour:
   Material: {fileID: 2100000, guid: 1fbb46eabb4844544ae25c4af5cf0f35, type: 2}
   Scale: 0.3
   Offset: 0.5
-  Lifetime: 1
+  Lifetime: 0
   MoveSpeed: 0.5
 --- !u!4 &1974315025
 Transform:
