@@ -11818,6 +11818,7 @@ MonoBehaviour:
   MaxSeekAttempts: 3
   BoarQuadrantRange: 2
   DecompositionDuration: 5
+  QuadrantSearchRange: 50
 --- !u!114 &2042965573
 MonoBehaviour:
   m_ObjectHideFlags: 0

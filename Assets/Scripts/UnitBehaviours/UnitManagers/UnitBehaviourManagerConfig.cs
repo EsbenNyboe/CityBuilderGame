@@ -12,6 +12,7 @@ namespace UnitBehaviours.UnitManagers
         public int MaxSeekAttempts = 3;
         public int BoarQuadrantRange = 2;
         public float DecompositionDuration = 5;
+        public int QuadrantSearchRange = 50;
 
         private void Awake()
         {

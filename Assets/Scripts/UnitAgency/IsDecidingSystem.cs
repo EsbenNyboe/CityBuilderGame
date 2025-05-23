@@ -31,6 +31,7 @@ namespace UnitAgency.Logic
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<SocialDynamicsManager>();
@@ -56,6 +57,7 @@ namespace UnitAgency.Logic
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
@@ -66,6 +68,7 @@ namespace UnitAgency.Logic
                 GridManager = gridManager,
                 SocialDynamicsManager = socialDynamicsManager,
                 QuadrantDataManager = quadrantDataManager,
+                UnitBehaviourManager = unitBehaviourManager,
                 LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),
                 IsTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>(),
                 IsTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>(),
@@ -82,6 +85,7 @@ namespace UnitAgency.Logic
             [ReadOnly] public GridManager GridManager;
             [ReadOnly] public SocialDynamicsManager SocialDynamicsManager;
             [ReadOnly] public QuadrantDataManager QuadrantDataManager;
+            [ReadOnly] public UnitBehaviourManager UnitBehaviourManager;
             [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
             [ReadOnly] public ComponentLookup<IsTalkative> IsTalkativeLookup;
             [ReadOnly] public ComponentLookup<IsTalking> IsTalkingLookup;
@@ -119,7 +123,7 @@ namespace UnitAgency.Logic
                 // TODO: Convert these into "rings of quadrants to search" instead of "quadrants to search"
                 var friendQuadrantsToSearch = 25;
                 var boarQuadrantsToSearch = 9;
-                var itemQuadrantsToSearch = 50;
+                var itemQuadrantsToSearch = UnitBehaviourManager.QuadrantSearchRange;
 
                 var isStandingOnNonWalkableCell = !GridManager.IsWalkable(cell) && !GridManager.IsBedAvailableToUnit(cell, entity);
 

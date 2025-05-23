@@ -20,6 +20,7 @@ namespace UnitBehaviours.UnitManagers
             singleton.MaxSeekAttempts = config.MaxSeekAttempts;
             singleton.BoarQuadrantRange = config.BoarQuadrantRange;
             singleton.DecompositionDuration = config.DecompositionDuration;
+            singleton.QuadrantSearchRange = config.QuadrantSearchRange;
             SystemAPI.SetSingleton(singleton);
         }
     }
