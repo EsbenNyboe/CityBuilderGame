@@ -39,12 +39,12 @@ namespace UnitControl
 
             var averagePosition = positionSum / selectedCount;
             CameraController.Instance.FollowPosition = selectedCount <= 0 ? Vector3.zero : averagePosition;
-            GetSelectionUnitsBounds(out var xMin, out var xMax, out var yMin, out var yMax);
-            GetCameraBounds(out var yTop, out var yBottom, out var xLeft, out var xRight);
-            var maxDiffX = math.max(0, math.max(xMax - xRight, -(xMin - xLeft)));
+            GetCameraBounds(out var yTop, out var yBottom, out var xLeft, out var xRight, out var cameraPosition, out var screenRatio);
+            GetSelectionUnitsBounds(cameraPosition, out var xMin, out var xMax, out var yMin, out var yMax);
+            var maxDiffX = math.max(0, math.max(xMax - xRight, -(xMin - xLeft))) / screenRatio;
             var maxDiffY = math.max(0, math.max(yMax - yTop, -(yMin - yBottom)));
 
-            CameraController.Instance.FollowZoomAmount = math.max(maxDiffX, maxDiffY) / 1000f;
+            CameraController.Instance.FollowZoomAmount = math.max(maxDiffX, maxDiffY) / 100f;
 
             if (Input.GetKeyDown(KeyCode.Delete))
             {
@@ -52,21 +52,21 @@ namespace UnitControl
             }
         }
 
-        private void GetSelectionUnitsBounds(out float xMin, out float xMax, out float yMin, out float yMax)
+        private void GetSelectionUnitsBounds(float3 cameraPosition, out float xMin, out float xMax, out float yMin, out float yMax)
         {
-            xMin = 0;
-            xMax = 0;
-            yMin = 0;
-            yMax = 0;
-            foreach (var localTransform in SystemAPI.Query<RefRO<LocalTransform>>().WithAll<UnitSelection>())
+            xMin = cameraPosition.x;
+            xMax = cameraPosition.x;
+            yMin = cameraPosition.y;
+            yMax = cameraPosition.y;
+            foreach (var (_, localTransform) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>())
             {
                 var positionX = localTransform.ValueRO.Position.x;
-                xMin = positionX < xMin ? positionX : xMin;
-                xMax = positionX > xMax ? positionX : xMax;
+                xMin = positionX < xMin ? positionX - 2 : xMin;
+                xMax = positionX > xMax ? positionX + 2 : xMax;
 
                 var positionY = localTransform.ValueRO.Position.y;
-                yMin = positionY < yMin ? positionY : yMin;
-                yMax = positionY > yMax ? positionY : yMax;
+                yMin = positionY < yMin ? positionY - 2 : yMin;
+                yMax = positionY > yMax ? positionY + 2 : yMax;
             }
         }
 
@@ -84,11 +84,12 @@ namespace UnitControl
             SystemAPI.SetSingleton(gridManager);
         }
 
-        private void GetCameraBounds(out float yTop, out float yBottom, out float xLeft, out float xRight)
+        private void GetCameraBounds(out float yTop, out float yBottom, out float xLeft, out float xRight, out float3 cameraPosition,
+            out float screenRatio)
         {
             var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
-            var cameraPosition = cameraInformation.CameraPosition;
-            var screenRatio = cameraInformation.ScreenRatio;
+            cameraPosition = cameraInformation.CameraPosition;
+            screenRatio = cameraInformation.ScreenRatio;
             var orthographicSize = cameraInformation.OrthographicSize;
 
             var cullBuffer = 1f; // We add some buffer, so culling is not noticable
