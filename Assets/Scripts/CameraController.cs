@@ -23,7 +23,7 @@ namespace Rendering
         [SerializeField] private float _minSizeListenerProximity;
         [SerializeField] private float _maxSizeListenerProximity;
 
-        [Range(0.00001f, 0.99999f)] [SerializeField]
+        [Range(0.00001f, 9.99999f)] [SerializeField]
         private float _followLerpFactor;
 
         private bool _isFollowingSelectedUnit;
