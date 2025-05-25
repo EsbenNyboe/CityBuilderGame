@@ -35,16 +35,23 @@ namespace UnitControl
                 Graphics.DrawMesh(mesh, pos + positionOffset, Quaternion.identity, material, 0);
             }
 
-            GetCameraBounds(out var yTop, out var yBottom, out var xLeft, out var xRight, out var cameraPosition, out var screenRatio);
-            if (GetSelectionUnitsBounds(out var xMin, out var xMax, out var yMin, out var yMax))
+            GetCameraBounds(out var screenTop, out var screenBottom, out var screenLeft, out var screenRight, out var cameraPosition,
+                out var screenRatio);
+            if (GetSelectionUnitsBounds(out var unitLeft, out var unitRight, out var unitBottom, out var unitTop))
             {
-                var unitSelectionCenter = GetUnitSelectionCenter(xMin, xMax, yMin, yMax);
+                var unitCenter = GetUnitSelectionCenter(unitLeft, unitRight, unitBottom, unitTop);
 
-                var maxDiffX = math.max(0, math.max(xMax + cameraPosition.x - xRight, -(xMin + cameraPosition.x - xLeft))) / screenRatio;
-                var maxDiffY = math.max(0, math.max(yMax + cameraPosition.y - yTop, -(yMin + cameraPosition.y - yBottom)));
+                var cameraInformation = SystemAPI.GetSingleton<CameraInformation>();
+                var size = cameraInformation.OrthographicSize;
+                var screenCenter = cameraInformation.CameraPosition;
 
-                CameraController.Instance.FollowPosition = unitSelectionCenter;
-                CameraController.Instance.FollowZoomAmount = math.max(maxDiffX, maxDiffY) / 100f;
+                const float buffer = 2f;
+                var boundsToSizeRatio = size / (screenTop - screenCenter.y);
+                var unitSize = boundsToSizeRatio * (unitTop + buffer - unitCenter.y);
+
+                CameraController.Instance.FollowPosition = unitCenter;
+                CameraController.Instance.FollowZoomSize = unitSize;
+                // CameraController.Instance.FollowZoomSize = screenExceedsUnitBounds ? -1 : 1;
             }
 
             if (Input.GetKeyDown(KeyCode.Delete))

@@ -7,10 +7,13 @@ namespace Rendering
         public static CameraController Instance;
 
         [HideInInspector] public Vector3 FollowPosition;
-        [HideInInspector] public float FollowZoomAmount;
+        [HideInInspector] public float FollowZoomSize;
 
         [SerializeField] private float _movementSpeed;
         [SerializeField] private float _zoomSpeed;
+
+        [Range(0.00001f, 0.99999f)] [SerializeField]
+        private float _followZoomSpeed;
 
         [Range(0.00001f, 0.99999f)] [SerializeField]
         private float _zoomAcceleration = 0.067f;
@@ -94,9 +97,9 @@ namespace Rendering
             var mouseWorldBefore = Camera.main.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 0));
 
             var size = Camera.main.orthographicSize;
-            if (_isZoomingOnSelectedUnits)
+            if (_isZoomingOnSelectedUnits && _isFollowingSelectedUnit)
             {
-                size += FollowZoomAmount * _zoomSpeed;
+                size = Mathf.Lerp(size, FollowZoomSize, _followZoomSpeed * _followLerpFactor);
             }
 
             size -= scrollAmount * _zoomSpeed;

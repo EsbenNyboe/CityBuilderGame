@@ -4069,9 +4069,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FollowPosition: {x: 0, y: 0, z: 0}
-  FollowZoomAmount: 0
+  FollowZoomSize: 0
   _movementSpeed: 25
   _zoomSpeed: 2.74
+  _followZoomSpeed: 0.538
   _zoomAcceleration: 0.067
   _minSize: 1.79
   _maxSize: 89.8
