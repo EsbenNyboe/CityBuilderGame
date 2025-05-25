@@ -3,7 +3,6 @@ using Rendering;
 using SystemGroups;
 using UnitBehaviours.Tags;
 using UnitState.AliveState;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -30,21 +29,15 @@ namespace UnitControl
             var positionSum = float3.zero;
 
             var positionOffset = new float3(0, -0.4f, 0);
-            var selectedCount = _query.CalculateEntityCount();
-            var positions = new NativeArray<float3>(selectedCount, Allocator.Temp);
-            var index = 0;
             foreach (var (_, localTransform) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>())
             {
-                index++;
-                var pos = localTransform.ValueRO.Position;
-                positions[index] = pos;
-                positionSum += pos;
-                Graphics.DrawMesh(mesh, pos + positionOffset, Quaternion.identity, material, 0);
+                positionSum += localTransform.ValueRO.Position;
+                Graphics.DrawMesh(mesh, localTransform.ValueRO.Position + positionOffset, Quaternion.identity, material, 0);
             }
 
+            var selectedCount = _query.CalculateEntityCount();
             var averagePosition = positionSum / selectedCount;
             CameraController.Instance.FollowPosition = selectedCount <= 0 ? Vector3.zero : averagePosition;
-//            var selectionUnitsBounds = 
 
             if (Input.GetKeyDown(KeyCode.Delete))
             {
