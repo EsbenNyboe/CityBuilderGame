@@ -65,7 +65,7 @@ namespace Rendering
 
             transform.position += moveDelta;
 
-            _isZoomingOnSelectedUnits = Input.GetKey(KeyCode.LeftShift);
+            _isZoomingOnSelectedUnits = Input.GetKeyDown(KeyCode.LeftShift) ? !_isZoomingOnSelectedUnits : _isZoomingOnSelectedUnits;
 
             if (Input.GetKeyDown(KeyCode.Return))
             {
