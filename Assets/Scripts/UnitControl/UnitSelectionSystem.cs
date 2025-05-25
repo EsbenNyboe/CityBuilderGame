@@ -46,8 +46,14 @@ namespace UnitControl
                 var screenCenter = cameraInformation.CameraPosition;
 
                 const float buffer = 2f;
-                var boundsToSizeRatio = size / (screenTop - screenCenter.y);
-                var unitSize = boundsToSizeRatio * (unitTop + buffer - unitCenter.y);
+                var boundsToSizeRatioX = size / (screenRight - screenCenter.x);
+                var boundsToSizeRatioY = size / (screenTop - screenCenter.y);
+
+                var unitSpanX = unitRight - unitLeft;
+                var unitSpanY = unitTop - unitBottom;
+                var unitSize = unitSpanX > unitSpanY
+                    ? (unitRight + buffer - unitCenter.x) * boundsToSizeRatioX
+                    : (unitTop + buffer - unitCenter.y) * boundsToSizeRatioY;
 
                 CameraController.Instance.FollowPosition = unitCenter;
                 CameraController.Instance.FollowZoomSize = unitSize;
@@ -94,20 +100,6 @@ namespace UnitControl
             return positionFound;
         }
 
-        private void DeleteSelectedUnits()
-        {
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                .CreateCommandBuffer(World.Unmanaged);
-            var gridManager = SystemAPI.GetSingleton<GridManager>();
-
-            foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
-            {
-                ecb.SetComponentEnabled<IsAlive>(entity, false);
-            }
-
-            SystemAPI.SetSingleton(gridManager);
-        }
-
         private void GetCameraBounds(out float yTop, out float yBottom, out float xLeft, out float xRight, out float3 cameraPosition,
             out float screenRatio)
         {
@@ -124,6 +116,20 @@ namespace UnitControl
             xRight = cameraPosition.x + cameraSizeX;
             yTop = cameraPosition.y + cameraSizeY;
             yBottom = cameraPosition.y - cameraSizeY;
+        }
+
+        private void DeleteSelectedUnits()
+        {
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(World.Unmanaged);
+            var gridManager = SystemAPI.GetSingleton<GridManager>();
+
+            foreach (var (_, entity) in SystemAPI.Query<RefRO<UnitSelection>>().WithEntityAccess())
+            {
+                ecb.SetComponentEnabled<IsAlive>(entity, false);
+            }
+
+            SystemAPI.SetSingleton(gridManager);
         }
     }
 }
