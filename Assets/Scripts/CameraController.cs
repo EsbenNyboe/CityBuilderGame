@@ -48,21 +48,25 @@ namespace Rendering
 
             if (Input.GetKey(KeyCode.A) && !Input.GetKey(KeyCode.LeftControl))
             {
+                _isFollowingSelectedUnit = false;
                 moveDelta.x -= _movementSpeed * Time.deltaTime;
             }
 
             if (Input.GetKey(KeyCode.D))
             {
+                _isFollowingSelectedUnit = false;
                 moveDelta.x += _movementSpeed * Time.deltaTime;
             }
 
             if (Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.LeftControl))
             {
+                _isFollowingSelectedUnit = false;
                 moveDelta.y -= _movementSpeed * Time.deltaTime;
             }
 
             if (Input.GetKey(KeyCode.W))
             {
+                _isFollowingSelectedUnit = false;
                 moveDelta.y += _movementSpeed * Time.deltaTime;
             }
 
@@ -85,6 +89,11 @@ namespace Rendering
         private void CameraZoom()
         {
             var scrollAmount = Input.GetAxis("Mouse ScrollWheel");
+            if (scrollAmount is > 0 or < 0)
+            {
+                _isZoomingOnSelectedUnits = false;
+            }
+
             if (Input.GetKey(KeyCode.LeftControl))
             {
                 _zoomMomentum += scrollAmount;
