@@ -4071,14 +4071,14 @@ MonoBehaviour:
   FollowPosition: {x: 0, y: 0, z: 0}
   FollowZoomSize: 0
   _movementSpeed: 25
-  _zoomSpeed: 2.74
+  _zoomSpeed: 46.35
   _followZoomSpeed: 0.538
   _zoomAcceleration: 0.067
   _minSize: 1.79
   _maxSize: 89.8
   _minSizeListenerProximity: -1
   _maxSizeListenerProximity: -61
-  _followLerpFactor: 0.069
+  _followLerpFactor: 0.708
 --- !u!114 &655250242
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -82,7 +82,7 @@ namespace Rendering
             if (_isFollowingSelectedUnit && FollowPosition != Vector3.zero)
             {
                 var followPosition = new Vector3(FollowPosition.x, FollowPosition.y, transform.position.z);
-                transform.position = Vector3.Lerp(transform.position, followPosition, _followLerpFactor);
+                transform.position = Vector3.Lerp(transform.position, followPosition, _followLerpFactor * Time.deltaTime);
             }
         }
 
@@ -108,10 +108,10 @@ namespace Rendering
             var size = Camera.main.orthographicSize;
             if (_isZoomingOnSelectedUnits && _isFollowingSelectedUnit)
             {
-                size = Mathf.Lerp(size, FollowZoomSize, _followZoomSpeed * _followLerpFactor);
+                size = Mathf.Lerp(size, FollowZoomSize, _followZoomSpeed * _followLerpFactor * Time.deltaTime);
             }
 
-            size -= scrollAmount * _zoomSpeed;
+            size -= scrollAmount * _zoomSpeed * Time.deltaTime;
             size = Mathf.Clamp(size, _minSize, _maxSize);
             Camera.main.orthographicSize = size;
 
