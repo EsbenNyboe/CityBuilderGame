@@ -108,7 +108,7 @@ namespace Rendering
             var size = Camera.main.orthographicSize;
             if (_isZoomingOnSelectedUnits && _isFollowingSelectedUnit)
             {
-                size = Mathf.Lerp(size, FollowZoomSize, _followZoomSpeed * _followLerpFactor * Time.deltaTime);
+                size = Mathf.Lerp(size, FollowZoomSize, _followZoomSpeed * Time.deltaTime);
             }
 
             size -= scrollAmount * _zoomSpeed * Time.deltaTime;

@@ -51,12 +51,12 @@ namespace UnitControl
 
                 var unitSpanX = unitRight - unitLeft;
                 var unitSpanY = unitTop - unitBottom;
-                var unitSize = unitSpanX > unitSpanY
+                var unitSize = unitSpanX > unitSpanY * screenRatio
                     ? (unitRight + buffer - unitCenter.x) * boundsToSizeRatioX
                     : (unitTop + buffer - unitCenter.y) * boundsToSizeRatioY;
 
                 CameraController.Instance.FollowPosition = unitCenter;
-                CameraController.Instance.FollowZoomSize = unitSize;
+                CameraController.Instance.FollowZoomSize = unitSize * 1.1f;
                 // CameraController.Instance.FollowZoomSize = screenExceedsUnitBounds ? -1 : 1;
             }
 

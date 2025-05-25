@@ -4072,7 +4072,7 @@ MonoBehaviour:
   FollowZoomSize: 0
   _movementSpeed: 25
   _zoomSpeed: 46.35
-  _followZoomSpeed: 0.538
+  _followZoomSpeed: 0.984
   _zoomAcceleration: 0.067
   _minSize: 1.79
   _maxSize: 89.8
