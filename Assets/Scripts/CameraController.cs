@@ -7,9 +7,13 @@ namespace Rendering
         public static CameraController Instance;
 
         [HideInInspector] public Vector3 FollowPosition;
+        [HideInInspector] public float FollowZoomSize;
 
         [SerializeField] private float _movementSpeed;
         [SerializeField] private float _zoomSpeed;
+
+        [Range(0.00001f, 0.99999f)] [SerializeField]
+        private float _followZoomSpeed;
 
         [Range(0.00001f, 0.99999f)] [SerializeField]
         private float _zoomAcceleration = 0.067f;
@@ -19,10 +23,11 @@ namespace Rendering
         [SerializeField] private float _minSizeListenerProximity;
         [SerializeField] private float _maxSizeListenerProximity;
 
-        [Range(0.00001f, 0.99999f)] [SerializeField]
+        [Range(0.00001f, 9.99999f)] [SerializeField]
         private float _followLerpFactor;
 
         private bool _isFollowingSelectedUnit;
+        private bool _isZoomingOnSelectedUnits;
 
         private float _zoomMomentum;
 
@@ -43,25 +48,31 @@ namespace Rendering
 
             if (Input.GetKey(KeyCode.A) && !Input.GetKey(KeyCode.LeftControl))
             {
+                _isFollowingSelectedUnit = false;
                 moveDelta.x -= _movementSpeed * Time.deltaTime;
             }
 
             if (Input.GetKey(KeyCode.D))
             {
+                _isFollowingSelectedUnit = false;
                 moveDelta.x += _movementSpeed * Time.deltaTime;
             }
 
             if (Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.LeftControl))
             {
+                _isFollowingSelectedUnit = false;
                 moveDelta.y -= _movementSpeed * Time.deltaTime;
             }
 
             if (Input.GetKey(KeyCode.W))
             {
+                _isFollowingSelectedUnit = false;
                 moveDelta.y += _movementSpeed * Time.deltaTime;
             }
 
             transform.position += moveDelta;
+
+            _isZoomingOnSelectedUnits = Input.GetKeyDown(KeyCode.LeftShift) ? !_isZoomingOnSelectedUnits : _isZoomingOnSelectedUnits;
 
             if (Input.GetKeyDown(KeyCode.Return))
             {
@@ -71,13 +82,18 @@ namespace Rendering
             if (_isFollowingSelectedUnit && FollowPosition != Vector3.zero)
             {
                 var followPosition = new Vector3(FollowPosition.x, FollowPosition.y, transform.position.z);
-                transform.position = Vector3.Lerp(transform.position, followPosition, _followLerpFactor);
+                transform.position = Vector3.Lerp(transform.position, followPosition, _followLerpFactor * Time.deltaTime);
             }
         }
 
         private void CameraZoom()
         {
             var scrollAmount = Input.GetAxis("Mouse ScrollWheel");
+            if (scrollAmount is > 0 or < 0)
+            {
+                _isZoomingOnSelectedUnits = false;
+            }
+
             if (Input.GetKey(KeyCode.LeftControl))
             {
                 _zoomMomentum += scrollAmount;
@@ -90,8 +106,12 @@ namespace Rendering
             var mouseWorldBefore = Camera.main.ScreenToWorldPoint(new Vector3(mouseScreenPos.x, mouseScreenPos.y, 0));
 
             var size = Camera.main.orthographicSize;
-            size -= scrollAmount * _zoomSpeed;
+            if (_isZoomingOnSelectedUnits && _isFollowingSelectedUnit)
+            {
+                size = Mathf.Lerp(size, FollowZoomSize, _followZoomSpeed * Time.deltaTime);
+            }
 
+            size -= scrollAmount * _zoomSpeed * Time.deltaTime;
             size = Mathf.Clamp(size, _minSize, _maxSize);
             Camera.main.orthographicSize = size;
 
