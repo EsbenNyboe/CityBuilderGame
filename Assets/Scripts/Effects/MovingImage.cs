@@ -10,7 +10,7 @@ namespace Effects
         private void Update()
         {
             var position = transform.position;
-            position.y += _moveSpeed * Time.deltaTime;
+            position.y += _moveSpeed * Time.deltaTime; // TODO: Add CustomTime.TimeScale
             transform.position = position;
         }
 

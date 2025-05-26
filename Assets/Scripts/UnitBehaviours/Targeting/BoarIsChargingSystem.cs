@@ -1,4 +1,5 @@
 using Audio;
+using CustomTimeCore;
 using Grid;
 using UnitAgency.Data;
 using UnitBehaviours.ActionGateNS;
@@ -15,6 +16,7 @@ namespace UnitBehaviours.Targeting
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
@@ -29,11 +31,12 @@ namespace UnitBehaviours.Targeting
             var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var quadrantsToSearch = GridHelpers.CalculatePositionListLength(unitBehaviourManager.BoarQuadrantRange);
 
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
             foreach (var (boarIsCharging, actionGate, localTransform, entity) in SystemAPI
                          .Query<RefRO<BoarIsCharging>, RefRO<ActionGate>, RefRO<LocalTransform>>().WithEntityAccess())
             {
-                if (SystemAPI.Time.ElapsedTime < actionGate.ValueRO.MinTimeOfAction)
+                if (SystemAPI.Time.ElapsedTime * timeScale < actionGate.ValueRO.MinTimeOfAction)
                 {
                     continue;
                 }

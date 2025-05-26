@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using GridEntityNS;
 using Rendering;
 using UnitBehaviours.UnitManagers;
@@ -19,6 +20,7 @@ namespace UnitState.Dead
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<WorldSpriteSheetManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -27,14 +29,15 @@ namespace UnitState.Dead
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
             if (!worldSpriteSheetManager.IsInitialized())
             {
                 return;
             }
 
-            var decompositionDuration = SystemAPI.GetSingleton<UnitBehaviourManager>().DecompositionDuration;
-            var timeOfDecomposition = (float)SystemAPI.Time.ElapsedTime - decompositionDuration;
+            var decompositionDuration = SystemAPI.GetSingleton<UnitBehaviourManager>().DecompositionDuration * timeScale;
+            var timeOfDecomposition = (float)SystemAPI.Time.ElapsedTime * timeScale - decompositionDuration;
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
             var deathFrames = worldSpriteSheetManager.GetAnimationLength(WorldSpriteSheetEntryType.BoarDead);
 

@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using SystemGroups;
 using Unity.Burst;
 using Unity.Entities;
@@ -14,6 +15,7 @@ namespace SpriteTransformNS
     {
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<AttackAnimationManager>();
         }
@@ -21,6 +23,7 @@ namespace SpriteTransformNS
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
             var attackAnimationManager = SystemAPI.GetSingleton<AttackAnimationManager>();
@@ -29,7 +32,7 @@ namespace SpriteTransformNS
                          .Query<RefRW<AttackAnimation>, RefRW<SpriteTransform>,
                              RefRO<LocalTransform>>().WithEntityAccess())
             {
-                if (DoAttackAnimation(ref state,
+                if (DoAttackAnimation(ref state, timeScale,
                         spriteTransform,
                         attackAnimation,
                         localTransform.ValueRO.Position,
@@ -53,14 +56,14 @@ namespace SpriteTransformNS
             }
         }
 
-        private bool DoAttackAnimation(ref SystemState state,
+        private bool DoAttackAnimation(ref SystemState state, float timeScale,
             RefRW<SpriteTransform> spriteTransform,
             RefRW<AttackAnimation> attackAnimation,
             float3 localTransformPosition,
             float duration, float size, float idleTime, out bool isIdling)
         {
             // Manage animation state:
-            attackAnimation.ValueRW.TimeLeft -= SystemAPI.Time.DeltaTime;
+            attackAnimation.ValueRW.TimeLeft -= SystemAPI.Time.DeltaTime * timeScale;
             var timeLeft = attackAnimation.ValueRO.TimeLeft;
             if (timeLeft <= 0)
             {

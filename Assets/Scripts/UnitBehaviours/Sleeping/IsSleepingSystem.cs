@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Debugging;
 using Grid;
 using GridDebugging;
@@ -20,6 +21,7 @@ namespace UnitBehaviours.Sleeping
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -30,6 +32,7 @@ namespace UnitBehaviours.Sleeping
         {
             state.CompleteDependency();
 
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var debugToggleManager = SystemAPI.GetSingleton<DebugToggleManager>();
             var isDebuggingOccupation = debugToggleManager.DebugBedOccupation;
             var isDebuggingPath = debugToggleManager.DebugPathfinding;
@@ -37,7 +40,7 @@ namespace UnitBehaviours.Sleeping
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
-            var sleepinessPerSecWhenSleeping = -0.2f * SystemAPI.Time.DeltaTime;
+            var sleepinessPerSecWhenSleeping = -0.2f * SystemAPI.Time.DeltaTime * timeScale;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
 
             foreach (var (isSleeping,

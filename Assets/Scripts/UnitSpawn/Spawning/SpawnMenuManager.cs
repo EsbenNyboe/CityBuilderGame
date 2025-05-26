@@ -26,6 +26,7 @@ namespace UnitSpawn.Spawning
         private void Awake()
         {
             Instance = this;
+            SetAutoSpawn(true);
         }
 
         private void LateUpdate()
