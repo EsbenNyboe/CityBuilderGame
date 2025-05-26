@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Effects;
 using Grid;
 using UnitBehaviours.Targeting;
@@ -26,6 +27,7 @@ namespace UnitState.AliveLogic
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<SocialEvaluationManager>();
             state.RequireForUpdate<BeginInitializationEntityCommandBufferSystem.Singleton>();
@@ -69,6 +71,7 @@ namespace UnitState.AliveLogic
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             state.Dependency.Complete();
             if (_deadVillagerQuery.CalculateEntityCount() <= 0 && _deadBoarQuery.CalculateEntityCount() <= 0)
             {
@@ -95,7 +98,7 @@ namespace UnitState.AliveLogic
             new SpawnDeadBoarJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
-                ElapsedTime = (float)SystemAPI.Time.ElapsedTime
+                ElapsedTime = (float)SystemAPI.Time.ElapsedTime * timeScale
             }.ScheduleParallel(_deadBoarQuery, state.Dependency).Complete();
 
             // Cleanup grid

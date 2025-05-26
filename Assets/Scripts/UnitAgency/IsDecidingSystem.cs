@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Grid;
 using Inventory;
 using SpriteTransformNS;
@@ -31,6 +32,7 @@ namespace UnitAgency.Logic
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<QuadrantDataManager>();
@@ -54,6 +56,7 @@ namespace UnitAgency.Logic
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
@@ -65,6 +68,7 @@ namespace UnitAgency.Logic
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 ElapsedTime = (float)SystemAPI.Time.ElapsedTime,
+                TimeScale = timeScale,
                 GridManager = gridManager,
                 SocialDynamicsManager = socialDynamicsManager,
                 QuadrantDataManager = quadrantDataManager,
@@ -82,6 +86,7 @@ namespace UnitAgency.Logic
         {
             public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
             [ReadOnly] public float ElapsedTime;
+            [ReadOnly] public float TimeScale;
             [ReadOnly] public GridManager GridManager;
             [ReadOnly] public SocialDynamicsManager SocialDynamicsManager;
             [ReadOnly] public QuadrantDataManager QuadrantDataManager;
@@ -155,7 +160,7 @@ namespace UnitAgency.Logic
                     });
                     EcbParallelWriter.SetComponent(i, entity, new ActionGate
                     {
-                        MinTimeOfAction = ElapsedTime + randomDelay
+                        MinTimeOfAction = ElapsedTime * TimeScale + randomDelay * TimeScale
                     });
 
                     if (HasLogOfWood(inventory))
@@ -264,7 +269,6 @@ namespace UnitAgency.Logic
                 }
                 else if (hasInitiative && hasAccessToStorageWithSpace)
                 {
-                    moodInitiative.UseInitiative();
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
                 }
                 else

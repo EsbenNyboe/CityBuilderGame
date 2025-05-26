@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
@@ -11,28 +12,30 @@ namespace UnitBehaviours.Idle
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
     public partial struct IsIdleSystem : ISystem
     {
+        private const float MaxIdleTime = 1f;
         private EntityQuery _query;
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             _query = state.GetEntityQuery(ComponentType.ReadOnly<IsIdle>(),
                 ComponentType.ReadOnly<PathFollow>(),
                 ComponentType.ReadWrite<MoodRestlessness>());
         }
 
-        private const float MaxIdleTime = 1f;
-
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
             new IsIdleJob
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
-                DeltaTime = SystemAPI.Time.DeltaTime
+                DeltaTime = SystemAPI.Time.DeltaTime,
+                TimeScale = timeScale
             }.ScheduleParallel(_query);
         }
 
@@ -41,6 +44,7 @@ namespace UnitBehaviours.Idle
         {
             public EntityCommandBuffer.ParallelWriter EcbParallelWriter;
             [ReadOnly] public float DeltaTime;
+            [ReadOnly] public float TimeScale;
 
             public void Execute(in Entity entity, in PathFollow pathFollow, ref MoodRestlessness moodRestlessness)
             {
@@ -50,7 +54,7 @@ namespace UnitBehaviours.Idle
                 }
 
                 moodRestlessness.Restlessness += DeltaTime;
-                if (moodRestlessness.Restlessness >= MaxIdleTime)
+                if (moodRestlessness.Restlessness * TimeScale >= MaxIdleTime * TimeScale)
                 {
                     moodRestlessness.Restlessness = 0;
                     EcbParallelWriter.RemoveComponent<IsIdle>(entity.Index, entity);

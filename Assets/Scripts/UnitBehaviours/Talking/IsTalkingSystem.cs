@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Grid;
 using SpriteTransformNS;
 using SystemGroups;
@@ -21,6 +22,7 @@ namespace UnitBehaviours.Talking
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
@@ -28,6 +30,7 @@ namespace UnitBehaviours.Talking
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
@@ -75,7 +78,7 @@ namespace UnitBehaviours.Talking
                 if (TalkingHelpers.TryGetNeighbourWithComponent(gridManager, cell, isTalkingLookup,
                         out var neighbourCell))
                 {
-                    moodLoneliness.ValueRW.Loneliness -= LonelinessReductionFactor * SystemAPI.Time.DeltaTime;
+                    moodLoneliness.ValueRW.Loneliness -= LonelinessReductionFactor * SystemAPI.Time.DeltaTime * timeScale;
 
                     var talkingDirection = neighbourCell.x - cell.x;
                     var angleInDegrees = talkingDirection > 0 ? 0f : 180f;

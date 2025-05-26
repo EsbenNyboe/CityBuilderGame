@@ -1,4 +1,5 @@
 using Audio;
+using CustomTimeCore;
 using Grid;
 using SpriteTransformNS;
 using UnitAgency.Data;
@@ -20,12 +21,14 @@ namespace UnitBehaviours.Targeting
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var ecb = SystemAPI
                 .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
@@ -39,8 +42,8 @@ namespace UnitBehaviours.Targeting
             )
             {
                 if (
-                    SystemAPI.Time.ElapsedTime
-                    > actionGate.ValueRO.MinTimeOfAction + ThrowingSpearTime + PostThrowWaitTime
+                    SystemAPI.Time.ElapsedTime * timeScale
+                    > actionGate.ValueRO.MinTimeOfAction + ThrowingSpearTime * timeScale + PostThrowWaitTime * timeScale
                 )
                 {
                     ecb.RemoveComponent<IsThrowingSpear>(entity);
@@ -93,8 +96,8 @@ namespace UnitBehaviours.Targeting
                 spriteTransform.ValueRW.Rotation = spriteRotationOffset;
 
                 if (
-                    SystemAPI.Time.ElapsedTime
-                    > actionGate.ValueRO.MinTimeOfAction + ThrowingSpearTime
+                    SystemAPI.Time.ElapsedTime * timeScale
+                    > actionGate.ValueRO.MinTimeOfAction + ThrowingSpearTime * timeScale
                 )
                 {
                     ecb.RemoveComponent<IsHoldingSpear>(entity);

@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using SystemGroups;
 using UnitBehaviours.UnitManagers;
 using UnitSpawn.SpawnedUnitNS;
@@ -21,6 +22,7 @@ namespace UnitState.SocialLogic
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<SocialDynamicsManager>();
             state.RequireForUpdate<SocialEvaluationManager>();
             state.EntityManager.CreateSingleton<SocialEvaluationManager>();
@@ -34,6 +36,7 @@ namespace UnitState.SocialLogic
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var socialEvaluationManager = SystemAPI.GetSingleton<SocialEvaluationManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
 
@@ -58,6 +61,7 @@ namespace UnitState.SocialLogic
                 AllEntities = allEntities,
                 NeutralizationAmount = socialDynamicsManager.NeutralizationFactor,
                 Time = (float)SystemAPI.Time.ElapsedTime,
+                TimeScale = timeScale,
                 SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
             }.Schedule(entities.Length, 1);
             job.Complete();
@@ -86,6 +90,7 @@ namespace UnitState.SocialLogic
             [ReadOnly] public NativeArray<Entity> AllEntities;
             [ReadOnly] public float NeutralizationAmount;
             [ReadOnly] public float Time;
+            [ReadOnly] public float TimeScale;
 
             [NativeDisableContainerSafetyRestriction]
             public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
@@ -95,7 +100,7 @@ namespace UnitState.SocialLogic
             {
                 var socialRelationships = SocialRelationshipsLookup[JobEntities[index]];
                 var relationships = socialRelationships.Relationships;
-                var timeSinceLastEvaluation = Time - socialRelationships.TimeOfLastEvaluation;
+                var timeSinceLastEvaluation = Time * TimeScale - socialRelationships.TimeOfLastEvaluation * TimeScale;
 
                 for (var i = 0; i < AllEntities.Length; i++)
                 {

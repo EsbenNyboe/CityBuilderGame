@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Grid;
 using Unity.Collections;
 using Unity.Entities;
@@ -19,9 +20,10 @@ namespace GridDebugging
 
         protected override void OnUpdate()
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var ecb = SystemAPI.GetSingleton<BeginPresentationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(World.Unmanaged);
-            var currentTime = SystemAPI.Time.ElapsedTime;
+            var currentTime = SystemAPI.Time.ElapsedTime * timeScale;
             using var debugEventEntities = new NativeParallelMultiHashMap<Entity, Vector3>(_query.CalculateEntityCount() * 2, Allocator.Temp);
             foreach (var (debugPopupEvent, entity) in SystemAPI.Query<RefRW<DebugPopupEvent>>().WithEntityAccess())
             {

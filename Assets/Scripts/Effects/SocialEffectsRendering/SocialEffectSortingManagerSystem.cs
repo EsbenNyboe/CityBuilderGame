@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -10,6 +11,7 @@ namespace Effects.SocialEffectsRendering
     {
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<SocialEffectSortingManager>();
             state.EntityManager.CreateSingleton<SocialEffectSortingManager>();
@@ -26,13 +28,14 @@ namespace Effects.SocialEffectsRendering
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var socialEffectSortingManager = SystemAPI.GetSingleton<SocialEffectSortingManager>();
             if (!socialEffectSortingManager.SocialEffectQueue.IsCreated)
             {
                 socialEffectSortingManager.SocialEffectQueue = new NativeQueue<SocialEffectData>(Allocator.Persistent);
             }
 
-            var killThreshold = (float)SystemAPI.Time.ElapsedTime - socialEffectSortingManager.Lifetime;
+            var killThreshold = (float)SystemAPI.Time.ElapsedTime * timeScale - socialEffectSortingManager.Lifetime * timeScale;
             var queueIsDirty = true;
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);

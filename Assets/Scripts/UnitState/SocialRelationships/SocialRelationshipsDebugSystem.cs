@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Debugging;
 using Grid;
 using UnitBehaviours.Tags;
@@ -21,6 +22,7 @@ namespace UnitState.SocialLogic
 
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<CustomTime>();
             state.RequireForUpdate<SocialDebugManager>();
             _selectedUnitsQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<SocialRelationships>(), ComponentType.ReadOnly<UnitSelection>());
@@ -31,13 +33,14 @@ namespace UnitState.SocialLogic
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
             var socialDebugManager = SystemAPI.GetSingleton<SocialDebugManager>();
             if (!socialDebugManager.DrawRelations)
             {
                 return;
             }
 
-            ManipulateRelationsLogic(ref state);
+            ManipulateRelationsLogic(ref state, timeScale);
 
             var entities = socialDebugManager.IncludeNonSelections
                 ? _allUnitsQuery.ToEntityArray(Allocator.TempJob)
@@ -101,17 +104,17 @@ namespace UnitState.SocialLogic
             }
         }
 
-        private void ManipulateRelationsLogic(ref SystemState state)
+        private void ManipulateRelationsLogic(ref SystemState state, float timeScale)
         {
             var mutualFondnessIncrement = 0f;
             if (Input.GetKey(KeyCode.KeypadPlus))
             {
-                mutualFondnessIncrement += SystemAPI.Time.DeltaTime;
+                mutualFondnessIncrement += SystemAPI.Time.DeltaTime * timeScale;
             }
 
             if (Input.GetKey(KeyCode.KeypadMinus))
             {
-                mutualFondnessIncrement -= SystemAPI.Time.DeltaTime;
+                mutualFondnessIncrement -= SystemAPI.Time.DeltaTime * timeScale;
             }
 
             if (mutualFondnessIncrement != 0f)

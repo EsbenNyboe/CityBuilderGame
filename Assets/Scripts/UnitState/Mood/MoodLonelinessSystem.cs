@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using JetBrains.Annotations;
 using Unity.Burst;
 using Unity.Collections;
@@ -7,10 +8,16 @@ namespace UnitState.Mood
 {
     internal partial struct MoodLonelinessSystem : ISystem
     {
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<CustomTime>();
+        }
+
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            new UpdateLonelinessJob { DeltaTime = SystemAPI.Time.DeltaTime }.ScheduleParallel();
+            var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
+            new UpdateLonelinessJob { DeltaTime = SystemAPI.Time.DeltaTime * timeScale }.ScheduleParallel();
         }
 
         [BurstCompile]
