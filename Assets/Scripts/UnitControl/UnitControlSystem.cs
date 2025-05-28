@@ -30,6 +30,11 @@ namespace UnitControl
 
         protected override void OnUpdate()
         {
+            if (GetEntityQuery(typeof(UnitSelection)).CalculateEntityCount() < 1)
+            {
+                return;
+            }
+
             var isHoldingSpawnItem = SpawnMenuManager.Instance.HasSelection();
 
             if (isHoldingSpawnItem)
