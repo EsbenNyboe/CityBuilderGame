@@ -242,7 +242,7 @@ namespace UnitSpawn.Spawning
                 gridManager.SetStorageCount(cell, 0);
 
                 SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.DropPoint,
-                    WorldSpriteSheetEntryType.BuildingStorageB);
+                    WorldSpriteSheetEntryType.StorageB);
             }
         }
 
