@@ -86,9 +86,7 @@ namespace Rendering
         ItemWood,
         ItemMeat,
         ItemBerries,
-        StorageA,
-        StorageB,
-        StorageConstructing,
+        Storage,
         BoarStand,
         BoarRun,
         BoarDead,
@@ -96,10 +94,8 @@ namespace Rendering
         SpearThrowing,
         Spear,
         DropPoint,
-        DropPointConstructing,
         TreeDamaged,
         Tree,
-        Bed,
-        BedConstructing
+        Bed
     }
 }

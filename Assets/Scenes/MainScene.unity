@@ -12709,17 +12709,17 @@ MonoBehaviour:
   - Identifier: 9
     FrameCount: 1
     FrameInterval: 1
-  - Identifier: 10
-    FrameCount: 1
-    FrameInterval: 1
   - Identifier: 11
     FrameCount: 1
     FrameInterval: 1
-  - Identifier: 13
+  - Identifier: 12
     FrameCount: 2
     FrameInterval: 0.11
-  - Identifier: 14
+  - Identifier: 13
     FrameCount: 3
+    FrameInterval: 1
+  - Identifier: 14
+    FrameCount: 1
     FrameInterval: 1
   - Identifier: 15
     FrameCount: 1
@@ -12727,32 +12727,20 @@ MonoBehaviour:
   - Identifier: 16
     FrameCount: 1
     FrameInterval: 1
-  - Identifier: 17
-    FrameCount: 1
-    FrameInterval: 1
   - Identifier: 18
-    FrameCount: 1
-    FrameInterval: 1
-  - Identifier: 19
     FrameCount: 3
     FrameInterval: 1
-  - Identifier: 21
+  - Identifier: 19
     FrameCount: 1
     FrameInterval: 1
-  - Identifier: 22
-    FrameCount: 1
-    FrameInterval: 1
-  - Identifier: 23
-    FrameCount: 1
+  - Identifier: 10
+    FrameCount: 2
     FrameInterval: 1
   - Identifier: 20
-    FrameCount: 1
+    FrameCount: 2
     FrameInterval: 1
-  - Identifier: 24
-    FrameCount: 1
-    FrameInterval: 1
-  - Identifier: 12
-    FrameCount: 1
+  - Identifier: 17
+    FrameCount: 2
     FrameInterval: 1
   ColumnCount: 6
   RowCount: 6
