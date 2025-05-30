@@ -205,28 +205,37 @@ namespace UnitBehaviours.Targeting.Core
         }
 
         public static bool TryFindClosestFriend(SocialRelationships socialRelationships,
-            NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
+            NativeParallelMultiHashMap<int, QuadrantData> nmhm,
             GridManager gridManager, int quadrantsToSearch, float3 position, Entity entity,
             out Entity closestTargetEntity, out float closestTargetDistance)
         {
-            closestTargetEntity = Entity.Null;
-            closestTargetDistance = float.MaxValue;
-            var section = gridManager.GetSection(position);
-            var hashMapKey = GetHashMapKeyFromPosition(position);
-
-            var quadrantIndex = 0;
-            while (quadrantIndex < quadrantsToSearch)
+            var relationships = socialRelationships.Relationships;
+            PrepareSearch(gridManager, position, out var section, out var key, out closestTargetDistance, out var closestTarget);
+            for (var i = 0; i < quadrantsToSearch; i++)
             {
-                var relativeCoordinate = gridManager.RelativePositionList[quadrantIndex];
-                var relativeHashMapKey = relativeCoordinate.x + relativeCoordinate.y * QuadrantYMultiplier;
-                var absoluteHashMapKey = hashMapKey + relativeHashMapKey;
-                FindFriend(socialRelationships, quadrantMultiHashMap, absoluteHashMapKey, section, position,
-                    ref closestTargetEntity,
-                    ref closestTargetDistance, entity);
-                quadrantIndex++;
+                if (TryPrepareIterator(gridManager, nmhm, i, key, out var quadrantData, out var nmhmIterator))
+                {
+                    do
+                    {
+                        if (TryGetClosestDistance(position, quadrantData, closestTargetDistance, section, out var distance) &&
+                            !IsSameEntity(entity, quadrantData) &&
+                            IsFriend(relationships, quadrantData))
+                        {
+                            closestTargetDistance = distance;
+                            closestTarget = quadrantData;
+                        }
+                    } while (nmhm.TryGetNextValue(out quadrantData, ref nmhmIterator));
+                }
             }
 
-            return closestTargetEntity != Entity.Null;
+            closestTargetEntity = closestTarget.Entity;
+            return closestTarget.IsValid();
+        }
+
+        private static bool IsFriend(NativeParallelHashMap<Entity, float> relationships, QuadrantData quadrantData)
+        {
+            const float friendThreshold = 1f;
+            return relationships[quadrantData.Entity] > friendThreshold;
         }
 
         public static bool TryFindSpaciousStorageInSection(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
@@ -308,37 +317,6 @@ namespace UnitBehaviours.Targeting.Core
 
             closestTargetEntity = closestTarget.Entity;
             return closestTarget.IsValid();
-        }
-
-        private static void FindFriend(SocialRelationships socialRelationships,
-            NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
-            int hashMapKey, int section,
-            float3 position, ref Entity closestTargetEntity,
-            ref float closestTargetDistance, Entity entity)
-        {
-            var relationships = socialRelationships.Relationships;
-            const float friendThreshold = 1f;
-
-            if (quadrantMultiHashMap.TryGetFirstValue(hashMapKey, out var quadrantData,
-                    out var nativeParallelMultiHashMapIterator))
-            {
-                do
-                {
-                    var distance = math.distance(position, quadrantData.Position);
-                    if (distance < closestTargetDistance &&
-                        relationships[quadrantData.Entity] > friendThreshold)
-                    {
-                        // Make sure I'm not targeting myself.
-                        // And that my target and I are in the same walkable section.
-                        if (entity != quadrantData.Entity && section == quadrantData.Section)
-                        {
-                            closestTargetDistance = distance;
-                            closestTargetEntity = quadrantData.Entity;
-                        }
-                    }
-                } while (quadrantMultiHashMap.TryGetNextValue(out quadrantData,
-                             ref nativeParallelMultiHashMapIterator));
-            }
         }
 
         private static bool IsSameEntity(Entity entity, QuadrantData quadrantData)
