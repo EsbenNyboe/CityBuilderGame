@@ -57,6 +57,19 @@ namespace Grid
             return false;
         }
 
+        private bool TryGetGridEntityAndType(int gridIndex, out GridEntityType type, out Entity entity)
+        {
+            type = GetGridEntityType(gridIndex);
+            entity = GetGridEntity(gridIndex);
+            if (type != GridEntityType.None && entity != Entity.Null)
+            {
+                return true;
+            }
+
+            Debug.LogError("Cell has no Grid Entity!");
+            return false;
+        }
+
         private GridEntityType GetGridEntityType(int gridIndex)
         {
             return GridEntityTypeGrid[gridIndex];
@@ -158,6 +171,18 @@ namespace Grid
         {
             var gridIndex = GetIndex(cell);
             return TryGetGridEntityOfType(gridIndex, type, out entity);
+        }
+
+        public bool TryGetGridEntityAndType(Vector3 position, out Entity entity, out GridEntityType type)
+        {
+            var gridIndex = GetIndex(position);
+            return TryGetGridEntityAndType(gridIndex, out type, out entity);
+        }
+
+        public bool TryGetGridEntityAndType(int2 cell, out Entity entity, out GridEntityType type)
+        {
+            var gridIndex = GetIndex(cell);
+            return TryGetGridEntityAndType(gridIndex, out type, out entity);
         }
 
         #endregion

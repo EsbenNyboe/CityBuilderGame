@@ -1,5 +1,6 @@
-﻿using Debugging;
+using Debugging;
 using Grid;
+using GridEntityNS;
 using Inventory;
 using SystemGroups;
 using UnitAgency.Data;
@@ -12,7 +13,7 @@ using Unity.Transforms;
 namespace UnitBehaviours.AutonomousHarvesting
 {
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
-    public partial struct IsSeekingDropPointSystem : ISystem
+    public partial struct IsSeekingConstructableSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -30,10 +31,10 @@ namespace UnitBehaviours.AutonomousHarvesting
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
-            // Seek DropPoint
+            // Seek Constructable
             foreach (var (localTransform, pathFollow, inventory, entity)
                      in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<InventoryState>>()
-                         .WithAll<IsSeekingDropPoint>()
+                         .WithAll<IsSeekingConstructable>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
@@ -43,66 +44,65 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 if (inventory.ValueRO.CurrentItem == InventoryItem.None)
                 {
-                    ecb.RemoveComponent<IsSeekingDropPoint>(entity);
+                    ecb.RemoveComponent<IsSeekingConstructable>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     continue;
                 }
 
                 var position = localTransform.ValueRO.Position;
                 var cell = GridHelpers.GetXY(position);
-                var closestDropPointEntrance = FindClosestDropPointEntrance(ref state, gridManager, position, out var closestDropPointCell);
-                if (cell.Equals(closestDropPointEntrance))
+                var closestConstructableEntrance =
+                    FindClosestConstructableEntrance(ref state, gridManager, position, out var closestConstructableCell);
+                if (cell.Equals(closestConstructableEntrance))
                 {
                     // Try drop item at drop point
-                    InventoryHelpers.SendRequestForStoreItem(ecb, entity, closestDropPointCell);
+                    InventoryHelpers.SendRequestForConstructItem(ecb, entity, closestConstructableCell);
                     continue;
                 }
 
-                if (closestDropPointEntrance.x > -1)
+                if (closestConstructableEntrance.x > -1)
                 {
-                    PathHelpers.TrySetPath(ecb, gridManager, entity, cell, closestDropPointEntrance, isDebugging);
+                    PathHelpers.TrySetPath(ecb, gridManager, entity, cell, closestConstructableEntrance, isDebugging);
                 }
                 else
                 {
                     // Drop item on ground
                     InventoryHelpers.DropItemOnGround(ecb, ref inventory.ValueRW, position);
-                    ecb.RemoveComponent<IsSeekingDropPoint>(entity);
+                    ecb.RemoveComponent<IsSeekingConstructable>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                 }
             }
         }
 
-        private int2 FindClosestDropPointEntrance(ref SystemState state, GridManager gridManager, float3 position, out int2 closestDropPointCell)
+        private int2 FindClosestConstructableEntrance(ref SystemState state, GridManager gridManager, float3 position,
+            out int2 closestConstructableCell)
         {
-            closestDropPointCell = new int2(-1);
-            var closestDropPointEntrance = new int2(-1);
-            var shortestDropPointDistance = math.INFINITY;
+            closestConstructableCell = new int2(-1);
+            var closestConstructableEntrance = new int2(-1);
+            var shortestConstructableDistance = math.INFINITY;
             var cell = GridHelpers.GetXY(position);
 
-            foreach (var (dropPointTransform, dropPoint) in SystemAPI.Query<RefRO<LocalTransform>, RefRO<DropPoint>>())
+            foreach (var (constructableTransform, constructable) in SystemAPI.Query<RefRO<LocalTransform>, RefRO<Constructable>>())
             {
-                var dropPointPosition = dropPointTransform.ValueRO.Position;
-                var dropPointCell = GridHelpers.GetXY(dropPointPosition);
+                var constructablePosition = constructableTransform.ValueRO.Position;
+                var constructableCell = GridHelpers.GetXY(constructablePosition);
 
-                var itemCount = gridManager.GetStorageItemCount(dropPointCell);
-                var itemCapacity = gridManager.GetStorageItemCapacity(dropPointCell);
-
-                if (gridManager.GetStorageItemCount(dropPointCell) >= gridManager.GetStorageItemCapacity(dropPointCell))
+                if (gridManager.GetStorageItemCount(constructableCell) >= gridManager.GetStorageItemCapacity(constructableCell))
                 {
                     continue;
                 }
 
-                var dropPointDistance = math.distance(position, dropPointPosition);
-                if (dropPointDistance < shortestDropPointDistance &&
-                    gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, dropPointCell, out var dropPointEntrance))
+                var constructableDistance = math.distance(position, constructablePosition);
+                if (constructableDistance < shortestConstructableDistance &&
+                    gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, constructableCell, out var constructableEntrance))
                 {
-                    shortestDropPointDistance = dropPointDistance;
-                    closestDropPointCell = dropPointCell;
-                    closestDropPointEntrance = dropPointEntrance;
+                    shortestConstructableDistance = constructableDistance;
+                    closestConstructableCell = constructableCell;
+                    closestConstructableEntrance = constructableEntrance;
                 }
             }
 
-            return closestDropPointEntrance;
+            return closestConstructableEntrance;
         }
     }
 }

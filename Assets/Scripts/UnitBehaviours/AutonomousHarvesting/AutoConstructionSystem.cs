@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
+    [DisableAutoCreation]
     public partial struct AutoConstructionSystem : ISystem
     {
         public void OnUpdate(ref SystemState state)

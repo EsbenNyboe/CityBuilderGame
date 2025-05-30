@@ -1,0 +1,18 @@
+using Unity.Entities;
+
+namespace Storage
+{
+    public struct ConstructableResponse : IComponentData
+    {
+        /// <summary>
+        /// Add to inventory, if above 0.
+        /// Subtract from inventory, if below 0.
+        /// </summary>
+        public int ItemAmount;
+
+        /// <summary>
+        /// The entity that sent the request.
+        /// </summary>
+        public Entity RequesterEntity;
+    }
+}

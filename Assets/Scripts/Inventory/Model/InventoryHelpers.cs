@@ -41,7 +41,18 @@ namespace Inventory
             inventory.CurrentItem = InventoryItem.None;
         }
 
-        public static void SendRequestForDropItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
+        public static void SendRequestForConstructItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
+        {
+            var requestEntity = ecb.CreateEntity();
+            ecb.AddComponent(requestEntity, new ConstructableRequest
+            {
+                GridCell = targetCell,
+                RequestAmount = -1,
+                RequesterEntity = sourceEntity
+            });
+        }
+
+        public static void SendRequestForStoreItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
         {
             var requestEntity = ecb.CreateEntity();
             ecb.AddComponent(requestEntity, new StorageRequest
