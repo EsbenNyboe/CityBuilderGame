@@ -37,8 +37,8 @@ namespace Storage
                 if (!gridManager.TryGetGridEntityAndType(gridCell, out var gridEntity, out var gridEntityType) ||
                     !SystemAPI.HasComponent<Constructable>(gridEntity))
                 {
-                    // TODO: Send response in case the entity got destroyed
-                    Debug.LogError("INVALID REQUEST!!!");
+                    // Invalid request: Constructable no longer exists
+                    continue;
                 }
 
                 var constructable = SystemAPI.GetComponentRW<Constructable>(gridEntity);
@@ -47,7 +47,7 @@ namespace Storage
 
                 var requestedItemCountTotal = itemCount - requestedAmount;
                 var requestIsValid =
-                    requestedItemCountTotal > 0 && requestedItemCountTotal <= itemCapacity;
+                    requestedItemCountTotal >= 0 && requestedItemCountTotal <= itemCapacity;
                 var requesterEntity = constructableRequest.ValueRO.RequesterEntity;
                 var inventory = SystemAPI.GetComponentRW<InventoryState>(requesterEntity);
 

@@ -42,14 +42,14 @@ namespace Storage
 
                 var requestedItemCountTotal = itemCount - requestedAmount;
                 var requestIsValid =
-                    requestedItemCountTotal > 0 && requestedItemCountTotal <= itemCapacity;
+                    requestedItemCountTotal >= 0 && requestedItemCountTotal <= itemCapacity;
                 var requesterEntity = storageRequest.ValueRO.RequesterEntity;
                 var inventory = SystemAPI.GetComponentRW<InventoryState>(requesterEntity);
 
                 if (!requestIsValid)
                 {
                     // This should not happen:
-                    Debug.Log("StorageSystem: Invalid Request");
+                    Debug.LogError("StorageSystem: Invalid Request");
                     if (
                         SystemAPI.Exists(requesterEntity)
                         && SystemAPI.HasComponent<IsSeekingDropPoint>(requesterEntity)
