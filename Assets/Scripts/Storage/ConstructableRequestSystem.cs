@@ -1,6 +1,6 @@
 using Grid;
+using GridEntityNS;
 using Inventory;
-using Rendering;
 using UnitAgency.Data;
 using UnitBehaviours.AutonomousHarvesting;
 using Unity.Collections;
@@ -10,17 +10,16 @@ using UnityEngine;
 namespace Storage
 {
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
-    public partial struct StorageRequestSystem : ISystem
+    public partial struct ConstructableRequestSystem : ISystem
     {
-        private EntityQuery _storageRequestQuery;
+        private EntityQuery _constructableRequestQuery;
 
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<StorageRuleManager>();
             state.RequireForUpdate<GridManager>();
 
-            _storageRequestQuery = state.GetEntityQuery(
-                new EntityQueryDesc { All = new ComponentType[] { typeof(StorageRequest) } }
+            _constructableRequestQuery = state.GetEntityQuery(
+                new EntityQueryDesc { All = new ComponentType[] { typeof(ConstructableRequest) } }
             );
         }
 
@@ -28,42 +27,48 @@ namespace Storage
         {
             state.Dependency.Complete();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
-            var storageRuleManager = SystemAPI.GetSingleton<StorageRuleManager>();
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
-            foreach (var storageRequest in SystemAPI.Query<RefRO<StorageRequest>>())
+            foreach (var constructableRequest in SystemAPI.Query<RefRO<ConstructableRequest>>())
             {
-                var requestedAmount = storageRequest.ValueRO.RequestAmount;
+                var requestedAmount = constructableRequest.ValueRO.RequestAmount;
 
-                var gridCell = storageRequest.ValueRO.GridCell;
-                var itemCapacity = gridManager.GetStorageItemCapacity(gridCell);
-                var itemCount = gridManager.GetStorageItemCount(gridCell);
-                itemCapacity = storageRuleManager.MaxPerStructure;
+                var gridCell = constructableRequest.ValueRO.GridCell;
+                if (!gridManager.TryGetGridEntityAndType(gridCell, out var gridEntity, out var gridEntityType) ||
+                    !SystemAPI.HasComponent<Constructable>(gridEntity))
+                {
+                    // Invalid request: Constructable no longer exists
+                    continue;
+                }
+
+                var constructable = SystemAPI.GetComponentRW<Constructable>(gridEntity);
+                var itemCount = constructable.ValueRO.Materials;
+                var itemCapacity = constructable.ValueRO.MaterialsRequired;
 
                 var requestedItemCountTotal = itemCount - requestedAmount;
                 var requestIsValid =
                     requestedItemCountTotal >= 0 && requestedItemCountTotal <= itemCapacity;
-                var requesterEntity = storageRequest.ValueRO.RequesterEntity;
+                var requesterEntity = constructableRequest.ValueRO.RequesterEntity;
                 var inventory = SystemAPI.GetComponentRW<InventoryState>(requesterEntity);
 
                 if (!requestIsValid)
                 {
                     // This should not happen:
-                    Debug.LogError("StorageSystem: Invalid Request");
+                    Debug.Log("ConstructableSystem: Invalid Request");
                     if (
                         SystemAPI.Exists(requesterEntity)
-                        && SystemAPI.HasComponent<IsSeekingDropPoint>(requesterEntity)
+                        && SystemAPI.HasComponent<IsSeekingConstructable>(requesterEntity)
                     )
                     {
                         // Stop seeking
-                        ecb.RemoveComponent<IsSeekingDropPoint>(requesterEntity);
+                        ecb.RemoveComponent<IsSeekingConstructable>(requesterEntity);
                         ecb.AddComponent<IsDeciding>(requesterEntity);
                     }
                 }
                 else
                 {
-                    // Target: storage cell
-                    gridManager.SetStorageCount(gridCell, requestedItemCountTotal);
+                    // Target: Constructable cell
+                    constructable.ValueRW.Materials = requestedItemCountTotal;
 
                     // Source: inventory
                     inventory.ValueRW.CurrentItem =
@@ -72,7 +77,7 @@ namespace Storage
             }
 
             ecb.Playback(state.EntityManager);
-            state.EntityManager.DestroyEntity(_storageRequestQuery);
+            state.EntityManager.DestroyEntity(_constructableRequestQuery);
             SystemAPI.SetSingleton(gridManager);
         }
     }

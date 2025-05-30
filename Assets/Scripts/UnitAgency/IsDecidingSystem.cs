@@ -114,8 +114,20 @@ namespace UnitAgency.Logic
                 var cell = GridHelpers.GetXY(position);
                 var section = GridManager.GetSection(cell);
 
-                var hasAccessToStorageWithSpace =
-                    QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.DropPointQuadrantMap, GridManager, 50, position);
+                // TODO: Convert these into "rings of quadrants to search" instead of "quadrants to search"
+                var friendQuadrantsToSearch = 25;
+                var boarQuadrantsToSearch = 9;
+                var itemQuadrantsToSearch = UnitBehaviourManager.QuadrantSearchRange;
+
+                var hasAccessToConstructable = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.ConstructableQuadrantMap, GridManager,
+                    itemQuadrantsToSearch,
+                    position,
+                    entity, out var closestConstructable, out _);
+                var hasAccessToStorageWithItems = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.DropPointQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position);
+                var hasAccessToStorageWithSpace = QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.DropPointQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position);
+                var hasAccessToLogContainer = hasAccessToConstructable || hasAccessToStorageWithSpace;
 
                 var isSleepy = moodSleepiness.Sleepiness > 0.2f;
                 var isMoving = pathFollow.IsMoving();
@@ -124,11 +136,6 @@ namespace UnitAgency.Logic
                 const float friendFactor = 1f;
 
                 var socialRelationships = SocialRelationshipsLookup[entity];
-
-                // TODO: Convert these into "rings of quadrants to search" instead of "quadrants to search"
-                var friendQuadrantsToSearch = 25;
-                var boarQuadrantsToSearch = 9;
-                var itemQuadrantsToSearch = UnitBehaviourManager.QuadrantSearchRange;
 
                 var isStandingOnNonWalkableCell = !GridManager.IsWalkable(cell) && !GridManager.IsBedAvailableToUnit(cell, entity);
 
@@ -170,7 +177,11 @@ namespace UnitAgency.Logic
                 }
                 else if (HasLogOfWood(inventory))
                 {
-                    if (hasAccessToStorageWithSpace)
+                    if (hasAccessToConstructable)
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingConstructable());
+                    }
+                    else if (hasAccessToStorageWithSpace)
                     {
                         EcbParallelWriter.AddComponent(i, entity, new IsSeekingDropPoint());
                     }
@@ -180,7 +191,7 @@ namespace UnitAgency.Logic
                         EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                     }
                 }
-                else if (hasAccessToStorageWithSpace &&
+                else if (hasAccessToLogContainer &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DropPointQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _) &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedItemQuadrantMap, GridManager,
@@ -229,7 +240,7 @@ namespace UnitAgency.Logic
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingBed());
                 }
-                else if (hasAccessToStorageWithSpace && IsAdjacentToTree(GridManager, cell, out var tree))
+                else if (hasAccessToLogContainer && IsAdjacentToTree(GridManager, cell, out var tree))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
@@ -267,7 +278,11 @@ namespace UnitAgency.Logic
                         });
                     }
                 }
-                else if (hasInitiative && hasAccessToStorageWithSpace)
+                else if (hasAccessToConstructable && hasAccessToStorageWithItems)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingStorage());
+                }
+                else if (hasInitiative && hasAccessToLogContainer)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
                 }

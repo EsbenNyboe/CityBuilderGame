@@ -86,8 +86,7 @@ namespace Rendering
         ItemWood,
         ItemMeat,
         ItemBerries,
-        BuildingStorageA,
-        BuildingStorageB,
+        Storage,
         BoarStand,
         BoarRun,
         BoarDead,
@@ -97,9 +96,6 @@ namespace Rendering
         DropPoint,
         TreeDamaged,
         Tree,
-        Bed,
-        BlueprintDropPoint,
-        BlueprintBed,
-        BlueprintStorage
+        Bed
     }
 }
