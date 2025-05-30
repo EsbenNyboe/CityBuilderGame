@@ -30,6 +30,7 @@ namespace UnitControl
 
         protected override void OnUpdate()
         {
+            Dependency.Complete();
             var isHoldingSpawnItem = SpawnMenuManager.Instance.HasSelection();
 
             if (isHoldingSpawnItem)
