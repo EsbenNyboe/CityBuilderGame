@@ -1,10 +1,10 @@
 using Debugging;
 using Grid;
-using GridEntityNS;
 using Inventory;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
+using UnitBehaviours.Targeting.Core;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -18,6 +18,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -26,6 +27,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
@@ -51,12 +53,22 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 var position = localTransform.ValueRO.Position;
                 var cell = GridHelpers.GetXY(position);
-                var closestConstructableEntrance =
-                    FindClosestConstructableEntrance(ref state, gridManager, position, out var closestConstructableCell);
+
+                // TODO: Extract "quadrantsToSearch" to global value.
+                int2 closestConstructableEntrance = -1;
+                int2 constructableCell = -1;
+                if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.ConstructableQuadrantMap, gridManager, 50,
+                        position, entity,
+                        out var closestConstructable, out _))
+                {
+                    constructableCell = GridHelpers.GetXY(SystemAPI.GetComponent<LocalTransform>(closestConstructable).Position);
+                    gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, constructableCell, out closestConstructableEntrance);
+                }
+
                 if (cell.Equals(closestConstructableEntrance))
                 {
-                    // Try drop item at drop point
-                    InventoryHelpers.SendRequestForConstructItem(ecb, entity, closestConstructableCell);
+                    // Try drop item at constructable
+                    InventoryHelpers.SendRequestForConstructItem(ecb, entity, constructableCell);
                     continue;
                 }
 
@@ -72,37 +84,6 @@ namespace UnitBehaviours.AutonomousHarvesting
                     ecb.AddComponent<IsDeciding>(entity);
                 }
             }
-        }
-
-        private int2 FindClosestConstructableEntrance(ref SystemState state, GridManager gridManager, float3 position,
-            out int2 closestConstructableCell)
-        {
-            closestConstructableCell = new int2(-1);
-            var closestConstructableEntrance = new int2(-1);
-            var shortestConstructableDistance = math.INFINITY;
-            var cell = GridHelpers.GetXY(position);
-
-            foreach (var (constructableTransform, constructable) in SystemAPI.Query<RefRO<LocalTransform>, RefRO<Constructable>>())
-            {
-                var constructablePosition = constructableTransform.ValueRO.Position;
-                var constructableCell = GridHelpers.GetXY(constructablePosition);
-
-                if (gridManager.GetStorageItemCount(constructableCell) >= gridManager.GetStorageItemCapacity(constructableCell))
-                {
-                    continue;
-                }
-
-                var constructableDistance = math.distance(position, constructablePosition);
-                if (constructableDistance < shortestConstructableDistance &&
-                    gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, constructableCell, out var constructableEntrance))
-                {
-                    shortestConstructableDistance = constructableDistance;
-                    closestConstructableCell = constructableCell;
-                    closestConstructableEntrance = constructableEntrance;
-                }
-            }
-
-            return closestConstructableEntrance;
         }
     }
 }
