@@ -4,6 +4,7 @@ using Inventory;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
+using UnitBehaviours.Targeting.Core;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -17,6 +18,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
@@ -25,6 +27,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
@@ -50,7 +53,8 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 var position = localTransform.ValueRO.Position;
                 var cell = GridHelpers.GetXY(position);
-                var closestDropPointEntrance = FindClosestDropPointEntrance(ref state, gridManager, position, out var closestDropPointCell);
+                var closestDropPointEntrance =
+                    FindClosestDropPointEntrance(ref state, quadrantDataManager, gridManager, position, out var closestDropPointCell);
                 if (cell.Equals(closestDropPointEntrance))
                 {
                     // Try drop item at drop point
@@ -72,34 +76,23 @@ namespace UnitBehaviours.AutonomousHarvesting
             }
         }
 
-        private int2 FindClosestDropPointEntrance(ref SystemState state, GridManager gridManager, float3 position, out int2 closestDropPointCell)
+        private int2 FindClosestDropPointEntrance(ref SystemState state, QuadrantDataManager quadrantDataManager, GridManager gridManager,
+            float3 position, out int2 closestDropPointCell)
         {
             closestDropPointCell = new int2(-1);
-            var closestDropPointEntrance = new int2(-1);
-            var shortestDropPointDistance = math.INFINITY;
             var cell = GridHelpers.GetXY(position);
 
-            foreach (var (dropPointTransform, dropPoint) in SystemAPI.Query<RefRO<LocalTransform>, RefRO<DropPoint>>())
+            if (!QuadrantSystem.TryFindClosestSpaciousStorage(quadrantDataManager.DropPointQuadrantMap, gridManager, 50, position,
+                    out var closestDropPointEntity))
             {
-                var dropPointPosition = dropPointTransform.ValueRO.Position;
-                var dropPointCell = GridHelpers.GetXY(dropPointPosition);
+                return -1;
+            }
 
-                var itemCount = gridManager.GetStorageItemCount(dropPointCell);
-                var itemCapacity = gridManager.GetStorageItemCapacity(dropPointCell);
+            closestDropPointCell = GridHelpers.GetXY(SystemAPI.GetComponent<LocalTransform>(closestDropPointEntity).Position);
 
-                if (gridManager.GetStorageItemCount(dropPointCell) >= gridManager.GetStorageItemCapacity(dropPointCell))
-                {
-                    continue;
-                }
-
-                var dropPointDistance = math.distance(position, dropPointPosition);
-                if (dropPointDistance < shortestDropPointDistance &&
-                    gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, dropPointCell, out var dropPointEntrance))
-                {
-                    shortestDropPointDistance = dropPointDistance;
-                    closestDropPointCell = dropPointCell;
-                    closestDropPointEntrance = dropPointEntrance;
-                }
+            if (!gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, closestDropPointCell, out var closestDropPointEntrance))
+            {
+                return -1;
             }
 
             return closestDropPointEntrance;
