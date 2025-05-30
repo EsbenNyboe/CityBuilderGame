@@ -42,7 +42,7 @@ namespace Grid.GridVisuals
             {
                 return;
             }
-
+            
             if (!_isInitialized)
             {
                 _isInitialized = true;

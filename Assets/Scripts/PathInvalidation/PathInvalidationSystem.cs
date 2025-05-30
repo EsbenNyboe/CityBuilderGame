@@ -118,6 +118,7 @@ namespace PathInvalidation
             }.Schedule(invalidatedPathfindingEntities.Length, 1);
 
             invalidatedPathfindingEntities.Dispose(state.Dependency);
+            state.Dependency.Complete();
         }
 
         [BurstCompile]
