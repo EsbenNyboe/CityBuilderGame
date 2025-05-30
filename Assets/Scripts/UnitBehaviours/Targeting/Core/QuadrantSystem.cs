@@ -118,6 +118,8 @@ namespace UnitBehaviours.Targeting.Core
             BuildQuadrantMap(ref state, gridManager, _constructableQuery, quadrantDataManager.ConstructableQuadrantMap, true);
         }
 
+        #region Quadrant Setup
+
         [BurstCompile]
         private void BuildQuadrantMap(ref SystemState state,
             GridManager gridManager,
@@ -203,6 +205,10 @@ namespace UnitBehaviours.Targeting.Core
                 }
             }
         }
+
+        #endregion
+
+        #region Quadrant Search
 
         public static bool TryFindClosestFriend(SocialRelationships socialRelationships,
             NativeParallelMultiHashMap<int, QuadrantData> nmhm,
@@ -346,5 +352,7 @@ namespace UnitBehaviours.Targeting.Core
             const float friendThreshold = 1f;
             return relationships[quadrantData.Entity] > friendThreshold;
         }
+
+        #endregion
     }
 }
