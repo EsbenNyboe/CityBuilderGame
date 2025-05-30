@@ -83,12 +83,12 @@ namespace UnitBehaviours.AutonomousHarvesting
             var cell = GridHelpers.GetXY(position);
 
             if (!QuadrantSystem.TryFindClosestSpaciousStorage(quadrantDataManager.DropPointQuadrantMap, gridManager, 50, position,
-                    out var closestDropPointEntity))
+                    out var closestDropPoint))
             {
                 return -1;
             }
 
-            closestDropPointCell = GridHelpers.GetXY(SystemAPI.GetComponent<LocalTransform>(closestDropPointEntity).Position);
+            closestDropPointCell = GridHelpers.GetXY(SystemAPI.GetComponent<LocalTransform>(closestDropPoint.Entity).Position);
 
             if (!gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, closestDropPointCell, out var closestDropPointEntrance))
             {
