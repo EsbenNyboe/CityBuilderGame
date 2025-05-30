@@ -123,9 +123,10 @@ namespace UnitAgency.Logic
                     itemQuadrantsToSearch,
                     position,
                     entity, out var closestConstructable, out _);
-                var hasAccessToStorageWithSpace =
-                    QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.DropPointQuadrantMap, GridManager, itemQuadrantsToSearch,
-                        position);
+                var hasAccessToStorageWithItems = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.DropPointQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position);
+                var hasAccessToStorageWithSpace = QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.DropPointQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position);
                 var hasAccessToLogContainer = hasAccessToConstructable || hasAccessToStorageWithSpace;
 
                 var isSleepy = moodSleepiness.Sleepiness > 0.2f;
@@ -276,6 +277,10 @@ namespace UnitAgency.Logic
                             Patience = 1
                         });
                     }
+                }
+                else if (hasAccessToConstructable && hasAccessToStorageWithItems)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingStorage());
                 }
                 else if (hasInitiative && hasAccessToLogContainer)
                 {

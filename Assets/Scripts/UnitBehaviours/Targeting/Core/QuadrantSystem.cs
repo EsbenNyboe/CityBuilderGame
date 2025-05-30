@@ -260,6 +260,51 @@ namespace UnitBehaviours.Targeting.Core
             return false;
         }
 
+        public static bool TryFindNonEmptyStorageInSection(NativeParallelMultiHashMap<int, QuadrantData> nmhm,
+            GridManager gridManager, int quadrantsToSearch, float3 position)
+        {
+            PrepareSearch(gridManager, position, out var section, out var key, out var closestTargetDistance, out _);
+            for (var i = 0; i < quadrantsToSearch; i++)
+            {
+                if (TryPrepareIterator(gridManager, nmhm, i, key, out var quadrantData, out var nmhmIterator))
+                {
+                    do
+                    {
+                        if (TryGetClosestDistance(position, quadrantData, closestTargetDistance, section, out _) &&
+                            IsNonEmptyStorage(gridManager, quadrantData))
+                        {
+                            return true;
+                        }
+                    } while (nmhm.TryGetNextValue(out quadrantData, ref nmhmIterator));
+                }
+            }
+
+            return false;
+        }
+
+        public static bool TryFindClosestNonEmptyStorage(NativeParallelMultiHashMap<int, QuadrantData> nmhm,
+            GridManager gridManager, int quadrantsToSearch, float3 position, out QuadrantData closestTarget)
+        {
+            PrepareSearch(gridManager, position, out var section, out var key, out var closestTargetDistance, out closestTarget);
+            for (var i = 0; i < quadrantsToSearch; i++)
+            {
+                if (TryPrepareIterator(gridManager, nmhm, i, key, out var quadrantData, out var nmhmIterator))
+                {
+                    do
+                    {
+                        if (TryGetClosestDistance(position, quadrantData, closestTargetDistance, section, out var distance) &&
+                            IsNonEmptyStorage(gridManager, quadrantData))
+                        {
+                            closestTargetDistance = distance;
+                            closestTarget = quadrantData;
+                        }
+                    } while (nmhm.TryGetNextValue(out quadrantData, ref nmhmIterator));
+                }
+            }
+
+            return closestTarget.IsValid();
+        }
+
         public static bool TryFindClosestSpaciousStorage(NativeParallelMultiHashMap<int, QuadrantData> nmhm,
             GridManager gridManager, int quadrantsToSearch, float3 position, out QuadrantData closestTarget)
         {
@@ -281,6 +326,28 @@ namespace UnitBehaviours.Targeting.Core
             }
 
             return closestTarget.IsValid();
+        }
+
+        public static bool TryFindEntity(NativeParallelMultiHashMap<int, QuadrantData> nmhm, GridManager gridManager,
+            int quadrantsToSearch, float3 position, Entity entity)
+        {
+            PrepareSearch(gridManager, position, out var section, out var key, out var closestTargetDistance, out var closestTarget);
+            for (var i = 0; i < quadrantsToSearch; i++)
+            {
+                if (TryPrepareIterator(gridManager, nmhm, i, key, out var quadrantData, out var nmhmIterator))
+                {
+                    do
+                    {
+                        if (TryGetClosestDistance(position, quadrantData, closestTargetDistance, section, out var distance) &&
+                            !IsSameEntity(entity, quadrantData))
+                        {
+                            return true;
+                        }
+                    } while (nmhm.TryGetNextValue(out quadrantData, ref nmhmIterator));
+                }
+            }
+
+            return false;
         }
 
         public static bool TryFindClosestEntity(NativeParallelMultiHashMap<int, QuadrantData> nmhm, GridManager gridManager,
@@ -345,6 +412,11 @@ namespace UnitBehaviours.Targeting.Core
         private static bool IsSpaciousStorage(GridManager gridManager, QuadrantData quadrantData)
         {
             return gridManager.GetStorageItemCount(quadrantData.Position) < gridManager.GetStorageItemCapacity(quadrantData.Position);
+        }
+
+        private static bool IsNonEmptyStorage(GridManager gridManager, QuadrantData quadrantData)
+        {
+            return gridManager.GetStorageItemCount(quadrantData.Position) > 0;
         }
 
         private static bool IsFriend(NativeParallelHashMap<Entity, float> relationships, QuadrantData quadrantData)
