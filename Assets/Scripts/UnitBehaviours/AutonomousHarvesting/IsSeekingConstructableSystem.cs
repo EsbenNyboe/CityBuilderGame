@@ -5,6 +5,7 @@ using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting.Core;
+using UnitBehaviours.UnitManagers;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -18,6 +19,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
@@ -27,6 +29,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
@@ -57,7 +60,8 @@ namespace UnitBehaviours.AutonomousHarvesting
                 // TODO: Extract "quadrantsToSearch" to global value.
                 int2 closestConstructableEntrance = -1;
                 int2 constructableCell = -1;
-                if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.ConstructableQuadrantMap, gridManager, 50,
+                if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.ConstructableQuadrantMap, gridManager,
+                        unitBehaviourManager.QuadrantSearchRange,
                         position, entity,
                         out var closestConstructable, out _))
                 {

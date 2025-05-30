@@ -114,11 +114,18 @@ namespace UnitAgency.Logic
                 var cell = GridHelpers.GetXY(position);
                 var section = GridManager.GetSection(cell);
 
-                var hasAccessToConstructable = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.ConstructableQuadrantMap, GridManager, 50,
+                // TODO: Convert these into "rings of quadrants to search" instead of "quadrants to search"
+                var friendQuadrantsToSearch = 25;
+                var boarQuadrantsToSearch = 9;
+                var itemQuadrantsToSearch = UnitBehaviourManager.QuadrantSearchRange;
+
+                var hasAccessToConstructable = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.ConstructableQuadrantMap, GridManager,
+                    itemQuadrantsToSearch,
                     position,
                     entity, out var closestConstructable, out _);
                 var hasAccessToStorageWithSpace =
-                    QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.DropPointQuadrantMap, GridManager, 50, position);
+                    QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.DropPointQuadrantMap, GridManager, itemQuadrantsToSearch,
+                        position);
                 var hasAccessToLogContainer = hasAccessToConstructable || hasAccessToStorageWithSpace;
 
                 var isSleepy = moodSleepiness.Sleepiness > 0.2f;
@@ -128,11 +135,6 @@ namespace UnitAgency.Logic
                 const float friendFactor = 1f;
 
                 var socialRelationships = SocialRelationshipsLookup[entity];
-
-                // TODO: Convert these into "rings of quadrants to search" instead of "quadrants to search"
-                var friendQuadrantsToSearch = 25;
-                var boarQuadrantsToSearch = 9;
-                var itemQuadrantsToSearch = UnitBehaviourManager.QuadrantSearchRange;
 
                 var isStandingOnNonWalkableCell = !GridManager.IsWalkable(cell) && !GridManager.IsBedAvailableToUnit(cell, entity);
 
