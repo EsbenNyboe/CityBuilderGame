@@ -20,12 +20,21 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var worldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>();
-
             new SetConstructableStateJob
             {
-                WorldSpriteSheetManager = worldSpriteSheetManager
+                WorldSpriteSheetManager = SystemAPI.GetSingleton<WorldSpriteSheetManager>()
             }.ScheduleParallel(state.Dependency).Complete();
+
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            foreach (var (constructable, entity) in SystemAPI.Query<RefRO<Constructable>>().WithEntityAccess())
+            {
+                if (constructable.ValueRO.Materials >= constructable.ValueRO.MaterialsRequired)
+                {
+                    ecb.RemoveComponent<Constructable>(entity);
+                }
+            }
+
+            ecb.Playback(state.EntityManager);
         }
 
         [BurstCompile]
