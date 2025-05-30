@@ -232,39 +232,23 @@ namespace UnitBehaviours.Targeting.Core
             return closestTarget.IsValid();
         }
 
-        private static bool IsFriend(NativeParallelHashMap<Entity, float> relationships, QuadrantData quadrantData)
-        {
-            const float friendThreshold = 1f;
-            return relationships[quadrantData.Entity] > friendThreshold;
-        }
-
-        public static bool TryFindSpaciousStorageInSection(NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap,
+        public static bool TryFindSpaciousStorageInSection(NativeParallelMultiHashMap<int, QuadrantData> nmhm,
             GridManager gridManager, int quadrantsToSearch, float3 position)
         {
-            var section = gridManager.GetSection(position);
-            var hashMapKey = GetHashMapKeyFromPosition(position);
-            var quadrantIndex = 0;
-            while (quadrantIndex < quadrantsToSearch)
+            PrepareSearch(gridManager, position, out var section, out var key, out var closestTargetDistance, out _);
+            for (var i = 0; i < quadrantsToSearch; i++)
             {
-                var relativeCoordinate = gridManager.RelativePositionList[quadrantIndex];
-                var relativeHashMapKey = relativeCoordinate.x + relativeCoordinate.y * QuadrantYMultiplier;
-                var absoluteHashMapKey = hashMapKey + relativeHashMapKey;
-
-                if (quadrantMultiHashMap.TryGetFirstValue(absoluteHashMapKey, out var quadrantData,
-                        out var nativeParallelMultiHashMapIterator))
+                if (TryPrepareIterator(gridManager, nmhm, i, key, out var quadrantData, out var nmhmIterator))
                 {
                     do
                     {
-                        if (quadrantData.Section == section &&
-                            gridManager.GetStorageItemCount(quadrantData.Position) < gridManager.GetStorageItemCapacity(quadrantData.Position))
+                        if (TryGetClosestDistance(position, quadrantData, closestTargetDistance, section, out _) &&
+                            IsSpaciousStorage(gridManager, quadrantData))
                         {
                             return true;
                         }
-                    } while (quadrantMultiHashMap.TryGetNextValue(out quadrantData,
-                                 ref nativeParallelMultiHashMapIterator));
+                    } while (nmhm.TryGetNextValue(out quadrantData, ref nmhmIterator));
                 }
-
-                quadrantIndex++;
             }
 
             return false;
@@ -298,7 +282,6 @@ namespace UnitBehaviours.Targeting.Core
             out Entity closestTargetEntity, out float closestTargetDistance)
         {
             PrepareSearch(gridManager, position, out var section, out var key, out closestTargetDistance, out var closestTarget);
-
             for (var i = 0; i < quadrantsToSearch; i++)
             {
                 if (TryPrepareIterator(gridManager, nmhm, i, key, out var quadrantData, out var nmhmIterator))
@@ -356,6 +339,12 @@ namespace UnitBehaviours.Targeting.Core
         private static bool IsSpaciousStorage(GridManager gridManager, QuadrantData quadrantData)
         {
             return gridManager.GetStorageItemCount(quadrantData.Position) < gridManager.GetStorageItemCapacity(quadrantData.Position);
+        }
+
+        private static bool IsFriend(NativeParallelHashMap<Entity, float> relationships, QuadrantData quadrantData)
+        {
+            const float friendThreshold = 1f;
+            return relationships[quadrantData.Entity] > friendThreshold;
         }
     }
 }
