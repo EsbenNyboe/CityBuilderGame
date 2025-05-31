@@ -44,7 +44,7 @@ namespace Grid.SaveLoad
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var treeList = new NativeList<int2>(Allocator.Temp);
             var bedList = new NativeList<int2>(Allocator.Temp);
-            var dropPointList = new NativeList<int2>(Allocator.Temp);
+            var storageList = new NativeList<int2>(Allocator.Temp);
 
             for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
             {
@@ -52,9 +52,9 @@ namespace Grid.SaveLoad
                 {
                     bedList.Add(gridManager.GetXY(i));
                 }
-                else if (gridManager.TryGetDropPointEntity(i, out _))
+                else if (gridManager.TryGetStorageEntity(i, out _))
                 {
-                    dropPointList.Add(gridManager.GetXY(i));
+                    storageList.Add(gridManager.GetXY(i));
                 }
                 else if (gridManager.TryGetTreeEntity(i, out _))
                 {
@@ -70,13 +70,13 @@ namespace Grid.SaveLoad
             var beds = new int2[bedList.Length];
             NativeArray<int2>.Copy(bedList.AsArray(), beds);
 
-            var dropPoints = new int2[dropPointList.Length];
-            NativeArray<int2>.Copy(dropPointList.AsArray(), dropPoints);
+            var storages = new int2[storageList.Length];
+            NativeArray<int2>.Copy(storageList.AsArray(), storages);
 
-            SavedGridStateManager.Instance.SaveDataToSaveSlot(gridSize, trees, beds, dropPoints);
+            SavedGridStateManager.Instance.SaveDataToSaveSlot(gridSize, trees, beds, storages);
             treeList.Dispose();
             bedList.Dispose();
-            dropPointList.Dispose();
+            storageList.Dispose();
         }
 
         private void LoadSavedGridState()
@@ -97,7 +97,7 @@ namespace Grid.SaveLoad
             // LOAD NEW STATE
             var trees = SavedGridStateManager.Instance.LoadSavedTrees();
             var beds = SavedGridStateManager.Instance.LoadSavedBeds();
-            var dropPoints = SavedGridStateManager.Instance.LoadSavedDropPoints();
+            var storages = SavedGridStateManager.Instance.LoadSavedStorages();
             var gridSize = SavedGridStateManager.Instance.TryLoadSavedGridSize(new int2(gridManager.Width, gridManager.Height));
             GridDimensionsConfig.Instance.Width = gridSize.x;
             GridDimensionsConfig.Instance.Height = gridSize.y;
@@ -124,13 +124,13 @@ namespace Grid.SaveLoad
                 gridManager.SetInteractableBed(beds[i]);
             }
 
-            for (var i = 0; i < dropPoints.Length; i++)
+            for (var i = 0; i < storages.Length; i++)
             {
-                gridManager.SetIsWalkable(dropPoints[i], false);
-                gridManager.SetDefaultStorageCapacity(dropPoints[i]);
+                gridManager.SetIsWalkable(storages[i], false);
+                gridManager.SetDefaultStorageCapacity(storages[i]);
                 SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
-                    dropPoints[i], spawnManager.DropPointPrefab,
-                    GridEntityType.DropPoint, WorldSpriteSheetEntryType.Storage);
+                    storages[i], spawnManager.StoragePrefab,
+                    GridEntityType.Storage, WorldSpriteSheetEntryType.Storage);
             }
 
             gridManager.WalkableGridIsDirty = true;

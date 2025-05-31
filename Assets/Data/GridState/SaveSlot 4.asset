@@ -115,7 +115,7 @@ MonoBehaviour:
   - x: 39
     y: 4
   Beds: []
-  DropPoints:
+  Storages:
   - x: 7
     y: 4
   - x: 32

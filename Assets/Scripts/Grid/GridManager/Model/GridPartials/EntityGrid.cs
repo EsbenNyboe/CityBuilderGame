@@ -8,7 +8,7 @@ namespace Grid
     public enum GridEntityType
     {
         None,
-        DropPoint,
+        Storage,
         Tree
     }
 
@@ -131,19 +131,19 @@ namespace Grid
             return !TryGetGridEntityOfType(cell, GridEntityType.None, out _);
         }
 
-        public bool TryGetDropPointEntity(Vector3 position, out Entity entity)
+        public bool TryGetStorageEntity(Vector3 position, out Entity entity)
         {
-            return TryGetGridEntityOfType(position, GridEntityType.DropPoint, out entity);
+            return TryGetGridEntityOfType(position, GridEntityType.Storage, out entity);
         }
 
-        public bool TryGetDropPointEntity(int2 cell, out Entity entity)
+        public bool TryGetStorageEntity(int2 cell, out Entity entity)
         {
-            return TryGetGridEntityOfType(cell, GridEntityType.DropPoint, out entity);
+            return TryGetGridEntityOfType(cell, GridEntityType.Storage, out entity);
         }
 
-        public bool TryGetDropPointEntity(int gridIndex, out Entity entity)
+        public bool TryGetStorageEntity(int gridIndex, out Entity entity)
         {
-            return TryGetGridEntityOfType(gridIndex, GridEntityType.DropPoint, out entity);
+            return TryGetGridEntityOfType(gridIndex, GridEntityType.Storage, out entity);
         }
 
         public bool TryGetTreeEntity(Vector3 position, out Entity entity)

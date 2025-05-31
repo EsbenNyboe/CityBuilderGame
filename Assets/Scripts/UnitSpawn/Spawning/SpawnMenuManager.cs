@@ -130,7 +130,7 @@ namespace UnitSpawn.Spawning
         Unit,
         Tree,
         Bed,
-        House,
+        Storage,
         Boar
     }
 }

@@ -123,9 +123,9 @@ namespace UnitAgency.Logic
                     itemQuadrantsToSearch,
                     position,
                     entity, out var closestConstructable, out _);
-                var hasAccessToStorageWithItems = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.DropPointQuadrantMap,
+                var hasAccessToStorageWithItems = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
                     GridManager, itemQuadrantsToSearch, position);
-                var hasAccessToStorageWithSpace = QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.DropPointQuadrantMap,
+                var hasAccessToStorageWithSpace = QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.StorageQuadrantMap,
                     GridManager, itemQuadrantsToSearch, position);
                 var hasAccessToLogContainer = hasAccessToConstructable || hasAccessToStorageWithSpace;
 
@@ -183,7 +183,7 @@ namespace UnitAgency.Logic
                     }
                     else if (hasAccessToStorageWithSpace)
                     {
-                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingDropPoint());
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingRoomyStorage());
                     }
                     else
                     {
@@ -192,7 +192,7 @@ namespace UnitAgency.Logic
                     }
                 }
                 else if (hasAccessToLogContainer &&
-                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DropPointQuadrantMap, GridManager,
+                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _) &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedItemQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _))
@@ -280,7 +280,7 @@ namespace UnitAgency.Logic
                 }
                 else if (hasAccessToConstructable && hasAccessToStorageWithItems)
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingStorage());
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage());
                 }
                 else if (hasInitiative && hasAccessToLogContainer)
                 {

@@ -93,7 +93,7 @@ namespace Rendering
         SpearHolding,
         SpearThrowing,
         Spear,
-        DropPoint,
+        House,
         TreeDamaged,
         Tree,
         Bed

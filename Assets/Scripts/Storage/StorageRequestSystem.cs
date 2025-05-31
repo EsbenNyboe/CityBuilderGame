@@ -52,11 +52,11 @@ namespace Storage
                     Debug.LogError("StorageSystem: Invalid Request");
                     if (
                         SystemAPI.Exists(requesterEntity)
-                        && SystemAPI.HasComponent<IsSeekingDropPoint>(requesterEntity)
+                        && SystemAPI.HasComponent<IsSeekingRoomyStorage>(requesterEntity)
                     )
                     {
                         // Stop seeking
-                        ecb.RemoveComponent<IsSeekingDropPoint>(requesterEntity);
+                        ecb.RemoveComponent<IsSeekingRoomyStorage>(requesterEntity);
                         ecb.AddComponent<IsDeciding>(requesterEntity);
                     }
                 }

@@ -314,7 +314,7 @@ namespace UnitControl
             ecb.RemoveComponent<AttackAnimation>(entity);
             ecb.RemoveComponent<IsHarvesting>(entity);
             ecb.RemoveComponent<IsSeekingTree>(entity);
-            ecb.RemoveComponent<IsSeekingDropPoint>(entity);
+            ecb.RemoveComponent<IsSeekingRoomyStorage>(entity);
 
             ecb.RemoveComponent<IsSleeping>(entity);
             ecb.RemoveComponent<IsSeekingBed>(entity);

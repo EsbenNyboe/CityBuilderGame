@@ -92,10 +92,10 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
-                case SpawnItemType.House:
+                case SpawnItemType.Storage:
                     foreach (var cell in cellList)
                     {
-                        TrySpawnDropPoint(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.DropPointPrefab);
+                        TrySpawnStorage(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.StoragePrefab);
                     }
 
                     break;
@@ -132,10 +132,10 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
-                case SpawnItemType.House:
+                case SpawnItemType.Storage:
                     foreach (var cell in cellList)
                     {
-                        TryDeleteDropPoint(ecb, ref gridManager, cell);
+                        TryDeleteStorage(ecb, ref gridManager, cell);
                     }
 
                     break;
@@ -230,7 +230,7 @@ namespace UnitSpawn.Spawning
             }
         }
 
-        private void TrySpawnDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager,
+        private void TrySpawnStorage(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager,
             int2 cell,
             Entity prefab)
         {
@@ -241,15 +241,15 @@ namespace UnitSpawn.Spawning
                 gridManager.SetDefaultStorageCapacity(cell);
                 gridManager.SetStorageCount(cell, 0);
 
-                SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.DropPoint,
+                SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.Storage,
                     WorldSpriteSheetEntryType.Storage);
             }
         }
 
-        private void TryDeleteDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
+        private void TryDeleteStorage(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
         {
             if (gridManager.IsPositionInsideGrid(cell) &&
-                gridManager.TryGetDropPointEntity(cell, out var entity))
+                gridManager.TryGetStorageEntity(cell, out var entity))
             {
                 gridManager.SetIsWalkable(cell, true);
                 gridManager.RemoveGridEntity(cell);

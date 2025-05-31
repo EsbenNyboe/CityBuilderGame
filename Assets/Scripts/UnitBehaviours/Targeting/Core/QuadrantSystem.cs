@@ -4,7 +4,6 @@ using Grid;
 using GridEntityNS;
 using Inventory;
 using SystemGroups;
-using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.UnitConfigurators;
 using UnitState.SocialState;
 using Unity.Burst;
@@ -20,7 +19,7 @@ namespace UnitBehaviours.Targeting.Core
         public NativeParallelMultiHashMap<int, QuadrantData> VillagerQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> BoarQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> DroppedItemQuadrantMap;
-        public NativeParallelMultiHashMap<int, QuadrantData> DropPointQuadrantMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> StorageQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> ConstructableQuadrantMap;
     }
 
@@ -42,7 +41,7 @@ namespace UnitBehaviours.Targeting.Core
         private EntityQuery _villagerQuery;
         private EntityQuery _boarQuery;
         private EntityQuery _droppedItemQuery;
-        private EntityQuery _dropPointQuery;
+        private EntityQuery _storageQuery;
         private EntityQuery _constructableQuery;
         public const int QuadrantYMultiplier = 1000;
         public const int QuadrantCellSize = 10;
@@ -61,9 +60,9 @@ namespace UnitBehaviours.Targeting.Core
             _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
                 // ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<DroppedItem>());
-            var dropPointQueryBuilder = new EntityQueryBuilder(Allocator.Temp).WithAll<LocalTransform, QuadrantEntity, DropPoint>()
+            var storageQueryBuilder = new EntityQueryBuilder(Allocator.Temp).WithAll<LocalTransform, QuadrantEntity, AutonomousHarvesting.Storage>()
                 .WithNone<Constructable>();
-            _dropPointQuery = state.GetEntityQuery(dropPointQueryBuilder);
+            _storageQuery = state.GetEntityQuery(storageQueryBuilder);
             _constructableQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(), ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<Constructable>());
 
@@ -79,8 +78,8 @@ namespace UnitBehaviours.Targeting.Core
                 DroppedItemQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _droppedItemQuery.CalculateEntityCount(),
                     Allocator.Persistent),
-                DropPointQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
-                    _dropPointQuery.CalculateEntityCount(),
+                StorageQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                    _storageQuery.CalculateEntityCount(),
                     Allocator.Persistent),
                 ConstructableQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _constructableQuery.CalculateEntityCount(),
@@ -95,7 +94,7 @@ namespace UnitBehaviours.Targeting.Core
             quadrantDataManager.VillagerQuadrantMap.Dispose();
             quadrantDataManager.BoarQuadrantMap.Dispose();
             quadrantDataManager.DroppedItemQuadrantMap.Dispose();
-            quadrantDataManager.DropPointQuadrantMap.Dispose();
+            quadrantDataManager.StorageQuadrantMap.Dispose();
             quadrantDataManager.ConstructableQuadrantMap.Dispose();
         }
 
@@ -114,7 +113,7 @@ namespace UnitBehaviours.Targeting.Core
             BuildQuadrantMap(ref state, gridManager, _villagerQuery, quadrantDataManager.VillagerQuadrantMap);
             BuildQuadrantMap(ref state, gridManager, _boarQuery, quadrantDataManager.BoarQuadrantMap);
             BuildQuadrantMap(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedItemQuadrantMap);
-            BuildQuadrantMap(ref state, gridManager, _dropPointQuery, quadrantDataManager.DropPointQuadrantMap, true);
+            BuildQuadrantMap(ref state, gridManager, _storageQuery, quadrantDataManager.StorageQuadrantMap, true);
             BuildQuadrantMap(ref state, gridManager, _constructableQuery, quadrantDataManager.ConstructableQuadrantMap, true);
         }
 

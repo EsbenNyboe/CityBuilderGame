@@ -7,17 +7,17 @@ using UnityEngine;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
-    public class DropPointAuthoring : MonoBehaviour
+    public class StorageAuthoring : MonoBehaviour
     {
         public int MaterialsRequired;
         public WorldSpriteSheetEntryType EntryType;
 
-        public class Baker : Baker<DropPointAuthoring>
+        public class Baker : Baker<StorageAuthoring>
         {
-            public override void Bake(DropPointAuthoring authoring)
+            public override void Bake(StorageAuthoring authoring)
             {
                 var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
-                AddComponent<DropPoint>(entity);
+                AddComponent<Storage>(entity);
                 AddComponent<GridEntity>(entity);
                 AddComponent(entity, new Constructable
                 {
@@ -34,7 +34,7 @@ namespace UnitBehaviours.AutonomousHarvesting
         }
     }
 
-    public struct DropPoint : IComponentData
+    public struct Storage : IComponentData
     {
     }
 }

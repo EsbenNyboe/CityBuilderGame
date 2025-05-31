@@ -64,7 +64,7 @@ namespace Grid.SaveLoad
         {
             for (var i = 0; i < _saveSlots.Length; i++)
             {
-                _saveSlots[i].DropPoints = GetCleanedUpDataList(_saveSlots[i].DropPoints);
+                _saveSlots[i].Storages = GetCleanedUpDataList(_saveSlots[i].Storages);
                 _saveSlots[i].Beds = GetCleanedUpDataList(_saveSlots[i].Beds);
                 _saveSlots[i].Trees = GetCleanedUpDataList(_saveSlots[i].Trees);
 #if UNITY_EDITOR
@@ -91,7 +91,7 @@ namespace Grid.SaveLoad
             return cleanedUpDataList.ToArray();
         }
 
-        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] dropPoints)
+        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] storages)
         {
             Assert.IsTrue(SlotToSave > -1 && SlotToSave < _saveSlots.Length);
 
@@ -99,7 +99,7 @@ namespace Grid.SaveLoad
             saveSlot.GridSize = gridSize;
             saveSlot.Trees = trees;
             saveSlot.Beds = beds;
-            saveSlot.DropPoints = dropPoints;
+            saveSlot.Storages = storages;
 #if UNITY_EDITOR
             EditorUtility.SetDirty(saveSlot);
 #endif
@@ -114,7 +114,7 @@ namespace Grid.SaveLoad
             saveSlot.GridSize = 0;
             saveSlot.Trees = Array.Empty<int2>();
             saveSlot.Beds = Array.Empty<int2>();
-            saveSlot.DropPoints = Array.Empty<int2>();
+            saveSlot.Storages = Array.Empty<int2>();
 #if UNITY_EDITOR
             EditorUtility.SetDirty(saveSlot);
 #endif
@@ -133,10 +133,10 @@ namespace Grid.SaveLoad
             return _saveSlots[SlotToLoad].Beds;
         }
 
-        public int2[] LoadSavedDropPoints()
+        public int2[] LoadSavedStorages()
         {
             Assert.IsTrue(SlotToLoad > -1 && SlotToLoad < _saveSlots.Length);
-            return _saveSlots[SlotToLoad].DropPoints;
+            return _saveSlots[SlotToLoad].Storages;
         }
 
         public int2 TryLoadSavedGridSize(int2 currentGridSize)

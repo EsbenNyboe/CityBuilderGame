@@ -3393,7 +3393,7 @@ GameObject:
   - component: {fileID: 491580636}
   - component: {fileID: 491580637}
   m_Layer: 5
-  m_Name: NumOfDropPointSeekersDisplay
+  m_Name: NumOfStorageSeekersDisplay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6741,7 +6741,7 @@ MonoBehaviour:
   _showNumberOfNegativeSocialEffects: 1
   _showNumberOfBedSeekers: 1
   _showNumberOfTreeSeekers: 1
-  _showNumberOfDropPointsSeekers: 1
+  _showNumberOfStoragesSeekers: 0
   _showNumberOfSleepers: 1
   _showNumberOfHarvesters: 1
   _showNumberOfIdle: 1
@@ -6761,7 +6761,7 @@ MonoBehaviour:
   _numberOfNegativeSocialEffectsDisplay: {fileID: 2033292345}
   _numberOfBedSeekersDisplay: {fileID: 1114410731}
   _numberOfTreeSeekersDisplay: {fileID: 2023333066}
-  _numberOfDropPointSeekersDisplay: {fileID: 491580637}
+  _numberOfStorageSeekersDisplay: {fileID: 491580637}
   _numberOfSleepersDisplay: {fileID: 531182144}
   _numberOfHarvestersDisplay: {fileID: 1604004254}
   _numberOfIdleDisplay: {fileID: 1676421698}
@@ -12431,7 +12431,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'IsSeekingDropPoint:'
+  m_text: 'IsSeekingRoomyStorage:'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
