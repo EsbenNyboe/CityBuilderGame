@@ -99,6 +99,13 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
+                case SpawnItemType.House:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnHouse(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.HousePrefab);
+                    }
+
+                    break;
 
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -136,6 +143,13 @@ namespace UnitSpawn.Spawning
                     foreach (var cell in cellList)
                     {
                         TryDeleteStorage(ecb, ref gridManager, cell);
+                    }
+
+                    break;
+                case SpawnItemType.House:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteHouse(ecb, ref gridManager, cell);
                     }
 
                     break;
@@ -255,6 +269,32 @@ namespace UnitSpawn.Spawning
                 gridManager.RemoveGridEntity(cell);
                 gridManager.SetStorageCapacity(cell, 0);
                 gridManager.SetStorageCount(cell, 0);
+
+                ecb.DestroyEntity(entity);
+            }
+        }
+
+        private void TrySpawnHouse(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager,
+            int2 cell,
+            Entity prefab)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+                !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
+            {
+                gridManager.SetIsWalkable(cell, false);
+
+                SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.House,
+                    WorldSpriteSheetEntryType.House);
+            }
+        }
+
+        private void TryDeleteHouse(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) &&
+                gridManager.TryGetHouseEntity(cell, out var entity))
+            {
+                gridManager.SetIsWalkable(cell, true);
+                gridManager.RemoveGridEntity(cell);
 
                 ecb.DestroyEntity(entity);
             }

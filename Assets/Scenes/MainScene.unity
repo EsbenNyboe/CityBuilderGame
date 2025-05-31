@@ -12740,7 +12740,7 @@ MonoBehaviour:
     FrameCount: 2
     FrameInterval: 1
   - Identifier: 17
-    FrameCount: 2
+    FrameCount: 5
     FrameInterval: 1
   ColumnCount: 6
   RowCount: 7
@@ -13529,7 +13529,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2216377779495098396, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2216377779495098396, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: m_AnchorMin.x
@@ -13537,7 +13537,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2216377779495098396, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2216377779495098396, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: m_SizeDelta.x
@@ -13577,11 +13577,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2216377779495098396, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 100
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2216377779495098396, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -150
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2216377779495098396, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -13597,7 +13597,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4625272027225886321, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: _spawnItemType
-      value: 4
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4625272027225886321, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: _spawnMenuManager
@@ -13613,7 +13613,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9031266249403772227, guid: fed2905fa37b1ca45a4903aef9e073d8, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -131,6 +131,7 @@ namespace UnitSpawn.Spawning
         Tree,
         Bed,
         Storage,
-        Boar
+        Boar,
+        House
     }
 }
