@@ -8,6 +8,8 @@ namespace CustomTimeCore
     {
         public static CustomTimeUI Instance;
 
+        public static bool HasUnitSelection;
+
         [Range(0.01f, 10)] public float TimeScale;
 
         [SerializeField] private float _maxTimeScale;
@@ -19,6 +21,24 @@ namespace CustomTimeCore
         {
             Instance = this;
             UpdateText();
+        }
+
+        private void Update()
+        {
+            if (HasUnitSelection)
+            {
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.KeypadPlus))
+            {
+                IncreaseTimeScale();
+            }
+
+            if (Input.GetKeyDown(KeyCode.KeypadMinus))
+            {
+                DecreaseTimeScale();
+            }
         }
 
         public void IncreaseTimeScale()
