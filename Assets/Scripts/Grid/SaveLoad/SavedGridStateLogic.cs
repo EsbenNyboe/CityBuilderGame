@@ -122,6 +122,9 @@ namespace Grid.SaveLoad
             {
                 gridManager.SetIsWalkable(beds[i], true);
                 gridManager.SetInteractableBed(beds[i]);
+                SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
+                    beds[i], spawnManager.BedPrefab,
+                    GridEntityType.Bed, WorldSpriteSheetEntryType.Bed);
             }
 
             for (var i = 0; i < storages.Length; i++)

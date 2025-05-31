@@ -42,7 +42,7 @@ namespace Grid.GridVisuals
             {
                 return;
             }
-            
+
             if (!_isInitialized)
             {
                 _isInitialized = true;
@@ -129,7 +129,12 @@ namespace Grid.GridVisuals
         private void TryUpdateInteractableGridVisuals(ref GridManager gridManager, ref bool wasDirty)
         {
             var showDebug = GridDebugVisuals.ShowInteractableGrid();
-            _interactableDebugVisual.SetActive(true);
+            _interactableDebugVisual.SetActive(showDebug);
+
+            if (!showDebug)
+            {
+                return;
+            }
 
             if (gridManager.InteractableGridIsDirty)
             {

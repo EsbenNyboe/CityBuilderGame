@@ -153,6 +153,7 @@ MonoBehaviour:
   _treePrefab: {fileID: 1066731238684271649, guid: 6fca584db7f958344848bc1832d12393, type: 3}
   _storagePrefab: {fileID: 1066731238684271649, guid: 3936afcf6c89b2742a0369cedf3301d7, type: 3}
   _housePrefab: {fileID: 1066731238684271649, guid: 2752522b7b0c99a41877c57e807ba50b, type: 3}
+  _bedPrefab: {fileID: 1066731238684271649, guid: 676e85865ccbc6046bbec0efbb6f7996, type: 3}
 --- !u!4 &54733006
 Transform:
   m_ObjectHideFlags: 0

@@ -10,7 +10,8 @@ namespace Grid
         None,
         Storage,
         Tree,
-        House
+        House,
+        Bed
     }
 
     public partial struct GridManager
@@ -160,6 +161,21 @@ namespace Grid
         public bool TryGetHouseEntity(int gridIndex, out Entity entity)
         {
             return TryGetGridEntityOfType(gridIndex, GridEntityType.House, out entity);
+        }
+
+        public bool TryGetBedEntity(Vector3 position, out Entity entity)
+        {
+            return TryGetGridEntityOfType(position, GridEntityType.Bed, out entity);
+        }
+
+        public bool TryGetBedEntity(int2 cell, out Entity entity)
+        {
+            return TryGetGridEntityOfType(cell, GridEntityType.Bed, out entity);
+        }
+
+        public bool TryGetBedEntity(int gridIndex, out Entity entity)
+        {
+            return TryGetGridEntityOfType(gridIndex, GridEntityType.Bed, out entity);
         }
 
         public bool TryGetTreeEntity(Vector3 position, out Entity entity)
