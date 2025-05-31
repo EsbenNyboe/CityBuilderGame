@@ -32,8 +32,9 @@ namespace UnitControl
         {
             Dependency.Complete();
             var isHoldingSpawnItem = SpawnMenuManager.Instance.HasSelection();
+            var isHoveringUI = SpawnMenuManager.SpawningIsDisallowed;
 
-            if (isHoldingSpawnItem)
+            if (isHoldingSpawnItem || isHoveringUI)
             {
                 return;
             }
