@@ -7711,7 +7711,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5def1c83eae243e58352b75f264f26d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DrawRelations: 0
+  DrawRelations: 1
   IncludeNonSelections: 1
   ApplyFilter: 0
   FilterSetting:
@@ -12991,6 +12991,15 @@ MonoBehaviour:
   UnitMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   UnitMaterial: {fileID: 2100000, guid: d3323248df7d7bd4bad55e56adfa7f38, type: 2}
   SpriteSheetEntries:
+  - Identifier: 24
+    FrameCount: 2
+    FrameInterval: 0.7
+  - Identifier: 25
+    FrameCount: 2
+    FrameInterval: 0.11
+  - Identifier: 26
+    FrameCount: 3
+    FrameInterval: 0.8
   - Identifier: 1
     FrameCount: 2
     FrameInterval: 0.86
@@ -13060,7 +13069,7 @@ MonoBehaviour:
   - Identifier: 17
     FrameCount: 5
     FrameInterval: 1
-  ColumnCount: 6
+  ColumnCount: 7
   RowCount: 7
   IsDirty: 1
 --- !u!114 &2042965576
@@ -13075,7 +13084,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 295cec2b697c4b8d87e1d7ba4edbe60a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _previewAnimation: 0
+  _previewAnimation: 24
   _previewInventoryItems: 08000000
   _stackOffsetFactor: 0.23
   _previewStructure:

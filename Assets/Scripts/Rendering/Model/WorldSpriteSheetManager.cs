@@ -99,6 +99,9 @@ namespace Rendering
         Bed,
         BonfireReady,
         BonfireBurning,
-        BonfireDead
+        BonfireDead,
+        BabyIdle,
+        BabyWalk,
+        BabySleep
     }
 }
