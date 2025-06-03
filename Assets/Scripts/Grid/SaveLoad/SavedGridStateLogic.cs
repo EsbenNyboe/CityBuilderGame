@@ -167,6 +167,11 @@ namespace Grid.SaveLoad
                 ecb.DestroyEntity(isAliveEntity);
             }
 
+            foreach (var (droppedItem, droppedItemEntity) in SystemAPI.Query<RefRO<DroppedItem>>().WithEntityAccess())
+            {
+                ecb.DestroyEntity(droppedItemEntity);
+            }
+
             var loadUnitManager = SystemAPI.GetSingleton<LoadUnitManager>();
 
             for (var i = 0; i < villagers.Length; i++)
