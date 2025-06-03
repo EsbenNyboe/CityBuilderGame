@@ -162,6 +162,11 @@ namespace Grid.SaveLoad
             gridManager.DamageableGridIsDirty = true;
             gridManager.InteractableGridIsDirty = true;
 
+            foreach (var (isAlive, isAliveEntity) in SystemAPI.Query<RefRO<IsAlive>>().WithEntityAccess())
+            {
+                ecb.DestroyEntity(isAliveEntity);
+            }
+
             var loadUnitManager = SystemAPI.GetSingleton<LoadUnitManager>();
 
             for (var i = 0; i < villagers.Length; i++)
