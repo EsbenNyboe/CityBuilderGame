@@ -53,11 +53,12 @@ namespace Grid
             return x * gridHeight + y;
         }
 
-        public static void GetXY(Vector3 worldPosition, out int x, out int y)
+        public static int2 GetXYRounded(Vector3 worldPosition)
         {
             // gridManager currently only supports default origin-position (Vector3.zero) and default cellSize (1f)
-            x = Mathf.FloorToInt(worldPosition.x);
-            y = Mathf.FloorToInt(worldPosition.y);
+            var x = Mathf.RoundToInt(worldPosition.x);
+            var y = Mathf.RoundToInt(worldPosition.y);
+            return new int2(x, y);
         }
 
         public static int2 GetXY(Vector3 worldPosition)
@@ -65,6 +66,13 @@ namespace Grid
             // gridManager currently only supports default origin-position (Vector3.zero) and default cellSize (1f)
             GetXY(worldPosition, out var x, out var y);
             return new int2(x, y);
+        }
+
+        public static void GetXY(Vector3 worldPosition, out int x, out int y)
+        {
+            // gridManager currently only supports default origin-position (Vector3.zero) and default cellSize (1f)
+            x = Mathf.FloorToInt(worldPosition.x);
+            y = Mathf.FloorToInt(worldPosition.y);
         }
 
         public static float3 GetWorldPosition(int x, int y)

@@ -415,6 +415,6 @@ MonoBehaviour:
     y: 8
   - x: 19
     y: 9
-  DropPoints:
+  Storages:
   - x: 7
     y: 4

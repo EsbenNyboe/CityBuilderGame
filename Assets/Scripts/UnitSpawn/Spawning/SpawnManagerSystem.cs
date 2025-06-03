@@ -88,14 +88,21 @@ namespace UnitSpawn.Spawning
                 case SpawnItemType.Bed:
                     foreach (var cell in cellList)
                     {
-                        TrySpawnBed(ref gridManager, cell);
+                        TrySpawnBed(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.BedPrefab);
+                    }
+
+                    break;
+                case SpawnItemType.Storage:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnStorage(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.StoragePrefab);
                     }
 
                     break;
                 case SpawnItemType.House:
                     foreach (var cell in cellList)
                     {
-                        TrySpawnDropPoint(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.DropPointPrefab);
+                        TrySpawnHouse(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.HousePrefab);
                     }
 
                     break;
@@ -128,14 +135,21 @@ namespace UnitSpawn.Spawning
                 case SpawnItemType.Bed:
                     foreach (var cell in cellList)
                     {
-                        TryDeleteBed(ref gridManager, cell);
+                        TryDeleteBed(ecb, ref gridManager, cell);
+                    }
+
+                    break;
+                case SpawnItemType.Storage:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteStorage(ecb, ref gridManager, cell);
                     }
 
                     break;
                 case SpawnItemType.House:
                     foreach (var cell in cellList)
                     {
-                        TryDeleteDropPoint(ecb, ref gridManager, cell);
+                        TryDeleteHouse(ecb, ref gridManager, cell);
                     }
 
                     break;
@@ -187,24 +201,6 @@ namespace UnitSpawn.Spawning
             }
         }
 
-        private void TrySpawnBed(ref GridManager gridManager, int2 position)
-        {
-            if (gridManager.IsPositionInsideGrid(position) && gridManager.IsWalkable(position) &&
-                !gridManager.IsInteractable(position))
-            {
-                gridManager.SetInteractableBed(position);
-            }
-        }
-
-        private void TryDeleteBed(ref GridManager gridManager, int2 position)
-        {
-            if (gridManager.IsPositionInsideGrid(position) && gridManager.IsBed(position))
-            {
-                gridManager.SetIsWalkable(position, true);
-                gridManager.SetInteractableNone(position);
-            }
-        }
-
         private void TrySpawnTree(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager, int2 cell,
             Entity prefab)
         {
@@ -230,7 +226,7 @@ namespace UnitSpawn.Spawning
             }
         }
 
-        private void TrySpawnDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager,
+        private void TrySpawnStorage(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager,
             int2 cell,
             Entity prefab)
         {
@@ -241,20 +237,74 @@ namespace UnitSpawn.Spawning
                 gridManager.SetDefaultStorageCapacity(cell);
                 gridManager.SetStorageCount(cell, 0);
 
-                SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.DropPoint,
+                SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.Storage,
                     WorldSpriteSheetEntryType.Storage);
             }
         }
 
-        private void TryDeleteDropPoint(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
+
+        private void TryDeleteStorage(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
         {
             if (gridManager.IsPositionInsideGrid(cell) &&
-                gridManager.TryGetDropPointEntity(cell, out var entity))
+                gridManager.TryGetStorageEntity(cell, out var entity))
             {
                 gridManager.SetIsWalkable(cell, true);
                 gridManager.RemoveGridEntity(cell);
                 gridManager.SetStorageCapacity(cell, 0);
                 gridManager.SetStorageCount(cell, 0);
+
+                ecb.DestroyEntity(entity);
+            }
+        }
+
+        private void TrySpawnHouse(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager,
+            int2 cell,
+            Entity prefab)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+                !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
+            {
+                gridManager.SetIsWalkable(cell, false);
+
+                SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.House,
+                    WorldSpriteSheetEntryType.House);
+            }
+        }
+
+        private void TryDeleteHouse(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) &&
+                gridManager.TryGetHouseEntity(cell, out var entity))
+            {
+                gridManager.SetIsWalkable(cell, true);
+                gridManager.RemoveGridEntity(cell);
+
+                ecb.DestroyEntity(entity);
+            }
+        }
+
+        private void TrySpawnBed(EntityCommandBuffer ecb, ref GridManager gridManager,
+            WorldSpriteSheetManager worldSpriteSheetManager, int2 cell, Entity prefab)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+                !gridManager.IsInteractable(cell) && !gridManager.HasGridEntity(cell))
+            {
+                gridManager.SetInteractableBed(cell);
+
+                SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.Bed,
+                    WorldSpriteSheetEntryType.Bed);
+            }
+        }
+
+        private void TryDeleteBed( EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) &&
+                gridManager.IsBed(cell) &&
+                gridManager.TryGetBedEntity(cell, out var entity))
+            {
+                gridManager.SetIsWalkable(cell, true);
+                gridManager.RemoveGridEntity(cell);
+                gridManager.SetInteractableNone(cell);
 
                 ecb.DestroyEntity(entity);
             }

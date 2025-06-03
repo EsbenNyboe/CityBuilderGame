@@ -21687,7 +21687,7 @@ MonoBehaviour:
     y: 10
   - x: 50
     y: 10
-  DropPoints:
+  Storages:
   - x: 5
     y: 10
   - x: 13

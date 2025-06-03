@@ -7,6 +7,7 @@ namespace UnitSpawn.Spawning
     public class SpawnMenuManager : MonoBehaviour
     {
         public static SpawnMenuManager Instance;
+        public static bool SpawningIsDisallowed;
         [SerializeField] private Image _selectionGraphic;
         [SerializeField] private RectTransform _selectorUI;
         [SerializeField] private float _minimumTimeBetweenSpawns;
@@ -14,7 +15,6 @@ namespace UnitSpawn.Spawning
         [SerializeField] private TextMeshProUGUI _brushSizeText;
         private Material _selectionMaterial;
         private SpawnItemType _spawnItemType;
-        private bool _spawningIsDisallowed;
         private float _timeSinceLastSpawn;
         private float _timeSinceLastDelete;
         private bool _autoSpawn;
@@ -48,7 +48,7 @@ namespace UnitSpawn.Spawning
             _timeSinceLastSpawn += Time.deltaTime;
             _timeSinceLastDelete += Time.deltaTime;
 
-            if (!_spawningIsDisallowed)
+            if (!SpawningIsDisallowed)
             {
                 if ((!_autoSpawn && Input.GetMouseButtonDown(0)) ||
                     (_autoSpawn && Input.GetMouseButton(0)))
@@ -92,7 +92,7 @@ namespace UnitSpawn.Spawning
 
         public void BlockMouseFromSpawning(bool isBlocked)
         {
-            _spawningIsDisallowed = isBlocked;
+            SpawningIsDisallowed = isBlocked;
         }
 
         public void ResetSpawnSelection()
@@ -130,7 +130,8 @@ namespace UnitSpawn.Spawning
         Unit,
         Tree,
         Bed,
-        House,
-        Boar
+        Storage,
+        Boar,
+        House
     }
 }

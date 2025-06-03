@@ -7,16 +7,20 @@ namespace UnitSpawn.Spawning
     {
         public Entity UnitPrefab;
         public Entity BoarPrefab;
-        public Entity DropPointPrefab;
         public Entity TreePrefab;
+        public Entity BedPrefab;
+        public Entity StoragePrefab;
+        public Entity HousePrefab;
     }
 
     public class SpawnManagerAuthoring : MonoBehaviour
     {
         [SerializeField] private GameObject _unitPrefab;
         [SerializeField] private GameObject _boarPrefab;
-        [SerializeField] private GameObject _dropPointPrefab;
         [SerializeField] private GameObject _treePrefab;
+        [SerializeField] private GameObject _storagePrefab;
+        [SerializeField] private GameObject _housePrefab;
+        [SerializeField] private GameObject _bedPrefab;
 
         public class SpawnManagerBaker : Baker<SpawnManagerAuthoring>
         {
@@ -27,8 +31,10 @@ namespace UnitSpawn.Spawning
                 {
                     UnitPrefab = GetEntity(authoring._unitPrefab, TransformUsageFlags.Dynamic),
                     BoarPrefab = GetEntity(authoring._boarPrefab, TransformUsageFlags.Dynamic),
-                    DropPointPrefab = GetEntity(authoring._dropPointPrefab, TransformUsageFlags.Dynamic),
-                    TreePrefab = GetEntity(authoring._treePrefab, TransformUsageFlags.Dynamic)
+                    TreePrefab = GetEntity(authoring._treePrefab, TransformUsageFlags.Dynamic),
+                    StoragePrefab = GetEntity(authoring._storagePrefab, TransformUsageFlags.Dynamic),
+                    HousePrefab = GetEntity(authoring._housePrefab, TransformUsageFlags.Dynamic),
+                    BedPrefab = GetEntity(authoring._bedPrefab, TransformUsageFlags.Dynamic)
                 });
             }
         }

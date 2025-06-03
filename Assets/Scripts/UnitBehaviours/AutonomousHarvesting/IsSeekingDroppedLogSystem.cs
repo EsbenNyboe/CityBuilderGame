@@ -66,7 +66,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                         entity, out var droppedItemToSeek, out _))
                 {
                     PathHelpers.TrySetPath(ecb, gridManager, entity, GridHelpers.GetXY(position),
-                        GridHelpers.GetXY(SystemAPI.GetComponent<LocalTransform>(droppedItemToSeek).Position));
+                        GridHelpers.GetXYRounded(SystemAPI.GetComponent<LocalTransform>(droppedItemToSeek).Position));
                 }
             }
         }

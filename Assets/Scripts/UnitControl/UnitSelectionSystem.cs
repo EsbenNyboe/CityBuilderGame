@@ -1,3 +1,4 @@
+using CustomTimeCore;
 using Grid;
 using Rendering;
 using SystemGroups;
@@ -29,11 +30,15 @@ namespace UnitControl
 
             var positionOffset = new float3(0, -0.4f, 0);
             // var selectedCount = _query.CalculateEntityCount();
+            var hasSelection = false;
             foreach (var (_, localTransform) in SystemAPI.Query<RefRO<UnitSelection>, RefRO<LocalTransform>>())
             {
+                hasSelection = true;
                 var pos = localTransform.ValueRO.Position;
                 Graphics.DrawMesh(mesh, pos + positionOffset, Quaternion.identity, material, 0);
             }
+
+            CustomTimeUI.HasUnitSelection = hasSelection;
 
             GetCameraBounds(out var screenTop, out var screenBottom, out var screenLeft, out var screenRight, out var cameraPosition,
                 out var screenRatio);

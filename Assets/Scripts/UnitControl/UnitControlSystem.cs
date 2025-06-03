@@ -32,8 +32,9 @@ namespace UnitControl
         {
             Dependency.Complete();
             var isHoldingSpawnItem = SpawnMenuManager.Instance.HasSelection();
+            var isHoveringUI = SpawnMenuManager.SpawningIsDisallowed;
 
-            if (isHoldingSpawnItem)
+            if (isHoldingSpawnItem || isHoveringUI)
             {
                 return;
             }
@@ -314,7 +315,7 @@ namespace UnitControl
             ecb.RemoveComponent<AttackAnimation>(entity);
             ecb.RemoveComponent<IsHarvesting>(entity);
             ecb.RemoveComponent<IsSeekingTree>(entity);
-            ecb.RemoveComponent<IsSeekingDropPoint>(entity);
+            ecb.RemoveComponent<IsSeekingRoomyStorage>(entity);
 
             ecb.RemoveComponent<IsSleeping>(entity);
             ecb.RemoveComponent<IsSeekingBed>(entity);

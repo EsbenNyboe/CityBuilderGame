@@ -1,11 +1,10 @@
-using Debugging;
+﻿using Debugging;
 using Grid;
 using Inventory;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting.Core;
-using UnitBehaviours.UnitManagers;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -14,12 +13,11 @@ using Unity.Transforms;
 namespace UnitBehaviours.AutonomousHarvesting
 {
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
-    public partial struct IsSeekingStorageSystem : ISystem
+    public partial struct IsSeekingRoomyStorageSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<QuadrantDataManager>();
             state.RequireForUpdate<GridManager>();
             state.RequireForUpdate<DebugToggleManager>();
@@ -29,7 +27,6 @@ namespace UnitBehaviours.AutonomousHarvesting
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var isDebugging = SystemAPI.GetSingleton<DebugToggleManager>().DebugPathfinding;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
@@ -39,7 +36,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             // Seek Storage
             foreach (var (localTransform, pathFollow, inventory, entity)
                      in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<InventoryState>>()
-                         .WithAll<IsSeekingStorage>()
+                         .WithAll<IsSeekingRoomyStorage>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
@@ -47,29 +44,21 @@ namespace UnitBehaviours.AutonomousHarvesting
                     continue;
                 }
 
-                if (inventory.ValueRO.CurrentItem != InventoryItem.None)
+                if (inventory.ValueRO.CurrentItem == InventoryItem.None)
                 {
-                    ecb.RemoveComponent<IsSeekingStorage>(entity);
+                    ecb.RemoveComponent<IsSeekingRoomyStorage>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     continue;
                 }
 
                 var position = localTransform.ValueRO.Position;
-                if (!QuadrantSystem.TryFindEntity(quadrantDataManager.ConstructableQuadrantMap, gridManager, unitBehaviourManager.QuadrantSearchRange,
-                        position, entity))
-                {
-                    // No constructable in range: There's no need to seek storage.
-                    ecb.RemoveComponent<IsSeekingStorage>(entity);
-                    ecb.AddComponent<IsDeciding>(entity);
-                }
-
                 var cell = GridHelpers.GetXY(position);
                 var closestStorageEntrance =
                     FindClosestStorageEntrance(ref state, quadrantDataManager, gridManager, position, out var closestStorageCell);
                 if (cell.Equals(closestStorageEntrance))
                 {
-                    // Try retrieve item from storage
-                    InventoryHelpers.SendRequestForRetrieveItem(ecb, entity, closestStorageCell);
+                    // Try drop item at drop point
+                    InventoryHelpers.SendRequestForStoreItem(ecb, entity, closestStorageCell);
                     continue;
                 }
 
@@ -79,8 +68,9 @@ namespace UnitBehaviours.AutonomousHarvesting
                 }
                 else
                 {
-                    // No storage with item is available
-                    ecb.RemoveComponent<IsSeekingStorage>(entity);
+                    // Drop item on ground
+                    InventoryHelpers.DropItemOnGround(ecb, ref inventory.ValueRW, position);
+                    ecb.RemoveComponent<IsSeekingRoomyStorage>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                 }
             }
@@ -92,7 +82,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             closestStorageCell = new int2(-1);
             var cell = GridHelpers.GetXY(position);
 
-            if (!QuadrantSystem.TryFindClosestNonEmptyStorage(quadrantDataManager.DropPointQuadrantMap, gridManager, 50, position,
+            if (!QuadrantSystem.TryFindClosestSpaciousStorage(quadrantDataManager.StorageQuadrantMap, gridManager, 50, position,
                     out var closestStorage))
             {
                 return -1;

@@ -71,9 +71,9 @@ namespace Grid.SaveLoad
                 _texture2D.SetPixel(stateObject.Beds[i].x, stateObject.Beds[i].y, Color.white);
             }
 
-            for (var i = 0; i < stateObject.DropPoints.Length; i++)
+            for (var i = 0; i < stateObject.Storages.Length; i++)
             {
-                _texture2D.SetPixel(stateObject.DropPoints[i].x, stateObject.DropPoints[i].y, Color.red);
+                _texture2D.SetPixel(stateObject.Storages[i].x, stateObject.Storages[i].y, Color.red);
             }
 
             _texture2D.Apply();

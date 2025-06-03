@@ -8,8 +8,10 @@ namespace Grid
     public enum GridEntityType
     {
         None,
-        DropPoint,
-        Tree
+        Storage,
+        Tree,
+        House,
+        Bed
     }
 
     public partial struct GridManager
@@ -131,19 +133,49 @@ namespace Grid
             return !TryGetGridEntityOfType(cell, GridEntityType.None, out _);
         }
 
-        public bool TryGetDropPointEntity(Vector3 position, out Entity entity)
+        public bool TryGetStorageEntity(Vector3 position, out Entity entity)
         {
-            return TryGetGridEntityOfType(position, GridEntityType.DropPoint, out entity);
+            return TryGetGridEntityOfType(position, GridEntityType.Storage, out entity);
         }
 
-        public bool TryGetDropPointEntity(int2 cell, out Entity entity)
+        public bool TryGetStorageEntity(int2 cell, out Entity entity)
         {
-            return TryGetGridEntityOfType(cell, GridEntityType.DropPoint, out entity);
+            return TryGetGridEntityOfType(cell, GridEntityType.Storage, out entity);
         }
 
-        public bool TryGetDropPointEntity(int gridIndex, out Entity entity)
+        public bool TryGetStorageEntity(int gridIndex, out Entity entity)
         {
-            return TryGetGridEntityOfType(gridIndex, GridEntityType.DropPoint, out entity);
+            return TryGetGridEntityOfType(gridIndex, GridEntityType.Storage, out entity);
+        }
+
+        public bool TryGetHouseEntity(Vector3 position, out Entity entity)
+        {
+            return TryGetGridEntityOfType(position, GridEntityType.House, out entity);
+        }
+
+        public bool TryGetHouseEntity(int2 cell, out Entity entity)
+        {
+            return TryGetGridEntityOfType(cell, GridEntityType.House, out entity);
+        }
+
+        public bool TryGetHouseEntity(int gridIndex, out Entity entity)
+        {
+            return TryGetGridEntityOfType(gridIndex, GridEntityType.House, out entity);
+        }
+
+        public bool TryGetBedEntity(Vector3 position, out Entity entity)
+        {
+            return TryGetGridEntityOfType(position, GridEntityType.Bed, out entity);
+        }
+
+        public bool TryGetBedEntity(int2 cell, out Entity entity)
+        {
+            return TryGetGridEntityOfType(cell, GridEntityType.Bed, out entity);
+        }
+
+        public bool TryGetBedEntity(int gridIndex, out Entity entity)
+        {
+            return TryGetGridEntityOfType(gridIndex, GridEntityType.Bed, out entity);
         }
 
         public bool TryGetTreeEntity(Vector3 position, out Entity entity)

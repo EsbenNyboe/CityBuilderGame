@@ -17,4 +17,4 @@ MonoBehaviour:
     y: 0
   Trees: []
   Beds: []
-  DropPoints: []
+  Storages: []

@@ -18,7 +18,7 @@ namespace Statistics
 
         [SerializeField] private bool _showNumberOfBedSeekers;
         [SerializeField] private bool _showNumberOfTreeSeekers;
-        [SerializeField] private bool _showNumberOfDropPointsSeekers;
+        [SerializeField] private bool _showNumberOfStoragesSeekers;
         [SerializeField] private bool _showNumberOfSleepers;
         [SerializeField] private bool _showNumberOfHarvesters;
         [SerializeField] private bool _showNumberOfIdle;
@@ -41,7 +41,7 @@ namespace Statistics
 
         [SerializeField] private UnitStatsDisplay _numberOfBedSeekersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfTreeSeekersDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfDropPointSeekersDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfStorageSeekersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfSleepersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfHarvestersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfIdleDisplay;
@@ -71,7 +71,7 @@ namespace Statistics
 
             _numberOfBedSeekersDisplay.gameObject.SetActive(_showNumberOfBedSeekers);
             _numberOfTreeSeekersDisplay.gameObject.SetActive(_showNumberOfTreeSeekers);
-            _numberOfDropPointSeekersDisplay.gameObject.SetActive(_showNumberOfDropPointsSeekers);
+            _numberOfStorageSeekersDisplay.gameObject.SetActive(_showNumberOfStoragesSeekers);
             _numberOfSleepersDisplay.gameObject.SetActive(_showNumberOfSleepers);
             _numberOfHarvestersDisplay.gameObject.SetActive(_showNumberOfHarvesters);
             _numberOfIdleDisplay.gameObject.SetActive(_showNumberOfIdle);
@@ -117,9 +117,9 @@ namespace Statistics
             _numberOfTreeSeekersDisplay.SetStatsValue(isSeekingTreeCount);
         }
 
-        public void SetNumberOfDropPointSeekingUnits(int isSeekingDropPointCount)
+        public void SetNumberOfStorageSeekingUnits(int isSeekingStorageCount)
         {
-            _numberOfDropPointSeekersDisplay.SetStatsValue(isSeekingDropPointCount);
+            _numberOfStorageSeekersDisplay.SetStatsValue(isSeekingStorageCount);
         }
 
         public void SetNumberOfSleepingUnits(int isSleepingCount)
