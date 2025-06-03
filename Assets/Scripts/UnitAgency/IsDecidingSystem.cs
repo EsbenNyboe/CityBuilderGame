@@ -207,7 +207,7 @@ namespace UnitAgency.Logic
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                 }
-                else if (!isBaby && IsAnnoyedAtSomeone(
+                else if (IsAnnoyedAtSomeone(
                              entity,
                              socialRelationships.Relationships,
                              SocialDynamicsManager.ThresholdForBecomingAnnoying,
