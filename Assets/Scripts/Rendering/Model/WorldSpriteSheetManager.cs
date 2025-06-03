@@ -96,6 +96,9 @@ namespace Rendering
         House,
         TreeDamaged,
         Tree,
-        Bed
+        Bed,
+        BonfireReady,
+        BonfireBurning,
+        BonfireDead
     }
 }

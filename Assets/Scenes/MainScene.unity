@@ -12972,6 +12972,15 @@ MonoBehaviour:
   - Identifier: 9
     FrameCount: 1
     FrameInterval: 1
+  - Identifier: 21
+    FrameCount: 1
+    FrameInterval: 1
+  - Identifier: 22
+    FrameCount: 2
+    FrameInterval: 0.4
+  - Identifier: 23
+    FrameCount: 1
+    FrameInterval: 1
   - Identifier: 11
     FrameCount: 1
     FrameInterval: 1
@@ -13020,7 +13029,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 295cec2b697c4b8d87e1d7ba4edbe60a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _previewAnimation: 0
+  _previewAnimation: 22
   _previewInventoryItems: 08000000
   _stackOffsetFactor: 0.23
   _previewStructure:
