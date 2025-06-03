@@ -67,6 +67,8 @@ namespace Grid.SaveLoad
                 _saveSlots[i].Storages = GetCleanedUpDataList(_saveSlots[i].Storages);
                 _saveSlots[i].Beds = GetCleanedUpDataList(_saveSlots[i].Beds);
                 _saveSlots[i].Trees = GetCleanedUpDataList(_saveSlots[i].Trees);
+                _saveSlots[i].Villagers = GetCleanedUpDataList(_saveSlots[i].Villagers);
+                _saveSlots[i].Boars = GetCleanedUpDataList(_saveSlots[i].Boars);
 #if UNITY_EDITOR
                 EditorUtility.SetDirty(_saveSlots[i]);
 #endif
@@ -77,7 +79,7 @@ namespace Grid.SaveLoad
             }
         }
 
-        private int2[] GetCleanedUpDataList(int2[] dataList)
+        private static int2[] GetCleanedUpDataList(int2[] dataList)
         {
             var cleanedUpDataList = new List<int2>();
             foreach (var dataElement in dataList)
@@ -91,7 +93,21 @@ namespace Grid.SaveLoad
             return cleanedUpDataList.ToArray();
         }
 
-        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] storages)
+        private static float3[] GetCleanedUpDataList(float3[] dataList)
+        {
+            var cleanedUpDataList = new List<float3>();
+            foreach (var dataElement in dataList)
+            {
+                if (!cleanedUpDataList.Contains(dataElement))
+                {
+                    cleanedUpDataList.Add(dataElement);
+                }
+            }
+
+            return cleanedUpDataList.ToArray();
+        }
+
+        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] storages, float3[] villagers, float3[] boars)
         {
             Assert.IsTrue(SlotToSave > -1 && SlotToSave < _saveSlots.Length);
 
@@ -100,6 +116,8 @@ namespace Grid.SaveLoad
             saveSlot.Trees = trees;
             saveSlot.Beds = beds;
             saveSlot.Storages = storages;
+            saveSlot.Villagers = villagers;
+            saveSlot.Boars = boars;
 #if UNITY_EDITOR
             EditorUtility.SetDirty(saveSlot);
 #endif
@@ -115,6 +133,8 @@ namespace Grid.SaveLoad
             saveSlot.Trees = Array.Empty<int2>();
             saveSlot.Beds = Array.Empty<int2>();
             saveSlot.Storages = Array.Empty<int2>();
+            saveSlot.Villagers = Array.Empty<float3>();
+            saveSlot.Boars = Array.Empty<float3>();
 #if UNITY_EDITOR
             EditorUtility.SetDirty(saveSlot);
 #endif
@@ -137,6 +157,18 @@ namespace Grid.SaveLoad
         {
             Assert.IsTrue(SlotToLoad > -1 && SlotToLoad < _saveSlots.Length);
             return _saveSlots[SlotToLoad].Storages;
+        }
+
+        public float3[] LoadSavedVillagers()
+        {
+            Assert.IsTrue(SlotToLoad > -1 && SlotToLoad < _saveSlots.Length);
+            return _saveSlots[SlotToLoad].Villagers;
+        }
+
+        public float3[] LoadSavedBoars()
+        {
+            Assert.IsTrue(SlotToLoad > -1 && SlotToLoad < _saveSlots.Length);
+            return _saveSlots[SlotToLoad].Boars;
         }
 
         public int2 TryLoadSavedGridSize(int2 currentGridSize)

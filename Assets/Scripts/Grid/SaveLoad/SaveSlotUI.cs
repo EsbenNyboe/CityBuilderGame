@@ -76,6 +76,16 @@ namespace Grid.SaveLoad
                 _texture2D.SetPixel(stateObject.Storages[i].x, stateObject.Storages[i].y, Color.red);
             }
 
+            for (var i = 0; i < stateObject.Villagers.Length; i++)
+            {
+                _texture2D.SetPixel(Mathf.FloorToInt(stateObject.Villagers[i].x), Mathf.FloorToInt(stateObject.Villagers[i].y), Color.blue);
+            }
+
+            for (var i = 0; i < stateObject.Boars.Length; i++)
+            {
+                _texture2D.SetPixel(Mathf.FloorToInt(stateObject.Boars[i].x), Mathf.FloorToInt(stateObject.Boars[i].y), Color.magenta);
+            }
+
             _texture2D.Apply();
             _image.material.SetTexture(MainTex, _texture2D);
         }
