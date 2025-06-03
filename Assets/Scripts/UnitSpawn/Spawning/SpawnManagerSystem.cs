@@ -6,6 +6,7 @@ using Rendering;
 using SystemGroups;
 using UnitBehaviours.UnitConfigurators;
 using UnitState.AliveState;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -21,11 +22,25 @@ namespace UnitSpawn.Spawning
         protected override void OnCreate()
         {
             RequireForUpdate<SpawnManager>();
+            var loadUnitManager = new LoadUnitManager
+            {
+                VillagersToLoad = new NativeList<float3>(Allocator.Persistent),
+                BoarsToLoad = new NativeList<float3>(Allocator.Persistent)
+            };
+            EntityManager.CreateSingleton(loadUnitManager);
+        }
+
+        protected override void OnDestroy()
+        {
+            var loadUnitManager = SystemAPI.GetSingleton<LoadUnitManager>();
+            loadUnitManager.VillagersToLoad.Dispose();
+            loadUnitManager.BoarsToLoad.Dispose();
         }
 
         protected override void OnUpdate()
         {
             var gridManager = SystemAPI.GetSingleton<GridManager>();
+            var loadUnitManager = SystemAPI.GetSingleton<LoadUnitManager>();
             var itemToSpawn = SpawnMenuManager.Instance.ItemToSpawn;
             var itemToDelete = SpawnMenuManager.Instance.ItemToDelete;
             var brushSize = SpawnMenuManager.Instance.GetBrushSize();
@@ -47,19 +62,44 @@ namespace UnitSpawn.Spawning
             // TODO: Make SpawnManager into a Singleton instead
             foreach (var spawnManager in SystemAPI.Query<RefRO<SpawnManager>>())
             {
-                SpawnProcess(ecb, ref gridManager, worldSpriteSheetManager, cellList, spawnManager.ValueRO, itemToSpawn);
+                SpawnProcess(ecb, ref gridManager, worldSpriteSheetManager, cellList, spawnManager.ValueRO, itemToSpawn, ref loadUnitManager);
                 DeleteProcess(ecb, ref gridManager, cellList, brushSize, itemToDelete);
             }
 
             SystemAPI.SetSingleton(gridManager);
+            SystemAPI.SetSingleton(loadUnitManager);
         }
 
         private void SpawnProcess(EntityCommandBuffer ecb, ref GridManager gridManager,
             WorldSpriteSheetManager worldSpriteSheetManager,
             List<int2> cellList,
             SpawnManager spawnManager,
-            SpawnItemType itemToSpawn)
+            SpawnItemType itemToSpawn, ref LoadUnitManager loadUnitManager)
         {
+            var loadedVillagers = loadUnitManager.VillagersToLoad;
+            var loadedBoars = loadUnitManager.BoarsToLoad;
+            if (!loadedVillagers.IsEmpty)
+            {
+                foreach (var villagerPos in loadedVillagers)
+                {
+                    TryLoadUnit(ecb, ref gridManager, villagerPos, spawnManager.VillagerPrefab, false);
+                }
+            }
+
+            if (!loadedBoars.IsEmpty)
+            {
+                foreach (var boarPos in loadedBoars)
+                {
+                    TryLoadUnit(ecb, ref gridManager, boarPos, spawnManager.BoarPrefab, false);
+                }
+            }
+
+            loadedVillagers.Clear();
+            loadedBoars.Clear();
+
+            loadUnitManager.VillagersToLoad = loadedVillagers;
+            loadUnitManager.BoarsToLoad = loadedBoars;
+
             switch (itemToSpawn)
             {
                 case SpawnItemType.None:
@@ -67,14 +107,14 @@ namespace UnitSpawn.Spawning
                 case SpawnItemType.Unit:
                     foreach (var cell in cellList)
                     {
-                        TrySpawnUnit(ecb, ref gridManager, cell, spawnManager.UnitPrefab, false);
+                        TrySpawnVillager(ecb, ref gridManager, cell, spawnManager.VillagerPrefab, false);
                     }
 
                     break;
                 case SpawnItemType.Boar:
                     foreach (var cell in cellList)
                     {
-                        TrySpawnUnit(ecb, ref gridManager, cell, spawnManager.BoarPrefab, false);
+                        TrySpawnVillager(ecb, ref gridManager, cell, spawnManager.BoarPrefab, false);
                     }
 
                     break;
@@ -120,7 +160,7 @@ namespace UnitSpawn.Spawning
                 case SpawnItemType.None:
                     break;
                 case SpawnItemType.Unit:
-                    TryDeleteUnits(ecb, cellList[0], brushSize);
+                    TryDeleteVillagers(ecb, cellList[0], brushSize);
                     break;
                 case SpawnItemType.Boar:
                     TryDeleteBoars(ecb, cellList[0], brushSize);
@@ -158,7 +198,22 @@ namespace UnitSpawn.Spawning
             }
         }
 
-        private void TrySpawnUnit(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell, Entity prefab,
+        private void TryLoadUnit(EntityCommandBuffer ecb, ref GridManager gridManager, float3 pos, Entity prefab,
+            bool hasHierarchy)
+        {
+            if (gridManager.IsPositionInsideGrid(pos))
+            {
+                var entity = InstantiateAtPosition(prefab, pos);
+
+                if (!hasHierarchy)
+                {
+                    // If the unit doesn't have a hierarchy, it doesn't need a LinkedEntityGroup
+                    ecb.RemoveComponent<LinkedEntityGroup>(entity);
+                }
+            }
+        }
+
+        private void TrySpawnVillager(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell, Entity prefab,
             bool hasHierarchy)
         {
             if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
@@ -175,7 +230,7 @@ namespace UnitSpawn.Spawning
             }
         }
 
-        private void TryDeleteUnits(EntityCommandBuffer ecb, int2 center, int brushSize)
+        private void TryDeleteVillagers(EntityCommandBuffer ecb, int2 center, int brushSize)
         {
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
                          .WithAll<Villager>())
@@ -347,6 +402,21 @@ namespace UnitSpawn.Spawning
                 new LocalTransform
                 {
                     Position = GetEntityPosition(cell),
+                    Scale = 1,
+                    Rotation = quaternion.identity
+                }
+            );
+            return entity;
+        }
+
+        private Entity InstantiateAtPosition(Entity prefab, float3 position)
+        {
+            var entity = EntityManager.Instantiate(prefab);
+            SystemAPI.SetComponent(
+                entity,
+                new LocalTransform
+                {
+                    Position = position,
                     Scale = 1,
                     Rotation = quaternion.identity
                 }

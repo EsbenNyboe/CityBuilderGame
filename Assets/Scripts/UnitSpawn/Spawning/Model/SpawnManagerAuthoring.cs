@@ -1,11 +1,12 @@
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace UnitSpawn.Spawning
 {
     public struct SpawnManager : IComponentData
     {
-        public Entity UnitPrefab;
+        public Entity VillagerPrefab;
         public Entity BoarPrefab;
         public Entity TreePrefab;
         public Entity BedPrefab;
@@ -15,7 +16,9 @@ namespace UnitSpawn.Spawning
 
     public class SpawnManagerAuthoring : MonoBehaviour
     {
-        [SerializeField] private GameObject _unitPrefab;
+        [FormerlySerializedAs("_unitPrefab")] [SerializeField]
+        private GameObject _villagerPrefab;
+
         [SerializeField] private GameObject _boarPrefab;
         [SerializeField] private GameObject _treePrefab;
         [SerializeField] private GameObject _storagePrefab;
@@ -29,7 +32,7 @@ namespace UnitSpawn.Spawning
                 var entity = GetEntity(TransformUsageFlags.None);
                 AddComponent(entity, new SpawnManager
                 {
-                    UnitPrefab = GetEntity(authoring._unitPrefab, TransformUsageFlags.Dynamic),
+                    VillagerPrefab = GetEntity(authoring._villagerPrefab, TransformUsageFlags.Dynamic),
                     BoarPrefab = GetEntity(authoring._boarPrefab, TransformUsageFlags.Dynamic),
                     TreePrefab = GetEntity(authoring._treePrefab, TransformUsageFlags.Dynamic),
                     StoragePrefab = GetEntity(authoring._storagePrefab, TransformUsageFlags.Dynamic),

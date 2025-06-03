@@ -3,6 +3,7 @@ using GridEntityNS;
 using Inventory;
 using Rendering;
 using UnitBehaviours.Pathing;
+using UnitBehaviours.UnitConfigurators;
 using UnitSpawn.Spawning;
 using UnitState.AliveLogic;
 using UnitState.AliveState;
@@ -45,6 +46,8 @@ namespace Grid.SaveLoad
             var treeList = new NativeList<int2>(Allocator.Temp);
             var bedList = new NativeList<int2>(Allocator.Temp);
             var storageList = new NativeList<int2>(Allocator.Temp);
+            var villagerList = new NativeList<float3>(Allocator.Temp);
+            var boarList = new NativeList<float3>(Allocator.Temp);
 
             for (var i = 0; i < gridManager.DamageableGrid.Length; i++)
             {
@@ -73,7 +76,23 @@ namespace Grid.SaveLoad
             var storages = new int2[storageList.Length];
             NativeArray<int2>.Copy(storageList.AsArray(), storages);
 
-            SavedGridStateManager.Instance.SaveDataToSaveSlot(gridSize, trees, beds, storages);
+
+            foreach (var (villager, localTransform) in SystemAPI.Query<RefRO<Villager>, RefRO<LocalTransform>>())
+            {
+                villagerList.Add(localTransform.ValueRO.Position);
+            }
+
+            foreach (var (boar, localTransform) in SystemAPI.Query<RefRO<Boar>, RefRO<LocalTransform>>())
+            {
+                boarList.Add(localTransform.ValueRO.Position);
+            }
+
+            var villagers = new float3[villagerList.Length];
+            NativeArray<float3>.Copy(villagerList.AsArray(), villagers);
+            var boars = new float3[boarList.Length];
+            NativeArray<float3>.Copy(boarList.AsArray(), boars);
+
+            SavedGridStateManager.Instance.SaveDataToSaveSlot(gridSize, trees, beds, storages, villagers, boars);
             treeList.Dispose();
             bedList.Dispose();
             storageList.Dispose();
@@ -98,6 +117,8 @@ namespace Grid.SaveLoad
             var trees = SavedGridStateManager.Instance.LoadSavedTrees();
             var beds = SavedGridStateManager.Instance.LoadSavedBeds();
             var storages = SavedGridStateManager.Instance.LoadSavedStorages();
+            var villagers = SavedGridStateManager.Instance.LoadSavedVillagers();
+            var boars = SavedGridStateManager.Instance.LoadSavedBoars();
             var gridSize = SavedGridStateManager.Instance.TryLoadSavedGridSize(new int2(gridManager.Width, gridManager.Height));
             GridDimensionsConfig.Instance.Width = gridSize.x;
             GridDimensionsConfig.Instance.Height = gridSize.y;
@@ -140,6 +161,28 @@ namespace Grid.SaveLoad
             gridManager.OccupiableGridIsDirty = true;
             gridManager.DamageableGridIsDirty = true;
             gridManager.InteractableGridIsDirty = true;
+
+            foreach (var (isAlive, isAliveEntity) in SystemAPI.Query<RefRO<IsAlive>>().WithEntityAccess())
+            {
+                ecb.DestroyEntity(isAliveEntity);
+            }
+
+            foreach (var (droppedItem, droppedItemEntity) in SystemAPI.Query<RefRO<DroppedItem>>().WithEntityAccess())
+            {
+                ecb.DestroyEntity(droppedItemEntity);
+            }
+
+            var loadUnitManager = SystemAPI.GetSingleton<LoadUnitManager>();
+
+            for (var i = 0; i < villagers.Length; i++)
+            {
+                loadUnitManager.VillagersToLoad.Add(villagers[i]);
+            }
+
+            for (var i = 0; i < boars.Length; i++)
+            {
+                loadUnitManager.BoarsToLoad.Add(boars[i]);
+            }
 
             SystemAPI.SetSingleton(gridManager);
             ecb.Playback(EntityManager);

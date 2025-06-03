@@ -49,7 +49,10 @@ namespace Storage
                 var requestIsValid =
                     requestedItemCountTotal >= 0 && requestedItemCountTotal <= itemCapacity;
                 var requesterEntity = constructableRequest.ValueRO.RequesterEntity;
-                var inventory = SystemAPI.GetComponentRW<InventoryState>(requesterEntity);
+                if (!SystemAPI.Exists(requesterEntity))
+                {
+                    requestIsValid = false;
+                }
 
                 if (!requestIsValid)
                 {
@@ -67,6 +70,8 @@ namespace Storage
                 }
                 else
                 {
+                    var inventory = SystemAPI.GetComponentRW<InventoryState>(requesterEntity);
+
                     // Target: Constructable cell
                     constructable.ValueRW.Materials = requestedItemCountTotal;
 
