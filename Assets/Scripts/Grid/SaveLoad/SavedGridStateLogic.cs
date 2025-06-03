@@ -162,14 +162,16 @@ namespace Grid.SaveLoad
             gridManager.DamageableGridIsDirty = true;
             gridManager.InteractableGridIsDirty = true;
 
+            var loadUnitManager = SystemAPI.GetSingleton<LoadUnitManager>();
+
             for (var i = 0; i < villagers.Length; i++)
             {
-                // SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
-                //     storages[i], spawnManager.StoragePrefab,
-                //     GridEntityType.Storage, WorldSpriteSheetEntryType.Storage);
+                loadUnitManager.VillagersToLoad.Add(villagers[i]);
+            }
 
-                // TODO: Add Spawn Logic for Villager and Boar
-                // SpawnManagerSystem.SpawnGridEntity();
+            for (var i = 0; i < boars.Length; i++)
+            {
+                loadUnitManager.BoarsToLoad.Add(boars[i]);
             }
 
             SystemAPI.SetSingleton(gridManager);

@@ -6,6 +6,7 @@ using Rendering;
 using SystemGroups;
 using UnitBehaviours.UnitConfigurators;
 using UnitState.AliveState;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -21,7 +22,19 @@ namespace UnitSpawn.Spawning
         protected override void OnCreate()
         {
             RequireForUpdate<SpawnManager>();
-            EntityManager.CreateSingleton<LoadUnitManager>();
+            var loadUnitManager = new LoadUnitManager
+            {
+                VillagersToLoad = new NativeList<float3>(Allocator.Persistent),
+                BoarsToLoad = new NativeList<float3>(Allocator.Persistent)
+            };
+            EntityManager.CreateSingleton(loadUnitManager);
+        }
+
+        protected override void OnDestroy()
+        {
+            var loadUnitManager = SystemAPI.GetSingleton<LoadUnitManager>();
+            loadUnitManager.VillagersToLoad.Dispose();
+            loadUnitManager.BoarsToLoad.Dispose();
         }
 
         protected override void OnUpdate()
@@ -49,30 +62,43 @@ namespace UnitSpawn.Spawning
             // TODO: Make SpawnManager into a Singleton instead
             foreach (var spawnManager in SystemAPI.Query<RefRO<SpawnManager>>())
             {
-                SpawnProcess(ecb, ref gridManager, worldSpriteSheetManager, cellList, spawnManager.ValueRO, itemToSpawn, loadUnitManager);
+                SpawnProcess(ecb, ref gridManager, worldSpriteSheetManager, cellList, spawnManager.ValueRO, itemToSpawn, ref loadUnitManager);
                 DeleteProcess(ecb, ref gridManager, cellList, brushSize, itemToDelete);
             }
 
             SystemAPI.SetSingleton(gridManager);
+            SystemAPI.SetSingleton(loadUnitManager);
         }
 
         private void SpawnProcess(EntityCommandBuffer ecb, ref GridManager gridManager,
             WorldSpriteSheetManager worldSpriteSheetManager,
             List<int2> cellList,
             SpawnManager spawnManager,
-            SpawnItemType itemToSpawn, LoadUnitManager loadUnitManager)
+            SpawnItemType itemToSpawn, ref LoadUnitManager loadUnitManager)
         {
             var loadedVillagers = loadUnitManager.VillagersToLoad;
             var loadedBoars = loadUnitManager.BoarsToLoad;
-            foreach (var villagerPos in loadedVillagers)
+            if (!loadedVillagers.IsEmpty)
             {
-                TryLoadUnit(ecb, ref gridManager, villagerPos, spawnManager.VillagerPrefab, false);
+                foreach (var villagerPos in loadedVillagers)
+                {
+                    TryLoadUnit(ecb, ref gridManager, villagerPos, spawnManager.VillagerPrefab, false);
+                }
             }
 
-            foreach (var boarPos in loadedBoars)
+            if (!loadedBoars.IsEmpty)
             {
-                TryLoadUnit(ecb, ref gridManager, boarPos, spawnManager.BoarPrefab, false);
+                foreach (var boarPos in loadedBoars)
+                {
+                    TryLoadUnit(ecb, ref gridManager, boarPos, spawnManager.BoarPrefab, false);
+                }
             }
+
+            loadedVillagers.Clear();
+            loadedBoars.Clear();
+
+            loadUnitManager.VillagersToLoad = loadedVillagers;
+            loadUnitManager.BoarsToLoad = loadedBoars;
 
             switch (itemToSpawn)
             {
