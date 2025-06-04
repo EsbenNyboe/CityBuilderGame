@@ -51,7 +51,7 @@ namespace UnitSpawn.Spawning
                 UtilsClass.GetMouseWorldPosition() + new Vector3(+1, +1) * cellSize * .5f;
             var cellPosition = GridHelpers.GetXY(mousePosition);
 
-            if (!gridManager.IsPositionInsideGrid(cellPosition))
+            if (!gridManager.IsPositionInsideGrid(cellPosition) && !loadUnitManager.HasUnits())
             {
                 return;
             }
@@ -76,6 +76,7 @@ namespace UnitSpawn.Spawning
             SpawnManager spawnManager,
             SpawnItemType itemToSpawn, ref LoadUnitManager loadUnitManager)
         {
+            var isLoading = loadUnitManager.HasUnits();
             var loadedVillagers = loadUnitManager.VillagersToLoad;
             var loadedBoars = loadUnitManager.BoarsToLoad;
             if (!loadedVillagers.IsEmpty)
@@ -99,6 +100,11 @@ namespace UnitSpawn.Spawning
 
             loadUnitManager.VillagersToLoad = loadedVillagers;
             loadUnitManager.BoarsToLoad = loadedBoars;
+
+            if (isLoading)
+            {
+                return;
+            }
 
             switch (itemToSpawn)
             {

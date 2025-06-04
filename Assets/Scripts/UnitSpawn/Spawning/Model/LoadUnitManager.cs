@@ -8,5 +8,11 @@ namespace UnitSpawn.Spawning
     {
         public NativeList<float3> VillagersToLoad;
         public NativeList<float3> BoarsToLoad;
+
+        public readonly bool HasUnits()
+        {
+            return VillagersToLoad is { IsEmpty: false, Length: > 0 }
+                   || BoarsToLoad is { IsEmpty: false, Length: > 0 };
+        }
     }
 }
