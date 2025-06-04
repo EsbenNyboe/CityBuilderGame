@@ -3,6 +3,7 @@ using Rendering;
 using SpriteTransformNS;
 using UnitAgency.Data;
 using UnitBehaviours.ActionGateNS;
+using UnitBehaviours.Aging;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Tags;
 using UnitBehaviours.Targeting;
@@ -74,6 +75,8 @@ namespace UnitBehaviours.UnitConfigurators
                 );
                 AddComponent(entity, new MoodLoneliness { Loneliness = authoring._loneliness });
                 AddComponent(entity, new MoodInitiative { Initiative = authoring._initiative });
+
+                AddComponent<Age>(entity);
             }
         }
     }

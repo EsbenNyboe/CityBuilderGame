@@ -10,6 +10,7 @@ namespace Audio
         [SerializeField] private SoundConfig _chopSound;
         [SerializeField] private SoundConfig _destroyTreeSound;
         [SerializeField] private SoundConfig _dieSound;
+        [SerializeField] private SoundConfig _babyDieSound;
         [SerializeField] private MultiSoundConfigObject _damageSound;
         public MultiSoundConfigObject _spearDamageSound;
         public MultiSoundConfigObject _spearThrowSound;
@@ -47,6 +48,11 @@ namespace Audio
         public void PlayDeathSound(Vector3 position)
         {
             PlayAtPosition(_dieSound, position);
+        }
+
+        public void PlayBabyDeathSound(Vector3 position)
+        {
+            PlayAtPosition(_babyDieSound, position);
         }
 
         public void PlayBoarDeathSound(float3 position)

@@ -111,6 +111,13 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
+                case SpawnItemType.Baby:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnVillager(ecb, ref gridManager, cell, spawnManager.VillagerPrefab, false, true);
+                    }
+
+                    break;
                 case SpawnItemType.Boar:
                     foreach (var cell in cellList)
                     {
@@ -160,6 +167,9 @@ namespace UnitSpawn.Spawning
                 case SpawnItemType.None:
                     break;
                 case SpawnItemType.Unit:
+                    TryDeleteVillagers(ecb, cellList[0], brushSize);
+                    break;
+                case SpawnItemType.Baby:
                     TryDeleteVillagers(ecb, cellList[0], brushSize);
                     break;
                 case SpawnItemType.Boar:
@@ -214,7 +224,7 @@ namespace UnitSpawn.Spawning
         }
 
         private void TrySpawnVillager(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell, Entity prefab,
-            bool hasHierarchy)
+            bool hasHierarchy, bool isBaby = false)
         {
             if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
                 !gridManager.IsOccupied(cell))
@@ -226,6 +236,11 @@ namespace UnitSpawn.Spawning
                 {
                     // If the unit doesn't have a hierarchy, it doesn't need a LinkedEntityGroup
                     ecb.RemoveComponent<LinkedEntityGroup>(entity);
+                }
+
+                if (isBaby)
+                {
+                    ecb.AddComponent<Baby>(entity);
                 }
             }
         }

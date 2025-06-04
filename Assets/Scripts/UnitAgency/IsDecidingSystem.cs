@@ -76,7 +76,8 @@ namespace UnitAgency.Logic
                 LocalTransformLookup = SystemAPI.GetComponentLookup<LocalTransform>(),
                 IsTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>(),
                 IsTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>(),
-                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>()
+                SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
+                BabiesLookup = SystemAPI.GetComponentLookup<Baby>()
             };
             decideNextBehaviourJob.ScheduleParallel(_query, state.Dependency).Complete();
         }
@@ -94,6 +95,7 @@ namespace UnitAgency.Logic
             [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
             [ReadOnly] public ComponentLookup<IsTalkative> IsTalkativeLookup;
             [ReadOnly] public ComponentLookup<IsTalking> IsTalkingLookup;
+            [ReadOnly] public ComponentLookup<Baby> BabiesLookup;
 
             [NativeDisableContainerSafetyRestriction]
             public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
@@ -108,6 +110,8 @@ namespace UnitAgency.Logic
                 ref MoodInitiative moodInitiative,
                 ref RandomContainer randomContainer)
             {
+                var isBaby = BabiesLookup.HasComponent(entity);
+
                 EcbParallelWriter.RemoveComponent<IsDeciding>(i, entity);
 
                 var position = localTransform.Position;
@@ -152,7 +156,7 @@ namespace UnitAgency.Logic
                         });
                     }
                 }
-                else if (hasInitiative &&
+                else if (!isBaby && hasInitiative &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.BoarQuadrantMap, GridManager,
                              boarQuadrantsToSearch, position, entity,
                              out var nearbyBoar, out var distanceToBoar) &&
@@ -191,7 +195,7 @@ namespace UnitAgency.Logic
                         EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                     }
                 }
-                else if (hasAccessToLogContainer &&
+                else if (!isBaby && hasAccessToLogContainer &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _) &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedItemQuadrantMap, GridManager,
@@ -240,7 +244,7 @@ namespace UnitAgency.Logic
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingBed());
                 }
-                else if (hasAccessToLogContainer && IsAdjacentToTree(GridManager, cell, out var tree))
+                else if (!isBaby && hasAccessToLogContainer && IsAdjacentToTree(GridManager, cell, out var tree))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
@@ -278,11 +282,11 @@ namespace UnitAgency.Logic
                         });
                     }
                 }
-                else if (hasAccessToConstructable && hasAccessToStorageWithItems)
+                else if (!isBaby && hasAccessToConstructable && hasAccessToStorageWithItems)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage());
                 }
-                else if (hasInitiative && hasAccessToLogContainer)
+                else if (!isBaby && hasInitiative && hasAccessToLogContainer)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
                 }

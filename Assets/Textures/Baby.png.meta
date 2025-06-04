@@ -1,15 +1,15 @@
 fileFormatVersion: 2
-guid: 8716c89da14fa014ebdc1a37e20495d3
+guid: ea78cc4dbe836bb48959bc30a97fe55a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7411974349392773033
-    second: House_0
+      213: 2820281516306304949
+    second: Baby_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
     mipMapMode: 0
-    enableMipMap: 0
+    enableMipMap: 1
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -75,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: House_0
+      name: Baby_0
       rect:
         serializedVersion: 2
-        x: 4
-        y: 0
-        width: 24
-        height: 30
+        x: 7
+        y: 1
+        width: 17
+        height: 20
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 750032c7990632990800000000000000
-      internalID: -7411974349392773033
+      spriteID: 5bf890ab817a32720800000000000000
+      internalID: 2820281516306304949
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      House_0: -7411974349392773033
+      Baby_0: 2820281516306304949
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

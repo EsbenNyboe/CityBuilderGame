@@ -18,6 +18,7 @@ namespace Effects
     public enum UnitType
     {
         Villager,
-        Boar
+        Boar,
+        BabyVillager
     }
 }

@@ -23,6 +23,8 @@ namespace UnitState.AliveLogic
     {
         private EntityQuery _aliveVillagerQuery;
         private EntityQuery _deadVillagerQuery;
+        private EntityQuery _deadVillagerGrownUpQuery;
+        private EntityQuery _deadVillagerBabyQuery;
         private EntityQuery _deadBoarQuery;
 
         public void OnCreate(ref SystemState state)
@@ -57,6 +59,12 @@ namespace UnitState.AliveLogic
                     typeof(IsAlive)
                 }
             });
+            var deadVillagerGrownUpBuilder = new EntityQueryBuilder(Allocator.Temp).WithAll<Villager>().WithAll<LocalTransform>()
+                .WithDisabled<IsAlive>().WithNone<Baby>();
+            _deadVillagerGrownUpQuery = state.GetEntityQuery(deadVillagerGrownUpBuilder);
+            var deadVillagerBabyBuilder = new EntityQueryBuilder(Allocator.Temp).WithAll<Villager>().WithAll<LocalTransform>().WithDisabled<IsAlive>()
+                .WithAll<Baby>();
+            _deadVillagerBabyQuery = state.GetEntityQuery(deadVillagerBabyBuilder);
             _aliveVillagerQuery = state.GetEntityQuery(new EntityQueryDesc
             {
                 All = new ComponentType[]
@@ -87,7 +95,13 @@ namespace UnitState.AliveLogic
             {
                 EcbParallelWriter = ecb.AsParallelWriter(),
                 UnitType = UnitType.Villager
-            }.ScheduleParallel(_deadVillagerQuery, state.Dependency).Complete();
+            }.ScheduleParallel(_deadVillagerGrownUpQuery, state.Dependency).Complete();
+
+            new PlayDeathEffectJob
+            {
+                EcbParallelWriter = ecb.AsParallelWriter(),
+                UnitType = UnitType.BabyVillager
+            }.ScheduleParallel(_deadVillagerBabyQuery, state.Dependency).Complete();
 
             new PlayDeathEffectJob
             {
