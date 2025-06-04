@@ -44,6 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96189568ebc643959b7fc83ace40780c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _burnDuration: 5
+  _burnDuration: 20
   _materialsRequired: 1
   _entryType: 21
