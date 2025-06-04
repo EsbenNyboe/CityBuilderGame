@@ -66,6 +66,7 @@ namespace Grid.SaveLoad
             {
                 _saveSlots[i].Storages = GetCleanedUpDataList(_saveSlots[i].Storages);
                 _saveSlots[i].Bonfires = GetCleanedUpDataList(_saveSlots[i].Bonfires);
+                _saveSlots[i].Houses = GetCleanedUpDataList(_saveSlots[i].Houses);
                 _saveSlots[i].Beds = GetCleanedUpDataList(_saveSlots[i].Beds);
                 _saveSlots[i].Trees = GetCleanedUpDataList(_saveSlots[i].Trees);
                 _saveSlots[i].Villagers = GetCleanedUpDataList(_saveSlots[i].Villagers);
@@ -108,7 +109,7 @@ namespace Grid.SaveLoad
             return cleanedUpDataList.ToArray();
         }
 
-        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] storages, int2[] bonfires, float3[] villagers, float3[] boars)
+        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] storages, int2[] bonfires, int2[] houses, float3[] villagers, float3[] boars)
         {
             Assert.IsTrue(SlotToSave > -1 && SlotToSave < _saveSlots.Length);
 
@@ -118,6 +119,7 @@ namespace Grid.SaveLoad
             saveSlot.Beds = beds;
             saveSlot.Storages = storages;
             saveSlot.Bonfires = bonfires;
+            saveSlot.Houses = houses;
             saveSlot.Villagers = villagers;
             saveSlot.Boars = boars;
 #if UNITY_EDITOR
@@ -136,6 +138,7 @@ namespace Grid.SaveLoad
             saveSlot.Beds = Array.Empty<int2>();
             saveSlot.Storages = Array.Empty<int2>();
             saveSlot.Bonfires = Array.Empty<int2>();
+            saveSlot.Houses = Array.Empty<int2>();
             saveSlot.Villagers = Array.Empty<float3>();
             saveSlot.Boars = Array.Empty<float3>();
 #if UNITY_EDITOR
@@ -166,6 +169,12 @@ namespace Grid.SaveLoad
         {
             Assert.IsTrue(SlotToLoad > -1 && SlotToLoad < _saveSlots.Length);
             return _saveSlots[SlotToLoad].Bonfires;
+        }
+
+        public int2[] LoadSavedHouses()
+        {
+            Assert.IsTrue(SlotToLoad > -1 && SlotToLoad < _saveSlots.Length);
+            return _saveSlots[SlotToLoad].Houses;
         }
 
         public float3[] LoadSavedVillagers()
