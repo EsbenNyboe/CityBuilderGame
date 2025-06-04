@@ -181,7 +181,7 @@ namespace Grid.SaveLoad
 
             foreach (var (isAlive, isAliveEntity) in SystemAPI.Query<RefRO<IsAlive>>().WithEntityAccess())
             {
-                ecb.DestroyEntity(isAliveEntity);
+                ecb.SetComponentEnabled<IsAlive>(isAliveEntity, false);
             }
 
             foreach (var (droppedItem, droppedItemEntity) in SystemAPI.Query<RefRO<DroppedItem>>().WithEntityAccess())
