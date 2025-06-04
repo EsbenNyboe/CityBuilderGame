@@ -148,12 +148,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5916463350e045b89215ca4f9e497cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _unitPrefab: {fileID: 4976699055111691379, guid: 22224e3eda44f3946a44cb6d2958434d, type: 3}
+  _villagerPrefab: {fileID: 4976699055111691379, guid: 22224e3eda44f3946a44cb6d2958434d, type: 3}
   _boarPrefab: {fileID: 4976699055111691379, guid: 72cee0b8cc737864ebcb2d52e664506d, type: 3}
   _treePrefab: {fileID: 1066731238684271649, guid: 6fca584db7f958344848bc1832d12393, type: 3}
+  _bedPrefab: {fileID: 1066731238684271649, guid: 676e85865ccbc6046bbec0efbb6f7996, type: 3}
   _storagePrefab: {fileID: 1066731238684271649, guid: 3936afcf6c89b2742a0369cedf3301d7, type: 3}
   _housePrefab: {fileID: 1066731238684271649, guid: 2752522b7b0c99a41877c57e807ba50b, type: 3}
-  _bedPrefab: {fileID: 1066731238684271649, guid: 676e85865ccbc6046bbec0efbb6f7996, type: 3}
+  _bonfirePrefab: {fileID: 1066731238684271649, guid: fb9c3cb6f21bce243839d590b07c71f4, type: 3}
 --- !u!4 &54733006
 Transform:
   m_ObjectHideFlags: 0

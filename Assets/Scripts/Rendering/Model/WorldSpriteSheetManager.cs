@@ -32,6 +32,11 @@ namespace Rendering
             return Entries[(int)type].EntryRows.Length;
         }
 
+        public readonly float GetFrameInterval(WorldSpriteSheetEntryType type)
+        {
+            return Entries[(int)type].FrameInterval;
+        }
+
         public readonly void GetInventoryItemCoordinates(InventoryItem inventoryItem, out int column, out int row)
         {
             var entryType = inventoryItem switch

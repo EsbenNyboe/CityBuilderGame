@@ -1,6 +1,5 @@
 using Unity.Entities;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace UnitSpawn.Spawning
 {
@@ -12,18 +11,18 @@ namespace UnitSpawn.Spawning
         public Entity BedPrefab;
         public Entity StoragePrefab;
         public Entity HousePrefab;
+        public Entity BonfirePrefab;
     }
 
     public class SpawnManagerAuthoring : MonoBehaviour
     {
-        [FormerlySerializedAs("_unitPrefab")] [SerializeField]
-        private GameObject _villagerPrefab;
-
+        [SerializeField] private GameObject _villagerPrefab;
         [SerializeField] private GameObject _boarPrefab;
         [SerializeField] private GameObject _treePrefab;
+        [SerializeField] private GameObject _bedPrefab;
         [SerializeField] private GameObject _storagePrefab;
         [SerializeField] private GameObject _housePrefab;
-        [SerializeField] private GameObject _bedPrefab;
+        [SerializeField] private GameObject _bonfirePrefab;
 
         public class SpawnManagerBaker : Baker<SpawnManagerAuthoring>
         {
@@ -37,7 +36,8 @@ namespace UnitSpawn.Spawning
                     TreePrefab = GetEntity(authoring._treePrefab, TransformUsageFlags.Dynamic),
                     StoragePrefab = GetEntity(authoring._storagePrefab, TransformUsageFlags.Dynamic),
                     HousePrefab = GetEntity(authoring._housePrefab, TransformUsageFlags.Dynamic),
-                    BedPrefab = GetEntity(authoring._bedPrefab, TransformUsageFlags.Dynamic)
+                    BedPrefab = GetEntity(authoring._bedPrefab, TransformUsageFlags.Dynamic),
+                    BonfirePrefab = GetEntity(authoring._bonfirePrefab, TransformUsageFlags.Dynamic)
                 });
             }
         }

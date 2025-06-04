@@ -153,6 +153,13 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
+                case SpawnItemType.Bonfire:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnBonfire(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.BonfirePrefab);
+                    }
+
+                    break;
 
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -200,6 +207,13 @@ namespace UnitSpawn.Spawning
                     foreach (var cell in cellList)
                     {
                         TryDeleteHouse(ecb, ref gridManager, cell);
+                    }
+
+                    break;
+                case SpawnItemType.Bonfire:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteBonfire(ecb, ref gridManager, cell);
                     }
 
                     break;
@@ -345,6 +359,32 @@ namespace UnitSpawn.Spawning
         {
             if (gridManager.IsPositionInsideGrid(cell) &&
                 gridManager.TryGetHouseEntity(cell, out var entity))
+            {
+                gridManager.SetIsWalkable(cell, true);
+                gridManager.RemoveGridEntity(cell);
+
+                ecb.DestroyEntity(entity);
+            }
+        }
+
+        private void TrySpawnBonfire(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager,
+            int2 cell,
+            Entity prefab)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+                !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
+            {
+                gridManager.SetIsWalkable(cell, false);
+
+                SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.Bonfire,
+                    WorldSpriteSheetEntryType.BonfireReady);
+            }
+        }
+
+        private void TryDeleteBonfire(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) &&
+                gridManager.TryGetBonfireEntity(cell, out var entity))
             {
                 gridManager.SetIsWalkable(cell, true);
                 gridManager.RemoveGridEntity(cell);

@@ -46,6 +46,7 @@ namespace Grid.SaveLoad
             var treeList = new NativeList<int2>(Allocator.Temp);
             var bedList = new NativeList<int2>(Allocator.Temp);
             var storageList = new NativeList<int2>(Allocator.Temp);
+            var bonfireList = new NativeList<int2>(Allocator.Temp);
             var villagerList = new NativeList<float3>(Allocator.Temp);
             var boarList = new NativeList<float3>(Allocator.Temp);
 
@@ -63,6 +64,10 @@ namespace Grid.SaveLoad
                 {
                     treeList.Add(gridManager.GetXY(i));
                 }
+                else if (gridManager.TryGetBonfireEntity(i, out _))
+                {
+                    bonfireList.Add(gridManager.GetXY(i));
+                }
             }
 
             var gridSize = new int2(gridManager.Width, gridManager.Height);
@@ -75,6 +80,8 @@ namespace Grid.SaveLoad
 
             var storages = new int2[storageList.Length];
             NativeArray<int2>.Copy(storageList.AsArray(), storages);
+            var bonfires = new int2[bonfireList.Length];
+            NativeArray<int2>.Copy(bonfireList.AsArray(), bonfires);
 
 
             foreach (var (villager, localTransform) in SystemAPI.Query<RefRO<Villager>, RefRO<LocalTransform>>())
@@ -92,10 +99,11 @@ namespace Grid.SaveLoad
             var boars = new float3[boarList.Length];
             NativeArray<float3>.Copy(boarList.AsArray(), boars);
 
-            SavedGridStateManager.Instance.SaveDataToSaveSlot(gridSize, trees, beds, storages, villagers, boars);
+            SavedGridStateManager.Instance.SaveDataToSaveSlot(gridSize, trees, beds, storages, bonfires, villagers, boars);
             treeList.Dispose();
             bedList.Dispose();
             storageList.Dispose();
+            bonfireList.Dispose();
         }
 
         private void LoadSavedGridState()
@@ -117,6 +125,7 @@ namespace Grid.SaveLoad
             var trees = SavedGridStateManager.Instance.LoadSavedTrees();
             var beds = SavedGridStateManager.Instance.LoadSavedBeds();
             var storages = SavedGridStateManager.Instance.LoadSavedStorages();
+            var bonfires = SavedGridStateManager.Instance.LoadSavedBonfires();
             var villagers = SavedGridStateManager.Instance.LoadSavedVillagers();
             var boars = SavedGridStateManager.Instance.LoadSavedBoars();
             var gridSize = SavedGridStateManager.Instance.TryLoadSavedGridSize(new int2(gridManager.Width, gridManager.Height));
@@ -155,6 +164,14 @@ namespace Grid.SaveLoad
                 SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
                     storages[i], spawnManager.StoragePrefab,
                     GridEntityType.Storage, WorldSpriteSheetEntryType.Storage);
+            }
+
+            for (var i = 0; i < bonfires.Length; i++)
+            {
+                gridManager.SetIsWalkable(bonfires[i], false);
+                SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
+                    bonfires[i], spawnManager.BonfirePrefab,
+                    GridEntityType.Bonfire, WorldSpriteSheetEntryType.BonfireReady);
             }
 
             gridManager.WalkableGridIsDirty = true;

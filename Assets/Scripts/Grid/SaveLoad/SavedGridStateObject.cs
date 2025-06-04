@@ -10,6 +10,7 @@ namespace Grid.SaveLoad
         public int2[] Trees;
         public int2[] Beds;
         public int2[] Storages;
+        public int2[] Bonfires;
         public float3[] Villagers;
         public float3[] Boars;
     }

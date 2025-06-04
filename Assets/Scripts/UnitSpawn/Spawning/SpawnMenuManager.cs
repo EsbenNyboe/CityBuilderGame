@@ -133,6 +133,7 @@ namespace UnitSpawn.Spawning
         Storage,
         Boar,
         House,
-        Baby
+        Baby,
+        Bonfire
     }
 }
