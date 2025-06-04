@@ -12,5 +12,6 @@ namespace UnitBehaviours.UnitManagers
         public int BoarQuadrantRange;
         public float DecompositionDuration;
         public int QuadrantSearchRange;
+        public int ChildHoodDuration;
     }
 }

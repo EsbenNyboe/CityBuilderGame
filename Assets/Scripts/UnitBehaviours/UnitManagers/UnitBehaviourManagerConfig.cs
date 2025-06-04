@@ -13,6 +13,7 @@ namespace UnitBehaviours.UnitManagers
         public int BoarQuadrantRange = 2;
         public float DecompositionDuration = 5;
         public int QuadrantSearchRange = 50;
+        public int ChildHoodDuration = 100;
 
         private void Awake()
         {

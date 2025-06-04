@@ -21,6 +21,7 @@ namespace UnitBehaviours.UnitManagers
             singleton.BoarQuadrantRange = config.BoarQuadrantRange;
             singleton.DecompositionDuration = config.DecompositionDuration;
             singleton.QuadrantSearchRange = config.QuadrantSearchRange;
+            singleton.ChildHoodDuration = config.ChildHoodDuration;
             SystemAPI.SetSingleton(singleton);
         }
     }
