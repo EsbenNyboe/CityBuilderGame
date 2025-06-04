@@ -1,6 +1,7 @@
 using CustomTimeCore;
 using UnitBehaviours.UnitConfigurators;
 using UnitBehaviours.UnitManagers;
+using UnitState.Mood;
 using Unity.Entities;
 
 namespace UnitBehaviours.Aging
@@ -24,9 +25,13 @@ namespace UnitBehaviours.Aging
                 age.ValueRW.AgeInSeconds += SystemAPI.Time.DeltaTime * timeScale;
             }
 
-            foreach (var (age, entity) in SystemAPI.Query<RefRO<Age>>().WithAll<Baby>().WithEntityAccess())
+            foreach (var (age, moodLoneliness, moodSleepiness, entity) in SystemAPI.Query<RefRO<Age>, RefRO<MoodLoneliness>, RefRO<MoodSleepiness>>()
+                         .WithAll<Baby>().WithEntityAccess())
             {
-                if (age.ValueRO.AgeInSeconds > childHoodDuration)
+                // TODO: Extract threshold for sleepiness
+                if (age.ValueRO.AgeInSeconds > childHoodDuration &&
+                    moodLoneliness.ValueRO.Loneliness <= 0 &&
+                    moodSleepiness.ValueRO.Sleepiness < 1)
                 {
                     ecb.RemoveComponent<Baby>(entity);
                 }
