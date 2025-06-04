@@ -181,13 +181,16 @@ namespace UnitAgency.Logic
                 }
                 else if (HasLogOfWood(inventory))
                 {
-                    if (hasAccessToConstructable)
-                    {
-                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingConstructable());
-                    }
-                    else if (hasAccessToStorageWithSpace)
+                    var isNextToStorage = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager, 1, position,
+                        entity, out _, out var distance) && distance < 2;
+
+                    if (hasAccessToStorageWithSpace && (!isNextToStorage || !hasAccessToConstructable)) // HACK
                     {
                         EcbParallelWriter.AddComponent(i, entity, new IsSeekingRoomyStorage());
+                    }
+                    else if (hasAccessToConstructable)
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingConstructable());
                     }
                     else
                     {

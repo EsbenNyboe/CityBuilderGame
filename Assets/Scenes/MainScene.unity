@@ -7834,7 +7834,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5def1c83eae243e58352b75f264f26d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DrawRelations: 1
+  DrawRelations: 0
   IncludeNonSelections: 1
   ApplyFilter: 0
   FilterSetting:
