@@ -34,6 +34,9 @@ namespace Effects
                     case UnitType.Boar:
                         SoundManager.Instance.PlayBoarDeathSound(deathEvent.ValueRO.Position);
                         break;
+                    case UnitType.BabyVillager:
+                        SoundManager.Instance.PlayBabyDeathSound(deathEvent.ValueRO.Position);
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

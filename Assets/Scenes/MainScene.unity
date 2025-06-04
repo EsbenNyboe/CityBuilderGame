@@ -1434,6 +1434,11 @@ MonoBehaviour:
     Volume: 0.247
     PitchCenter: 1.076
     PitchVariance: 0.06
+  _babyDieSound:
+    Clip: {fileID: 8300000, guid: 558f9f56f603a954b8d45e17e89341d9, type: 3}
+    Volume: 0.2
+    PitchCenter: 1.4
+    PitchVariance: 0.06
   _damageSound: {fileID: 11400000, guid: ac94ad132e7a6174aabaa128246ac099, type: 2}
   _spearDamageSound: {fileID: 11400000, guid: 7c2d7dc7f73ac6044b06b73a0185a04f, type: 2}
   _spearThrowSound: {fileID: 11400000, guid: 538d0ab8e6c966f41a5ac602b0d61a70, type: 2}
