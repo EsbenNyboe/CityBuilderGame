@@ -29,6 +29,7 @@ namespace UnitBehaviours.UnitConfigurators
         [Range(0f, 1f)] [SerializeField] private float _restlessness = 1f;
         [Range(0f, 1f)] [SerializeField] private float _loneliness;
         [Range(0f, 1f)] [SerializeField] private float _initiative = 1f;
+        [Range(0f, 1f)] [SerializeField] private float _hunger = 1f;
 
         public class VillagerAuthoringBaker : Baker<VillagerAuthoring>
         {
@@ -75,6 +76,7 @@ namespace UnitBehaviours.UnitConfigurators
                 );
                 AddComponent(entity, new MoodLoneliness { Loneliness = authoring._loneliness });
                 AddComponent(entity, new MoodInitiative { Initiative = authoring._initiative });
+                AddComponent(entity, new MoodHunger { Hunger = authoring._hunger });
 
                 AddComponent<Age>(entity);
             }

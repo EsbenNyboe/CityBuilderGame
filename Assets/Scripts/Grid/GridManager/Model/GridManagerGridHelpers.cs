@@ -107,6 +107,11 @@ namespace Grid
             return IsPositionInsideGrid(cell) && IsDamageable(cell);
         }
 
+        public bool IsBonfire(int2 cell)
+        {
+            return IsPositionInsideGrid(cell) && TryGetBonfireEntity(cell, out _);
+        }
+
         private bool IsAvailableBed(int2 cell)
         {
             return IsPositionInsideGrid(cell) && IsBed(cell) && !IsOccupied(cell) && IsWalkable(cell);

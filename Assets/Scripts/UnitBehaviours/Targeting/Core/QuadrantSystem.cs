@@ -1,5 +1,6 @@
 using CodeMonkey.Utils;
 using Debugging;
+using Fire;
 using Grid;
 using GridEntityNS;
 using Inventory;
@@ -23,6 +24,7 @@ namespace UnitBehaviours.Targeting.Core
         public NativeParallelMultiHashMap<int, QuadrantData> StorageQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> ConstructableQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> BedQuadrantMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> BonfireQuadrantMap;
     }
 
     public struct QuadrantData
@@ -46,6 +48,7 @@ namespace UnitBehaviours.Targeting.Core
         private EntityQuery _storageQuery;
         private EntityQuery _constructableQuery;
         private EntityQuery _bedQuery;
+        private EntityQuery _bonfireQuery;
         public const int QuadrantYMultiplier = 1000;
         public const int QuadrantCellSize = 10;
 
@@ -63,13 +66,16 @@ namespace UnitBehaviours.Targeting.Core
             _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(),
                 // ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<DroppedItem>());
-            var storageQueryBuilder = new EntityQueryBuilder(Allocator.Temp).WithAll<LocalTransform, QuadrantEntity, AutonomousHarvesting.Storage>()
-                .WithNone<Constructable>();
-            _storageQuery = state.GetEntityQuery(storageQueryBuilder);
+            _storageQuery = state.GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<LocalTransform, QuadrantEntity, AutonomousHarvesting.Storage>()
+                .WithNone<Constructable>());
             _constructableQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(), ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<Constructable>());
             _bedQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(), ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<Bed>());
+            _bonfireQuery = state.GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<LocalTransform, QuadrantEntity, Bonfire>()
+                .WithNone<Constructable>());
 
             state.EntityManager.AddComponent<QuadrantDataManager>(state.SystemHandle);
             SystemAPI.SetComponent(state.SystemHandle, new QuadrantDataManager
@@ -91,6 +97,9 @@ namespace UnitBehaviours.Targeting.Core
                     Allocator.Persistent),
                 BedQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _bedQuery.CalculateEntityCount(),
+                    Allocator.Persistent),
+                BonfireQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                    _bonfireQuery.CalculateEntityCount(),
                     Allocator.Persistent)
             });
         }
@@ -105,6 +114,7 @@ namespace UnitBehaviours.Targeting.Core
             quadrantDataManager.StorageQuadrantMap.Dispose();
             quadrantDataManager.ConstructableQuadrantMap.Dispose();
             quadrantDataManager.BedQuadrantMap.Dispose();
+            quadrantDataManager.BonfireQuadrantMap.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -125,6 +135,7 @@ namespace UnitBehaviours.Targeting.Core
             BuildQuadrantMap(ref state, gridManager, _storageQuery, quadrantDataManager.StorageQuadrantMap, true);
             BuildQuadrantMap(ref state, gridManager, _constructableQuery, quadrantDataManager.ConstructableQuadrantMap, true);
             BuildQuadrantMap(ref state, gridManager, _bedQuery, quadrantDataManager.BedQuadrantMap);
+            BuildQuadrantMap(ref state, gridManager, _bonfireQuery, quadrantDataManager.BonfireQuadrantMap, true);
         }
 
         #region Quadrant Setup

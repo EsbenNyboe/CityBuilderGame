@@ -241,6 +241,43 @@ namespace Grid
             return false;
         }
 
+        public bool TryGetClosestBonfireSeatSemiRandom(int2 selfCell, Entity selfEntity, out int2 availableBonfireSeat,
+            bool isDebugging)
+        {
+            for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
+            {
+                var ringStart = RelativePositionRingInfoList[ring].x;
+                var ringEnd = RelativePositionRingInfoList[ring].y;
+                var randomStartIndex = GetSemiRandomIndex(ringStart, ringEnd);
+                var currentIndex = randomStartIndex + 1;
+
+                while (currentIndex != randomStartIndex)
+                {
+                    currentIndex++;
+                    if (currentIndex >= ringEnd)
+                    {
+                        currentIndex = ringStart;
+                    }
+
+                    var bonfireCell = selfCell + RelativePositionList[currentIndex];
+                    if (IsBonfire(bonfireCell) &&
+                        TryGetClosestValidNeighbourOfTarget(selfCell, selfEntity, bonfireCell, out var bonfireNeighbour))
+                    {
+                        availableBonfireSeat = bonfireNeighbour;
+                        return true;
+                    }
+                }
+            }
+
+            if (isDebugging)
+            {
+                Debug.LogWarning("No available bonfire seat was found within the search-range");
+            }
+
+            availableBonfireSeat = -1;
+            return false;
+        }
+
         public bool TryGetEmptyCellNearCurrentTarget(int2 self, int2 oldTarget, out int2 newTarget, bool isDebugging = false, int radius = -1)
         {
             Assert.IsTrue(radius < RelativePositionRingInfoList.Length);

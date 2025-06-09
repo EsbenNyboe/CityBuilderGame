@@ -234,5 +234,32 @@ namespace Grid
         }
 
         #endregion
+
+        public bool TryGetNeighbouringBonfireCell(int2 center, out int2 neighbouringTreeCell)
+        {
+            var randomStartIndex = GetSemiRandomIndex(0, 8);
+            var currentIndex = randomStartIndex + 1;
+
+            while (currentIndex != randomStartIndex)
+            {
+                currentIndex++;
+                if (currentIndex >= 8)
+                {
+                    currentIndex = 0;
+                }
+
+                var neighbourCell = GetNeighbourCell(currentIndex, center);
+
+                if (IsPositionInsideGrid(neighbourCell) &&
+                    TryGetBonfireEntity(neighbourCell, out _))
+                {
+                    neighbouringTreeCell = neighbourCell;
+                    return true;
+                }
+            }
+
+            neighbouringTreeCell = -1;
+            return false;
+        }
     }
 }

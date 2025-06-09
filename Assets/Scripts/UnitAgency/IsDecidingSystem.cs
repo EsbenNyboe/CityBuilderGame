@@ -6,6 +6,7 @@ using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Hunger;
 using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
@@ -77,7 +78,8 @@ namespace UnitAgency.Logic
                 IsTalkativeLookup = SystemAPI.GetComponentLookup<IsTalkative>(),
                 IsTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>(),
                 SocialRelationshipsLookup = SystemAPI.GetComponentLookup<SocialRelationships>(),
-                BabiesLookup = SystemAPI.GetComponentLookup<Baby>()
+                BabiesLookup = SystemAPI.GetComponentLookup<Baby>(),
+                MoodHungerLookup = SystemAPI.GetComponentLookup<MoodHunger>()
             };
             decideNextBehaviourJob.ScheduleParallel(_query, state.Dependency).Complete();
         }
@@ -96,6 +98,7 @@ namespace UnitAgency.Logic
             [ReadOnly] public ComponentLookup<IsTalkative> IsTalkativeLookup;
             [ReadOnly] public ComponentLookup<IsTalking> IsTalkingLookup;
             [ReadOnly] public ComponentLookup<Baby> BabiesLookup;
+            [ReadOnly] public ComponentLookup<MoodHunger> MoodHungerLookup;
 
             [NativeDisableContainerSafetyRestriction]
             public ComponentLookup<SocialRelationships> SocialRelationshipsLookup;
@@ -110,8 +113,6 @@ namespace UnitAgency.Logic
                 ref MoodInitiative moodInitiative,
                 ref RandomContainer randomContainer)
             {
-                var isBaby = BabiesLookup.HasComponent(entity);
-
                 EcbParallelWriter.RemoveComponent<IsDeciding>(i, entity);
 
                 var position = localTransform.Position;
@@ -122,6 +123,13 @@ namespace UnitAgency.Logic
                 var friendQuadrantsToSearch = 25;
                 var boarQuadrantsToSearch = 9;
                 var itemQuadrantsToSearch = UnitBehaviourManager.QuadrantSearchRange;
+
+
+                var isBaby = BabiesLookup.HasComponent(entity);
+                var moodHunger = MoodHungerLookup[entity];
+                var isHungry = moodHunger.Hunger > 1;
+                var hasAccessToBonfire = QuadrantSystem.TryFindEntity(QuadrantDataManager.BonfireQuadrantMap, GridManager, itemQuadrantsToSearch,
+                    position, entity);
 
                 var hasAccessToConstructable = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.ConstructableQuadrantMap, GridManager,
                     itemQuadrantsToSearch,
@@ -197,6 +205,11 @@ namespace UnitAgency.Logic
                         InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
                         EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                     }
+                }
+                else if (isHungry && hasAccessToBonfire && hasInitiative)
+                {
+                    // TODO: Check if next to bonfire
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingBonfire());
                 }
                 else if (!isBaby && hasAccessToLogContainer &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager,
