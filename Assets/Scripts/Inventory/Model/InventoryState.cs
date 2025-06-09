@@ -6,6 +6,13 @@ namespace Inventory
     public struct InventoryState : IComponentData
     {
         public InventoryItem CurrentItem;
+        public float CurrentDurability;
+
+        public void InsertItem(InventoryItem item)
+        {
+            CurrentItem = item;
+            CurrentDurability = 1;
+        }
     }
 
     public struct DroppedItem : IComponentData
@@ -18,6 +25,7 @@ namespace Inventory
     {
         None,
         LogOfWood,
-        CookedMeat
+        CookedMeat,
+        RawMeat
     }
 }

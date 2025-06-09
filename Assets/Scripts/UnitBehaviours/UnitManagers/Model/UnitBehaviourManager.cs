@@ -13,5 +13,7 @@ namespace UnitBehaviours.UnitManagers
         public float DecompositionDuration;
         public int QuadrantSearchRange;
         public int ChildHoodDuration;
+        public float HungerPerSec;
+        public float DurabilityPerSec;
     }
 }

@@ -208,13 +208,23 @@ namespace UnitAgency.Logic
                 }
                 else if (HasCookedMeat(inventory) && isHungry)
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsEating());
+                    EcbParallelWriter.AddComponent(i, entity, new IsEatingMeat());
+                    EcbParallelWriter.SetComponent(i, entity, new InventoryState
+                    {
+                        CurrentItem = InventoryItem.CookedMeat,
+                        CurrentDurability = 1
+                    });
                 }
-                else if (!HasCookedMeat(inventory) && isHungry && hasAccessToBonfire && hasInitiative)
+                else if (HasRawMeat(inventory) && isHungry && hasAccessToBonfire && hasInitiative)
                 {
                     if (IsAdjacentToBonfire(GridManager, cell, out _))
                     {
                         EcbParallelWriter.AddComponent(i, entity, new IsCookingMeat());
+                        EcbParallelWriter.SetComponent(i, entity, new InventoryState
+                        {
+                            CurrentItem = InventoryItem.None,
+                            CurrentDurability = 0
+                        });
                     }
                     else
                     {
@@ -368,6 +378,11 @@ namespace UnitAgency.Logic
         private static bool HasLogOfWood(InventoryState inventory)
         {
             return inventory.CurrentItem == InventoryItem.LogOfWood;
+        }
+
+        private static bool HasRawMeat(InventoryState inventory)
+        {
+            return inventory.CurrentItem == InventoryItem.RawMeat;
         }
 
         private static bool HasCookedMeat(InventoryState inventory)
