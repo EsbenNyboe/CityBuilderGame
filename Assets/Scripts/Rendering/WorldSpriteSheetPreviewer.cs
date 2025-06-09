@@ -60,6 +60,13 @@ namespace Rendering
                         }
                     }
                 }
+                else if (_previewAnimation == WorldSpriteSheetEntryType.VillagerEat || _previewAnimation == WorldSpriteSheetEntryType.BabyEat)
+                {
+                    if (_previewInventoryItems.Length > 0 && _previewInventoryItems[0] != WorldSpriteSheetEntryType.None)
+                    {
+                        AddEdibleInfo(singleton, singleton.Entries[(int)_previewInventoryItems[0]], ref uvList, ref matrix4X4List);
+                    }
+                }
             }
 
             for (var i = 0; i < _previewStructure.EntryTypes.Length; i++)
@@ -113,6 +120,17 @@ namespace Rendering
         {
             var currentFrame = 0;
             GetMeshConfiguration(singleton, singletonEntry, currentFrame, stackAmount, out var uv, out var matrix4X4);
+            uvList.Add(uv);
+            matrix4X4List.Add(matrix4X4);
+        }
+
+        private void AddEdibleInfo(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry,
+            ref List<Vector4> uvList,
+            ref List<Matrix4x4> matrix4X4List)
+        {
+            var currentFrame = 0;
+            var edibleOffset = singleton.EdibleOffset;
+            GetMeshConfiguration(singleton, singletonEntry, currentFrame, 0, out var uv, out var matrix4X4, edibleOffset.x, edibleOffset.y);
             uvList.Add(uv);
             matrix4X4List.Add(matrix4X4);
         }
@@ -206,7 +224,7 @@ namespace Rendering
         }
 
         private void GetMeshConfiguration(WorldSpriteSheetManager singleton, WorldSpriteSheetEntry singletonEntry, int currentFrame, int stackAmount,
-            out Vector4 uv, out Matrix4x4 matrix4X4)
+            out Vector4 uv, out Matrix4x4 matrix4X4, float offsetX = 0, float offsetY = 0)
         {
             var uvScaleX = singleton.ColumnScale;
             var uvScaleY = singleton.RowScale;
@@ -220,6 +238,8 @@ namespace Rendering
             var position = Camera.main.transform.position;
             position.y += stackAmount * _stackOffsetFactor;
             position.z = 0;
+            position.x += offsetX;
+            position.y += offsetY;
             var rotation = quaternion.identity;
 
             matrix4X4 = Matrix4x4.TRS(position, rotation, Vector3.one);

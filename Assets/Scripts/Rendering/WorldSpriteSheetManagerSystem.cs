@@ -92,6 +92,8 @@ namespace Rendering
                 singleton.Entries[(int)singletonEntryIndex] = singletonEntry;
             }
 
+            singleton.EdibleOffset = config.EdibleOffset;
+
             SystemAPI.SetSingleton(singleton);
         }
     }

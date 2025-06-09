@@ -1,4 +1,5 @@
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Rendering
@@ -18,6 +19,8 @@ namespace Rendering
         public int RowCount;
 
         [HideInInspector] public bool IsDirty = true;
+
+        public float2 EdibleOffset;
 
         private void Awake()
         {

@@ -13268,6 +13268,9 @@ MonoBehaviour:
   - Identifier: 8
     FrameCount: 1
     FrameInterval: 1
+  - Identifier: 29
+    FrameCount: 1
+    FrameInterval: 1
   - Identifier: 9
     FrameCount: 1
     FrameInterval: 1
@@ -13319,9 +13322,6 @@ MonoBehaviour:
   - Identifier: 28
     FrameCount: 1
     FrameInterval: 1
-  - Identifier: 29
-    FrameCount: 1
-    FrameInterval: 1
   - Identifier: 30
     FrameCount: 3
     FrameInterval: 0.3
@@ -13331,6 +13331,9 @@ MonoBehaviour:
   ColumnCount: 8
   RowCount: 8
   IsDirty: 1
+  EdibleOffset:
+    x: -0.25
+    y: -0.06
 --- !u!114 &2042965576
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13344,7 +13347,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _previewAnimation: 0
-  _previewInventoryItems: 08000000
+  _previewInventoryItems: 1d000000
   _stackOffsetFactor: 0.23
   _previewStructure:
     EntryTypes: 

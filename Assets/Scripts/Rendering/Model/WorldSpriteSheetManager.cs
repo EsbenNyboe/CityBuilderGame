@@ -2,6 +2,7 @@ using System;
 using Inventory;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Rendering
@@ -14,6 +15,8 @@ namespace Rendering
         public NativeArray<WorldSpriteSheetEntry> Entries;
         public float ColumnScale;
         public float RowScale;
+
+        public float2 EdibleOffset;
 
         public readonly Vector4 GetUv(WorldSpriteSheetEntryType type, int frame = 0)
         {
