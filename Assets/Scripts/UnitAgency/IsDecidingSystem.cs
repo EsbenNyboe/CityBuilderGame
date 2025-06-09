@@ -206,6 +206,10 @@ namespace UnitAgency.Logic
                         EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                     }
                 }
+                else if (HasCookedMeat(inventory) && isHungry)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsEating());
+                }
                 else if (!HasCookedMeat(inventory) && isHungry && hasAccessToBonfire && hasInitiative)
                 {
                     if (IsAdjacentToBonfire(GridManager, cell, out _))
