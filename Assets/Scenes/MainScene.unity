@@ -13313,7 +13313,22 @@ MonoBehaviour:
   - Identifier: 17
     FrameCount: 5
     FrameInterval: 1
-  ColumnCount: 7
+  - Identifier: 27
+    FrameCount: 2
+    FrameInterval: 0.6
+  - Identifier: 28
+    FrameCount: 1
+    FrameInterval: 1
+  - Identifier: 29
+    FrameCount: 1
+    FrameInterval: 1
+  - Identifier: 30
+    FrameCount: 3
+    FrameInterval: 0.3
+  - Identifier: 31
+    FrameCount: 2
+    FrameInterval: 0.3
+  ColumnCount: 8
   RowCount: 8
   IsDirty: 1
 --- !u!114 &2042965576

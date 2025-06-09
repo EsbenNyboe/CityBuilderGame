@@ -107,6 +107,11 @@ namespace Rendering
         BonfireDead,
         BabyIdle,
         BabyWalk,
-        BabySleep
+        BabySleep,
+        VillagerCookMeat,
+        VillagerCookMeatDone,
+        ItemMeatCooked,
+        VillagerEat,
+        BabyEat
     }
 }
