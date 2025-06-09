@@ -71,8 +71,9 @@ namespace UnitBehaviours.Targeting.Core
                 .WithNone<Constructable>());
             _constructableQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(), ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<Constructable>());
-            _bedQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(), ComponentType.ReadOnly<QuadrantEntity>(),
-                ComponentType.ReadOnly<Bed>());
+            _bedQuery = state.GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<LocalTransform, QuadrantEntity, Bed>()
+                .WithNone<Constructable>());
             _bonfireQuery = state.GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<LocalTransform, QuadrantEntity, Bonfire>()
                 .WithNone<Constructable>());
