@@ -1,6 +1,7 @@
 using CustomTimeCore;
 using Debugging;
 using Grid;
+using Inventory;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.Pathing;
@@ -31,13 +32,15 @@ namespace UnitBehaviours.Hunger
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
             var hungerPerSecWhenEating = -0.2f * SystemAPI.Time.DeltaTime * timeScale;
+            var foodPerSecWhenEating = -0.2f * SystemAPI.Time.DeltaTime * timeScale;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
 
             foreach (var (isEating,
+                         inventory,
                          pathFollow,
                          moodHunger,
                          entity) in SystemAPI
-                         .Query<RefRO<IsEating>, RefRO<PathFollow>, RefRW<MoodHunger>>()
+                         .Query<RefRW<IsEating>, RefRW<InventoryState>, RefRO<PathFollow>, RefRW<MoodHunger>>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
@@ -47,14 +50,16 @@ namespace UnitBehaviours.Hunger
                     continue;
                 }
 
-                if (moodHunger.ValueRO.Hunger > 0)
+                if (inventory.ValueRO.CurrentDurability > 0)
                 {
                     moodHunger.ValueRW.Hunger -= hungerPerSecWhenEating;
+                    inventory.ValueRW.CurrentDurability -= foodPerSecWhenEating;
                 }
                 else
                 {
                     ecb.RemoveComponent<IsEating>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
+                    inventory.ValueRW.CurrentItem = InventoryItem.None;
                 }
             }
 
