@@ -47,16 +47,17 @@ namespace UnitBehaviours.CookingMeat
                     // I'm not next to a Bonfire...
                     ecb.RemoveComponent<IsCookingMeat>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
+                    inventory.ValueRW.CurrentItem = InventoryItem.RawMeat;
                     continue;
                 }
 
-                if (inventory.ValueRO.CurrentItem != InventoryItem.RawMeat)
-                {
-                    // I'm not holding an item for the Bonfire...
-                    ecb.RemoveComponent<IsCookingMeat>(entity);
-                    ecb.AddComponent<IsDeciding>(entity);
-                    continue;
-                }
+                // if (inventory.ValueRO.CurrentItem != InventoryItem.RawMeat)
+                // {
+                //     // I'm not holding an item for the Bonfire...
+                //     ecb.RemoveComponent<IsCookingMeat>(entity);
+                //     ecb.AddComponent<IsDeciding>(entity);
+                //     continue;
+                // }
 
                 var xDiff = bonfireCell.x - cell.x;
                 var angleInDegrees = xDiff > 0 ? 0f : 180f;
@@ -69,6 +70,7 @@ namespace UnitBehaviours.CookingMeat
                     ecb.RemoveComponent<IsCookingMeat>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     inventory.ValueRW.CurrentItem = InventoryItem.CookedMeat;
+                    inventory.ValueRW.CurrentDurability = 1;
                     continue;
                 }
 

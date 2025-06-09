@@ -22,6 +22,8 @@ namespace UnitBehaviours.UnitManagers
             singleton.DecompositionDuration = config.DecompositionDuration;
             singleton.QuadrantSearchRange = config.QuadrantSearchRange;
             singleton.ChildHoodDuration = config.ChildHoodDuration;
+            singleton.HungerPerSec = config.HungerPerSec;
+            singleton.DurabilityPerSec = config.DurabilityPerSec;
             SystemAPI.SetSingleton(singleton);
         }
     }

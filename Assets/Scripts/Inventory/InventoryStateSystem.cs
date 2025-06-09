@@ -10,20 +10,6 @@ namespace Inventory
     {
         public void OnUpdate(ref SystemState state)
         {
-            foreach (var (inventoryState, spawnedUnit) in SystemAPI.Query<RefRW<InventoryState>, RefRO<SpawnedUnit>>())
-            {
-                inventoryState.ValueRW.CurrentItem = InventoryItem.RawMeat;
-                inventoryState.ValueRW.CurrentDurability = 1;
-            }
-
-            // var inventoryCaches = new NativeList
-            foreach (var inventory in SystemAPI.Query<RefRW<InventoryState>>())
-            {
-                if (inventory.ValueRO.CurrentItem == InventoryItem.None)
-                {
-                    inventory.ValueRW.CurrentDurability = 0;
-                }
-            }
         }
     }
 }
