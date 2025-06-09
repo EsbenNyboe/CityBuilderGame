@@ -25,6 +25,7 @@ namespace Inventory
     {
         None,
         LogOfWood,
-        CookedMeat
+        CookedMeat,
+        RawMeat
     }
 }

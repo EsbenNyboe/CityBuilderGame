@@ -37,7 +37,6 @@ namespace UnitBehaviours.CookingMeat
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
-
             foreach (var (isCookingMeat, inventory, spriteTransform, localTransform, entity) in SystemAPI
                          .Query<RefRW<IsCookingMeat>, RefRW<InventoryState>, RefRW<SpriteTransform>, RefRO<LocalTransform>>()
                          .WithEntityAccess())
@@ -46,6 +45,14 @@ namespace UnitBehaviours.CookingMeat
                 if (!gridManager.TryGetNeighbouringBonfireCell(cell, out var bonfireCell))
                 {
                     // I'm not next to a Bonfire...
+                    ecb.RemoveComponent<IsCookingMeat>(entity);
+                    ecb.AddComponent<IsDeciding>(entity);
+                    continue;
+                }
+
+                if (inventory.ValueRO.CurrentItem != InventoryItem.RawMeat)
+                {
+                    // I'm not holding an item for the Bonfire...
                     ecb.RemoveComponent<IsCookingMeat>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     continue;

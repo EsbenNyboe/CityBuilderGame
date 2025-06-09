@@ -210,7 +210,7 @@ namespace UnitAgency.Logic
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsEating());
                 }
-                else if (!HasCookedMeat(inventory) && isHungry && hasAccessToBonfire && hasInitiative)
+                else if (HasRawMeat(inventory) && isHungry && hasAccessToBonfire && hasInitiative)
                 {
                     if (IsAdjacentToBonfire(GridManager, cell, out _))
                     {
@@ -368,6 +368,11 @@ namespace UnitAgency.Logic
         private static bool HasLogOfWood(InventoryState inventory)
         {
             return inventory.CurrentItem == InventoryItem.LogOfWood;
+        }
+
+        private static bool HasRawMeat(InventoryState inventory)
+        {
+            return inventory.CurrentItem == InventoryItem.RawMeat;
         }
 
         private static bool HasCookedMeat(InventoryState inventory)

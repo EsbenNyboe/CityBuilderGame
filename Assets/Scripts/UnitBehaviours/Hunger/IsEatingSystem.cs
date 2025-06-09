@@ -52,8 +52,9 @@ namespace UnitBehaviours.Hunger
 
                 if (inventory.ValueRO.CurrentDurability > 0)
                 {
-                    moodHunger.ValueRW.Hunger -= hungerPerSecWhenEating;
-                    inventory.ValueRW.CurrentDurability -= foodPerSecWhenEating;
+                    moodHunger.ValueRW.Hunger += hungerPerSecWhenEating;
+                    inventory.ValueRW.CurrentDurability += foodPerSecWhenEating;
+                    inventory.ValueRW.CurrentItem = InventoryItem.None;
                 }
                 else
                 {
