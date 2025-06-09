@@ -235,13 +235,15 @@ namespace Grid
 
         #endregion
 
-        public bool TryGetNeighbouringBonfireCell(int2 center, out int2 neighbouringTreeCell)
+        public bool TryGetNeighbouringBonfireCell(int2 center, out int2 neighbouringBonfireCell)
         {
             var randomStartIndex = GetSemiRandomIndex(0, 8);
             var currentIndex = randomStartIndex + 1;
+            var checkedIndexes = 0;
 
-            while (currentIndex != randomStartIndex)
+            while (checkedIndexes < 8)
             {
+                checkedIndexes++;
                 currentIndex++;
                 if (currentIndex >= 8)
                 {
@@ -253,12 +255,12 @@ namespace Grid
                 if (IsPositionInsideGrid(neighbourCell) &&
                     TryGetBonfireEntity(neighbourCell, out _))
                 {
-                    neighbouringTreeCell = neighbourCell;
+                    neighbouringBonfireCell = neighbourCell;
                     return true;
                 }
             }
 
-            neighbouringTreeCell = -1;
+            neighbouringBonfireCell = -1;
             return false;
         }
     }

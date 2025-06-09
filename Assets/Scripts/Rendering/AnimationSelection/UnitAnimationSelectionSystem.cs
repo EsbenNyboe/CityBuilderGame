@@ -1,6 +1,7 @@
 using Inventory;
 using Rendering;
 using SystemGroups;
+using UnitBehaviours.Hunger;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.Talking;
@@ -59,6 +60,7 @@ namespace UnitBehaviours.UnitConfigurators
                          .Query<RefRW<UnitAnimationSelection>, RefRO<PathFollow>, RefRO<InventoryState>>()
                          .WithNone<IsSleeping>().WithNone<IsTalking>().WithNone<IsThrowingSpear>().WithAll<Villager>().WithNone<Baby>())
             {
+                // THIS WILL BE OVERWRITTEN BY PARTICULAR BEHAVIOURS
                 var hasItem = inventory.ValueRO.CurrentItem != InventoryItem.None;
                 if (pathFollow.ValueRO.IsMoving())
                 {
@@ -70,6 +72,15 @@ namespace UnitBehaviours.UnitConfigurators
                     unitAnimationSelection.ValueRW.SelectedAnimation =
                         hasItem ? WorldSpriteSheetEntryType.IdleHolding : WorldSpriteSheetEntryType.Idle;
                 }
+            }
+
+            foreach (var (unitAnimationSelection, isCookingMeat) in SystemAPI.Query<RefRW<UnitAnimationSelection>, RefRO<IsCookingMeat>>())
+            {
+                // TODO: Clean up this logic
+                var cookingProgress = isCookingMeat.ValueRO.CookingProgress;
+                unitAnimationSelection.ValueRW.SelectedAnimation = cookingProgress < 2f
+                    ? WorldSpriteSheetEntryType.VillagerCookMeat
+                    : WorldSpriteSheetEntryType.VillagerCookMeatDone;
             }
 
             foreach (var unitAnimationSelection in SystemAPI.Query<RefRW<UnitAnimationSelection>>()

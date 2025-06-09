@@ -209,7 +209,14 @@ namespace UnitAgency.Logic
                 else if (isHungry && hasAccessToBonfire && hasInitiative)
                 {
                     // TODO: Check if next to bonfire
-                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingBonfire());
+                    if (IsAdjacentToBonfire(GridManager, cell, out _))
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsCookingMeat());
+                    }
+                    else
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingBonfire());
+                    }
                 }
                 else if (!isBaby && hasAccessToLogContainer &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager,
@@ -364,6 +371,11 @@ namespace UnitAgency.Logic
         {
             var foundTree = gridManager.TryGetNeighbouringTreeCell(cell, out tree);
             return foundTree;
+        }
+
+        private static bool IsAdjacentToBonfire(GridManager gridManager, int2 cell, out int2 bonfire)
+        {
+            return gridManager.TryGetNeighbouringBonfireCell(cell, out bonfire);
         }
     }
 }
