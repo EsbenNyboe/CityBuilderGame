@@ -206,9 +206,8 @@ namespace UnitAgency.Logic
                         EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                     }
                 }
-                else if (isHungry && hasAccessToBonfire && hasInitiative)
+                else if (!HasCookedMeat(inventory) && isHungry && hasAccessToBonfire && hasInitiative)
                 {
-                    // TODO: Check if next to bonfire
                     if (IsAdjacentToBonfire(GridManager, cell, out _))
                     {
                         EcbParallelWriter.AddComponent(i, entity, new IsCookingMeat());
@@ -365,6 +364,11 @@ namespace UnitAgency.Logic
         private static bool HasLogOfWood(InventoryState inventory)
         {
             return inventory.CurrentItem == InventoryItem.LogOfWood;
+        }
+
+        private static bool HasCookedMeat(InventoryState inventory)
+        {
+            return inventory.CurrentItem == InventoryItem.CookedMeat;
         }
 
         private static bool IsAdjacentToTree(GridManager gridManager, int2 cell, out int2 tree)

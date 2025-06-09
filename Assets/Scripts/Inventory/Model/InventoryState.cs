@@ -17,6 +17,7 @@ namespace Inventory
     public enum InventoryItem
     {
         None,
-        LogOfWood
+        LogOfWood,
+        CookedMeat
     }
 }

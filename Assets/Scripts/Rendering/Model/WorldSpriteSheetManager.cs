@@ -46,6 +46,7 @@ namespace Rendering
             {
                 InventoryItem.None => WorldSpriteSheetEntryType.None,
                 InventoryItem.LogOfWood => WorldSpriteSheetEntryType.ItemWood,
+                InventoryItem.CookedMeat => WorldSpriteSheetEntryType.ItemMeatCooked,
                 _ => throw new ArgumentOutOfRangeException(nameof(inventoryItem), inventoryItem, null)
             };
 

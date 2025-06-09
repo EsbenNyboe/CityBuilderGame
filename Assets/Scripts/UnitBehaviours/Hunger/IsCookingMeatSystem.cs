@@ -1,5 +1,6 @@
 using CustomTimeCore;
 using Grid;
+using Inventory;
 using SpriteTransformNS;
 using SystemGroups;
 using UnitAgency.Data;
@@ -37,8 +38,8 @@ namespace UnitBehaviours.CookingMeat
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
 
-            foreach (var (isCookingMeat, spriteTransform, localTransform, entity) in SystemAPI
-                         .Query<RefRW<IsCookingMeat>, RefRW<SpriteTransform>, RefRO<LocalTransform>>()
+            foreach (var (isCookingMeat, inventory, spriteTransform, localTransform, entity) in SystemAPI
+                         .Query<RefRW<IsCookingMeat>, RefRW<InventoryState>, RefRW<SpriteTransform>, RefRO<LocalTransform>>()
                          .WithEntityAccess())
             {
                 var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
@@ -60,6 +61,7 @@ namespace UnitBehaviours.CookingMeat
                     // I finished cooking my meat!
                     ecb.RemoveComponent<IsCookingMeat>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
+                    inventory.ValueRW.CurrentItem = InventoryItem.CookedMeat;
                     continue;
                 }
 
