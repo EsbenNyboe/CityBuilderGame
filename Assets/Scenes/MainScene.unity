@@ -13243,6 +13243,12 @@ MonoBehaviour:
   - Identifier: 25
     FrameCount: 2
     FrameInterval: 0.11
+  - Identifier: 32
+    FrameCount: 2
+    FrameInterval: 0.7
+  - Identifier: 33
+    FrameCount: 2
+    FrameInterval: 0.11
   - Identifier: 26
     FrameCount: 3
     FrameInterval: 0.8

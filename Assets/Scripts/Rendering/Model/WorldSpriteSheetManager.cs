@@ -117,6 +117,8 @@ namespace Rendering
         VillagerCookMeatDone,
         ItemMeatCooked,
         VillagerEat,
-        BabyEat
+        BabyEat,
+        BabyIdleHolding,
+        BabyWalkHolding
     }
 }
