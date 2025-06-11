@@ -13199,7 +13199,7 @@ MonoBehaviour:
   DecompositionDuration: 5
   QuadrantSearchRange: 50
   ChildHoodDuration: 50
-  HungerPerSec: -0.2
+  HungerPerSec: -2
   DurabilityPerSec: -0.1
 --- !u!114 &2042965573
 MonoBehaviour:
