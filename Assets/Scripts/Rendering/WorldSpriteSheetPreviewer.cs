@@ -48,7 +48,8 @@ namespace Rendering
             {
                 AddAnimationInfo(singleton, singleton.Entries[(int)_previewAnimation], ref uvList, ref matrix4X4List);
 
-                if (_previewAnimation == WorldSpriteSheetEntryType.IdleHolding || _previewAnimation == WorldSpriteSheetEntryType.WalkHolding)
+                if (_previewAnimation is WorldSpriteSheetEntryType.IdleHolding or WorldSpriteSheetEntryType.WalkHolding
+                    or WorldSpriteSheetEntryType.BabyIdleHolding or WorldSpriteSheetEntryType.BabyWalkHolding)
                 {
                     var stackAmount = 0;
                     foreach (var previewInventoryItem in _previewInventoryItems)
