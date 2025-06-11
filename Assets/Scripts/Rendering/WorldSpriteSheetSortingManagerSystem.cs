@@ -37,7 +37,8 @@ namespace Rendering
             });
             _unitQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
                 ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<InventoryState>());
+                ComponentType.ReadOnly<InventoryState>(),
+                ComponentType.ReadOnly<UnitAnimationSelection>());
             _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<DroppedItem>(),
                 ComponentType.ReadOnly<LocalTransform>());
             _gridEntityQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
@@ -101,7 +102,7 @@ namespace Rendering
             var pivotsPerQuickSort = sortingTest.SectionsPerSplitJob - 1;
             GetDataToSort(ref state, worldSpriteSheetManager, yTop, yBottom, xLeft, xRight, out var inventoryRenderDataQueue,
                 out var storageRenderDataQueue,
-                pivots, pivotsPerQuickSort, sortingQueues, gridManager);
+                pivots, pivotsPerQuickSort, sortingQueues, gridManager, worldSpriteSheetManager.EdibleOffset);
 
             var storageItemCount = 0;
             for (var i = 0; i < storageRenderDataQueue.Count; i++)
@@ -256,7 +257,7 @@ namespace Rendering
             out NativeQueue<StorageRenderData> storageRenderDataQueue,
             NativeArray<float> pivots, int pivotCount,
             NativeArray<QueueContainer> sortingQueues,
-            GridManager gridManager)
+            GridManager gridManager, float2 edibleOffset)
         {
             inventoryRenderDataQueue = new NativeQueue<InventoryRenderData>(Allocator.TempJob);
             storageRenderDataQueue = new NativeQueue<StorageRenderData>(Allocator.TempJob);
@@ -270,7 +271,8 @@ namespace Rendering
                 InventoryRenderDataQueue = inventoryRenderDataQueue,
                 Pivots = pivots,
                 PivotCount = pivotCount,
-                SortingQueues = sortingQueues
+                SortingQueues = sortingQueues,
+                EdibleOffset = edibleOffset
             }.Run(_unitQuery);
 
             new CullJobOnDroppedItems
@@ -530,17 +532,20 @@ namespace Rendering
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<QueueContainer> SortingQueues;
 
+            [ReadOnly] public float2 EdibleOffset;
+
             public void Execute(in Entity entity, in LocalTransform localTransform, in WorldSpriteSheetState animationData,
-                in InventoryState inventory)
+                in InventoryState inventory, in UnitAnimationSelection unitAnimationSelection)
             {
-                var positionX = localTransform.Position.x;
+                var position = localTransform.Position;
+                var positionX = position.x;
                 if (!(positionX > XLeft) || !(positionX < XRight))
                 {
                     // Unit is not within horizontal view-bounds. No need to render.
                     return;
                 }
 
-                var positionY = localTransform.Position.y;
+                var positionY = position.y;
                 if (!(positionY > YBottom) || !(positionY < YTop))
                 {
                     // Unit is not within vertical view-bounds. No need to render.
@@ -550,7 +555,7 @@ namespace Rendering
                 var renderData = new RenderData
                 {
                     Entity = entity,
-                    Position = localTransform.Position,
+                    Position = position,
                     Matrix = animationData.Matrix,
                     Uv = animationData.Uv
                 };
@@ -559,11 +564,15 @@ namespace Rendering
 
                 if (inventory.CurrentItem != InventoryItem.None)
                 {
+                    var itemPosition = unitAnimationSelection.IsSitting()
+                        ? new float3(position.x + EdibleOffset.x, position.y + EdibleOffset.y, position.z)
+                        : position;
                     InventoryRenderDataQueue.Enqueue(new InventoryRenderData
                     {
                         Entity = entity,
                         Item = inventory.CurrentItem,
-                        Amount = 1
+                        Amount = 1,
+                        Matrix = Matrix4x4.TRS(itemPosition, Quaternion.identity, Vector3.one)
                     });
                 }
             }
@@ -805,10 +814,9 @@ namespace Rendering
                             w = RowScale * InventoryItemSpriteSheetRowLookup[(int)itemData.Item]
                         };
                         // TODO: Is it possible to modify the y-position of a matrix? (for stacking the inventory items)
-                        var inventoryMatrix = renderData.Matrix;
                         var itemRenderData = new RenderData
                         {
-                            Matrix = inventoryMatrix,
+                            Matrix = itemData.Matrix,
                             Uv = inventoryUv
                         };
 
@@ -944,6 +952,7 @@ namespace Rendering
             public Entity Entity;
             public InventoryItem Item;
             public int Amount;
+            public Matrix4x4 Matrix;
         }
 
         private struct StorageRenderData
