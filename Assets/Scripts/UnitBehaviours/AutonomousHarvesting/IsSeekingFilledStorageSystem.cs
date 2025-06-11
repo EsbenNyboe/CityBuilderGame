@@ -69,7 +69,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 if (cell.Equals(closestStorageEntrance))
                 {
                     // Try retrieve item from storage
-                    InventoryHelpers.SendRequestForRetrieveItem(ecb, entity, closestStorageCell);
+                    InventoryHelpers.SendRequestForRetrieveItem(ecb, entity, closestStorageCell, InventoryItem.LogOfWood);
                     continue;
                 }
 

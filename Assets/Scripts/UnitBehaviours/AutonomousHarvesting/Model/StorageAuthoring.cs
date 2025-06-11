@@ -1,4 +1,5 @@
 using GridEntityNS;
+using Inventory;
 using Rendering;
 using UnitBehaviours.AutonomousHarvesting.Model;
 using UnitBehaviours.Targeting.Core;
@@ -17,7 +18,15 @@ namespace UnitBehaviours.AutonomousHarvesting
             public override void Bake(StorageAuthoring authoring)
             {
                 var entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
-                AddComponent<Storage>(entity);
+                var storage = AddBuffer<Storage>(entity);
+                for (var i = 0; i < 12; i++)
+                {
+                    storage.Add(new Storage
+                    {
+                        Item = InventoryItem.None
+                    });
+                }
+
                 AddComponent<GridEntity>(entity);
                 AddComponent(entity, new Constructable
                 {
@@ -34,7 +43,9 @@ namespace UnitBehaviours.AutonomousHarvesting
         }
     }
 
-    public struct Storage : IComponentData
+    [InternalBufferCapacity(12)]
+    public struct Storage : IBufferElementData
     {
+        public InventoryItem Item;
     }
 }

@@ -52,25 +52,27 @@ namespace Inventory
             });
         }
 
-        public static void SendRequestForStoreItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
+        public static void SendRequestForStoreItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell, InventoryItem itemType)
         {
             var requestEntity = ecb.CreateEntity();
             ecb.AddComponent(requestEntity, new StorageRequest
             {
                 GridCell = targetCell,
-                RequestAmount = -1,
-                RequesterEntity = sourceEntity
+                RequestType = StorageRequestType.Deposit,
+                RequesterEntity = sourceEntity,
+                ItemType = itemType
             });
         }
 
-        public static void SendRequestForRetrieveItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
+        public static void SendRequestForRetrieveItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell, InventoryItem itemType)
         {
             var requestEntity = ecb.CreateEntity();
             ecb.AddComponent(requestEntity, new StorageRequest
             {
                 GridCell = targetCell,
-                RequestAmount = 1,
-                RequesterEntity = sourceEntity
+                RequestType = StorageRequestType.Withdraw,
+                RequesterEntity = sourceEntity,
+                ItemType = itemType
             });
         }
     }

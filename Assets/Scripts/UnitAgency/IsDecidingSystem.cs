@@ -236,7 +236,7 @@ namespace UnitAgency.Logic
                     InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
                     EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                 }
-                else if (!isBaby && hasAccessToLogContainer &&
+                else if (!isBaby && hasAccessToStorageWithSpace &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _) &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedItemQuadrantMap, GridManager,
