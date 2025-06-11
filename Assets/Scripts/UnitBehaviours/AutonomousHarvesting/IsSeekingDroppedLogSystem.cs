@@ -41,7 +41,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 var position = localTransform.ValueRO.Position;
                 if (isSeekingDroppedLog.ValueRO.HasStartedMoving)
                 {
-                    if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedItemQuadrantMap, gridManager,
+                    if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedLogQuadrantMap, gridManager,
                             unitBehaviourManager.QuadrantSearchRange, position,
                             entity, out var droppedItemToPickup, out _))
                     {
@@ -62,7 +62,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 isSeekingDroppedLog.ValueRW.HasStartedMoving = true;
 
-                if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedItemQuadrantMap, gridManager, 9, position,
+                if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedLogQuadrantMap, gridManager, 9, position,
                         entity, out var droppedItemToSeek, out _))
                 {
                     PathHelpers.TrySetPath(ecb, gridManager, entity, GridHelpers.GetXY(position),

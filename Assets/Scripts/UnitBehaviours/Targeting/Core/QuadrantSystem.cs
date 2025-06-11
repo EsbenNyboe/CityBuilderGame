@@ -20,7 +20,9 @@ namespace UnitBehaviours.Targeting.Core
     {
         public NativeParallelMultiHashMap<int, QuadrantData> VillagerQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> BoarQuadrantMap;
-        public NativeParallelMultiHashMap<int, QuadrantData> DroppedItemQuadrantMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> DroppedLogQuadrantMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> DroppedRawMeatQuadrantMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> DroppedCookedMeatQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> StorageQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> ConstructableQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> BedQuadrantMap;
@@ -87,7 +89,13 @@ namespace UnitBehaviours.Targeting.Core
                 BoarQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _boarQuery.CalculateEntityCount(),
                     Allocator.Persistent),
-                DroppedItemQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                DroppedLogQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                    _droppedItemQuery.CalculateEntityCount(),
+                    Allocator.Persistent),
+                DroppedRawMeatQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                    _droppedItemQuery.CalculateEntityCount(),
+                    Allocator.Persistent),
+                DroppedCookedMeatQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _droppedItemQuery.CalculateEntityCount(),
                     Allocator.Persistent),
                 StorageQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
@@ -111,7 +119,9 @@ namespace UnitBehaviours.Targeting.Core
             var quadrantDataManager = SystemAPI.GetComponent<QuadrantDataManager>(state.SystemHandle);
             quadrantDataManager.VillagerQuadrantMap.Dispose();
             quadrantDataManager.BoarQuadrantMap.Dispose();
-            quadrantDataManager.DroppedItemQuadrantMap.Dispose();
+            quadrantDataManager.DroppedLogQuadrantMap.Dispose();
+            quadrantDataManager.DroppedRawMeatQuadrantMap.Dispose();
+            quadrantDataManager.DroppedCookedMeatQuadrantMap.Dispose();
             quadrantDataManager.StorageQuadrantMap.Dispose();
             quadrantDataManager.ConstructableQuadrantMap.Dispose();
             quadrantDataManager.BedQuadrantMap.Dispose();
@@ -132,7 +142,12 @@ namespace UnitBehaviours.Targeting.Core
 
             BuildQuadrantMap(ref state, gridManager, _villagerQuery, quadrantDataManager.VillagerQuadrantMap);
             BuildQuadrantMap(ref state, gridManager, _boarQuery, quadrantDataManager.BoarQuadrantMap);
-            BuildQuadrantMap(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedItemQuadrantMap);
+            BuildQuadrantMapOfDroppedItem(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedLogQuadrantMap,
+                InventoryItem.LogOfWood);
+            BuildQuadrantMapOfDroppedItem(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedRawMeatQuadrantMap,
+                InventoryItem.RawMeat);
+            BuildQuadrantMapOfDroppedItem(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedCookedMeatQuadrantMap,
+                InventoryItem.CookedMeat);
             BuildQuadrantMap(ref state, gridManager, _storageQuery, quadrantDataManager.StorageQuadrantMap, true);
             BuildQuadrantMap(ref state, gridManager, _constructableQuery, quadrantDataManager.ConstructableQuadrantMap, true);
             BuildQuadrantMap(ref state, gridManager, _bedQuery, quadrantDataManager.BedQuadrantMap);
@@ -159,6 +174,26 @@ namespace UnitBehaviours.Targeting.Core
                 QuadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(),
                 GridManager = gridManager,
                 NeedsAdjacentAccess = needsAdjacentAcces
+            }.ScheduleParallel(entityQuery, state.Dependency);
+        }
+
+        [BurstCompile]
+        private void BuildQuadrantMapOfDroppedItem(ref SystemState state,
+            GridManager gridManager,
+            EntityQuery entityQuery,
+            NativeParallelMultiHashMap<int, QuadrantData> quadrantMultiHashMap, InventoryItem itemType)
+        {
+            quadrantMultiHashMap.Clear();
+            if (entityQuery.CalculateEntityCount() > quadrantMultiHashMap.Capacity)
+            {
+                quadrantMultiHashMap.Capacity = entityQuery.CalculateEntityCount();
+            }
+
+            state.Dependency = new SetDroppedItemQuadrantDataHashMapJob
+            {
+                QuadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(),
+                GridManager = gridManager,
+                ItemType = itemType
             }.ScheduleParallel(entityQuery, state.Dependency);
         }
 
@@ -214,6 +249,40 @@ namespace UnitBehaviours.Targeting.Core
                     : GridManager.IsWalkable(gridIndex)
                         ? GridManager.WalkableGrid[gridIndex].Section
                         : -1;
+
+                if (section > -1)
+                {
+                    QuadrantMultiHashMap.Add(hashMapKey, new QuadrantData
+                    {
+                        Entity = entity,
+                        Position = position,
+                        Section = section
+                    });
+                }
+            }
+        }
+
+        [BurstCompile]
+        private partial struct SetDroppedItemQuadrantDataHashMapJob : IJobEntity
+        {
+            public NativeParallelMultiHashMap<int, QuadrantData>.ParallelWriter QuadrantMultiHashMap;
+            [ReadOnly] public GridManager GridManager;
+            [ReadOnly] public InventoryItem ItemType;
+
+            public void Execute(in Entity entity, in DroppedItem droppedItem, in LocalTransform localTransform)
+            {
+                if (droppedItem.Item != ItemType)
+                {
+                    return;
+                }
+
+                var position = localTransform.Position;
+                var gridIndex = GridManager.GetIndex(position);
+                var hashMapKey = GetHashMapKeyFromPosition(position);
+
+                var section = GridManager.IsWalkable(gridIndex)
+                    ? GridManager.WalkableGrid[gridIndex].Section
+                    : -1;
 
                 if (section > -1)
                 {

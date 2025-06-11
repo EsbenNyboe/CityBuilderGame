@@ -239,7 +239,7 @@ namespace UnitAgency.Logic
                 else if (!isBaby && hasAccessToStorageWithSpace &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _) &&
-                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedItemQuadrantMap, GridManager,
+                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedLogQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedLog());
