@@ -1,6 +1,7 @@
 using Grid;
 using GridEntityNS;
 using Inventory;
+using SpriteTransformNS;
 using SystemGroups;
 using Unity.Burst;
 using Unity.Collections;
@@ -38,7 +39,8 @@ namespace Rendering
             _unitQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
                 ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<InventoryState>(),
-                ComponentType.ReadOnly<UnitAnimationSelection>());
+                ComponentType.ReadOnly<UnitAnimationSelection>(),
+                ComponentType.ReadOnly<SpriteTransform>());
             _droppedItemQuery = state.GetEntityQuery(ComponentType.ReadOnly<DroppedItem>(),
                 ComponentType.ReadOnly<LocalTransform>());
             _gridEntityQuery = state.GetEntityQuery(ComponentType.ReadOnly<WorldSpriteSheetState>(),
@@ -535,7 +537,7 @@ namespace Rendering
             [ReadOnly] public float2 EdibleOffset;
 
             public void Execute(in Entity entity, in LocalTransform localTransform, in WorldSpriteSheetState animationData,
-                in InventoryState inventory, in UnitAnimationSelection unitAnimationSelection)
+                in InventoryState inventory, in UnitAnimationSelection unitAnimationSelection, in SpriteTransform spriteTransform)
             {
                 var position = localTransform.Position;
                 var positionX = position.x;
@@ -564,15 +566,17 @@ namespace Rendering
 
                 if (inventory.CurrentItem != InventoryItem.None)
                 {
+                    var isFacingLeft = math.Euler(spriteTransform.Rotation).y < 0;
+                    var edibleOffsetX = isFacingLeft ? -EdibleOffset.x : EdibleOffset.x;
                     var itemPosition = unitAnimationSelection.IsSitting()
-                        ? new float3(position.x + EdibleOffset.x, position.y + EdibleOffset.y, position.z)
+                        ? new float3(position.x + edibleOffsetX, position.y + EdibleOffset.y, position.z)
                         : position;
                     InventoryRenderDataQueue.Enqueue(new InventoryRenderData
                     {
                         Entity = entity,
                         Item = inventory.CurrentItem,
                         Amount = 1,
-                        Matrix = Matrix4x4.TRS(itemPosition, Quaternion.identity, Vector3.one)
+                        Matrix = Matrix4x4.TRS(itemPosition, spriteTransform.Rotation, Vector3.one)
                     });
                 }
             }
