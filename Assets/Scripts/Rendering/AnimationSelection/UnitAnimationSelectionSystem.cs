@@ -34,15 +34,13 @@ namespace UnitBehaviours.UnitConfigurators
                 var hasItem = inventory.ValueRO.CurrentItem != InventoryItem.None;
                 if (pathFollow.ValueRO.IsMoving())
                 {
-                    // TODO: Baby animation for WalkHolding
                     unitAnimationSelection.ValueRW.SelectedAnimation =
-                        hasItem ? WorldSpriteSheetEntryType.WalkHolding : WorldSpriteSheetEntryType.BabyWalk;
+                        hasItem ? WorldSpriteSheetEntryType.BabyWalkHolding : WorldSpriteSheetEntryType.BabyWalk;
                 }
                 else
                 {
-                    // TODO: Baby animation for IdleHolding
                     unitAnimationSelection.ValueRW.SelectedAnimation =
-                        hasItem ? WorldSpriteSheetEntryType.IdleHolding : WorldSpriteSheetEntryType.BabyIdle;
+                        hasItem ? WorldSpriteSheetEntryType.BabyIdleHolding : WorldSpriteSheetEntryType.BabyIdle;
                 }
             }
 
