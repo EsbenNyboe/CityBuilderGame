@@ -568,9 +568,10 @@ namespace Rendering
                 {
                     var isFacingLeft = math.Euler(spriteTransform.Rotation).y < 0;
                     var edibleOffsetX = isFacingLeft ? -EdibleOffset.x : EdibleOffset.x;
+                    var unitRenderPosition = position + spriteTransform.Position;
                     var itemPosition = unitAnimationSelection.IsSitting()
-                        ? new float3(position.x + edibleOffsetX, position.y + EdibleOffset.y, position.z)
-                        : position;
+                        ? new float3(unitRenderPosition.x + edibleOffsetX, unitRenderPosition.y + EdibleOffset.y, unitRenderPosition.z)
+                        : unitRenderPosition;
                     InventoryRenderDataQueue.Enqueue(new InventoryRenderData
                     {
                         Entity = entity,
