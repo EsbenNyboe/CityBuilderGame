@@ -17,6 +17,8 @@ namespace Rendering
         public float RowScale;
 
         public float2 EdibleOffset;
+        public float BabyOffsetStanding;
+        public float BabyOffsetSitting;
 
         public readonly Vector4 GetUv(WorldSpriteSheetEntryType type, int frame = 0)
         {

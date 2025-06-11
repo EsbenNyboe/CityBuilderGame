@@ -1,4 +1,3 @@
-using System;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -21,6 +20,8 @@ namespace Rendering
         [HideInInspector] public bool IsDirty = true;
 
         public float2 EdibleOffset;
+        public float BabyOffsetStanding;
+        public float BabyOffsetSitting;
 
         private void Awake()
         {

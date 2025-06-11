@@ -93,6 +93,8 @@ namespace Rendering
             }
 
             singleton.EdibleOffset = config.EdibleOffset;
+            singleton.BabyOffsetStanding = config.BabyOffsetStanding;
+            singleton.BabyOffsetSitting = config.BabyOffsetSitting;
 
             SystemAPI.SetSingleton(singleton);
         }

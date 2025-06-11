@@ -104,7 +104,7 @@ namespace Rendering
             var pivotsPerQuickSort = sortingTest.SectionsPerSplitJob - 1;
             GetDataToSort(ref state, worldSpriteSheetManager, yTop, yBottom, xLeft, xRight, out var inventoryRenderDataQueue,
                 out var storageRenderDataQueue,
-                pivots, pivotsPerQuickSort, sortingQueues, gridManager, worldSpriteSheetManager.EdibleOffset);
+                pivots, pivotsPerQuickSort, sortingQueues, gridManager);
 
             var storageItemCount = 0;
             for (var i = 0; i < storageRenderDataQueue.Count; i++)
@@ -259,7 +259,7 @@ namespace Rendering
             out NativeQueue<StorageRenderData> storageRenderDataQueue,
             NativeArray<float> pivots, int pivotCount,
             NativeArray<QueueContainer> sortingQueues,
-            GridManager gridManager, float2 edibleOffset)
+            GridManager gridManager)
         {
             inventoryRenderDataQueue = new NativeQueue<InventoryRenderData>(Allocator.TempJob);
             storageRenderDataQueue = new NativeQueue<StorageRenderData>(Allocator.TempJob);
@@ -274,7 +274,7 @@ namespace Rendering
                 Pivots = pivots,
                 PivotCount = pivotCount,
                 SortingQueues = sortingQueues,
-                EdibleOffset = edibleOffset
+                WorldSpriteSheetManager = worldSpriteSheetManager
             }.Run(_unitQuery);
 
             new CullJobOnDroppedItems
@@ -534,7 +534,8 @@ namespace Rendering
             [NativeDisableContainerSafetyRestriction]
             public NativeArray<QueueContainer> SortingQueues;
 
-            [ReadOnly] public float2 EdibleOffset;
+            [ReadOnly] [NativeDisableContainerSafetyRestriction]
+            public WorldSpriteSheetManager WorldSpriteSheetManager;
 
             public void Execute(in Entity entity, in LocalTransform localTransform, in WorldSpriteSheetState animationData,
                 in InventoryState inventory, in UnitAnimationSelection unitAnimationSelection, in SpriteTransform spriteTransform)
@@ -567,11 +568,26 @@ namespace Rendering
                 if (inventory.CurrentItem != InventoryItem.None)
                 {
                     var isFacingLeft = math.Euler(spriteTransform.Rotation).y < 0;
-                    var edibleOffsetX = isFacingLeft ? -EdibleOffset.x : EdibleOffset.x;
                     var unitRenderPosition = position + spriteTransform.Position;
-                    var itemPosition = unitAnimationSelection.IsSitting()
-                        ? new float3(unitRenderPosition.x + edibleOffsetX, unitRenderPosition.y + EdibleOffset.y, unitRenderPosition.z)
-                        : unitRenderPosition;
+                    var itemPosition = unitRenderPosition;
+                    var edibleOffset = WorldSpriteSheetManager.EdibleOffset;
+
+                    if (unitAnimationSelection.IsEating())
+                    {
+                        itemPosition.x += isFacingLeft ? -edibleOffset.x : edibleOffset.x;
+                        itemPosition.y += edibleOffset.y;
+                    }
+
+                    if (unitAnimationSelection.CurrentAnimation is WorldSpriteSheetEntryType.BabyIdleHolding
+                        or WorldSpriteSheetEntryType.BabyWalkHolding)
+                    {
+                        itemPosition.y += WorldSpriteSheetManager.BabyOffsetStanding;
+                    }
+                    else if (unitAnimationSelection.CurrentAnimation is WorldSpriteSheetEntryType.BabyEat)
+                    {
+                        itemPosition.y += WorldSpriteSheetManager.BabyOffsetSitting;
+                    }
+
                     InventoryRenderDataQueue.Enqueue(new InventoryRenderData
                     {
                         Entity = entity,
