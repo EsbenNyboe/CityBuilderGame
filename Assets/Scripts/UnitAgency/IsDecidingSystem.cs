@@ -182,7 +182,7 @@ namespace UnitAgency.Logic
                         MinTimeOfAction = ElapsedTime * TimeScale + randomDelay * TimeScale
                     });
 
-                    if (HasLogOfWood(inventory))
+                    if (HasItem(inventory))
                     {
                         InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
                     }
@@ -230,6 +230,11 @@ namespace UnitAgency.Logic
                     {
                         EcbParallelWriter.AddComponent(i, entity, new IsSeekingBonfire());
                     }
+                }
+                else if (HasItem(inventory))
+                {
+                    InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
+                    EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                 }
                 else if (!isBaby && hasAccessToLogContainer &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager,
@@ -373,6 +378,11 @@ namespace UnitAgency.Logic
 
             annoyingDude = Entity.Null;
             return false;
+        }
+
+        private static bool HasItem(InventoryState inventory)
+        {
+            return inventory.CurrentItem != InventoryItem.None;
         }
 
         private static bool HasLogOfWood(InventoryState inventory)
