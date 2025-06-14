@@ -135,8 +135,9 @@ namespace UnitAgency.Logic
                     itemQuadrantsToSearch,
                     position,
                     entity, out var closestConstructable, out _);
-                var hasAccessToStorageWithItems = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
-                    GridManager, itemQuadrantsToSearch, position);
+                // TODO: Only select storage which has logs
+                var hasAccessToStorageWithLogs = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position, InventoryItem.LogOfWood);
                 var hasAccessToStorageWithSpace = QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.StorageQuadrantMap,
                     GridManager, itemQuadrantsToSearch, position);
                 var hasAccessToLogContainer = hasAccessToConstructable || hasAccessToStorageWithSpace;
@@ -233,16 +234,26 @@ namespace UnitAgency.Logic
                 }
                 else if (HasItem(inventory))
                 {
-                    InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
-                    EcbParallelWriter.AddComponent(i, entity, new IsIdle());
+                    var isNextToStorage = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager, 1, position,
+                        entity, out _, out var distance) && distance < 2;
+
+                    if (hasAccessToStorageWithSpace && !isNextToStorage) // HACK
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingRoomyStorage());
+                    }
+                    else
+                    {
+                        InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
+                        EcbParallelWriter.AddComponent(i, entity, new IsIdle());
+                    }
                 }
-                else if (!isBaby && hasAccessToStorageWithSpace &&
+                else if (!isBaby && hasAccessToLogContainer &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _) &&
                          QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedLogQuadrantMap, GridManager,
                              itemQuadrantsToSearch, position, entity, out _, out _))
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedLog());
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem());
                 }
                 else if (isMoving)
                 {
@@ -323,7 +334,7 @@ namespace UnitAgency.Logic
                         });
                     }
                 }
-                else if (!isBaby && hasAccessToConstructable && hasAccessToStorageWithItems)
+                else if (!isBaby && hasAccessToConstructable && hasAccessToStorageWithLogs)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage());
                 }

@@ -695,6 +695,7 @@ namespace Rendering
 
                 QuickSortToQueues(Pivots, 0, PivotCount, SortingQueues, 0, renderData);
 
+                // TODO: Replace with buffer-read instead of grid-read
                 var storageCount = GridManager.GetStorageItemCount(position);
 
                 if (storageCount > 0)

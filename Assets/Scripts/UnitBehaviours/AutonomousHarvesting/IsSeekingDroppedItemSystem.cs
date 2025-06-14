@@ -1,3 +1,4 @@
+using System;
 using Grid;
 using Inventory;
 using UnitAgency.Data;
@@ -11,7 +12,7 @@ using Unity.Transforms;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
-    public partial struct IsSeekingDroppedLogSystem : ISystem
+    public partial struct IsSeekingDroppedItemSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -29,8 +30,8 @@ namespace UnitBehaviours.AutonomousHarvesting
             var quadrantDataManager = SystemAPI.GetSingleton<QuadrantDataManager>();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
-            foreach (var (isSeekingDroppedLog, localTransform, pathFollow, inventory, entity) in
-                     SystemAPI.Query<RefRW<IsSeekingDroppedLog>, RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<InventoryState>>()
+            foreach (var (isSeekingDroppedItem, localTransform, pathFollow, inventory, entity) in
+                     SystemAPI.Query<RefRW<IsSeekingDroppedItem>, RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<InventoryState>>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
@@ -39,9 +40,40 @@ namespace UnitBehaviours.AutonomousHarvesting
                 }
 
                 var position = localTransform.ValueRO.Position;
-                if (isSeekingDroppedLog.ValueRO.HasStartedMoving)
+                if (isSeekingDroppedItem.ValueRO.ItemType == InventoryItem.None)
                 {
-                    if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedLogQuadrantMap, gridManager,
+                    if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedCookedMeatQuadrantMap, gridManager,
+                            unitBehaviourManager.QuadrantSearchRange, position,
+                            entity, out _, out _))
+                    {
+                        isSeekingDroppedItem.ValueRW.ItemType = InventoryItem.CookedMeat;
+                    }
+                    else if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedRawMeatQuadrantMap, gridManager,
+                                 unitBehaviourManager.QuadrantSearchRange, position,
+                                 entity, out _, out _))
+                    {
+                        isSeekingDroppedItem.ValueRW.ItemType = InventoryItem.RawMeat;
+                    }
+                    else if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedLogQuadrantMap, gridManager,
+                                 unitBehaviourManager.QuadrantSearchRange, position,
+                                 entity, out _, out _))
+                    {
+                        isSeekingDroppedItem.ValueRW.ItemType = InventoryItem.LogOfWood;
+                    }
+                }
+
+                var droppedItemQuadrantMap = isSeekingDroppedItem.ValueRO.ItemType switch
+                {
+                    InventoryItem.None => throw new ArgumentOutOfRangeException(),
+                    InventoryItem.LogOfWood => quadrantDataManager.DroppedLogQuadrantMap,
+                    InventoryItem.RawMeat =>  quadrantDataManager.DroppedRawMeatQuadrantMap,
+                    InventoryItem.CookedMeat => quadrantDataManager.DroppedCookedMeatQuadrantMap,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+
+                if (isSeekingDroppedItem.ValueRO.HasStartedMoving)
+                {
+                    if (QuadrantSystem.TryFindClosestEntity(droppedItemQuadrantMap, gridManager,
                             unitBehaviourManager.QuadrantSearchRange, position,
                             entity, out var droppedItemToPickup, out _))
                     {
@@ -55,14 +87,14 @@ namespace UnitBehaviours.AutonomousHarvesting
                         }
                     }
 
-                    ecb.RemoveComponent<IsSeekingDroppedLog>(entity);
+                    ecb.RemoveComponent<IsSeekingDroppedItem>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     continue;
                 }
 
-                isSeekingDroppedLog.ValueRW.HasStartedMoving = true;
+                isSeekingDroppedItem.ValueRW.HasStartedMoving = true;
 
-                if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedLogQuadrantMap, gridManager, 9, position,
+                if (QuadrantSystem.TryFindClosestEntity(droppedItemQuadrantMap, gridManager, 9, position,
                         entity, out var droppedItemToSeek, out _))
                 {
                     PathHelpers.TrySetPath(ecb, gridManager, entity, GridHelpers.GetXY(position),

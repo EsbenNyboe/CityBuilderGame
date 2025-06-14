@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CodeMonkey.Utils;
 using Grid;
+using Inventory;
 using Rendering;
 using SystemGroups;
 using UnitBehaviours.UnitConfigurators;
@@ -325,7 +326,9 @@ namespace UnitSpawn.Spawning
             {
                 gridManager.SetIsWalkable(cell, false);
                 gridManager.SetDefaultStorageCapacity(cell);
-                gridManager.SetStorageCount(cell, 0);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.LogOfWood);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.RawMeat);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.CookedMeat);
 
                 SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.Storage,
                     WorldSpriteSheetEntryType.Storage);
@@ -341,7 +344,9 @@ namespace UnitSpawn.Spawning
                 gridManager.SetIsWalkable(cell, true);
                 gridManager.RemoveGridEntity(cell);
                 gridManager.SetStorageCapacity(cell, 0);
-                gridManager.SetStorageCount(cell, 0);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.LogOfWood);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.RawMeat);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.CookedMeat);
 
                 ecb.DestroyEntity(entity);
             }

@@ -350,8 +350,8 @@ namespace UnitBehaviours.Targeting.Core
             return false;
         }
 
-        public static bool TryFindNonEmptyStorageInSection(NativeParallelMultiHashMap<int, QuadrantData> nmhm,
-            GridManager gridManager, int quadrantsToSearch, float3 position)
+        public static bool TryFindNonEmptyStorageInSection(  NativeParallelMultiHashMap<int, QuadrantData> nmhm,
+            GridManager gridManager, int quadrantsToSearch, float3 position, InventoryItem itemType)
         {
             PrepareSearch(gridManager, position, out var section, out var key, out var closestTargetDistance, out _);
             for (var i = 0; i < quadrantsToSearch; i++)
@@ -361,7 +361,7 @@ namespace UnitBehaviours.Targeting.Core
                     do
                     {
                         if (TryGetClosestDistance(position, quadrantData, closestTargetDistance, section, out _) &&
-                            IsNonEmptyStorage(gridManager, quadrantData))
+                            IsNonEmptyStorage(gridManager, quadrantData, itemType))
                         {
                             return true;
                         }
@@ -504,9 +504,9 @@ namespace UnitBehaviours.Targeting.Core
             return gridManager.GetStorageItemCount(quadrantData.Position) < gridManager.GetStorageItemCapacity(quadrantData.Position);
         }
 
-        private static bool IsNonEmptyStorage(GridManager gridManager, QuadrantData quadrantData)
+        private static bool IsNonEmptyStorage( GridManager gridManager, QuadrantData quadrantData, InventoryItem itemType = InventoryItem.None)
         {
-            return gridManager.GetStorageItemCount(quadrantData.Position) > 0;
+            return gridManager.GetStorageItemCount(quadrantData.Position, itemType) > 0;
         }
 
         private static bool IsFriend(NativeParallelHashMap<Entity, float> relationships, QuadrantData quadrantData)

@@ -21,17 +21,45 @@ namespace Storage
             foreach (var (storage, localTransform) in SystemAPI
                          .Query<DynamicBuffer<UnitBehaviours.AutonomousHarvesting.Storage>, RefRO<LocalTransform>>())
             {
-                var storageCount = 0;
+                var storageCountLog = 0;
+                var storageCountRawMeat = 0;
+                var storageCountCookedMeat = 0;
                 for (var i = 0; i < storage.Length; i++)
                 {
-                    if (storage[i].Item != InventoryItem.None)
+                    if (storage[i].Item == InventoryItem.None)
                     {
-                        storageCount++;
+                        continue;
+                    }
+
+                    if (storage[i].Item == InventoryItem.LogOfWood)
+                    {
+                        storageCountLog++;
+                    }
+                    else if (storage[i].Item == InventoryItem.RawMeat)
+                    {
+                        storageCountRawMeat++;
+                    }
+                    else if (storage[i].Item == InventoryItem.CookedMeat)
+                    {
+                        storageCountCookedMeat++;
                     }
                 }
 
                 var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
-                gridManager.SetStorageCount(cell, storageCount);
+                if (storageCountLog > 0)
+                {
+                    gridManager.SetStorageCount(cell, storageCountLog, InventoryItem.LogOfWood);
+                }
+
+                if (storageCountRawMeat > 0)
+                {
+                    gridManager.SetStorageCount(cell, storageCountLog, InventoryItem.RawMeat);
+                }
+
+                if (storageCountCookedMeat > 0)
+                {
+                    gridManager.SetStorageCount(cell, storageCountLog, InventoryItem.CookedMeat);
+                }
             }
 
             SystemAPI.SetSingleton(gridManager);

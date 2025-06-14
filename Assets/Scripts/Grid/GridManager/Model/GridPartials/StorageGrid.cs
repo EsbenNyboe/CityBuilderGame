@@ -1,3 +1,5 @@
+using System;
+using Inventory;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -6,23 +8,53 @@ namespace Grid
     public struct StorageCell
     {
         public int ItemCapacity;
-        public int ItemCount;
+        public int ItemCountLog;
+        public int ItemCountRawMeat;
+        public int ItemCountCookedMeat;
+
+        public readonly int ItemCount()
+        {
+            return ItemCountLog + ItemCountRawMeat + ItemCountCookedMeat;
+        }
     }
 
     public partial struct GridManager
     {
         #region StorageGrid Core
 
-        public int GetStorageItemCount(int i)
+        private int GetStorageItemCount(int i, InventoryItem item)
         {
-            return StorageGrid[i].ItemCount;
+            return item switch
+            {
+                InventoryItem.None => StorageGrid[i].ItemCount(),
+                InventoryItem.LogOfWood => StorageGrid[i].ItemCountLog,
+                InventoryItem.RawMeat => StorageGrid[i].ItemCountRawMeat,
+                InventoryItem.CookedMeat => StorageGrid[i].ItemCountCookedMeat,
+                _ => throw new ArgumentOutOfRangeException(nameof(item), item, null)
+            };
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetStorageCount(int i, int itemCount)
+        private void SetStorageCount(int i, int itemCount, InventoryItem item)
         {
             var storageCell = StorageGrid[i];
-            storageCell.ItemCount = itemCount;
+            switch (item)
+            {
+                case InventoryItem.None:
+                    throw new ArgumentOutOfRangeException(nameof(item), item, null);
+                case InventoryItem.LogOfWood:
+                    storageCell.ItemCountLog = itemCount;
+                    break;
+                case InventoryItem.RawMeat:
+                    storageCell.ItemCountRawMeat = itemCount;
+                    break;
+                case InventoryItem.CookedMeat:
+                    storageCell.ItemCountCookedMeat = itemCount;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(item), item, null);
+            }
+
             StorageGrid[i] = storageCell;
         }
 
@@ -43,40 +75,40 @@ namespace Grid
 
         #region ItemCount
 
-        public int GetStorageItemCount(float3 position)
+        public int GetStorageItemCount(float3 position, InventoryItem item = InventoryItem.None)
         {
             GridHelpers.GetXY(position, out var x, out var y);
-            return GetStorageItemCount(x, y);
+            return GetStorageItemCount(x, y, item);
         }
 
-        public int GetStorageItemCount(int2 cell)
+        public int GetStorageItemCount(int2 cell, InventoryItem item = InventoryItem.None)
         {
-            return GetStorageItemCount(cell.x, cell.y);
+            return GetStorageItemCount(cell.x, cell.y, item);
         }
 
-        public int GetStorageItemCount(int x, int y)
+        private int GetStorageItemCount(int x, int y, InventoryItem item)
         {
-            return GetStorageItemCount(GetIndex(x, y));
+            return GetStorageItemCount(GetIndex(x, y), item);
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetStorageCount(Vector3 position, int itemCount)
+        public void SetStorageCount(Vector3 position, int itemCount, InventoryItem item)
         {
             GridHelpers.GetXY(position, out var x, out var y);
-            SetStorageCount(x, y, itemCount);
+            SetStorageCount(x, y, itemCount, item);
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetStorageCount(int2 cell, int itemCount)
+        public void SetStorageCount(int2 cell, int itemCount, InventoryItem item)
         {
-            SetStorageCount(cell.x, cell.y, itemCount);
+            SetStorageCount(cell.x, cell.y, itemCount, item);
         }
 
         // Note: Remember to call SetComponent after this method
-        public void SetStorageCount(int x, int y, int itemCount)
+        private void SetStorageCount(int x, int y, int itemCount, InventoryItem item)
         {
             var gridIndex = GetIndex(x, y);
-            SetStorageCount(gridIndex, itemCount);
+            SetStorageCount(gridIndex, itemCount, item);
         }
 
         #endregion
