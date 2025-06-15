@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxHealth: 100
-  _startItem: 2
+  _startItem: 0
   _sleepiness: 0
   _restlessness: 1
   _loneliness: 0

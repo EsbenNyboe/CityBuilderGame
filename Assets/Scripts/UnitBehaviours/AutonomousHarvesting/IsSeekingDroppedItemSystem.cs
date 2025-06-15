@@ -112,7 +112,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 isSeekingDroppedItem.ValueRW.HasStartedMoving = true;
 
-                if (QuadrantSystem.TryFindClosestEntity(droppedItemQuadrantMap, gridManager, 9, position,
+                if (QuadrantSystem.TryFindClosestEntity(droppedItemQuadrantMap, gridManager, unitBehaviourManager.QuadrantSearchRange, position,
                         entity, out var droppedItemToSeek, out _))
                 {
                     PathHelpers.TrySetPath(ecb, gridManager, entity, GridHelpers.GetXY(position),
