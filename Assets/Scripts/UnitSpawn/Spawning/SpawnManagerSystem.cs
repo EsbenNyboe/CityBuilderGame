@@ -495,7 +495,7 @@ namespace UnitSpawn.Spawning
         private void TryDeleteDroppedItem(EntityCommandBuffer ecb, ref GridManager gridManager, int2 center, int brushSize)
         {
             foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
-                         .WithAll<Villager>())
+                         .WithAll<DroppedItem>())
             {
                 var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
                 if (math.distance(center, cell) <= brushSize)
