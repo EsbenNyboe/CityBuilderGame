@@ -60,6 +60,13 @@ namespace UnitBehaviours.AutonomousHarvesting
                     {
                         isSeekingDroppedItem.ValueRW.ItemType = InventoryItem.LogOfWood;
                     }
+                    else
+                    {
+                        // There can't see any dropped items nearby.
+                        ecb.RemoveComponent<IsSeekingDroppedItem>(entity);
+                        ecb.AddComponent<IsDeciding>(entity);
+                        continue;
+                    }
                 }
 
                 var droppedItemQuadrantMap = isSeekingDroppedItem.ValueRO.ItemType switch
