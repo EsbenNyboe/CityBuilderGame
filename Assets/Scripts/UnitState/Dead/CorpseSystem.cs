@@ -9,13 +9,6 @@ using UnityEngine;
 
 namespace UnitState.Dead
 {
-    public struct Corpse : IComponentData
-    {
-        public int MeatCurrent;
-        public int MeatMax;
-        public float CurrentDecomposition; // TODO: Add Decomposition logic
-    }
-
     public partial struct CorpseSystem : ISystem
     {
         [BurstCompile]
@@ -52,6 +45,7 @@ namespace UnitState.Dead
                         GetDeathFrame(deathFrames, corpse.ValueRO.MeatCurrent, corpse.ValueRO.MeatMax)),
                     Matrix = Matrix4x4.TRS(localTransform.ValueRO.Position, localTransform.ValueRO.Rotation, Vector3.one)
                 });
+                // TODO: Do not use GridEntity for this
                 ecb.AddComponent<GridEntity>(entity);
             }
 

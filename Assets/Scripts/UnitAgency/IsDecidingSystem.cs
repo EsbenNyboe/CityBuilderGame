@@ -6,6 +6,7 @@ using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.AutonomousHarvesting.Model;
 using UnitBehaviours.Hunger;
 using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
@@ -135,6 +136,10 @@ namespace UnitAgency.Logic
                     itemQuadrantsToSearch,
                     position,
                     entity, out var closestConstructable, out _);
+
+                var hasAccessToCorpse = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.CorpseQuadrantMap, GridManager,
+                    UnitBehaviourManager.QuadrantSearchRange,
+                    localTransform.Position, entity, out _, out _);
 
                 var hasAccessToStorageWithLogs = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
                     GridManager, itemQuadrantsToSearch, position, InventoryItem.LogOfWood);
@@ -373,7 +378,11 @@ namespace UnitAgency.Logic
                         ItemType = InventoryItem.LogOfWood
                     });
                 }
-                else if (!isBaby && hasInitiative && hasAccessToLogContainer)
+                else if (!isBaby && hasAccessToStorageWithSpace && hasAccessToCorpse && hasInitiative)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingCorpse());
+                }
+                else if (!isBaby && hasAccessToLogContainer && hasInitiative)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
                 }

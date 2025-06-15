@@ -8,6 +8,7 @@ using SystemGroups;
 using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.UnitConfigurators;
+using UnitState.Dead;
 using UnitState.SocialState;
 using Unity.Burst;
 using Unity.Collections;
@@ -28,6 +29,7 @@ namespace UnitBehaviours.Targeting.Core
         public NativeParallelMultiHashMap<int, QuadrantData> ConstructableQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> BedQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> BonfireQuadrantMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> CorpseQuadrantMap;
     }
 
     public struct QuadrantData
@@ -52,6 +54,7 @@ namespace UnitBehaviours.Targeting.Core
         private EntityQuery _constructableQuery;
         private EntityQuery _bedQuery;
         private EntityQuery _bonfireQuery;
+        private EntityQuery _corpseQuery;
         public const int QuadrantYMultiplier = 1000;
         public const int QuadrantCellSize = 10;
 
@@ -80,6 +83,8 @@ namespace UnitBehaviours.Targeting.Core
             _bonfireQuery = state.GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<LocalTransform, QuadrantEntity, Bonfire>()
                 .WithNone<Constructable>());
+            _corpseQuery = state.GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
+                .WithAll<LocalTransform, Corpse>());
 
             state.EntityManager.AddComponent<QuadrantDataManager>(state.SystemHandle);
             SystemAPI.SetComponent(state.SystemHandle, new QuadrantDataManager
@@ -110,6 +115,9 @@ namespace UnitBehaviours.Targeting.Core
                     Allocator.Persistent),
                 BonfireQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _bonfireQuery.CalculateEntityCount(),
+                    Allocator.Persistent),
+                CorpseQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                    _corpseQuery.CalculateEntityCount(),
                     Allocator.Persistent)
             });
         }
@@ -127,6 +135,7 @@ namespace UnitBehaviours.Targeting.Core
             quadrantDataManager.ConstructableQuadrantMap.Dispose();
             quadrantDataManager.BedQuadrantMap.Dispose();
             quadrantDataManager.BonfireQuadrantMap.Dispose();
+            quadrantDataManager.CorpseQuadrantMap.Dispose();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -153,6 +162,7 @@ namespace UnitBehaviours.Targeting.Core
             BuildQuadrantMap(ref state, gridManager, _constructableQuery, quadrantDataManager.ConstructableQuadrantMap, true);
             BuildQuadrantMap(ref state, gridManager, _bedQuery, quadrantDataManager.BedQuadrantMap);
             BuildQuadrantMap(ref state, gridManager, _bonfireQuery, quadrantDataManager.BonfireQuadrantMap, true);
+            BuildQuadrantMap(ref state, gridManager, _corpseQuery, quadrantDataManager.CorpseQuadrantMap, true);
         }
 
         #region Quadrant Setup
