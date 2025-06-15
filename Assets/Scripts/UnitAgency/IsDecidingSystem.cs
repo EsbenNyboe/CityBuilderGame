@@ -227,7 +227,7 @@ namespace UnitAgency.Logic
                         CurrentDurability = 1
                     });
                 }
-                else if (HasRawMeat(inventory) && isHungry && hasAccessToBonfire && hasInitiative)
+                else if (!isBaby && HasRawMeat(inventory) && isHungry && hasAccessToBonfire && hasInitiative)
                 {
                     if (IsAdjacentToBonfire(GridManager, cell, out _))
                     {
@@ -272,7 +272,7 @@ namespace UnitAgency.Logic
                         ItemType = InventoryItem.CookedMeat
                     });
                 }
-                else if (hasAccessToDroppedRawMeat && (hasAccessToStorageWithSpace || (hasAccessToBonfire && isHungry)))
+                else if (!isBaby && hasAccessToDroppedRawMeat && (hasAccessToStorageWithSpace || (hasAccessToBonfire && isHungry)))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem
                     {
