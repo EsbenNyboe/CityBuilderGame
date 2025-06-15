@@ -5,10 +5,8 @@ using SpriteTransformNS;
 using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.AutonomousHarvesting.Model;
-using UnitBehaviours.Targeting;
 using UnitBehaviours.Targeting.Core;
 using UnitBehaviours.UnitManagers;
-using UnitState.Dead;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Transforms;
@@ -63,31 +61,14 @@ namespace UnitBehaviours.AutonomousHarvesting
                     continue;
                 }
 
-                var corpseHealth = SystemAPI.GetComponent<Health>(corpseEntity);
-                if (corpseHealth.CurrentHealth <= 0)
-                {
-                    ecb.RemoveComponent<IsHarvestingCorpse>(entity);
-                    attackAnimation.ValueRW.MarkedForDeletion = true;
-                    ecb.AddComponent(entity, new IsDeciding());
-                    continue;
-                }
-
                 if (attackAnimation.ValueRO.TimeLeft <= 0)
                 {
-                    corpseHealth.CurrentHealth -= unitBehaviourManager.DamagePerAttack;
-                    SystemAPI.SetComponent(corpseEntity, corpseHealth);
-                    var corpse = SystemAPI.GetComponent<Corpse>(corpseEntity);
-                    var currentCorpseContent = (float)corpse.MeatCurrent / corpse.MeatMax;
-                    var maxHealth = corpseHealth.MaxHealth;
-                    if (corpseHealth.CurrentHealth < currentCorpseContent * maxHealth)
+                    // I will attempt to grab meat from the corpse
+                    ecb.AddComponent(ecb.CreateEntity(), new CorpseRequest
                     {
-                        // I will attempt to grab meat from the corpse
-                        ecb.AddComponent(ecb.CreateEntity(), new CorpseRequest
-                        {
-                            RequesterEntity = entity,
-                            CorpseEntity = corpseEntity
-                        });
-                    }
+                        RequesterEntity = entity,
+                        CorpseEntity = corpseEntity
+                    });
 
                     attackAnimation.ValueRW.TimeLeft = attackAnimationManager.AttackDuration;
                 }

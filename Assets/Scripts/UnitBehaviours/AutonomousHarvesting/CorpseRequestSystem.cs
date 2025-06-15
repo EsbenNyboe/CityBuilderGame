@@ -1,6 +1,7 @@
 using Grid;
 using Inventory;
 using UnitBehaviours.AutonomousHarvesting.Model;
+using UnitState.Dead;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -44,11 +45,13 @@ namespace CorpseNS
                 inventory.ValueRW.CurrentItem = InventoryItem.RawMeat;
                 requestedCorpseEntities.Add(corpseEntity);
 
-//                var corpse = SystemAPI.GetComponent<Corpse>(corpseEntity);
-                //               if (corpse.MeatCurrent <= 0)
-                //             {
-                //               ecb.DestroyEntity(corpseEntity);
-                //         }
+                var corpse = SystemAPI.GetComponent<Corpse>(corpseEntity);
+                corpse.MeatCurrent--;
+                SystemAPI.SetComponent(corpseEntity, corpse);
+                if (corpse.MeatCurrent <= 0)
+                {
+                    ecb.DestroyEntity(corpseEntity);
+                }
             }
 
             ecb.Playback(state.EntityManager);
