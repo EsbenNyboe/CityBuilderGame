@@ -42,6 +42,11 @@ namespace UnitState.SocialLogic
             foreach (var socialEventRefRO in SystemAPI.Query<RefRO<SocialEvent>>())
             {
                 var socialEvent = socialEventRefRO.ValueRO;
+                if (!SystemAPI.Exists(socialEvent.Perpetrator))
+                {
+                    continue;
+                }
+
                 foreach (var (socialRelationships, localTransform) in SystemAPI
                              .Query<RefRW<SocialRelationships>, RefRO<LocalTransform>>())
                 {
@@ -79,6 +84,11 @@ namespace UnitState.SocialLogic
             foreach (var socialEventWithVictimRefRO in SystemAPI.Query<RefRO<SocialEventWithVictim>>())
             {
                 var socialEventWithVictim = socialEventWithVictimRefRO.ValueRO;
+                if (!SystemAPI.Exists(socialEventWithVictim.Perpetrator) || !SystemAPI.Exists(socialEventWithVictim.Victim))
+                {
+                    continue;
+                }
+
                 if (boarLookup.HasComponent(socialEventWithVictim.Perpetrator))
                 {
                     // Boars are not social creatures! They will have no effect for now...
