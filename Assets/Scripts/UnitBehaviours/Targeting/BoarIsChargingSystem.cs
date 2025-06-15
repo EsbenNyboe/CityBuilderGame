@@ -36,7 +36,7 @@ namespace UnitBehaviours.Targeting
             foreach (var (boarIsCharging, actionGate, localTransform, entity) in SystemAPI
                          .Query<RefRO<BoarIsCharging>, RefRO<ActionGate>, RefRO<LocalTransform>>().WithEntityAccess())
             {
-                if (SystemAPI.Time.ElapsedTime * timeScale < actionGate.ValueRO.MinTimeOfAction)
+                if (SystemAPI.Time.ElapsedTime * timeScale < actionGate.ValueRO.MinTimeOfAction * timeScale)
                 {
                     continue;
                 }

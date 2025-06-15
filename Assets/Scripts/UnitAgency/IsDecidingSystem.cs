@@ -198,7 +198,7 @@ namespace UnitAgency.Logic
                     });
                     EcbParallelWriter.SetComponent(i, entity, new ActionGate
                     {
-                        MinTimeOfAction = ElapsedTime * TimeScale + randomDelay * TimeScale
+                        MinTimeOfAction = ElapsedTime + randomDelay
                     });
 
                     if (HasItem(inventory))

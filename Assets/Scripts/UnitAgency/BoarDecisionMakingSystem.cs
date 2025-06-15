@@ -75,7 +75,7 @@ namespace UnitAgency.Logic
                             var randomDelay = _randomContainerLookup[entity].Random.NextFloat(0, 1);
                             ecb.SetComponent(entity, new ActionGate
                             {
-                                MinTimeOfAction = randomDelay * timeScale + (float)SystemAPI.Time.ElapsedTime * timeScale
+                                MinTimeOfAction = (float)SystemAPI.Time.ElapsedTime + randomDelay
                             });
                             moodInitiative.ValueRW.UseInitiative();
                             ecb.AddComponent<BoarIsCharging>(entity);

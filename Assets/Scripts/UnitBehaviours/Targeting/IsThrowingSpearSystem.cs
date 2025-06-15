@@ -43,7 +43,7 @@ namespace UnitBehaviours.Targeting
             {
                 if (
                     SystemAPI.Time.ElapsedTime * timeScale
-                    > actionGate.ValueRO.MinTimeOfAction + ThrowingSpearTime * timeScale + PostThrowWaitTime * timeScale
+                    > actionGate.ValueRO.MinTimeOfAction * timeScale + ThrowingSpearTime * timeScale + PostThrowWaitTime * timeScale
                 )
                 {
                     ecb.RemoveComponent<IsThrowingSpear>(entity);
@@ -97,7 +97,7 @@ namespace UnitBehaviours.Targeting
 
                 if (
                     SystemAPI.Time.ElapsedTime * timeScale
-                    > actionGate.ValueRO.MinTimeOfAction + ThrowingSpearTime * timeScale
+                    > actionGate.ValueRO.MinTimeOfAction * timeScale + ThrowingSpearTime * timeScale
                 )
                 {
                     ecb.RemoveComponent<IsHoldingSpear>(entity);
