@@ -13,7 +13,7 @@ namespace UnitBehaviours.Targeting
     public partial struct SpearSystem : ISystem
     {
         private const float SpearSpeed = 15f;
-        private const float SpearDamageRadius = 0.5f;
+        private const float SpearDamageRadius = 1.5f;
         private const float SpearDamage = 10f;
 
         public void OnCreate(ref SystemState state)
