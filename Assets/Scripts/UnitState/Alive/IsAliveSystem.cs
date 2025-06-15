@@ -266,7 +266,8 @@ namespace UnitState.AliveLogic
             var entity = EcbParallelWriter.CreateEntity(entityIndexInChunk);
             EcbParallelWriter.AddComponent(entityIndexInChunk, entity, new Corpse
             {
-                TimeOfDeath = ElapsedTime
+                MeatCurrent = 4,
+                MeatMax = 4
             });
             EcbParallelWriter.AddComponent(entityIndexInChunk, entity, new LocalTransform
             {
