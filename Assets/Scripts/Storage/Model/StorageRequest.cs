@@ -2,7 +2,7 @@ using Inventory;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace Storage
+namespace StorageNS
 {
     public struct StorageRequest : IComponentData
     {

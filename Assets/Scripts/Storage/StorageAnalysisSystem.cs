@@ -1,9 +1,10 @@
 using Grid;
 using Inventory;
+using UnitBehaviours.AutonomousHarvesting;
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace Storage
+namespace StorageNS
 {
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     [UpdateAfter(typeof(StorageRequestSystem))]
@@ -19,7 +20,7 @@ namespace Storage
             var gridManager = SystemAPI.GetSingleton<GridManager>();
 
             foreach (var (storage, localTransform) in SystemAPI
-                         .Query<DynamicBuffer<UnitBehaviours.AutonomousHarvesting.Storage>, RefRO<LocalTransform>>())
+                         .Query<DynamicBuffer<Storage>, RefRO<LocalTransform>>())
             {
                 var storageCountLog = 0;
                 var storageCountRawMeat = 0;
@@ -53,12 +54,12 @@ namespace Storage
 
                 if (storageCountRawMeat > 0)
                 {
-                    gridManager.SetStorageCount(cell, storageCountLog, InventoryItem.RawMeat);
+                    gridManager.SetStorageCount(cell, storageCountRawMeat, InventoryItem.RawMeat);
                 }
 
                 if (storageCountCookedMeat > 0)
                 {
-                    gridManager.SetStorageCount(cell, storageCountLog, InventoryItem.CookedMeat);
+                    gridManager.SetStorageCount(cell, storageCountCookedMeat, InventoryItem.CookedMeat);
                 }
             }
 

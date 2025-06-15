@@ -7,7 +7,7 @@ using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Storage
+namespace StorageNS
 {
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public partial struct ConstructableRequestSystem : ISystem

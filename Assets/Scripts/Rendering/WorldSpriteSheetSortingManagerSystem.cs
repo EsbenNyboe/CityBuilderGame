@@ -3,6 +3,7 @@ using GridEntityNS;
 using Inventory;
 using SpriteTransformNS;
 using SystemGroups;
+using UnitBehaviours.AutonomousHarvesting;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -234,10 +235,13 @@ namespace Rendering
                 itemSpriteSheetRowLookup[i] = row;
             }
 
+            var storageLookup = SystemAPI.GetBufferLookup<Storage>();
+
             var newDependency = new MergeSortedArrayWithStorageDataJob
             {
                 MergedArray = finalArrayOfRenderData,
                 StorageRenderDataHashMap = storageRenderDataHashMap,
+                StorageLookup = storageLookup,
                 SortedArray = sharedSortingArray,
                 ColumnScale = worldSpriteSheetManager.ColumnScale,
                 RowScale = worldSpriteSheetManager.RowScale,
@@ -854,6 +858,7 @@ namespace Rendering
         {
             public NativeArray<RenderData> MergedArray;
             [ReadOnly] public NativeParallelHashMap<Entity, StorageRenderData> StorageRenderDataHashMap;
+            [ReadOnly] public BufferLookup<Storage> StorageLookup;
             [ReadOnly] public NativeArray<RenderData> SortedArray;
             [ReadOnly] public float ColumnScale;
             [ReadOnly] public float RowScale;
@@ -870,16 +875,23 @@ namespace Rendering
                     MergedArray[mergedArrayIndex] = renderData;
                     mergedArrayIndex++;
 
-                    if (StorageRenderDataHashMap.TryGetValue(renderData.Entity, out var itemData))
+                    if (StorageRenderDataHashMap.TryGetValue(renderData.Entity, out _))
                     {
-                        for (var j = 0; j < itemData.Amount; j++)
+                        var storage = StorageLookup[renderData.Entity];
+                        for (var j = 0; j < storage.Length; j++)
                         {
-                            GetMeshConfigurationForStorage(StorageRuleManager, renderData.Position, j, out var matrix);
+                            var storageElement = storage[j];
+                            if (storageElement.Item == InventoryItem.None)
+                            {
+                                continue;
+                            }
+
                             var inventoryUv = new Vector4(ColumnScale, RowScale, 0, 0)
                             {
-                                z = ColumnScale * InventoryItemSpriteSheetColumnLookup[(int)itemData.Item],
-                                w = RowScale * InventoryItemSpriteSheetRowLookup[(int)itemData.Item]
+                                z = ColumnScale * InventoryItemSpriteSheetColumnLookup[(int)storageElement.Item],
+                                w = RowScale * InventoryItemSpriteSheetRowLookup[(int)storageElement.Item]
                             };
+                            GetMeshConfigurationForStorage(StorageRuleManager, renderData.Position, j, out var matrix);
 
                             var itemRenderData = new RenderData
                             {

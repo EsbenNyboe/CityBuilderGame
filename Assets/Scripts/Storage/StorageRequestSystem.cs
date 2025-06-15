@@ -8,7 +8,7 @@ using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Storage
+namespace StorageNS
 {
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public partial struct StorageRequestSystem : ISystem
@@ -30,7 +30,7 @@ namespace Storage
             state.Dependency.Complete();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var ecb = new EntityCommandBuffer(Allocator.Temp);
-            var storageLookup = SystemAPI.GetBufferLookup<UnitBehaviours.AutonomousHarvesting.Storage>();
+            var storageLookup = SystemAPI.GetBufferLookup<Storage>();
 
             foreach (var storageRequest in SystemAPI.Query<RefRO<StorageRequest>>())
             {
@@ -74,7 +74,7 @@ namespace Storage
                     if (requestIsValid)
                     {
                         // Target: storage cell
-                        storage[storageIndex] = new UnitBehaviours.AutonomousHarvesting.Storage
+                        storage[storageIndex] = new Storage
                         {
                             Item = requestType switch
                             {
