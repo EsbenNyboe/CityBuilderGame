@@ -324,6 +324,17 @@ namespace UnitAgency.Logic
                     EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
                 }
+                else if (!isBaby && hasAccessToStorageWithSpace && hasAccessToCorpse && QuadrantSystem.TryFindAdjacentEntity(
+                             QuadrantDataManager.CorpseQuadrantMap, GridManager,
+                             UnitBehaviourManager.QuadrantSearchRange,
+                             localTransform.Position, entity, out var closestCorpse))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsHarvestingCorpse
+                    {
+                        Target = closestCorpse.Entity
+                    });
+                    EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(GridHelpers.GetXY(closestCorpse.Position)));
+                }
                 else if (isLonely)
                 {
                     if ((TalkingHelpers.TryGetNeighbourWithComponent(GridManager, cell, IsTalkativeLookup,

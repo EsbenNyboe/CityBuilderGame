@@ -451,6 +451,31 @@ namespace UnitBehaviours.Targeting.Core
             return false;
         }
 
+        public static bool TryFindAdjacentEntity(NativeParallelMultiHashMap<int, QuadrantData> nmhm, GridManager gridManager,
+            int quadrantsToSearch, float3 position, Entity entity,
+            out QuadrantData adjacentTargetData)
+        {
+            PrepareSearch(gridManager, position, out var section, out var key, out var closestTargetDistance, out var closestTarget);
+            for (var i = 0; i < quadrantsToSearch; i++)
+            {
+                if (TryPrepareIterator(gridManager, nmhm, i, key, out var quadrantData, out var nmhmIterator))
+                {
+                    do
+                    {
+                        if (TryGetClosestDistance(position, quadrantData, closestTargetDistance, section, out var distance) &&
+                            !IsSameEntity(entity, quadrantData))
+                        {
+                            closestTargetDistance = distance;
+                            closestTarget = quadrantData;
+                        }
+                    } while (nmhm.TryGetNextValue(out quadrantData, ref nmhmIterator));
+                }
+            }
+
+            adjacentTargetData = closestTarget;
+            return closestTarget.IsValid() && math.distance(position, closestTarget.Position) < 2;
+        }
+
         public static bool TryFindClosestEntity(NativeParallelMultiHashMap<int, QuadrantData> nmhm, GridManager gridManager,
             int quadrantsToSearch, float3 position, Entity entity,
             out Entity closestTargetEntity, out float closestTargetDistance)
