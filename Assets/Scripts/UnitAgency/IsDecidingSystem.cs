@@ -201,16 +201,13 @@ namespace UnitAgency.Logic
                 }
                 else if (HasLogOfWood(inventory))
                 {
-                    var isNextToStorage = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager, 1, position,
-                        entity, out _, out var distance) && distance < 2;
-
-                    if (hasAccessToStorageWithSpace && (!isNextToStorage || !hasAccessToConstructable)) // HACK
-                    {
-                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingRoomyStorage());
-                    }
-                    else if (hasAccessToConstructable)
+                    if (hasAccessToConstructable)
                     {
                         EcbParallelWriter.AddComponent(i, entity, new IsSeekingConstructable());
+                    }
+                    else if (hasAccessToStorageWithSpace)
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingRoomyStorage());
                     }
                     else
                     {
@@ -245,10 +242,7 @@ namespace UnitAgency.Logic
                 }
                 else if (HasItem(inventory))
                 {
-                    var isNextToStorage = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager, 1, position,
-                        entity, out _, out var distance) && distance < 2;
-
-                    if (hasAccessToStorageWithSpace && !isNextToStorage) // HACK
+                    if (hasAccessToStorageWithSpace)
                     {
                         EcbParallelWriter.AddComponent(i, entity, new IsSeekingRoomyStorage());
                     }
