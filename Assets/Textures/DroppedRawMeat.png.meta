@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      DroppedRawMeat_0: -5965406414000253441
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
