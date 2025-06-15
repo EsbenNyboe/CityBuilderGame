@@ -167,6 +167,27 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
+                case SpawnItemType.DroppedLog:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnDroppedItem(ecb, ref gridManager, cell, InventoryItem.LogOfWood);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedRawMeat:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnDroppedItem(ecb, ref gridManager, cell, InventoryItem.RawMeat);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedCookedMeat:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnDroppedItem(ecb, ref gridManager, cell, InventoryItem.CookedMeat);
+                    }
+
+                    break;
 
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -221,6 +242,27 @@ namespace UnitSpawn.Spawning
                     foreach (var cell in cellList)
                     {
                         TryDeleteBonfire(ecb, ref gridManager, cell);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedLog:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteDroppedItem(ecb, ref gridManager, cell, brushSize);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedRawMeat:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteDroppedItem(ecb, ref gridManager, cell, brushSize);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedCookedMeat:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteDroppedItem(ecb, ref gridManager, cell, brushSize);
                     }
 
                     break;
@@ -428,6 +470,38 @@ namespace UnitSpawn.Spawning
                 gridManager.SetInteractableNone(cell);
 
                 ecb.DestroyEntity(entity);
+            }
+        }
+
+        private void TrySpawnDroppedItem(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell, InventoryItem itemType)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+                !gridManager.IsInteractable(cell) && !gridManager.HasGridEntity(cell))
+            {
+                var entity = ecb.CreateEntity();
+                ecb.AddComponent(entity, new DroppedItem
+                {
+                    ItemType = itemType
+                });
+                ecb.AddComponent(entity, new LocalTransform
+                {
+                    Position = GetEntityPosition(cell),
+                    Scale = 1,
+                    Rotation = quaternion.identity
+                });
+            }
+        }
+
+        private void TryDeleteDroppedItem(EntityCommandBuffer ecb, ref GridManager gridManager, int2 center, int brushSize)
+        {
+            foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
+                         .WithAll<Villager>())
+            {
+                var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+                if (math.distance(center, cell) <= brushSize)
+                {
+                    ecb.DestroyEntity(entity);
+                }
             }
         }
 

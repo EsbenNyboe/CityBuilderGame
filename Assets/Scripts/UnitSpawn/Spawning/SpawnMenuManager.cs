@@ -26,7 +26,7 @@ namespace UnitSpawn.Spawning
         private void Awake()
         {
             Instance = this;
-            SetAutoSpawn(true);
+            SetAutoSpawn(false);
         }
 
         private void LateUpdate()
@@ -134,6 +134,9 @@ namespace UnitSpawn.Spawning
         Boar,
         House,
         Baby,
-        Bonfire
+        Bonfire,
+        DroppedLog,
+        DroppedRawMeat,
+        DroppedCookedMeat
     }
 }
