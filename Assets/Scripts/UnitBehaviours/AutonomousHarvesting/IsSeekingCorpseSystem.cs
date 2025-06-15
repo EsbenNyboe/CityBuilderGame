@@ -50,8 +50,8 @@ namespace UnitBehaviours.AutonomousHarvesting
                     continue;
                 }
 
-                var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
-                if (gridManager.IsOccupied(currentCell, entity))
+                var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+                if (gridManager.IsOccupied(cell, entity))
                 {
                     continue;
                 }
@@ -87,10 +87,15 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 var corpseTransform = SystemAPI.GetComponent<LocalTransform>(closestTargetEntity);
                 var corpsePosition = corpseTransform.Position;
-                var corpseCell = GridHelpers.GetXY(corpsePosition); // TODO: Replace this with "chopping cell"
+                var corpseCell = GridHelpers.GetXY(corpsePosition);
+                var destinationCell = corpseCell;
+                if (gridManager.TryGetClosestWalkableNeighbourOfTarget(cell, corpseCell, out var closestNeighbourCell))
+                {
+                    destinationCell = closestNeighbourCell;
+                }
 
                 // I found a Corpse!! I will go there! 
-                PathHelpers.TrySetPath(ecb, gridManager, entity, currentCell, corpseCell, isDebuggingPath);
+                PathHelpers.TrySetPath(ecb, gridManager, entity, cell, destinationCell, isDebuggingPath);
             }
 
             state.Dependency = JobHandle.CombineDependencies(jobHandleList.AsArray());
