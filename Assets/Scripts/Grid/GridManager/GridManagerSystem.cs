@@ -108,7 +108,9 @@ namespace Grid
             {
                 var cell = gridManager.StorageGrid[i];
                 cell.ItemCapacity = 0;
-                cell.ItemCount = 0;
+                cell.ItemCountLog = 0;
+                cell.ItemCountRawMeat = 0;
+                cell.ItemCountCookedMeat = 0;
                 gridManager.StorageGrid[i] = cell;
             }
         }

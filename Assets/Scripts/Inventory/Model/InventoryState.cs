@@ -17,7 +17,7 @@ namespace Inventory
 
     public struct DroppedItem : IComponentData
     {
-        public InventoryItem Item;
+        public InventoryItem ItemType;
     }
 
     [Serializable]
@@ -25,7 +25,7 @@ namespace Inventory
     {
         None,
         LogOfWood,
-        CookedMeat,
-        RawMeat
+        RawMeat,
+        CookedMeat
     }
 }

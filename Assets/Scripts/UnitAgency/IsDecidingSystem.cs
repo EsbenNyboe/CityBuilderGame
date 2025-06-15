@@ -127,7 +127,7 @@ namespace UnitAgency.Logic
 
                 var isBaby = BabiesLookup.HasComponent(entity);
                 var moodHunger = MoodHungerLookup[entity];
-                var isHungry = moodHunger.Hunger > 1;
+                var isHungry = moodHunger.Hunger > 10;
                 var hasAccessToBonfire = QuadrantSystem.TryFindEntity(QuadrantDataManager.BonfireQuadrantMap, GridManager, itemQuadrantsToSearch,
                     position, entity);
 
@@ -135,11 +135,23 @@ namespace UnitAgency.Logic
                     itemQuadrantsToSearch,
                     position,
                     entity, out var closestConstructable, out _);
-                var hasAccessToStorageWithItems = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
-                    GridManager, itemQuadrantsToSearch, position);
+
+                var hasAccessToStorageWithLogs = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position, InventoryItem.LogOfWood);
+                var hasAccessToStorageWithRawMeat = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position, InventoryItem.RawMeat);
+                var hasAccessToStorageWithCookedMeat = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position, InventoryItem.CookedMeat);
                 var hasAccessToStorageWithSpace = QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.StorageQuadrantMap,
                     GridManager, itemQuadrantsToSearch, position);
                 var hasAccessToLogContainer = hasAccessToConstructable || hasAccessToStorageWithSpace;
+
+                var hasAccessToDroppedLog = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedLogQuadrantMap, GridManager,
+                    itemQuadrantsToSearch, position, entity, out _, out _);
+                var hasAccessToDroppedRawMeat = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedRawMeatQuadrantMap, GridManager,
+                    itemQuadrantsToSearch, position, entity, out _, out _);
+                var hasAccessToDroppedCookedMeat = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedCookedMeatQuadrantMap, GridManager,
+                    itemQuadrantsToSearch, position, entity, out _, out _);
 
                 var isSleepy = moodSleepiness.Sleepiness > 0.2f;
                 var isMoving = pathFollow.IsMoving();
@@ -182,23 +194,20 @@ namespace UnitAgency.Logic
                         MinTimeOfAction = ElapsedTime * TimeScale + randomDelay * TimeScale
                     });
 
-                    if (HasLogOfWood(inventory))
+                    if (HasItem(inventory))
                     {
                         InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
                     }
                 }
                 else if (HasLogOfWood(inventory))
                 {
-                    var isNextToStorage = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager, 1, position,
-                        entity, out _, out var distance) && distance < 2;
-
-                    if (hasAccessToStorageWithSpace && (!isNextToStorage || !hasAccessToConstructable)) // HACK
-                    {
-                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingRoomyStorage());
-                    }
-                    else if (hasAccessToConstructable)
+                    if (hasAccessToConstructable)
                     {
                         EcbParallelWriter.AddComponent(i, entity, new IsSeekingConstructable());
+                    }
+                    else if (hasAccessToStorageWithSpace)
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingRoomyStorage());
                     }
                     else
                     {
@@ -215,7 +224,7 @@ namespace UnitAgency.Logic
                         CurrentDurability = 1
                     });
                 }
-                else if (HasRawMeat(inventory) && isHungry && hasAccessToBonfire && hasInitiative)
+                else if (!isBaby && HasRawMeat(inventory) && isHungry && hasAccessToBonfire)
                 {
                     if (IsAdjacentToBonfire(GridManager, cell, out _))
                     {
@@ -231,13 +240,38 @@ namespace UnitAgency.Logic
                         EcbParallelWriter.AddComponent(i, entity, new IsSeekingBonfire());
                     }
                 }
-                else if (!isBaby && hasAccessToLogContainer &&
-                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager,
-                             itemQuadrantsToSearch, position, entity, out _, out _) &&
-                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedItemQuadrantMap, GridManager,
-                             itemQuadrantsToSearch, position, entity, out _, out _))
+                else if (HasItem(inventory))
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedLog());
+                    if (hasAccessToStorageWithSpace)
+                    {
+                        EcbParallelWriter.AddComponent(i, entity, new IsSeekingRoomyStorage());
+                    }
+                    else
+                    {
+                        InventoryHelpers.DropItemOnGround(EcbParallelWriter, i, ref inventory, position);
+                        EcbParallelWriter.AddComponent(i, entity, new IsIdle());
+                    }
+                }
+                else if (!isBaby && hasAccessToLogContainer && hasAccessToDroppedLog)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem
+                    {
+                        ItemType = InventoryItem.LogOfWood
+                    });
+                }
+                else if (hasAccessToDroppedCookedMeat && (hasAccessToStorageWithSpace || isHungry))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem
+                    {
+                        ItemType = InventoryItem.CookedMeat
+                    });
+                }
+                else if (!isBaby && hasAccessToDroppedRawMeat && (hasAccessToStorageWithSpace || (hasAccessToBonfire && isHungry)))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem
+                    {
+                        ItemType = InventoryItem.RawMeat
+                    });
                 }
                 else if (isMoving)
                 {
@@ -318,9 +352,26 @@ namespace UnitAgency.Logic
                         });
                     }
                 }
-                else if (!isBaby && hasAccessToConstructable && hasAccessToStorageWithItems)
+                else if (isHungry && hasAccessToStorageWithCookedMeat)
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage());
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage
+                    {
+                        ItemType = InventoryItem.CookedMeat
+                    });
+                }
+                else if (isHungry && hasAccessToStorageWithRawMeat && hasAccessToBonfire)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage
+                    {
+                        ItemType = InventoryItem.RawMeat
+                    });
+                }
+                else if (!isBaby && hasAccessToConstructable && hasAccessToStorageWithLogs)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage
+                    {
+                        ItemType = InventoryItem.LogOfWood
+                    });
                 }
                 else if (!isBaby && hasInitiative && hasAccessToLogContainer)
                 {
@@ -373,6 +424,11 @@ namespace UnitAgency.Logic
 
             annoyingDude = Entity.Null;
             return false;
+        }
+
+        private static bool HasItem(InventoryState inventory)
+        {
+            return inventory.CurrentItem != InventoryItem.None;
         }
 
         private static bool HasLogOfWood(InventoryState inventory)

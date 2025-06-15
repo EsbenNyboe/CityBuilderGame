@@ -1,7 +1,8 @@
+using Inventory;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace Storage
+namespace StorageNS
 {
     public struct StorageRequest : IComponentData
     {
@@ -10,15 +11,22 @@ namespace Storage
         /// </summary>
         public int2 GridCell;
 
-        /// <summary>
-        /// Retrieve, if above 0.
-        /// Deposit, if below 0.
-        /// </summary>
-        public int RequestAmount;
+        public StorageRequestType RequestType;
 
         /// <summary>
         /// The entity that sent the request.
         /// </summary>
         public Entity RequesterEntity;
+
+        /// <summary>
+        /// The item type.
+        /// </summary>
+        public InventoryItem ItemType;
+    }
+
+    public enum StorageRequestType
+    {
+        Deposit,
+        Withdraw
     }
 }

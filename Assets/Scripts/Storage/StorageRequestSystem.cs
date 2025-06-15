@@ -1,3 +1,4 @@
+using System;
 using Grid;
 using Inventory;
 using Rendering;
@@ -7,7 +8,7 @@ using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
-namespace Storage
+namespace StorageNS
 {
     [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public partial struct StorageRequestSystem : ISystem
@@ -28,28 +29,80 @@ namespace Storage
         {
             state.Dependency.Complete();
             var gridManager = SystemAPI.GetSingleton<GridManager>();
-            var storageRuleManager = SystemAPI.GetSingleton<StorageRuleManager>();
             var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var storageLookup = SystemAPI.GetBufferLookup<Storage>();
 
             foreach (var storageRequest in SystemAPI.Query<RefRO<StorageRequest>>())
             {
-                var requestedAmount = storageRequest.ValueRO.RequestAmount;
+                var requestType = storageRequest.ValueRO.RequestType;
+                var requesterEntity = storageRequest.ValueRO.RequesterEntity;
+                var requestedItem = storageRequest.ValueRO.ItemType;
+
+                if (!SystemAPI.Exists(requesterEntity))
+                {
+                    continue;
+                }
+
+                var inventory = SystemAPI.GetComponentRW<InventoryState>(requesterEntity);
 
                 var gridCell = storageRequest.ValueRO.GridCell;
-                var itemCapacity = gridManager.GetStorageItemCapacity(gridCell);
-                var itemCount = gridManager.GetStorageItemCount(gridCell);
-                itemCapacity = storageRuleManager.MaxPerStructure;
+                var requestIsValid = false;
 
-                var requestedItemCountTotal = itemCount - requestedAmount;
-                var requestIsValid =
-                    requestedItemCountTotal >= 0 && requestedItemCountTotal <= itemCapacity;
-                var requesterEntity = storageRequest.ValueRO.RequesterEntity;
-                var inventory = SystemAPI.GetComponentRW<InventoryState>(requesterEntity);
+                if (gridManager.TryGetStorageEntity(gridCell, out var storageEntity))
+                {
+                    var storage = storageLookup[storageEntity];
+                    var storageIndex = -1;
+                    if (requestType == StorageRequestType.Withdraw)
+                    {
+                        for (var i = storage.Length - 1; i >= 0; i--)
+                        {
+                            if (storage[i].Item == requestedItem)
+                            {
+                                storageIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                    else if (requestType == StorageRequestType.Deposit)
+                    {
+                        for (var i = 0; i < storage.Length; i++)
+                        {
+                            if (storage[i].Item == InventoryItem.None)
+                            {
+                                storageIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
+                    requestIsValid = storageIndex != -1;
+
+                    if (requestIsValid)
+                    {
+                        // Target: storage cell
+                        storage[storageIndex] = new Storage
+                        {
+                            Item = requestType switch
+                            {
+                                StorageRequestType.Deposit => requestedItem,
+                                StorageRequestType.Withdraw => InventoryItem.None,
+                                _ => throw new ArgumentOutOfRangeException()
+                            }
+                        };
+
+                        // Source: inventory
+                        inventory.ValueRW.CurrentItem = requestType switch
+                        {
+                            StorageRequestType.Deposit => InventoryItem.None,
+                            StorageRequestType.Withdraw => requestedItem,
+                            _ => throw new ArgumentOutOfRangeException()
+                        };
+                    }
+                }
 
                 if (!requestIsValid)
                 {
-                    // This should not happen:
-                    Debug.LogError("StorageSystem: Invalid Request");
+                    Debug.Log("StorageSystem: Invalid Request");
                     if (
                         SystemAPI.Exists(requesterEntity)
                         && SystemAPI.HasComponent<IsSeekingRoomyStorage>(requesterEntity)
@@ -59,15 +112,6 @@ namespace Storage
                         ecb.RemoveComponent<IsSeekingRoomyStorage>(requesterEntity);
                         ecb.AddComponent<IsDeciding>(requesterEntity);
                     }
-                }
-                else
-                {
-                    // Target: storage cell
-                    gridManager.SetStorageCount(gridCell, requestedItemCountTotal);
-
-                    // Source: inventory
-                    inventory.ValueRW.CurrentItem =
-                        requestedAmount < 0 ? InventoryItem.None : InventoryItem.LogOfWood;
                 }
             }
 

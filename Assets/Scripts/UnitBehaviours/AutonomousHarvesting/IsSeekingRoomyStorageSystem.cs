@@ -58,7 +58,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                 if (cell.Equals(closestStorageEntrance))
                 {
                     // Try drop item at drop point
-                    InventoryHelpers.SendRequestForStoreItem(ecb, entity, closestStorageCell);
+                    InventoryHelpers.SendRequestForStoreItem(ecb, entity, closestStorageCell, inventory.ValueRO.CurrentItem);
                     continue;
                 }
 

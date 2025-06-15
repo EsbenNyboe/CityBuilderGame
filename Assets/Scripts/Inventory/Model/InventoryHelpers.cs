@@ -1,4 +1,4 @@
-using Storage;
+using StorageNS;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -13,7 +13,7 @@ namespace Inventory
             var droppedItemEntity = ecb.CreateEntity();
             ecb.AddComponent(droppedItemEntity, new DroppedItem
             {
-                Item = inventory.CurrentItem
+                ItemType = inventory.CurrentItem
             });
             ecb.AddComponent(droppedItemEntity, new LocalTransform
             {
@@ -30,7 +30,7 @@ namespace Inventory
             var droppedItemEntity = ecbParallelWriter.CreateEntity(i);
             ecbParallelWriter.AddComponent(i, droppedItemEntity, new DroppedItem
             {
-                Item = inventory.CurrentItem
+                ItemType = inventory.CurrentItem
             });
             ecbParallelWriter.AddComponent(i, droppedItemEntity, new LocalTransform
             {
@@ -52,25 +52,27 @@ namespace Inventory
             });
         }
 
-        public static void SendRequestForStoreItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
+        public static void SendRequestForStoreItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell, InventoryItem itemType)
         {
             var requestEntity = ecb.CreateEntity();
             ecb.AddComponent(requestEntity, new StorageRequest
             {
                 GridCell = targetCell,
-                RequestAmount = -1,
-                RequesterEntity = sourceEntity
+                RequestType = StorageRequestType.Deposit,
+                RequesterEntity = sourceEntity,
+                ItemType = itemType
             });
         }
 
-        public static void SendRequestForRetrieveItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell)
+        public static void SendRequestForRetrieveItem(EntityCommandBuffer ecb, Entity sourceEntity, int2 targetCell, InventoryItem itemType)
         {
             var requestEntity = ecb.CreateEntity();
             ecb.AddComponent(requestEntity, new StorageRequest
             {
                 GridCell = targetCell,
-                RequestAmount = 1,
-                RequesterEntity = sourceEntity
+                RequestType = StorageRequestType.Withdraw,
+                RequesterEntity = sourceEntity,
+                ItemType = itemType
             });
         }
     }

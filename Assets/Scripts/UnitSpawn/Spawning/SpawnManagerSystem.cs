@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CodeMonkey.Utils;
 using Grid;
+using Inventory;
 using Rendering;
 using SystemGroups;
 using UnitBehaviours.UnitConfigurators;
@@ -166,6 +167,27 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
+                case SpawnItemType.DroppedLog:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnDroppedItem(ecb, ref gridManager, cell, InventoryItem.LogOfWood);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedRawMeat:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnDroppedItem(ecb, ref gridManager, cell, InventoryItem.RawMeat);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedCookedMeat:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnDroppedItem(ecb, ref gridManager, cell, InventoryItem.CookedMeat);
+                    }
+
+                    break;
 
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -220,6 +242,27 @@ namespace UnitSpawn.Spawning
                     foreach (var cell in cellList)
                     {
                         TryDeleteBonfire(ecb, ref gridManager, cell);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedLog:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteDroppedItem(ecb, ref gridManager, cell, brushSize);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedRawMeat:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteDroppedItem(ecb, ref gridManager, cell, brushSize);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedCookedMeat:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteDroppedItem(ecb, ref gridManager, cell, brushSize);
                     }
 
                     break;
@@ -325,7 +368,9 @@ namespace UnitSpawn.Spawning
             {
                 gridManager.SetIsWalkable(cell, false);
                 gridManager.SetDefaultStorageCapacity(cell);
-                gridManager.SetStorageCount(cell, 0);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.LogOfWood);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.RawMeat);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.CookedMeat);
 
                 SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.Storage,
                     WorldSpriteSheetEntryType.Storage);
@@ -341,7 +386,9 @@ namespace UnitSpawn.Spawning
                 gridManager.SetIsWalkable(cell, true);
                 gridManager.RemoveGridEntity(cell);
                 gridManager.SetStorageCapacity(cell, 0);
-                gridManager.SetStorageCount(cell, 0);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.LogOfWood);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.RawMeat);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.CookedMeat);
 
                 ecb.DestroyEntity(entity);
             }
@@ -423,6 +470,38 @@ namespace UnitSpawn.Spawning
                 gridManager.SetInteractableNone(cell);
 
                 ecb.DestroyEntity(entity);
+            }
+        }
+
+        private void TrySpawnDroppedItem(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell, InventoryItem itemType)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+                !gridManager.IsInteractable(cell) && !gridManager.HasGridEntity(cell))
+            {
+                var entity = ecb.CreateEntity();
+                ecb.AddComponent(entity, new DroppedItem
+                {
+                    ItemType = itemType
+                });
+                ecb.AddComponent(entity, new LocalTransform
+                {
+                    Position = GetEntityPosition(cell),
+                    Scale = 1,
+                    Rotation = quaternion.identity
+                });
+            }
+        }
+
+        private void TryDeleteDroppedItem(EntityCommandBuffer ecb, ref GridManager gridManager, int2 center, int brushSize)
+        {
+            foreach (var (localTransform, entity) in SystemAPI.Query<RefRO<LocalTransform>>().WithEntityAccess()
+                         .WithAll<DroppedItem>())
+            {
+                var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
+                if (math.distance(center, cell) <= brushSize)
+                {
+                    ecb.DestroyEntity(entity);
+                }
             }
         }
 

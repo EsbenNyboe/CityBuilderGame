@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace Storage
+namespace StorageNS
 {
     public struct StorageResponse : IComponentData
     {
