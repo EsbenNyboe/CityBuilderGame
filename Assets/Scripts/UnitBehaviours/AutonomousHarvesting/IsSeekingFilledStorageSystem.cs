@@ -37,9 +37,8 @@ namespace UnitBehaviours.AutonomousHarvesting
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
             // Seek Storage
-            foreach (var (localTransform, pathFollow, inventory, entity)
-                     in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<InventoryState>>()
-                         .WithAll<IsSeekingFilledStorage>()
+            foreach (var (isSeekingFilledStorage, localTransform, pathFollow, inventory, entity)
+                     in SystemAPI.Query<RefRO<IsSeekingFilledStorage>, RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<InventoryState>>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
@@ -55,21 +54,34 @@ namespace UnitBehaviours.AutonomousHarvesting
                 }
 
                 var position = localTransform.ValueRO.Position;
-                if (!QuadrantSystem.TryFindEntity(quadrantDataManager.ConstructableQuadrantMap, gridManager, unitBehaviourManager.QuadrantSearchRange,
+                var itemType = isSeekingFilledStorage.ValueRO.ItemType;
+
+                if (itemType == InventoryItem.LogOfWood && !QuadrantSystem.TryFindEntity(quadrantDataManager.ConstructableQuadrantMap, gridManager,
+                        unitBehaviourManager.QuadrantSearchRange,
                         position, entity))
                 {
                     // No constructable in range: There's no need to seek storage.
                     ecb.RemoveComponent<IsSeekingFilledStorage>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
+                    continue;
+                }
+
+                if (itemType == InventoryItem.RawMeat && !QuadrantSystem.TryFindEntity(quadrantDataManager.BonfireQuadrantMap, gridManager,
+                        unitBehaviourManager.QuadrantSearchRange, position, entity))
+                {
+                    // No bonfire in range: There's no need to seek storage.
+                    ecb.RemoveComponent<IsSeekingFilledStorage>(entity);
+                    ecb.AddComponent<IsDeciding>(entity);
+                    continue;
                 }
 
                 var cell = GridHelpers.GetXY(position);
                 var closestStorageEntrance =
-                    FindClosestStorageEntrance(ref state, quadrantDataManager, gridManager, position, out var closestStorageCell);
+                    FindClosestStorageEntrance(ref state, quadrantDataManager, gridManager, position, itemType, out var closestStorageCell);
                 if (cell.Equals(closestStorageEntrance))
                 {
                     // Try retrieve item from storage
-                    InventoryHelpers.SendRequestForRetrieveItem(ecb, entity, closestStorageCell, InventoryItem.LogOfWood);
+                    InventoryHelpers.SendRequestForRetrieveItem(ecb, entity, closestStorageCell, itemType);
                     continue;
                 }
 
@@ -86,13 +98,13 @@ namespace UnitBehaviours.AutonomousHarvesting
             }
         }
 
-        private int2 FindClosestStorageEntrance(ref SystemState state, QuadrantDataManager quadrantDataManager, GridManager gridManager,
-            float3 position, out int2 closestStorageCell)
+        private int2 FindClosestStorageEntrance( ref SystemState state, QuadrantDataManager quadrantDataManager, GridManager gridManager,
+            float3 position, InventoryItem itemType, out int2 closestStorageCell)
         {
             closestStorageCell = new int2(-1);
             var cell = GridHelpers.GetXY(position);
 
-            if (!QuadrantSystem.TryFindClosestNonEmptyStorage(quadrantDataManager.StorageQuadrantMap, gridManager, 50, position,
+            if (!QuadrantSystem.TryFindClosestNonEmptyStorage(quadrantDataManager.StorageQuadrantMap, gridManager, 50, position, itemType,
                     out var closestStorage))
             {
                 return -1;

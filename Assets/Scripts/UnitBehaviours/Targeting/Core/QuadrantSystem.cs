@@ -5,6 +5,7 @@ using Grid;
 using GridEntityNS;
 using Inventory;
 using SystemGroups;
+using UnitBehaviours.AutonomousHarvesting;
 using UnitBehaviours.Sleeping;
 using UnitBehaviours.UnitConfigurators;
 using UnitState.SocialState;
@@ -69,7 +70,7 @@ namespace UnitBehaviours.Targeting.Core
                 // ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<DroppedItem>());
             _storageQuery = state.GetEntityQuery(new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<LocalTransform, QuadrantEntity, AutonomousHarvesting.Storage>()
+                .WithAll<LocalTransform, QuadrantEntity, Storage>()
                 .WithNone<Constructable>());
             _constructableQuery = state.GetEntityQuery(ComponentType.ReadOnly<LocalTransform>(), ComponentType.ReadOnly<QuadrantEntity>(),
                 ComponentType.ReadOnly<Constructable>());
@@ -372,8 +373,8 @@ namespace UnitBehaviours.Targeting.Core
             return false;
         }
 
-        public static bool TryFindClosestNonEmptyStorage(NativeParallelMultiHashMap<int, QuadrantData> nmhm,
-            GridManager gridManager, int quadrantsToSearch, float3 position, out QuadrantData closestTarget)
+        public static bool TryFindClosestNonEmptyStorage(   NativeParallelMultiHashMap<int, QuadrantData> nmhm,
+            GridManager gridManager, int quadrantsToSearch, float3 position, InventoryItem itemType, out QuadrantData closestTarget)
         {
             PrepareSearch(gridManager, position, out var section, out var key, out var closestTargetDistance, out closestTarget);
             for (var i = 0; i < quadrantsToSearch; i++)
@@ -383,7 +384,7 @@ namespace UnitBehaviours.Targeting.Core
                     do
                     {
                         if (TryGetClosestDistance(position, quadrantData, closestTargetDistance, section, out var distance) &&
-                            IsNonEmptyStorage(gridManager, quadrantData))
+                            IsNonEmptyStorage(gridManager, quadrantData, itemType))
                         {
                             closestTargetDistance = distance;
                             closestTarget = quadrantData;

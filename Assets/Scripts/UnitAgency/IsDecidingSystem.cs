@@ -127,7 +127,7 @@ namespace UnitAgency.Logic
 
                 var isBaby = BabiesLookup.HasComponent(entity);
                 var moodHunger = MoodHungerLookup[entity];
-                var isHungry = moodHunger.Hunger > 1;
+                var isHungry = moodHunger.Hunger > 10;
                 var hasAccessToBonfire = QuadrantSystem.TryFindEntity(QuadrantDataManager.BonfireQuadrantMap, GridManager, itemQuadrantsToSearch,
                     position, entity);
 
@@ -135,9 +135,13 @@ namespace UnitAgency.Logic
                     itemQuadrantsToSearch,
                     position,
                     entity, out var closestConstructable, out _);
-                // TODO: Only select storage which has logs
+
                 var hasAccessToStorageWithLogs = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
                     GridManager, itemQuadrantsToSearch, position, InventoryItem.LogOfWood);
+                var hasAccessToStorageWithRawMeat = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position, InventoryItem.RawMeat);
+                var hasAccessToStorageWithCookedMeat = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position, InventoryItem.CookedMeat);
                 var hasAccessToStorageWithSpace = QuadrantSystem.TryFindSpaciousStorageInSection(QuadrantDataManager.StorageQuadrantMap,
                     GridManager, itemQuadrantsToSearch, position);
                 var hasAccessToLogContainer = hasAccessToConstructable || hasAccessToStorageWithSpace;
@@ -334,9 +338,26 @@ namespace UnitAgency.Logic
                         });
                     }
                 }
+                else if (isHungry && hasAccessToStorageWithCookedMeat)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage
+                    {
+                        ItemType = InventoryItem.CookedMeat
+                    });
+                }
+                else if (isHungry && hasAccessToStorageWithRawMeat && hasAccessToBonfire)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage
+                    {
+                        ItemType = InventoryItem.RawMeat
+                    });
+                }
                 else if (!isBaby && hasAccessToConstructable && hasAccessToStorageWithLogs)
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage());
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage
+                    {
+                        ItemType = InventoryItem.LogOfWood
+                    });
                 }
                 else if (!isBaby && hasInitiative && hasAccessToLogContainer)
                 {
