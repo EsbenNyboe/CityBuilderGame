@@ -37,6 +37,12 @@ namespace StorageNS
                 var requestType = storageRequest.ValueRO.RequestType;
                 var requesterEntity = storageRequest.ValueRO.RequesterEntity;
                 var requestedItem = storageRequest.ValueRO.ItemType;
+
+                if (!SystemAPI.Exists(requesterEntity))
+                {
+                    continue;
+                }
+
                 var inventory = SystemAPI.GetComponentRW<InventoryState>(requesterEntity);
 
                 var gridCell = storageRequest.ValueRO.GridCell;
