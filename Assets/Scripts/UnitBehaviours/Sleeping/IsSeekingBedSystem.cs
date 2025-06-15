@@ -50,6 +50,7 @@ namespace UnitBehaviours.Sleeping
 
                 var currentCell = GridHelpers.GetXY(localTransform.ValueRO.Position);
 
+                // TODO: Replace with bed-request system, and take Constructable-state into account??? 
                 // Am I on a bed?
                 if (gridManager.IsBedAvailableToUnit(currentCell, entity))
                 {

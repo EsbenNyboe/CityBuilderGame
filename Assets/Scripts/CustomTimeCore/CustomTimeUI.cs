@@ -48,6 +48,10 @@ namespace CustomTimeCore
             {
                 TimeScale = _maxTimeScale;
             }
+            else if (TimeScale < _minTimeScale)
+            {
+                TimeScale = _minTimeScale;
+            }
 
             UpdateText();
         }
@@ -57,7 +61,7 @@ namespace CustomTimeCore
             TimeScale /= 2;
             if (TimeScale < _minTimeScale)
             {
-                TimeScale = _minTimeScale;
+                TimeScale = 0;
             }
 
             UpdateText();
