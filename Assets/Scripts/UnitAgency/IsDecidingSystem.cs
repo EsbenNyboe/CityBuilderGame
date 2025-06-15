@@ -151,6 +151,8 @@ namespace UnitAgency.Logic
                     GridManager, itemQuadrantsToSearch, position);
                 var hasAccessToLogContainer = hasAccessToConstructable || hasAccessToStorageWithSpace;
 
+                var hasAccessToBed = QuadrantSystem.TryFindClosestAvailableGridEntity(QuadrantDataManager.BedQuadrantMap, GridManager,
+                    itemQuadrantsToSearch, position, entity, out _, out _);
                 var hasAccessToDroppedLog = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedLogQuadrantMap, GridManager,
                     itemQuadrantsToSearch, position, entity, out _, out _);
                 var hasAccessToDroppedRawMeat = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedRawMeatQuadrantMap, GridManager,
@@ -315,7 +317,7 @@ namespace UnitAgency.Logic
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSleeping());
                 }
-                else if (isSleepy && hasInitiative)
+                else if (isSleepy && hasInitiative && hasAccessToBed)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingBed());
                 }

@@ -501,6 +501,37 @@ namespace UnitBehaviours.Targeting.Core
             return closestTarget.IsValid();
         }
 
+        public static bool TryFindClosestAvailableGridEntity(NativeParallelMultiHashMap<int, QuadrantData> nmhm, GridManager gridManager,
+            int quadrantsToSearch, float3 position, Entity entity,
+            out Entity closestTargetEntity, out float closestTargetDistance)
+        {
+            PrepareSearch(gridManager, position, out var section, out var key, out closestTargetDistance, out var closestTarget);
+            for (var i = 0; i < quadrantsToSearch; i++)
+            {
+                if (TryPrepareIterator(gridManager, nmhm, i, key, out var quadrantData, out var nmhmIterator))
+                {
+                    do
+                    {
+                        if (TryGetClosestDistance(position, quadrantData, closestTargetDistance, section, out var distance) &&
+                            !IsSameEntity(entity, quadrantData) &&
+                            !IsOccupied(gridManager, quadrantData.Position, entity))
+                        {
+                            closestTargetDistance = distance;
+                            closestTarget = quadrantData;
+                        }
+                    } while (nmhm.TryGetNextValue(out quadrantData, ref nmhmIterator));
+                }
+            }
+
+            closestTargetEntity = closestTarget.Entity;
+            return closestTarget.IsValid();
+        }
+
+        private static bool IsOccupied(GridManager gridManager, float3 position, Entity entity)
+        {
+            return gridManager.IsOccupied(position, entity);
+        }
+
         private static bool IsSameEntity(Entity entity, QuadrantData quadrantData)
         {
             return entity == quadrantData.Entity;
