@@ -146,6 +146,13 @@ namespace UnitAgency.Logic
                     GridManager, itemQuadrantsToSearch, position);
                 var hasAccessToLogContainer = hasAccessToConstructable || hasAccessToStorageWithSpace;
 
+                var hasAccessToDroppedLog = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedLogQuadrantMap, GridManager,
+                    itemQuadrantsToSearch, position, entity, out _, out _);
+                var hasAccessToDroppedRawMeat = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedRawMeatQuadrantMap, GridManager,
+                    itemQuadrantsToSearch, position, entity, out _, out _);
+                var hasAccessToDroppedCookedMeat = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedCookedMeatQuadrantMap, GridManager,
+                    itemQuadrantsToSearch, position, entity, out _, out _);
+
                 var isSleepy = moodSleepiness.Sleepiness > 0.2f;
                 var isMoving = pathFollow.IsMoving();
                 var isLonely = moodLoneliness.Loneliness > 10f;
@@ -251,13 +258,26 @@ namespace UnitAgency.Logic
                         EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                     }
                 }
-                else if (!isBaby && hasAccessToLogContainer &&
-                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.StorageQuadrantMap, GridManager,
-                             itemQuadrantsToSearch, position, entity, out _, out _) &&
-                         QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedLogQuadrantMap, GridManager,
-                             itemQuadrantsToSearch, position, entity, out _, out _))
+                else if (!isBaby && hasAccessToLogContainer && hasAccessToDroppedLog)
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem());
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem
+                    {
+                        ItemType = InventoryItem.LogOfWood
+                    });
+                }
+                else if (hasAccessToDroppedCookedMeat && (hasAccessToStorageWithSpace || isHungry))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem
+                    {
+                        ItemType = InventoryItem.CookedMeat
+                    });
+                }
+                else if (hasAccessToDroppedRawMeat && (hasAccessToStorageWithSpace || (hasAccessToBonfire && isHungry)))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem
+                    {
+                        ItemType = InventoryItem.RawMeat
+                    });
                 }
                 else if (isMoving)
                 {

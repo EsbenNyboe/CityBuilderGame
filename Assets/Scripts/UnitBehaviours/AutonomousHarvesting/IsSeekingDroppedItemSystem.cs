@@ -2,6 +2,7 @@ using System;
 using Grid;
 using Inventory;
 using UnitAgency.Data;
+using UnitBehaviours.AutonomousHarvesting.Model;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Targeting.Core;
 using UnitBehaviours.UnitManagers;
@@ -39,7 +40,16 @@ namespace UnitBehaviours.AutonomousHarvesting
                     continue;
                 }
 
+                if (inventory.ValueRO.CurrentItem != InventoryItem.None)
+                {
+                    // I have picked up the dropped item.
+                    ecb.RemoveComponent<IsSeekingDroppedItem>(entity);
+                    ecb.AddComponent<IsDeciding>(entity);
+                    continue;
+                }
+
                 var position = localTransform.ValueRO.Position;
+                // TODO: Remove this part? Not necessary, right?
                 if (isSeekingDroppedItem.ValueRO.ItemType == InventoryItem.None)
                 {
                     if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedCookedMeatQuadrantMap, gridManager,
@@ -62,7 +72,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                     }
                     else
                     {
-                        // There can't see any dropped items nearby.
+                        // I can't see any dropped items nearby.
                         ecb.RemoveComponent<IsSeekingDroppedItem>(entity);
                         ecb.AddComponent<IsDeciding>(entity);
                         continue;
@@ -85,12 +95,13 @@ namespace UnitBehaviours.AutonomousHarvesting
                             entity, out var droppedItemToPickup, out _))
                     {
                         var itemPosition = SystemAPI.GetComponent<LocalTransform>(droppedItemToPickup).Position;
-                        if (math.distance(position, itemPosition) < 1 && inventory.ValueRO.CurrentItem == InventoryItem.None)
+                        if (math.distance(position, itemPosition) < 1)
                         {
-                            // PICK UP ITEM!
-                            var droppedItem = SystemAPI.GetComponent<DroppedItem>(droppedItemToPickup);
-                            inventory.ValueRW.CurrentItem = droppedItem.Item;
-                            ecb.DestroyEntity(droppedItemToPickup);
+                            ecb.AddComponent(ecb.CreateEntity(), new DroppedItemRequest
+                            {
+                                RequesterEntity = entity,
+                                DroppedItemEntity = droppedItemToPickup
+                            });
                         }
                     }
 

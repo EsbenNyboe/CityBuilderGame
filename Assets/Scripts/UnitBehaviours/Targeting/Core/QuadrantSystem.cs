@@ -272,7 +272,7 @@ namespace UnitBehaviours.Targeting.Core
 
             public void Execute(in Entity entity, in DroppedItem droppedItem, in LocalTransform localTransform)
             {
-                if (droppedItem.Item != ItemType)
+                if (droppedItem.ItemType != ItemType)
                 {
                     return;
                 }

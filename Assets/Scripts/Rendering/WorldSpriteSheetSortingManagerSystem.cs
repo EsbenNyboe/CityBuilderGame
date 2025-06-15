@@ -637,7 +637,7 @@ namespace Rendering
                     return;
                 }
 
-                WorldSpriteSheetManager.GetInventoryItemCoordinates(droppedItem.Item, out var column, out var row);
+                WorldSpriteSheetManager.GetInventoryItemCoordinates(droppedItem.ItemType, out var column, out var row);
                 var columnScale = WorldSpriteSheetManager.ColumnScale;
                 var rowScale = WorldSpriteSheetManager.RowScale;
                 const float groundOffset = 0.4f;

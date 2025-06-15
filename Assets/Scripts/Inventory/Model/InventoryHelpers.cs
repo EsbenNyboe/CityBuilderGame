@@ -13,7 +13,7 @@ namespace Inventory
             var droppedItemEntity = ecb.CreateEntity();
             ecb.AddComponent(droppedItemEntity, new DroppedItem
             {
-                Item = inventory.CurrentItem
+                ItemType = inventory.CurrentItem
             });
             ecb.AddComponent(droppedItemEntity, new LocalTransform
             {
@@ -30,7 +30,7 @@ namespace Inventory
             var droppedItemEntity = ecbParallelWriter.CreateEntity(i);
             ecbParallelWriter.AddComponent(i, droppedItemEntity, new DroppedItem
             {
-                Item = inventory.CurrentItem
+                ItemType = inventory.CurrentItem
             });
             ecbParallelWriter.AddComponent(i, droppedItemEntity, new LocalTransform
             {
