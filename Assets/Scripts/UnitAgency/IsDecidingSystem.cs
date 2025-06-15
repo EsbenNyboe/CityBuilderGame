@@ -227,7 +227,7 @@ namespace UnitAgency.Logic
                         CurrentDurability = 1
                     });
                 }
-                else if (!isBaby && HasRawMeat(inventory) && isHungry && hasAccessToBonfire && hasInitiative)
+                else if (!isBaby && HasRawMeat(inventory) && isHungry && hasAccessToBonfire)
                 {
                     if (IsAdjacentToBonfire(GridManager, cell, out _))
                     {
