@@ -47,20 +47,9 @@ namespace StorageNS
                 }
 
                 var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
-                if (storageCountLog > 0)
-                {
-                    gridManager.SetStorageCount(cell, storageCountLog, InventoryItem.LogOfWood);
-                }
-
-                if (storageCountRawMeat > 0)
-                {
-                    gridManager.SetStorageCount(cell, storageCountRawMeat, InventoryItem.RawMeat);
-                }
-
-                if (storageCountCookedMeat > 0)
-                {
-                    gridManager.SetStorageCount(cell, storageCountCookedMeat, InventoryItem.CookedMeat);
-                }
+                gridManager.SetStorageCount(cell, storageCountLog, InventoryItem.LogOfWood);
+                gridManager.SetStorageCount(cell, storageCountRawMeat, InventoryItem.RawMeat);
+                gridManager.SetStorageCount(cell, storageCountCookedMeat, InventoryItem.CookedMeat);
             }
 
             SystemAPI.SetSingleton(gridManager);
