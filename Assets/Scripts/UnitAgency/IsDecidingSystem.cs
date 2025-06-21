@@ -6,6 +6,7 @@ using SystemGroups;
 using UnitAgency.Data;
 using UnitBehaviours.ActionGateNS;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.AutonomousHarvesting.Model;
 using UnitBehaviours.Hunger;
 using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
@@ -136,6 +137,10 @@ namespace UnitAgency.Logic
                     position,
                     entity, out var closestConstructable, out _);
 
+                var hasAccessToCorpse = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.CorpseQuadrantMap, GridManager,
+                    UnitBehaviourManager.QuadrantSearchRange,
+                    localTransform.Position, entity, out _, out _);
+
                 var hasAccessToStorageWithLogs = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
                     GridManager, itemQuadrantsToSearch, position, InventoryItem.LogOfWood);
                 var hasAccessToStorageWithRawMeat = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
@@ -146,6 +151,8 @@ namespace UnitAgency.Logic
                     GridManager, itemQuadrantsToSearch, position);
                 var hasAccessToLogContainer = hasAccessToConstructable || hasAccessToStorageWithSpace;
 
+                var hasAccessToBed = QuadrantSystem.TryFindClosestAvailableGridEntity(QuadrantDataManager.BedQuadrantMap, GridManager,
+                    itemQuadrantsToSearch, position, entity, out _, out _);
                 var hasAccessToDroppedLog = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedLogQuadrantMap, GridManager,
                     itemQuadrantsToSearch, position, entity, out _, out _);
                 var hasAccessToDroppedRawMeat = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedRawMeatQuadrantMap, GridManager,
@@ -191,7 +198,7 @@ namespace UnitAgency.Logic
                     });
                     EcbParallelWriter.SetComponent(i, entity, new ActionGate
                     {
-                        MinTimeOfAction = ElapsedTime * TimeScale + randomDelay * TimeScale
+                        MinTimeOfAction = ElapsedTime + randomDelay
                     });
 
                     if (HasItem(inventory))
@@ -310,7 +317,7 @@ namespace UnitAgency.Logic
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSleeping());
                 }
-                else if (isSleepy && hasInitiative)
+                else if (isSleepy && hasInitiative && hasAccessToBed)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingBed());
                 }
@@ -318,6 +325,17 @@ namespace UnitAgency.Logic
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
+                }
+                else if (!isBaby && hasAccessToStorageWithSpace && hasAccessToCorpse && QuadrantSystem.TryFindAdjacentEntity(
+                             QuadrantDataManager.CorpseQuadrantMap, GridManager,
+                             UnitBehaviourManager.QuadrantSearchRange,
+                             localTransform.Position, entity, out var closestCorpse))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsHarvestingCorpse
+                    {
+                        Target = closestCorpse.Entity
+                    });
+                    EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(GridHelpers.GetXY(closestCorpse.Position)));
                 }
                 else if (isLonely)
                 {
@@ -373,7 +391,11 @@ namespace UnitAgency.Logic
                         ItemType = InventoryItem.LogOfWood
                     });
                 }
-                else if (!isBaby && hasInitiative && hasAccessToLogContainer)
+                else if (!isBaby && hasAccessToStorageWithSpace && hasAccessToCorpse && hasInitiative)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingCorpse());
+                }
+                else if (!isBaby && hasAccessToLogContainer && hasInitiative)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
                 }

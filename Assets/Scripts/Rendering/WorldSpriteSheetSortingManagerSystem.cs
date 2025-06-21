@@ -689,6 +689,8 @@ namespace Rendering
                     return;
                 }
 
+                position.y += 0.001f; // HACK: Make boar-corpses render behind sitting units
+
                 var renderData = new RenderData
                 {
                     Entity = entity,
