@@ -24,7 +24,6 @@ namespace Grid.SaveLoad
         [HideInInspector] public int SlotToDelete = -1;
         private SaveSlotUI[] _saveSlotUIs;
         private Coroutine[] _saveSlotUpdateCoroutines;
-        private bool _showSaveMenu;
 
         private void Awake()
         {
@@ -45,17 +44,6 @@ namespace Grid.SaveLoad
                 var saveSlotUI = Instantiate(_saveSlotUIPrefab, _saveSlotTransformParent);
                 // saveSlotUI.GetComponentInChildren<TextMeshProUGUI>().text = "SaveSlot " + (i + 1);
                 _saveSlotUIs[i] = saveSlotUI.GetComponent<SaveSlotUI>();
-            }
-
-            SetMenuVisibility();
-        }
-
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Tab))
-            {
-                _showSaveMenu = !_showSaveMenu;
-                SetMenuVisibility();
             }
         }
 
@@ -236,9 +224,8 @@ namespace Grid.SaveLoad
             }
         }
 
-        private void SetMenuVisibility()
+        public void SetMenuVisibility()
         {
-            _saveSlotTransformParent.gameObject.SetActive(_showSaveMenu);
             for (var i = 0; i < _saveSlots.Length; i++)
             {
                 UpdateSaveSlot(i);
