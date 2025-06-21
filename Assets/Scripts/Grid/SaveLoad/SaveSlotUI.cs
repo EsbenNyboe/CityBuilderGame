@@ -92,17 +92,17 @@ namespace Grid.SaveLoad
 
         public void Save()
         {
-            GetComponentInParent<SavedGridStateManager>().SaveToSlot(transform);
+            SavedGridStateManager.Instance.SaveToSlot(transform);
         }
 
         public void Load()
         {
-            GetComponentInParent<SavedGridStateManager>().LoadFromSlot(transform);
+            SavedGridStateManager.Instance.LoadFromSlot(transform);
         }
 
         public void Delete()
         {
-            GetComponentInParent<SavedGridStateManager>().DeleteDataInSlot(transform);
+            SavedGridStateManager.Instance.DeleteDataInSlot(transform);
         }
     }
 }

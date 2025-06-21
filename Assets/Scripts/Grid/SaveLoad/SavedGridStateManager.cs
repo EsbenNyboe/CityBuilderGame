@@ -109,7 +109,8 @@ namespace Grid.SaveLoad
             return cleanedUpDataList.ToArray();
         }
 
-        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] storages, int2[] bonfires, int2[] houses, float3[] villagers, float3[] boars)
+        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] storages, int2[] bonfires, int2[] houses, float3[] villagers,
+            float3[] boars)
         {
             Assert.IsTrue(SlotToSave > -1 && SlotToSave < _saveSlots.Length);
 
