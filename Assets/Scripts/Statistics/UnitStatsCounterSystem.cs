@@ -75,12 +75,12 @@ namespace Statistics
             instance.SetNumberOfConversationEvents(_conversationEventQuery.CalculateEntityCount());
             instance.SetNumberOfSocialEvent(_socialEventQuery.CalculateEntityCount());
             instance.SetNumberOfSocialEventWithVictim(_socialEventWithVictimQuery.CalculateEntityCount());
-            instance.SetNumberOfBedSeekingUnits(_isSeekingBedQuery.CalculateEntityCount());
-            instance.SetNumberOfTreeSeekingUnits(_isSeekingTreeQuery.CalculateEntityCount());
-            instance.SetNumberOfRoomyStorageSeekingUnits(_isSeekingRoomyStorageQuery.CalculateEntityCount());
-            instance.SetNumberOfSleepingUnits(_isSleepingQuery.CalculateEntityCount());
-            instance.SetNumberOfHarvestingUnits(_isHarvestingQuery.CalculateEntityCount());
-            instance.SetNumberOfIdleUnits(_isIdleQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingBed(_isSeekingBedQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingTree(_isSeekingTreeQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingRoomyStorage(_isSeekingRoomyStorageQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSleeping(_isSleepingQuery.CalculateEntityCount());
+            instance.SetNumberOfIsHarvesting(_isHarvestingQuery.CalculateEntityCount());
+            instance.SetNumberOfIsIdle(_isIdleQuery.CalculateEntityCount());
             instance.SetNumberOfIsTalkative(_isTalkativeQuery.CalculateEntityCount());
             instance.SetNumberOfIsTalking(_isTalkingQuery.CalculateEntityCount());
             instance.SetNumberOfIsSeekingTalkingPartner(_isSeekingTalkingPartnerQuery.CalculateEntityCount());

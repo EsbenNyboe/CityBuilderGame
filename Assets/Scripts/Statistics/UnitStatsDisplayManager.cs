@@ -16,17 +16,17 @@ namespace Statistics
         [SerializeField] private bool _showNumberOfPositiveSocialEffects;
         [SerializeField] private bool _showNumberOfNegativeSocialEffects;
 
-        [SerializeField] private bool _showNumberOfBedSeekers;
-        [SerializeField] private bool _showNumberOfTreeSeekers;
-        [SerializeField] private bool _showNumberOfStoragesSeekers;
-        [SerializeField] private bool _showNumberOfSleepers;
-        [SerializeField] private bool _showNumberOfHarvesters;
-        [SerializeField] private bool _showNumberOfIdle;
-        [SerializeField] private bool _showNumberOfTalkative;
-        [SerializeField] private bool _showNumberOfTalking;
-        [SerializeField] private bool _showNumberOfIsSeekingTalkingPartner;
-        [SerializeField] private bool _showNumberOfIsAttemptingMurder;
-        [SerializeField] private bool _showNumberOfIsMurdering;
+        [SerializeField] private bool _showIsSeekingBed;
+        [SerializeField] private bool _showIsSeekingTree;
+        [SerializeField] private bool _showIsSeekingRoomyStorage;
+        [SerializeField] private bool _showIsSleeping;
+        [SerializeField] private bool _showIsHarvesting;
+        [SerializeField] private bool _showIsIdle;
+        [SerializeField] private bool _showIsTalkative;
+        [SerializeField] private bool _showIsTalking;
+        [SerializeField] private bool _showIsSeekingTalkingPartner;
+        [SerializeField] private bool _showIsAttemptingMurder;
+        [SerializeField] private bool _showIsMurdering;
 
         [SerializeField] private UnitStatsDisplay _numberOfUnitsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfDecisionsDisplay;
@@ -37,18 +37,18 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _numberOfSocialEventWithVictimDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfPositiveSocialEffectsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfNegativeSocialEffectsDisplay;
-        
-        [SerializeField] private UnitStatsDisplay _numberOfBedSeekersDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfTreeSeekersDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfRoomyStorageSeekersDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfSleepersDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfHarvestersDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfIdleDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfTalkativeDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfTalkingDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfIsSeekingTalkingPartnerDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfIsAttemptingMurderDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfIsMurderingDisplay;
+
+        [SerializeField] private UnitStatsDisplay _isSeekingBed;
+        [SerializeField] private UnitStatsDisplay _isSeekingTree;
+        [SerializeField] private UnitStatsDisplay _isSeekingRoomyStorage;
+        [SerializeField] private UnitStatsDisplay _isSleeping;
+        [SerializeField] private UnitStatsDisplay _isHarvesting;
+        [SerializeField] private UnitStatsDisplay _isIdle;
+        [SerializeField] private UnitStatsDisplay _isTalkative;
+        [SerializeField] private UnitStatsDisplay _isTalking;
+        [SerializeField] private UnitStatsDisplay _isSeekingTalkingPartner;
+        [SerializeField] private UnitStatsDisplay _isAttemptingMurder;
+        [SerializeField] private UnitStatsDisplay _isMurdering;
 
 
         private void Awake()
@@ -68,17 +68,17 @@ namespace Statistics
             _numberOfPositiveSocialEffectsDisplay.gameObject.SetActive(_showNumberOfPositiveSocialEffects);
             _numberOfNegativeSocialEffectsDisplay.gameObject.SetActive(_showNumberOfNegativeSocialEffects);
 
-            _numberOfBedSeekersDisplay.gameObject.SetActive(_showNumberOfBedSeekers);
-            _numberOfTreeSeekersDisplay.gameObject.SetActive(_showNumberOfTreeSeekers);
-            _numberOfRoomyStorageSeekersDisplay.gameObject.SetActive(_showNumberOfStoragesSeekers);
-            _numberOfSleepersDisplay.gameObject.SetActive(_showNumberOfSleepers);
-            _numberOfHarvestersDisplay.gameObject.SetActive(_showNumberOfHarvesters);
-            _numberOfIdleDisplay.gameObject.SetActive(_showNumberOfIdle);
-            _numberOfTalkativeDisplay.gameObject.SetActive(_showNumberOfTalkative);
-            _numberOfTalkingDisplay.gameObject.SetActive(_showNumberOfTalking);
-            _numberOfIsSeekingTalkingPartnerDisplay.gameObject.SetActive(_showNumberOfIsSeekingTalkingPartner);
-            _numberOfIsAttemptingMurderDisplay.gameObject.SetActive(_showNumberOfIsAttemptingMurder);
-            _numberOfIsMurderingDisplay.gameObject.SetActive(_showNumberOfIsMurdering);
+            _isSeekingBed.gameObject.SetActive(_showIsSeekingBed);
+            _isSeekingTree.gameObject.SetActive(_showIsSeekingTree);
+            _isSeekingRoomyStorage.gameObject.SetActive(_showIsSeekingRoomyStorage);
+            _isSleeping.gameObject.SetActive(_showIsSleeping);
+            _isHarvesting.gameObject.SetActive(_showIsHarvesting);
+            _isIdle.gameObject.SetActive(_showIsIdle);
+            _isTalkative.gameObject.SetActive(_showIsTalkative);
+            _isTalking.gameObject.SetActive(_showIsTalking);
+            _isSeekingTalkingPartner.gameObject.SetActive(_showIsSeekingTalkingPartner);
+            _isAttemptingMurder.gameObject.SetActive(_showIsAttemptingMurder);
+            _isMurdering.gameObject.SetActive(_showIsMurdering);
         }
 
         public void SetNumberOfUnits(int numberOfUnits)
@@ -106,61 +106,6 @@ namespace Statistics
             _numberOfConversationsDisplay.SetStatsValue(conversationEventCount);
         }
 
-        public void SetNumberOfBedSeekingUnits(int isSeekingBedCount)
-        {
-            _numberOfBedSeekersDisplay.SetStatsValue(isSeekingBedCount);
-        }
-
-        public void SetNumberOfTreeSeekingUnits(int isSeekingTreeCount)
-        {
-            _numberOfTreeSeekersDisplay.SetStatsValue(isSeekingTreeCount);
-        }
-
-        public void SetNumberOfRoomyStorageSeekingUnits(int isSeekingRoomyStorageCount)
-        {
-            _numberOfRoomyStorageSeekersDisplay.SetStatsValue(isSeekingRoomyStorageCount);
-        }
-
-        public void SetNumberOfSleepingUnits(int isSleepingCount)
-        {
-            _numberOfSleepersDisplay.SetStatsValue(isSleepingCount);
-        }
-
-        public void SetNumberOfHarvestingUnits(int isHarvestingCount)
-        {
-            _numberOfHarvestersDisplay.SetStatsValue(isHarvestingCount);
-        }
-
-        public void SetNumberOfIdleUnits(int isIdleCount)
-        {
-            _numberOfIdleDisplay.SetStatsValue(isIdleCount);
-        }
-
-        public void SetNumberOfIsTalkative(int isTalkativeCount)
-        {
-            _numberOfTalkativeDisplay.SetStatsValue(isTalkativeCount);
-        }
-
-        public void SetNumberOfIsTalking(int isTalkingCount)
-        {
-            _numberOfTalkingDisplay.SetStatsValue(isTalkingCount);
-        }
-
-        public void SetNumberOfIsSeekingTalkingPartner(int isSeekingTalkingPartnerCount)
-        {
-            _numberOfIsSeekingTalkingPartnerDisplay.SetStatsValue(isSeekingTalkingPartnerCount);
-        }
-
-        public void SetNumberOfIsAttemptingMurder(int isAttemptingMurderCount)
-        {
-            _numberOfIsAttemptingMurderDisplay.SetStatsValue(isAttemptingMurderCount);
-        }
-
-        public void SetNumberOfIsMurdering(int isMurderingCount)
-        {
-            _numberOfIsMurderingDisplay.SetStatsValue(isMurderingCount);
-        }
-
         public void SetNumberOfSocialEvent(int socialEventCount)
         {
             _numberOfSocialEventDisplay.SetStatsValue(socialEventCount);
@@ -179,6 +124,61 @@ namespace Statistics
         public void SetNumberOfNegativeSocialEffects(int count)
         {
             _numberOfNegativeSocialEffectsDisplay.SetStatsValue(count);
+        }
+
+        public void SetNumberOfIsSeekingBed(int isSeekingBedCount)
+        {
+            _isSeekingBed.SetStatsValue(isSeekingBedCount);
+        }
+
+        public void SetNumberOfIsSeekingTree(int isSeekingTreeCount)
+        {
+            _isSeekingTree.SetStatsValue(isSeekingTreeCount);
+        }
+
+        public void SetNumberOfIsSeekingRoomyStorage(int isSeekingRoomyStorageCount)
+        {
+            _isSeekingRoomyStorage.SetStatsValue(isSeekingRoomyStorageCount);
+        }
+
+        public void SetNumberOfIsSleeping(int isSleepingCount)
+        {
+            _isSleeping.SetStatsValue(isSleepingCount);
+        }
+
+        public void SetNumberOfIsHarvesting(int isHarvestingCount)
+        {
+            _isHarvesting.SetStatsValue(isHarvestingCount);
+        }
+
+        public void SetNumberOfIsIdle(int isIdleCount)
+        {
+            _isIdle.SetStatsValue(isIdleCount);
+        }
+
+        public void SetNumberOfIsTalkative(int isTalkativeCount)
+        {
+            _isTalkative.SetStatsValue(isTalkativeCount);
+        }
+
+        public void SetNumberOfIsTalking(int isTalkingCount)
+        {
+            _isTalking.SetStatsValue(isTalkingCount);
+        }
+
+        public void SetNumberOfIsSeekingTalkingPartner(int isSeekingTalkingPartnerCount)
+        {
+            _isSeekingTalkingPartner.SetStatsValue(isSeekingTalkingPartnerCount);
+        }
+
+        public void SetNumberOfIsAttemptingMurder(int isAttemptingMurderCount)
+        {
+            _isAttemptingMurder.SetStatsValue(isAttemptingMurderCount);
+        }
+
+        public void SetNumberOfIsMurdering(int isMurderingCount)
+        {
+            _isMurdering.SetStatsValue(isMurderingCount);
         }
     }
 }

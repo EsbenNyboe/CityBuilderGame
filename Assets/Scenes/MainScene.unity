@@ -7462,17 +7462,17 @@ MonoBehaviour:
   _showNumberOfSocialEventWithVictim: 1
   _showNumberOfPositiveSocialEffects: 1
   _showNumberOfNegativeSocialEffects: 1
-  _showNumberOfBedSeekers: 1
-  _showNumberOfTreeSeekers: 1
-  _showNumberOfStoragesSeekers: 0
-  _showNumberOfSleepers: 1
-  _showNumberOfHarvesters: 1
-  _showNumberOfIdle: 1
-  _showNumberOfTalkative: 1
-  _showNumberOfTalking: 1
-  _showNumberOfIsSeekingTalkingPartner: 1
-  _showNumberOfIsAttemptingMurder: 1
-  _showNumberOfIsMurdering: 1
+  _showIsSeekingBed: 1
+  _showIsSeekingTree: 1
+  _showIsSeekingRoomyStorage: 1
+  _showIsSleeping: 1
+  _showIsHarvesting: 1
+  _showIsIdle: 1
+  _showIsTalkative: 1
+  _showIsTalking: 1
+  _showIsSeekingTalkingPartner: 1
+  _showIsAttemptingMurder: 1
+  _showIsMurdering: 1
   _numberOfUnitsDisplay: {fileID: 137847160}
   _numberOfDecisionsDisplay: {fileID: 453910483}
   _numberOfPathfindingsDisplay: {fileID: 1860332683}
@@ -7482,17 +7482,17 @@ MonoBehaviour:
   _numberOfSocialEventWithVictimDisplay: {fileID: 1026803183}
   _numberOfPositiveSocialEffectsDisplay: {fileID: 1823297587}
   _numberOfNegativeSocialEffectsDisplay: {fileID: 622974351}
-  _numberOfBedSeekersDisplay: {fileID: 710733961}
-  _numberOfTreeSeekersDisplay: {fileID: 218377326}
-  _numberOfStorageSeekersDisplay: {fileID: 1469750647}
-  _numberOfSleepersDisplay: {fileID: 19224580}
-  _numberOfHarvestersDisplay: {fileID: 1508835469}
-  _numberOfIdleDisplay: {fileID: 609585174}
-  _numberOfTalkativeDisplay: {fileID: 1970813962}
-  _numberOfTalkingDisplay: {fileID: 970278244}
-  _numberOfIsSeekingTalkingPartnerDisplay: {fileID: 754683557}
-  _numberOfIsAttemptingMurderDisplay: {fileID: 1281713852}
-  _numberOfIsMurderingDisplay: {fileID: 636339595}
+  _isSeekingBed: {fileID: 710733961}
+  _isSeekingTree: {fileID: 218377326}
+  _isSeekingRoomyStorage: {fileID: 1469750647}
+  _isSleeping: {fileID: 19224580}
+  _isHarvesting: {fileID: 1508835469}
+  _isIdle: {fileID: 609585174}
+  _isTalkative: {fileID: 1970813962}
+  _isTalking: {fileID: 970278244}
+  _isSeekingTalkingPartner: {fileID: 754683557}
+  _isAttemptingMurder: {fileID: 1281713852}
+  _isMurdering: {fileID: 636339595}
 --- !u!4 &1302135529
 Transform:
   m_ObjectHideFlags: 0
