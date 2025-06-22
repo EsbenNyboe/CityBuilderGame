@@ -45,7 +45,6 @@ namespace Statistics
         private EntityQuery _isThrowingSpearQuery;
         private EntityQuery _isSeekingDroppedItemQuery;
         private EntityQuery _isSeekingConstructableQuery;
-        private EntityQuery _inventoryQuery;
 
         public void OnCreate(ref SystemState state)
         {
@@ -76,7 +75,6 @@ namespace Statistics
             _isThrowingSpearQuery = state.GetEntityQuery(typeof(IsThrowingSpear));
             _isSeekingDroppedItemQuery = state.GetEntityQuery(typeof(IsSeekingDroppedItem));
             _isSeekingConstructableQuery = state.GetEntityQuery(typeof(IsSeekingConstructable));
-            _inventoryQuery = state.GetEntityQuery(typeof(InventoryState));
         }
 
         public void OnUpdate(ref SystemState state)
@@ -144,6 +142,39 @@ namespace Statistics
             instance.SetNumberOfHasLog(hasLog);
             instance.SetNumberOfHasRawMeat(hasRawMeat);
             instance.SetNumberOfHasCookedMeat(hasCookedMeat);
+
+            var storedNothing = 0;
+            var storedLog = 0;
+            var storedRawMeat = 0;
+            var storedCookedMeat = 0;
+            foreach (var storage in SystemAPI.Query<DynamicBuffer<Storage>>())
+            {
+                foreach (var storedItem in storage)
+                {
+                    switch (storedItem.Item)
+                    {
+                        case InventoryItem.None:
+                            storedNothing++;
+                            break;
+                        case InventoryItem.LogOfWood:
+                            storedLog++;
+                            break;
+                        case InventoryItem.RawMeat:
+                            storedRawMeat++;
+                            break;
+                        case InventoryItem.CookedMeat:
+                            storedCookedMeat++;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            }
+            
+            instance.SetNumberOfStoredNothing(storedNothing);
+            instance.SetNumberOfStoredLog(storedLog);
+            instance.SetNumberOfStoredRawMeat(storedRawMeat);
+            instance.SetNumberOfStoredCookedMeat(storedCookedMeat);
         }
     }
 }

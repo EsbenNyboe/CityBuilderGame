@@ -40,6 +40,11 @@ namespace Statistics
         [SerializeField] private bool _showHasRawMeat;
         [SerializeField] private bool _showHasCookedMeat;
 
+        [SerializeField] private bool _showStoredNothing;
+        [SerializeField] private bool _showStoredLog;
+        [SerializeField] private bool _showStoredRawMeat;
+        [SerializeField] private bool _showStoredCookedMeat;
+
         [SerializeField] private UnitStatsDisplay _numberOfUnitsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfDecisionsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfPathfindingsDisplay;
@@ -73,6 +78,11 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _hasLog;
         [SerializeField] private UnitStatsDisplay _hasRawMeat;
         [SerializeField] private UnitStatsDisplay _hasCookedMeat;
+
+        [SerializeField] private UnitStatsDisplay _storedNothing;
+        [SerializeField] private UnitStatsDisplay _storedLog;
+        [SerializeField] private UnitStatsDisplay _storedRawMeat;
+        [SerializeField] private UnitStatsDisplay _storedCookedMeat;
 
         private void Awake()
         {
@@ -115,6 +125,11 @@ namespace Statistics
             _hasLog.gameObject.SetActive(_showHasLog);
             _hasRawMeat.gameObject.SetActive(_showHasRawMeat);
             _hasCookedMeat.gameObject.SetActive(_showHasCookedMeat);
+
+            _storedNothing.gameObject.SetActive(_showStoredNothing);
+            _storedLog.gameObject.SetActive(_showStoredLog);
+            _storedRawMeat.gameObject.SetActive(_showStoredRawMeat);
+            _storedCookedMeat.gameObject.SetActive(_showStoredCookedMeat);
         }
 
         public void SetNumberOfUnits(int count)
@@ -270,6 +285,26 @@ namespace Statistics
         public void SetNumberOfHasCookedMeat(int count)
         {
             _hasCookedMeat.SetStatsValue(count);
+        }
+
+        public void SetNumberOfStoredNothing(int count)
+        {
+            _storedNothing.SetStatsValue(count);
+        }
+
+        public void SetNumberOfStoredLog(int count)
+        {
+            _storedLog.SetStatsValue(count);
+        }
+
+        public void SetNumberOfStoredRawMeat(int count)
+        {
+            _storedRawMeat.SetStatsValue(count);
+        }
+
+        public void SetNumberOfStoredCookedMeat(int count)
+        {
+            _storedCookedMeat.SetStatsValue(count);
         }
     }
 }
