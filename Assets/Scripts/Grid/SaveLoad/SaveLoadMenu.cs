@@ -1,7 +1,7 @@
 using Grid.SaveLoad;
 using UnityEngine;
 
-public class OnEnableEvent : MonoBehaviour
+public class SaveLoadMenu : MonoBehaviour
 {
     private void OnEnable()
     {
