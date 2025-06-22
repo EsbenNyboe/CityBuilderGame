@@ -1,3 +1,5 @@
+using System;
+using Inventory;
 using PathInvalidation;
 using SpriteTransformNS;
 using UnitAgency.Data;
@@ -43,9 +45,7 @@ namespace Statistics
         private EntityQuery _isThrowingSpearQuery;
         private EntityQuery _isSeekingDroppedItemQuery;
         private EntityQuery _isSeekingConstructableQuery;
-        private EntityQuery _hasLogQuery;
-        private EntityQuery _hasRawMeatQuery;
-        private EntityQuery _hasCookedMeatQuery;
+        private EntityQuery _inventoryQuery;
 
         public void OnCreate(ref SystemState state)
         {
@@ -76,9 +76,7 @@ namespace Statistics
             _isThrowingSpearQuery = state.GetEntityQuery(typeof(IsThrowingSpear));
             _isSeekingDroppedItemQuery = state.GetEntityQuery(typeof(IsSeekingDroppedItem));
             _isSeekingConstructableQuery = state.GetEntityQuery(typeof(IsSeekingConstructable));
-            // _hasLogQuery                    = state.GetEntityQuery(typeof());
-            // _hasRawMeatQuery            = state.GetEntityQuery(typeof());
-            // _hasCookedMeatQuery             = state.GetEntityQuery(typeof());
+            _inventoryQuery = state.GetEntityQuery(typeof(InventoryState));
         }
 
         public void OnUpdate(ref SystemState state)
@@ -110,7 +108,7 @@ namespace Statistics
             instance.SetNumberOfIsSeekingTalkingPartner(_isSeekingTalkingPartnerQuery.CalculateEntityCount());
             instance.SetNumberOfIsAttemptingMurder(_isAttemptingMurderQuery.CalculateEntityCount());
             instance.SetNumberOfIsMurdering(_isMurderingQuery.CalculateEntityCount());
-            
+
             instance.SetNumberOfIsSeekingFilledStorage(_isSeekingFilledStorageQuery.CalculateEntityCount());
             instance.SetNumberOfIsEatingMeat(_isEatingMeatQuery.CalculateEntityCount());
             instance.SetNumberOfIsCookingMeat(_isCookingMeatQuery.CalculateEntityCount());
@@ -119,9 +117,33 @@ namespace Statistics
             instance.SetNumberOfIsThrowingSpear(_isThrowingSpearQuery.CalculateEntityCount());
             instance.SetNumberOfIsSeekingDroppedItem(_isSeekingDroppedItemQuery.CalculateEntityCount());
             instance.SetNumberOfIsSeekingConstructable(_isSeekingConstructableQuery.CalculateEntityCount());
-            // instance.SetNumberOfIs(_hasLogQuery.CalculateEntityCount());
-            // instance.SetNumberOfIs(_hasRawMeatQuery.CalculateEntityCount());
-            // instance.SetNumberOfIs(_hasCookedMeatQuery.CalculateEntityCount());
+
+            var hasLog = 0;
+            var hasRawMeat = 0;
+            var hasCookedMeat = 0;
+            foreach (var inventoryState in SystemAPI.Query<RefRO<InventoryState>>())
+            {
+                switch (inventoryState.ValueRO.CurrentItem)
+                {
+                    case InventoryItem.None:
+                        break;
+                    case InventoryItem.LogOfWood:
+                        hasLog++;
+                        break;
+                    case InventoryItem.RawMeat:
+                        hasRawMeat++;
+                        break;
+                    case InventoryItem.CookedMeat:
+                        hasCookedMeat++;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            instance.SetNumberOfHasLog(hasLog);
+            instance.SetNumberOfHasRawMeat(hasRawMeat);
+            instance.SetNumberOfHasCookedMeat(hasCookedMeat);
         }
     }
 }

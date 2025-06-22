@@ -36,6 +36,9 @@ namespace Statistics
         [SerializeField] private bool _showIsThrowingSpear;
         [SerializeField] private bool _showIsSeekingDroppedItem;
         [SerializeField] private bool _showIsSeekingConstructable;
+        [SerializeField] private bool _showHasLog;
+        [SerializeField] private bool _showHasRawMeat;
+        [SerializeField] private bool _showHasCookedMeat;
 
         [SerializeField] private UnitStatsDisplay _numberOfUnitsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfDecisionsDisplay;
@@ -108,6 +111,10 @@ namespace Statistics
             _isThrowingSpear.gameObject.SetActive(_showIsThrowingSpear);
             _isSeekingDroppedItem.gameObject.SetActive(_showIsSeekingDroppedItem);
             _isSeekingConstructable.gameObject.SetActive(_showIsSeekingConstructable);
+
+            _hasLog.gameObject.SetActive(_showHasLog);
+            _hasRawMeat.gameObject.SetActive(_showHasRawMeat);
+            _hasCookedMeat.gameObject.SetActive(_showHasCookedMeat);
         }
 
         public void SetNumberOfUnits(int count)
@@ -248,6 +255,21 @@ namespace Statistics
         public void SetNumberOfIsSeekingConstructable(int count)
         {
             _isSeekingConstructable.SetStatsValue(count);
+        }
+
+        public void SetNumberOfHasLog(int count)
+        {
+            _hasLog.SetStatsValue(count);
+        }
+
+        public void SetNumberOfHasRawMeat(int count)
+        {
+            _hasRawMeat.SetStatsValue(count);
+        }
+
+        public void SetNumberOfHasCookedMeat(int count)
+        {
+            _hasCookedMeat.SetStatsValue(count);
         }
     }
 }
