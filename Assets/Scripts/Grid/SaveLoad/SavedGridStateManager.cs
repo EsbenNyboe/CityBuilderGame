@@ -24,7 +24,6 @@ namespace Grid.SaveLoad
         [HideInInspector] public int SlotToDelete = -1;
         private SaveSlotUI[] _saveSlotUIs;
         private Coroutine[] _saveSlotUpdateCoroutines;
-        private bool _showSaveMenu;
 
         private void Awake()
         {
@@ -45,17 +44,6 @@ namespace Grid.SaveLoad
                 var saveSlotUI = Instantiate(_saveSlotUIPrefab, _saveSlotTransformParent);
                 // saveSlotUI.GetComponentInChildren<TextMeshProUGUI>().text = "SaveSlot " + (i + 1);
                 _saveSlotUIs[i] = saveSlotUI.GetComponent<SaveSlotUI>();
-            }
-
-            SetMenuVisibility();
-        }
-
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Tab))
-            {
-                _showSaveMenu = !_showSaveMenu;
-                SetMenuVisibility();
             }
         }
 
@@ -109,7 +97,8 @@ namespace Grid.SaveLoad
             return cleanedUpDataList.ToArray();
         }
 
-        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] storages, int2[] bonfires, int2[] houses, float3[] villagers, float3[] boars)
+        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] storages, int2[] bonfires, int2[] houses, float3[] villagers,
+            float3[] boars)
         {
             Assert.IsTrue(SlotToSave > -1 && SlotToSave < _saveSlots.Length);
 
@@ -235,9 +224,8 @@ namespace Grid.SaveLoad
             }
         }
 
-        private void SetMenuVisibility()
+        public void SetMenuVisibility()
         {
-            _saveSlotTransformParent.gameObject.SetActive(_showSaveMenu);
             for (var i = 0; i < _saveSlots.Length; i++)
             {
                 UpdateSaveSlot(i);

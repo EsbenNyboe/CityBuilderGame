@@ -8,23 +8,21 @@ namespace UnitSpawn.Spawning
         [SerializeField] private Image _icon;
         [SerializeField] private SpawnItemType _spawnItemType;
 
-        [SerializeField] private SpawnMenuManager _spawnMenuManager;
-
         public void SelectSpawnItem(bool isSelected)
         {
             if (isSelected)
             {
-                _spawnMenuManager.SetSpawnSelection(_icon.material, _spawnItemType);
+                SpawnMenuManager.Instance.SetSpawnSelection(_icon.material, _spawnItemType);
             }
             else
             {
-                _spawnMenuManager.ResetSpawnSelection();
+                SpawnMenuManager.Instance.ResetSpawnSelection();
             }
         }
 
         public void NotifyOnHoverEvent(bool isHovered)
         {
-            _spawnMenuManager.BlockMouseFromSpawning(isHovered);
+            SpawnMenuManager.Instance.BlockMouseFromSpawning(isHovered);
         }
     }
 }
