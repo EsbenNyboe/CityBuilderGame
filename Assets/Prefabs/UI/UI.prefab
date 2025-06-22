@@ -422,9 +422,9 @@ RectTransform:
   - {fileID: 127435105082821411}
   m_Father: {fileID: 6913547732488485004}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4222015628868340760
@@ -1142,10 +1142,10 @@ RectTransform:
   - {fileID: 7794041298460117047}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15, y: -53}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &6938120556754836747
 MonoBehaviour:
@@ -1443,7 +1443,7 @@ GameObject:
   - component: {fileID: 3872481829283236556}
   - component: {fileID: 396257851395470543}
   m_Layer: 5
-  m_Name: NumOfIsSeekingTalkingPartnerDisplay
+  m_Name: IsSeekingTalkingPartner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1465,10 +1465,10 @@ RectTransform:
   - {fileID: 4618129931967923791}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 365, y: -228}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &396257851395470543
 MonoBehaviour:
@@ -1977,7 +1977,7 @@ GameObject:
   - component: {fileID: 3976417687000611104}
   - component: {fileID: 2534664312153505656}
   m_Layer: 5
-  m_Name: NumOfTreeSeekersDisplay
+  m_Name: IsSeekingTree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1999,10 +1999,10 @@ RectTransform:
   - {fileID: 1214612895323467112}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 365, y: -53}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2534664312153505656
 MonoBehaviour:
@@ -3232,10 +3232,10 @@ RectTransform:
   - {fileID: 5739423109421454890}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15, y: -78}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &7254296380283622561
 MonoBehaviour:
@@ -3261,7 +3261,7 @@ GameObject:
   - component: {fileID: 1351286887779888005}
   - component: {fileID: 4187331986015199742}
   m_Layer: 5
-  m_Name: NumOfTalkingDisplay
+  m_Name: IsTalking
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3283,10 +3283,10 @@ RectTransform:
   - {fileID: 7227712763330445560}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 365, y: -203}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &4187331986015199742
 MonoBehaviour:
@@ -3318,7 +3318,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6913547732488485004
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3384,7 +3384,7 @@ GameObject:
   - component: {fileID: 8581336220637581324}
   - component: {fileID: 1284231794744900694}
   m_Layer: 5
-  m_Name: NumOfIsAttemptingMurderDisplay
+  m_Name: IsAttemptingMurder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3406,10 +3406,10 @@ RectTransform:
   - {fileID: 8758551206504414470}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 365, y: -253}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1284231794744900694
 MonoBehaviour:
@@ -3880,10 +3880,10 @@ RectTransform:
   - {fileID: 1203597389645955738}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15, y: -153}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &3015702733937256239
 MonoBehaviour:
@@ -4394,10 +4394,10 @@ RectTransform:
   - {fileID: 6929108111820070872}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15, y: -203}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &5943416319265251407
 MonoBehaviour:
@@ -5314,7 +5314,7 @@ GameObject:
   - component: {fileID: 872300082076372890}
   - component: {fileID: 4924923956585449109}
   m_Layer: 5
-  m_Name: NumOfSleepersDisplay
+  m_Name: IsSleeping
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5336,10 +5336,10 @@ RectTransform:
   - {fileID: 6355565531782346935}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 365, y: -103}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &4924923956585449109
 MonoBehaviour:
@@ -6107,10 +6107,10 @@ RectTransform:
   - {fileID: 510723047619251568}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15, y: -228}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2882957254107666885
 MonoBehaviour:
@@ -6695,7 +6695,7 @@ GameObject:
   - component: {fileID: 3190142522218999954}
   - component: {fileID: 5827458019630104916}
   m_Layer: 5
-  m_Name: NumOfTalkativeDisplay
+  m_Name: IsTalkative
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6717,10 +6717,10 @@ RectTransform:
   - {fileID: 93851500280227391}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 365, y: -178}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &5827458019630104916
 MonoBehaviour:
@@ -7154,7 +7154,7 @@ GameObject:
   - component: {fileID: 7405568778940400709}
   - component: {fileID: 623108359016150240}
   m_Layer: 5
-  m_Name: NumOfStorageSeekersDisplay
+  m_Name: IsSeekingRoomyStorage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7176,10 +7176,10 @@ RectTransform:
   - {fileID: 1234900762898080705}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 365, y: -78}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &623108359016150240
 MonoBehaviour:
@@ -7692,7 +7692,7 @@ GameObject:
   - component: {fileID: 7210179018045617096}
   - component: {fileID: 1326842501085943744}
   m_Layer: 5
-  m_Name: NumOfBedSeekersDisplay
+  m_Name: IsSeekingBed
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7714,10 +7714,10 @@ RectTransform:
   - {fileID: 7704440518425638569}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15, y: -278}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1326842501085943744
 MonoBehaviour:
@@ -8196,10 +8196,10 @@ RectTransform:
   - {fileID: 7749851858460300171}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15, y: -178}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &3773110560900017936
 MonoBehaviour:
@@ -8956,7 +8956,7 @@ GameObject:
   - component: {fileID: 4211112658848997989}
   - component: {fileID: 6081612009704320489}
   m_Layer: 5
-  m_Name: NumOfIdleDisplay
+  m_Name: IsIdle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8978,10 +8978,10 @@ RectTransform:
   - {fileID: 9202279722640363995}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 365, y: -153}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &6081612009704320489
 MonoBehaviour:
@@ -9321,10 +9321,10 @@ RectTransform:
   - {fileID: 1956225012594198393}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15, y: -253}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &3105027546664708147
 MonoBehaviour:
@@ -9350,7 +9350,7 @@ GameObject:
   - component: {fileID: 127435105082821411}
   - component: {fileID: 6447017838893632660}
   m_Layer: 5
-  m_Name: NumOfIsMurderingDisplay
+  m_Name: IsMurdering
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9372,10 +9372,10 @@ RectTransform:
   - {fileID: 6957676627122080951}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 365, y: -278}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &6447017838893632660
 MonoBehaviour:
@@ -9423,10 +9423,10 @@ RectTransform:
   - {fileID: 736135275134616791}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15, y: -128}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &839639975622369470
 MonoBehaviour:
@@ -9824,7 +9824,7 @@ GameObject:
   - component: {fileID: 6714061526300836741}
   - component: {fileID: 7974365769432654983}
   m_Layer: 5
-  m_Name: NumOfHarverstersDisplay
+  m_Name: IsHarvesting
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9846,10 +9846,10 @@ RectTransform:
   - {fileID: 8107440067709216732}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 365, y: -128}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &7974365769432654983
 MonoBehaviour:
@@ -9897,10 +9897,10 @@ RectTransform:
   - {fileID: 7997982978954709228}
   m_Father: {fileID: 1345478559206791871}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 15, y: -103}
-  m_SizeDelta: {x: 300, y: 20}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &5916407000200736551
 MonoBehaviour:

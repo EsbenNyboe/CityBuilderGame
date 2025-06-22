@@ -37,11 +37,10 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _numberOfSocialEventWithVictimDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfPositiveSocialEffectsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfNegativeSocialEffectsDisplay;
-
-
+        
         [SerializeField] private UnitStatsDisplay _numberOfBedSeekersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfTreeSeekersDisplay;
-        [SerializeField] private UnitStatsDisplay _numberOfStorageSeekersDisplay;
+        [SerializeField] private UnitStatsDisplay _numberOfRoomyStorageSeekersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfSleepersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfHarvestersDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfIdleDisplay;
@@ -71,7 +70,7 @@ namespace Statistics
 
             _numberOfBedSeekersDisplay.gameObject.SetActive(_showNumberOfBedSeekers);
             _numberOfTreeSeekersDisplay.gameObject.SetActive(_showNumberOfTreeSeekers);
-            _numberOfStorageSeekersDisplay.gameObject.SetActive(_showNumberOfStoragesSeekers);
+            _numberOfRoomyStorageSeekersDisplay.gameObject.SetActive(_showNumberOfStoragesSeekers);
             _numberOfSleepersDisplay.gameObject.SetActive(_showNumberOfSleepers);
             _numberOfHarvestersDisplay.gameObject.SetActive(_showNumberOfHarvesters);
             _numberOfIdleDisplay.gameObject.SetActive(_showNumberOfIdle);
@@ -117,9 +116,9 @@ namespace Statistics
             _numberOfTreeSeekersDisplay.SetStatsValue(isSeekingTreeCount);
         }
 
-        public void SetNumberOfStorageSeekingUnits(int isSeekingStorageCount)
+        public void SetNumberOfRoomyStorageSeekingUnits(int isSeekingRoomyStorageCount)
         {
-            _numberOfStorageSeekersDisplay.SetStatsValue(isSeekingStorageCount);
+            _numberOfRoomyStorageSeekersDisplay.SetStatsValue(isSeekingRoomyStorageCount);
         }
 
         public void SetNumberOfSleepingUnits(int isSleepingCount)

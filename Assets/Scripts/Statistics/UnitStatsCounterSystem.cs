@@ -24,7 +24,7 @@ namespace Statistics
         private EntityQuery _socialEventWithVictimQuery;
         private EntityQuery _isSeekingBedQuery;
         private EntityQuery _isSeekingTreeQuery;
-        private EntityQuery _isSeekingStorageQuery;
+        private EntityQuery _isSeekingRoomyStorageQuery;
         private EntityQuery _isSleepingQuery;
         private EntityQuery _isHarvestingQuery;
         private EntityQuery _isIdleQuery;
@@ -46,7 +46,7 @@ namespace Statistics
             _socialEventWithVictimQuery = state.GetEntityQuery(typeof(SocialEventWithVictim));
             _isSeekingBedQuery = state.GetEntityQuery(typeof(IsSeekingBed));
             _isSeekingTreeQuery = state.GetEntityQuery(typeof(IsSeekingTree));
-            _isSeekingStorageQuery = state.GetEntityQuery(typeof(IsSeekingRoomyStorage));
+            _isSeekingRoomyStorageQuery = state.GetEntityQuery(typeof(IsSeekingRoomyStorage));
             _isSleepingQuery = state.GetEntityQuery(typeof(IsSleeping));
             _isHarvestingQuery = state.GetEntityQuery(typeof(IsHarvesting));
             _isIdleQuery = state.GetEntityQuery(typeof(IsIdle));
@@ -77,7 +77,7 @@ namespace Statistics
             instance.SetNumberOfSocialEventWithVictim(_socialEventWithVictimQuery.CalculateEntityCount());
             instance.SetNumberOfBedSeekingUnits(_isSeekingBedQuery.CalculateEntityCount());
             instance.SetNumberOfTreeSeekingUnits(_isSeekingTreeQuery.CalculateEntityCount());
-            instance.SetNumberOfStorageSeekingUnits(_isSeekingStorageQuery.CalculateEntityCount());
+            instance.SetNumberOfRoomyStorageSeekingUnits(_isSeekingRoomyStorageQuery.CalculateEntityCount());
             instance.SetNumberOfSleepingUnits(_isSleepingQuery.CalculateEntityCount());
             instance.SetNumberOfHarvestingUnits(_isHarvestingQuery.CalculateEntityCount());
             instance.SetNumberOfIdleUnits(_isIdleQuery.CalculateEntityCount());
