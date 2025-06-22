@@ -2,6 +2,7 @@ using PathInvalidation;
 using SpriteTransformNS;
 using UnitAgency.Data;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Hunger;
 using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
@@ -34,6 +35,18 @@ namespace Statistics
         private EntityQuery _isAttemptingMurderQuery;
         private EntityQuery _isMurderingQuery;
 
+        private EntityQuery _isSeekingFilledStorageQuery;
+        private EntityQuery _isEatingMeatQuery;
+        private EntityQuery _isCookingMeatQuery;
+        private EntityQuery _isSeekingBonfireQuery;
+        private EntityQuery _isHoldingSpearQuery;
+        private EntityQuery _isThrowingSpearQuery;
+        private EntityQuery _isSeekingDroppedItemQuery;
+        private EntityQuery _isSeekingConstructableQuery;
+        private EntityQuery _hasLogQuery;
+        private EntityQuery _hasRawMeatQuery;
+        private EntityQuery _hasCookedMeatQuery;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<BeginPresentationEntityCommandBufferSystem.Singleton>();
@@ -55,6 +68,17 @@ namespace Statistics
             _isSeekingTalkingPartnerQuery = state.GetEntityQuery(typeof(IsSeekingTalkingPartner));
             _isAttemptingMurderQuery = state.GetEntityQuery(typeof(IsAttemptingMurder));
             _isMurderingQuery = state.GetEntityQuery(typeof(IsMurdering));
+            _isSeekingFilledStorageQuery = state.GetEntityQuery(typeof(IsSeekingFilledStorage));
+            _isEatingMeatQuery = state.GetEntityQuery(typeof(IsEatingMeat));
+            _isCookingMeatQuery = state.GetEntityQuery(typeof(IsCookingMeat));
+            _isSeekingBonfireQuery = state.GetEntityQuery(typeof(IsSeekingBonfire));
+            _isHoldingSpearQuery = state.GetEntityQuery(typeof(IsHoldingSpear));
+            _isThrowingSpearQuery = state.GetEntityQuery(typeof(IsThrowingSpear));
+            _isSeekingDroppedItemQuery = state.GetEntityQuery(typeof(IsSeekingDroppedItem));
+            _isSeekingConstructableQuery = state.GetEntityQuery(typeof(IsSeekingConstructable));
+            // _hasLogQuery                    = state.GetEntityQuery(typeof());
+            // _hasRawMeatQuery            = state.GetEntityQuery(typeof());
+            // _hasCookedMeatQuery             = state.GetEntityQuery(typeof());
         }
 
         public void OnUpdate(ref SystemState state)
@@ -86,6 +110,18 @@ namespace Statistics
             instance.SetNumberOfIsSeekingTalkingPartner(_isSeekingTalkingPartnerQuery.CalculateEntityCount());
             instance.SetNumberOfIsAttemptingMurder(_isAttemptingMurderQuery.CalculateEntityCount());
             instance.SetNumberOfIsMurdering(_isMurderingQuery.CalculateEntityCount());
+            
+            instance.SetNumberOfIsSeekingFilledStorage(_isSeekingFilledStorageQuery.CalculateEntityCount());
+            instance.SetNumberOfIsEatingMeat(_isEatingMeatQuery.CalculateEntityCount());
+            instance.SetNumberOfIsCookingMeat(_isCookingMeatQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingBonfire(_isSeekingBonfireQuery.CalculateEntityCount());
+            instance.SetNumberOfIsHoldingSpear(_isHoldingSpearQuery.CalculateEntityCount());
+            instance.SetNumberOfIsThrowingSpear(_isThrowingSpearQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingDroppedItem(_isSeekingDroppedItemQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingConstructable(_isSeekingConstructableQuery.CalculateEntityCount());
+            // instance.SetNumberOfIs(_hasLogQuery.CalculateEntityCount());
+            // instance.SetNumberOfIs(_hasRawMeatQuery.CalculateEntityCount());
+            // instance.SetNumberOfIs(_hasCookedMeatQuery.CalculateEntityCount());
         }
     }
 }

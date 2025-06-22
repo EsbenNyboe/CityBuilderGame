@@ -28,6 +28,15 @@ namespace Statistics
         [SerializeField] private bool _showIsAttemptingMurder;
         [SerializeField] private bool _showIsMurdering;
 
+        [SerializeField] private bool _showIsSeekingFilledStorage;
+        [SerializeField] private bool _showIsEatingMeat;
+        [SerializeField] private bool _showIsCookingMeat;
+        [SerializeField] private bool _showIsSeekingBonfire;
+        [SerializeField] private bool _showIsHoldingSpear;
+        [SerializeField] private bool _showIsThrowingSpear;
+        [SerializeField] private bool _showIsSeekingDroppedItem;
+        [SerializeField] private bool _showIsSeekingConstructable;
+
         [SerializeField] private UnitStatsDisplay _numberOfUnitsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfDecisionsDisplay;
         [SerializeField] private UnitStatsDisplay _numberOfPathfindingsDisplay;
@@ -50,6 +59,17 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _isAttemptingMurder;
         [SerializeField] private UnitStatsDisplay _isMurdering;
 
+        [SerializeField] private UnitStatsDisplay _isSeekingFilledStorage;
+        [SerializeField] private UnitStatsDisplay _isEatingMeat;
+        [SerializeField] private UnitStatsDisplay _isCookingMeat;
+        [SerializeField] private UnitStatsDisplay _isSeekingBonfire;
+        [SerializeField] private UnitStatsDisplay _isHoldingSpear;
+        [SerializeField] private UnitStatsDisplay _isThrowingSpear;
+        [SerializeField] private UnitStatsDisplay _isSeekingDroppedItem;
+        [SerializeField] private UnitStatsDisplay _isSeekingConstructable;
+        [SerializeField] private UnitStatsDisplay _hasLog;
+        [SerializeField] private UnitStatsDisplay _hasRawMeat;
+        [SerializeField] private UnitStatsDisplay _hasCookedMeat;
 
         private void Awake()
         {
@@ -79,21 +99,30 @@ namespace Statistics
             _isSeekingTalkingPartner.gameObject.SetActive(_showIsSeekingTalkingPartner);
             _isAttemptingMurder.gameObject.SetActive(_showIsAttemptingMurder);
             _isMurdering.gameObject.SetActive(_showIsMurdering);
+
+            _isSeekingFilledStorage.gameObject.SetActive(_showIsSeekingFilledStorage);
+            _isEatingMeat.gameObject.SetActive(_showIsEatingMeat);
+            _isCookingMeat.gameObject.SetActive(_showIsCookingMeat);
+            _isSeekingBonfire.gameObject.SetActive(_showIsSeekingBonfire);
+            _isHoldingSpear.gameObject.SetActive(_showIsHoldingSpear);
+            _isThrowingSpear.gameObject.SetActive(_showIsThrowingSpear);
+            _isSeekingDroppedItem.gameObject.SetActive(_showIsSeekingDroppedItem);
+            _isSeekingConstructable.gameObject.SetActive(_showIsSeekingConstructable);
         }
 
-        public void SetNumberOfUnits(int numberOfUnits)
+        public void SetNumberOfUnits(int count)
         {
-            _numberOfUnitsDisplay.SetStatsValue(numberOfUnits);
+            _numberOfUnitsDisplay.SetStatsValue(count);
         }
 
-        public void SetNumberOfDecidingUnits(int isDecidingCount)
+        public void SetNumberOfDecidingUnits(int count)
         {
-            _numberOfDecisionsDisplay.SetStatsValue(isDecidingCount);
+            _numberOfDecisionsDisplay.SetStatsValue(count);
         }
 
-        public void SetNumberOfPathfindingUnits(int isPathfindingCount)
+        public void SetNumberOfPathfindingUnits(int count)
         {
-            _numberOfPathfindingsDisplay.SetStatsValue(isPathfindingCount);
+            _numberOfPathfindingsDisplay.SetStatsValue(count);
         }
 
         public void SetNumberOfPathInvalidations(int count)
@@ -101,19 +130,19 @@ namespace Statistics
             _numberOfPathInvalidationsDisplay.SetStatsValue(count);
         }
 
-        public void SetNumberOfConversationEvents(int conversationEventCount)
+        public void SetNumberOfConversationEvents(int count)
         {
-            _numberOfConversationsDisplay.SetStatsValue(conversationEventCount);
+            _numberOfConversationsDisplay.SetStatsValue(count);
         }
 
-        public void SetNumberOfSocialEvent(int socialEventCount)
+        public void SetNumberOfSocialEvent(int count)
         {
-            _numberOfSocialEventDisplay.SetStatsValue(socialEventCount);
+            _numberOfSocialEventDisplay.SetStatsValue(count);
         }
 
-        public void SetNumberOfSocialEventWithVictim(int socialEventWithVictimCount)
+        public void SetNumberOfSocialEventWithVictim(int count)
         {
-            _numberOfSocialEventWithVictimDisplay.SetStatsValue(socialEventWithVictimCount);
+            _numberOfSocialEventWithVictimDisplay.SetStatsValue(count);
         }
 
         public void SetNumberOfPositiveSocialEffects(int count)
@@ -126,59 +155,99 @@ namespace Statistics
             _numberOfNegativeSocialEffectsDisplay.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsSeekingBed(int isSeekingBedCount)
+        public void SetNumberOfIsSeekingBed(int count)
         {
-            _isSeekingBed.SetStatsValue(isSeekingBedCount);
+            _isSeekingBed.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsSeekingTree(int isSeekingTreeCount)
+        public void SetNumberOfIsSeekingTree(int count)
         {
-            _isSeekingTree.SetStatsValue(isSeekingTreeCount);
+            _isSeekingTree.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsSeekingRoomyStorage(int isSeekingRoomyStorageCount)
+        public void SetNumberOfIsSeekingRoomyStorage(int count)
         {
-            _isSeekingRoomyStorage.SetStatsValue(isSeekingRoomyStorageCount);
+            _isSeekingRoomyStorage.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsSleeping(int isSleepingCount)
+        public void SetNumberOfIsSleeping(int count)
         {
-            _isSleeping.SetStatsValue(isSleepingCount);
+            _isSleeping.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsHarvesting(int isHarvestingCount)
+        public void SetNumberOfIsHarvesting(int count)
         {
-            _isHarvesting.SetStatsValue(isHarvestingCount);
+            _isHarvesting.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsIdle(int isIdleCount)
+        public void SetNumberOfIsIdle(int count)
         {
-            _isIdle.SetStatsValue(isIdleCount);
+            _isIdle.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsTalkative(int isTalkativeCount)
+        public void SetNumberOfIsTalkative(int count)
         {
-            _isTalkative.SetStatsValue(isTalkativeCount);
+            _isTalkative.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsTalking(int isTalkingCount)
+        public void SetNumberOfIsTalking(int count)
         {
-            _isTalking.SetStatsValue(isTalkingCount);
+            _isTalking.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsSeekingTalkingPartner(int isSeekingTalkingPartnerCount)
+        public void SetNumberOfIsSeekingTalkingPartner(int count)
         {
-            _isSeekingTalkingPartner.SetStatsValue(isSeekingTalkingPartnerCount);
+            _isSeekingTalkingPartner.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsAttemptingMurder(int isAttemptingMurderCount)
+        public void SetNumberOfIsAttemptingMurder(int count)
         {
-            _isAttemptingMurder.SetStatsValue(isAttemptingMurderCount);
+            _isAttemptingMurder.SetStatsValue(count);
         }
 
-        public void SetNumberOfIsMurdering(int isMurderingCount)
+        public void SetNumberOfIsMurdering(int count)
         {
-            _isMurdering.SetStatsValue(isMurderingCount);
+            _isMurdering.SetStatsValue(count);
+        }
+
+        public void SetNumberOfIsSeekingFilledStorage(int count)
+        {
+            _isSeekingFilledStorage.SetStatsValue(count);
+        }
+
+        public void SetNumberOfIsEatingMeat(int count)
+        {
+            _isEatingMeat.SetStatsValue(count);
+        }
+
+        public void SetNumberOfIsCookingMeat(int count)
+        {
+            _isCookingMeat.SetStatsValue(count);
+        }
+
+        public void SetNumberOfIsSeekingBonfire(int count)
+        {
+            _isSeekingBonfire.SetStatsValue(count);
+        }
+
+        public void SetNumberOfIsHoldingSpear(int count)
+        {
+            _isHoldingSpear.SetStatsValue(count);
+        }
+
+        public void SetNumberOfIsThrowingSpear(int count)
+        {
+            _isThrowingSpear.SetStatsValue(count);
+        }
+
+        public void SetNumberOfIsSeekingDroppedItem(int count)
+        {
+            _isSeekingDroppedItem.SetStatsValue(count);
+        }
+
+        public void SetNumberOfIsSeekingConstructable(int count)
+        {
+            _isSeekingConstructable.SetStatsValue(count);
         }
     }
 }
