@@ -1,7 +1,10 @@
+using System;
+using Inventory;
 using PathInvalidation;
 using SpriteTransformNS;
 using UnitAgency.Data;
 using UnitBehaviours.AutonomousHarvesting;
+using UnitBehaviours.Hunger;
 using UnitBehaviours.Idle;
 using UnitBehaviours.Pathing;
 using UnitBehaviours.Sleeping;
@@ -24,7 +27,7 @@ namespace Statistics
         private EntityQuery _socialEventWithVictimQuery;
         private EntityQuery _isSeekingBedQuery;
         private EntityQuery _isSeekingTreeQuery;
-        private EntityQuery _isSeekingStorageQuery;
+        private EntityQuery _isSeekingRoomyStorageQuery;
         private EntityQuery _isSleepingQuery;
         private EntityQuery _isHarvestingQuery;
         private EntityQuery _isIdleQuery;
@@ -33,6 +36,15 @@ namespace Statistics
         private EntityQuery _isSeekingTalkingPartnerQuery;
         private EntityQuery _isAttemptingMurderQuery;
         private EntityQuery _isMurderingQuery;
+
+        private EntityQuery _isSeekingFilledStorageQuery;
+        private EntityQuery _isEatingMeatQuery;
+        private EntityQuery _isCookingMeatQuery;
+        private EntityQuery _isSeekingBonfireQuery;
+        private EntityQuery _isHoldingSpearQuery;
+        private EntityQuery _isThrowingSpearQuery;
+        private EntityQuery _isSeekingDroppedItemQuery;
+        private EntityQuery _isSeekingConstructableQuery;
 
         public void OnCreate(ref SystemState state)
         {
@@ -46,7 +58,7 @@ namespace Statistics
             _socialEventWithVictimQuery = state.GetEntityQuery(typeof(SocialEventWithVictim));
             _isSeekingBedQuery = state.GetEntityQuery(typeof(IsSeekingBed));
             _isSeekingTreeQuery = state.GetEntityQuery(typeof(IsSeekingTree));
-            _isSeekingStorageQuery = state.GetEntityQuery(typeof(IsSeekingRoomyStorage));
+            _isSeekingRoomyStorageQuery = state.GetEntityQuery(typeof(IsSeekingRoomyStorage));
             _isSleepingQuery = state.GetEntityQuery(typeof(IsSleeping));
             _isHarvestingQuery = state.GetEntityQuery(typeof(IsHarvesting));
             _isIdleQuery = state.GetEntityQuery(typeof(IsIdle));
@@ -55,6 +67,14 @@ namespace Statistics
             _isSeekingTalkingPartnerQuery = state.GetEntityQuery(typeof(IsSeekingTalkingPartner));
             _isAttemptingMurderQuery = state.GetEntityQuery(typeof(IsAttemptingMurder));
             _isMurderingQuery = state.GetEntityQuery(typeof(IsMurdering));
+            _isSeekingFilledStorageQuery = state.GetEntityQuery(typeof(IsSeekingFilledStorage));
+            _isEatingMeatQuery = state.GetEntityQuery(typeof(IsEatingMeat));
+            _isCookingMeatQuery = state.GetEntityQuery(typeof(IsCookingMeat));
+            _isSeekingBonfireQuery = state.GetEntityQuery(typeof(IsSeekingBonfire));
+            _isHoldingSpearQuery = state.GetEntityQuery(typeof(IsHoldingSpear));
+            _isThrowingSpearQuery = state.GetEntityQuery(typeof(IsThrowingSpear));
+            _isSeekingDroppedItemQuery = state.GetEntityQuery(typeof(IsSeekingDroppedItem));
+            _isSeekingConstructableQuery = state.GetEntityQuery(typeof(IsSeekingConstructable));
         }
 
         public void OnUpdate(ref SystemState state)
@@ -75,17 +95,86 @@ namespace Statistics
             instance.SetNumberOfConversationEvents(_conversationEventQuery.CalculateEntityCount());
             instance.SetNumberOfSocialEvent(_socialEventQuery.CalculateEntityCount());
             instance.SetNumberOfSocialEventWithVictim(_socialEventWithVictimQuery.CalculateEntityCount());
-            instance.SetNumberOfBedSeekingUnits(_isSeekingBedQuery.CalculateEntityCount());
-            instance.SetNumberOfTreeSeekingUnits(_isSeekingTreeQuery.CalculateEntityCount());
-            instance.SetNumberOfStorageSeekingUnits(_isSeekingStorageQuery.CalculateEntityCount());
-            instance.SetNumberOfSleepingUnits(_isSleepingQuery.CalculateEntityCount());
-            instance.SetNumberOfHarvestingUnits(_isHarvestingQuery.CalculateEntityCount());
-            instance.SetNumberOfIdleUnits(_isIdleQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingBed(_isSeekingBedQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingTree(_isSeekingTreeQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingRoomyStorage(_isSeekingRoomyStorageQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSleeping(_isSleepingQuery.CalculateEntityCount());
+            instance.SetNumberOfIsHarvesting(_isHarvestingQuery.CalculateEntityCount());
+            instance.SetNumberOfIsIdle(_isIdleQuery.CalculateEntityCount());
             instance.SetNumberOfIsTalkative(_isTalkativeQuery.CalculateEntityCount());
             instance.SetNumberOfIsTalking(_isTalkingQuery.CalculateEntityCount());
             instance.SetNumberOfIsSeekingTalkingPartner(_isSeekingTalkingPartnerQuery.CalculateEntityCount());
             instance.SetNumberOfIsAttemptingMurder(_isAttemptingMurderQuery.CalculateEntityCount());
             instance.SetNumberOfIsMurdering(_isMurderingQuery.CalculateEntityCount());
+
+            instance.SetNumberOfIsSeekingFilledStorage(_isSeekingFilledStorageQuery.CalculateEntityCount());
+            instance.SetNumberOfIsEatingMeat(_isEatingMeatQuery.CalculateEntityCount());
+            instance.SetNumberOfIsCookingMeat(_isCookingMeatQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingBonfire(_isSeekingBonfireQuery.CalculateEntityCount());
+            instance.SetNumberOfIsHoldingSpear(_isHoldingSpearQuery.CalculateEntityCount());
+            instance.SetNumberOfIsThrowingSpear(_isThrowingSpearQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingDroppedItem(_isSeekingDroppedItemQuery.CalculateEntityCount());
+            instance.SetNumberOfIsSeekingConstructable(_isSeekingConstructableQuery.CalculateEntityCount());
+
+            var hasLog = 0;
+            var hasRawMeat = 0;
+            var hasCookedMeat = 0;
+            foreach (var inventoryState in SystemAPI.Query<RefRO<InventoryState>>())
+            {
+                switch (inventoryState.ValueRO.CurrentItem)
+                {
+                    case InventoryItem.None:
+                        break;
+                    case InventoryItem.LogOfWood:
+                        hasLog++;
+                        break;
+                    case InventoryItem.RawMeat:
+                        hasRawMeat++;
+                        break;
+                    case InventoryItem.CookedMeat:
+                        hasCookedMeat++;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            instance.SetNumberOfHasLog(hasLog);
+            instance.SetNumberOfHasRawMeat(hasRawMeat);
+            instance.SetNumberOfHasCookedMeat(hasCookedMeat);
+
+            var storedNothing = 0;
+            var storedLog = 0;
+            var storedRawMeat = 0;
+            var storedCookedMeat = 0;
+            foreach (var storage in SystemAPI.Query<DynamicBuffer<Storage>>())
+            {
+                foreach (var storedItem in storage)
+                {
+                    switch (storedItem.Item)
+                    {
+                        case InventoryItem.None:
+                            storedNothing++;
+                            break;
+                        case InventoryItem.LogOfWood:
+                            storedLog++;
+                            break;
+                        case InventoryItem.RawMeat:
+                            storedRawMeat++;
+                            break;
+                        case InventoryItem.CookedMeat:
+                            storedCookedMeat++;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            }
+            
+            instance.SetNumberOfStoredNothing(storedNothing);
+            instance.SetNumberOfStoredLog(storedLog);
+            instance.SetNumberOfStoredRawMeat(storedRawMeat);
+            instance.SetNumberOfStoredCookedMeat(storedCookedMeat);
         }
     }
 }
