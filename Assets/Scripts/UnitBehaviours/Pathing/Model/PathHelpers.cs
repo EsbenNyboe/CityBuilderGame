@@ -57,6 +57,17 @@ namespace UnitBehaviours.Pathing
 
         private static bool PathIsInvalid(GridManager gridManager, int2 startCell, int2 endCell, bool isDebugging)
         {
+            if (endCell.x < 0 || endCell.x >= gridManager.Width ||
+                endCell.y < 0 || endCell.y > gridManager.Height)
+            {
+                if (isDebugging)
+                {
+                    DebugHelper.LogError("Path end is out of bounds!");
+                }
+
+                return true;
+            }
+
             if (!gridManager.IsWalkable(startCell))
             {
                 if (isDebugging)
@@ -82,17 +93,6 @@ namespace UnitBehaviours.Pathing
                 if (isDebugging)
                 {
                     DebugHelper.Log("Path spans multiple sections!");
-                }
-
-                return true;
-            }
-
-            if (endCell.x < 0 || endCell.x >= gridManager.Width ||
-                endCell.y < 0 || endCell.y > gridManager.Height)
-            {
-                if (isDebugging)
-                {
-                    DebugHelper.LogError("Path end is out of bounds!");
                 }
 
                 return true;
