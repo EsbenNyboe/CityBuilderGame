@@ -121,6 +121,8 @@ namespace Rendering
         VillagerEat,
         BabyEat,
         BabyIdleHolding,
-        BabyWalkHolding
+        BabyWalkHolding,
+        HarvestableBerryBushDamaged,
+        HarvestableBerryBush
     }
 }

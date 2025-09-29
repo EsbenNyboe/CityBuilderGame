@@ -3216,6 +3216,12 @@ MonoBehaviour:
   - Identifier: 19
     FrameCount: 1
     FrameInterval: 1
+  - Identifier: 34
+    FrameCount: 6
+    FrameInterval: 1
+  - Identifier: 35
+    FrameCount: 1
+    FrameInterval: 1
   - Identifier: 10
     FrameCount: 2
     FrameInterval: 1
@@ -3238,7 +3244,7 @@ MonoBehaviour:
     FrameCount: 2
     FrameInterval: 0.3
   ColumnCount: 8
-  RowCount: 8
+  RowCount: 9
   IsDirty: 1
   EdibleOffset:
     x: -0.25
@@ -3257,7 +3263,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 295cec2b697c4b8d87e1d7ba4edbe60a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _previewAnimation: 0
+  _previewAnimation: 34
   _previewInventoryItems: 1d000000
   _stackOffsetFactor: 0.23
   _previewStructure:
