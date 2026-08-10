@@ -46,7 +46,8 @@ namespace UnitBehaviours.AutonomousHarvesting
                          .Query<RefRO<IsHarvesting>, RefRW<AttackAnimation>, RefRW<InventoryState>, RefRO<LocalTransform>>()
                          .WithEntityAccess())
             {
-                if (!gridManager.IsDamageable((int2)attackAnimation.ValueRO.Target))
+                var target = (int2)attackAnimation.ValueRO.Target;
+                if (inventory.ValueRO.CurrentItem != InventoryItem.None || !gridManager.IsDamageable(target))
                 {
                     ecb.RemoveComponent<IsHarvesting>(entity);
                     attackAnimation.ValueRW.MarkedForDeletion = true;
@@ -71,12 +72,12 @@ namespace UnitBehaviours.AutonomousHarvesting
                         InfluenceRadius = socialEventConfig.InfluenceRadius
                     });
 
-                    Harvest(ecb,
+                    Attack(ecb,
                         soundManager,
                         ref gridManager,
                         unitBehaviourManager,
                         isHarvesting.ValueRO.HarvestableType,
-                        (int2)attackAnimation.ValueRO.Target,
+                        target,
                         inventory);
                     attackAnimation.ValueRW.TimeLeft = attackAnimationManager.AttackDuration;
                 }
@@ -85,7 +86,7 @@ namespace UnitBehaviours.AutonomousHarvesting
             SystemAPI.SetSingleton(gridManager);
         }
 
-        private void Harvest(EntityCommandBuffer ecb,
+        private void Attack(EntityCommandBuffer ecb,
             DotsSoundManager soundManager,
             ref GridManager gridManager,
             UnitBehaviourManager unitBehaviourManager,
@@ -102,6 +103,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                     soundManager.ChopSoundRequests.Enqueue(soundPosition);
                     break;
                 case HarvestableType.BerryBush:
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(harvestableType), harvestableType, null);
@@ -118,6 +120,11 @@ namespace UnitBehaviours.AutonomousHarvesting
                     _ => throw new ArgumentOutOfRangeException(nameof(harvestableType), harvestableType, null)
                 };
                 DestroyHarvestable(ecb, soundManager, ref gridManager, harvestableCoords, harvestableType);
+            }
+            else if (gridManager.IsBerryBush(harvestableCoords))
+            {
+                // Everyone gets a berry, if they hit the berry bush!
+                inventory.ValueRW.CurrentItem = InventoryItem.BunchOfBerries;
             }
         }
 

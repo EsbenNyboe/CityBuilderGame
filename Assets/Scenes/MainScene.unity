@@ -2749,7 +2749,7 @@ MonoBehaviour:
   _showNumberOfNegativeSocialEffects: 1
   _showIsSeekingBed: 1
   _showIsSeekingTree: 1
-  _showIsSeekingBerryBush: 0
+  _showIsSeekingBerryBush: 1
   _showIsSeekingRoomyStorage: 1
   _showIsSleeping: 1
   _showIsHarvesting: 1
@@ -2768,12 +2768,12 @@ MonoBehaviour:
   _showIsSeekingDroppedItem: 1
   _showIsSeekingConstructable: 1
   _showHasLog: 1
-  _showHasBerry: 0
+  _showHasBerry: 1
   _showHasRawMeat: 1
   _showHasCookedMeat: 1
   _showStoredNothing: 1
   _showStoredLog: 1
-  _showStoredBerry: 0
+  _showStoredBerry: 1
   _showStoredRawMeat: 1
   _showStoredCookedMeat: 1
   _numberOfUnitsDisplay: {fileID: 137847160}
