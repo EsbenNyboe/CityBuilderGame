@@ -14,6 +14,7 @@ using UnityEngine;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
+    // TODO: Need to create a system for harvesting berry bushes!
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
     public partial struct IsHarvestingSystem : ISystem
     {

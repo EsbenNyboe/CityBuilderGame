@@ -8,6 +8,7 @@ namespace UnitSpawn.Spawning
         public Entity VillagerPrefab;
         public Entity BoarPrefab;
         public Entity TreePrefab;
+        public Entity BerryBushPrefab;
         public Entity BedPrefab;
         public Entity StoragePrefab;
         public Entity HousePrefab;
@@ -19,6 +20,7 @@ namespace UnitSpawn.Spawning
         [SerializeField] private GameObject _villagerPrefab;
         [SerializeField] private GameObject _boarPrefab;
         [SerializeField] private GameObject _treePrefab;
+        [SerializeField] private GameObject _berryBushPrefab;
         [SerializeField] private GameObject _bedPrefab;
         [SerializeField] private GameObject _storagePrefab;
         [SerializeField] private GameObject _housePrefab;
@@ -34,6 +36,7 @@ namespace UnitSpawn.Spawning
                     VillagerPrefab = GetEntity(authoring._villagerPrefab, TransformUsageFlags.Dynamic),
                     BoarPrefab = GetEntity(authoring._boarPrefab, TransformUsageFlags.Dynamic),
                     TreePrefab = GetEntity(authoring._treePrefab, TransformUsageFlags.Dynamic),
+                    BerryBushPrefab = GetEntity(authoring._berryBushPrefab, TransformUsageFlags.Dynamic),
                     StoragePrefab = GetEntity(authoring._storagePrefab, TransformUsageFlags.Dynamic),
                     HousePrefab = GetEntity(authoring._housePrefab, TransformUsageFlags.Dynamic),
                     BedPrefab = GetEntity(authoring._bedPrefab, TransformUsageFlags.Dynamic),

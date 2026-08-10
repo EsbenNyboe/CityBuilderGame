@@ -8,7 +8,7 @@ namespace UnitBehaviours.UnitManagers
         public float NeutralizationFactor;
         public float ThresholdForBecomingAnnoying;
         public float ImpactOnBedBeingOccupied;
-        public SocialEventConfig OnUnitAttackTree;
+        public SocialEventConfig OnUnitAttackTree; // TODO: Make another one for berry bush?
         public SocialEventConfig OnUnitAttackUnit;
     }
 

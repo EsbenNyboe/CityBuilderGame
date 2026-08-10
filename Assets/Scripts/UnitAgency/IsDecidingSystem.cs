@@ -326,6 +326,12 @@ namespace UnitAgency.Logic
                     EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
                 }
+                else if (!isBaby && hasAccessToStorageWithSpace && IsAdjacentToBerryBush(GridManager, cell, out var berryBush))
+                {
+                    // TODO: Revisit this logic here
+                    EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
+                    EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(berryBush));
+                }
                 else if (!isBaby && hasAccessToStorageWithSpace && hasAccessToCorpse && QuadrantSystem.TryFindAdjacentEntity(
                              QuadrantDataManager.CorpseQuadrantMap, GridManager,
                              UnitBehaviourManager.QuadrantSearchRange,
@@ -398,6 +404,11 @@ namespace UnitAgency.Logic
                 else if (!isBaby && hasAccessToLogContainer && hasInitiative)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
+                }
+                else if (!isBaby && hasAccessToStorageWithSpace && hasInitiative)
+                {
+                    // TODO: Revisit this logic
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingBerryBush());
                 }
                 else
                 {
@@ -472,6 +483,12 @@ namespace UnitAgency.Logic
         {
             var foundTree = gridManager.TryGetNeighbouringTreeCell(cell, out tree);
             return foundTree;
+        }
+
+        private static bool IsAdjacentToBerryBush(GridManager gridManager, int2 cell, out int2 berryBush)
+        {
+            var foundBerryBush = gridManager.TryGetNeighbouringBerryBushCell(cell, out berryBush);
+            return foundBerryBush;
         }
 
         private static bool IsAdjacentToBonfire(GridManager gridManager, int2 cell, out int2 bonfire)

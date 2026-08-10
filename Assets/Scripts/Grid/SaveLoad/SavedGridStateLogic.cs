@@ -44,6 +44,7 @@ namespace Grid.SaveLoad
         {
             var gridManager = SystemAPI.GetSingleton<GridManager>();
             var treeList = new NativeList<int2>(Allocator.Temp);
+            var berryBushList = new NativeList<int2>(Allocator.Temp);
             var bedList = new NativeList<int2>(Allocator.Temp);
             var storageList = new NativeList<int2>(Allocator.Temp);
             var bonfireList = new NativeList<int2>(Allocator.Temp);
@@ -65,6 +66,10 @@ namespace Grid.SaveLoad
                 {
                     treeList.Add(gridManager.GetXY(i));
                 }
+                else if (gridManager.TryGetBerryBushEntity(i, out _))
+                {
+                    berryBushList.Add(gridManager.GetXY(i));
+                }
                 else if (gridManager.TryGetBonfireEntity(i, out _))
                 {
                     bonfireList.Add(gridManager.GetXY(i));
@@ -79,6 +84,9 @@ namespace Grid.SaveLoad
 
             var trees = new int2[treeList.Length];
             NativeArray<int2>.Copy(treeList.AsArray(), trees);
+
+            var berryBushes = new int2[berryBushList.Length];
+            NativeArray<int2>.Copy(berryBushList.AsArray(), berryBushes);
 
             var beds = new int2[bedList.Length];
             NativeArray<int2>.Copy(bedList.AsArray(), beds);
@@ -106,8 +114,9 @@ namespace Grid.SaveLoad
             var boars = new float3[boarList.Length];
             NativeArray<float3>.Copy(boarList.AsArray(), boars);
 
-            SavedGridStateManager.Instance.SaveDataToSaveSlot(gridSize, trees, beds, storages, bonfires,  houses, villagers, boars);
+            SavedGridStateManager.Instance.SaveDataToSaveSlot(gridSize, trees, berryBushes, beds, storages, bonfires, houses, villagers, boars);
             treeList.Dispose();
+            berryBushList.Dispose();
             bedList.Dispose();
             storageList.Dispose();
             bonfireList.Dispose();
@@ -131,6 +140,7 @@ namespace Grid.SaveLoad
 
             // LOAD NEW STATE
             var trees = SavedGridStateManager.Instance.LoadSavedTrees();
+            var berryBushes = SavedGridStateManager.Instance.LoadSavedBerryBushes();
             var beds = SavedGridStateManager.Instance.LoadSavedBeds();
             var storages = SavedGridStateManager.Instance.LoadSavedStorages();
             var bonfires = SavedGridStateManager.Instance.LoadSavedBonfires();
@@ -155,6 +165,15 @@ namespace Grid.SaveLoad
                 SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
                     trees[i], spawnManager.TreePrefab,
                     GridEntityType.Tree, WorldSpriteSheetEntryType.Tree);
+            }
+
+            for (var i = 0; i < berryBushes.Length; i++)
+            {
+                gridManager.SetIsWalkable(berryBushes[i], false);
+                gridManager.SetHealthToMax(berryBushes[i]);
+                SpawnManagerSystem.SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager,
+                    berryBushes[i], spawnManager.BerryBushPrefab,
+                    GridEntityType.BerryBush, WorldSpriteSheetEntryType.HarvestableBerryBush);
             }
 
             for (var i = 0; i < beds.Length; i++)

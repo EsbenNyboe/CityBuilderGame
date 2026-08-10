@@ -104,7 +104,12 @@ namespace Grid
 
         public bool IsTree(int2 cell)
         {
-            return IsPositionInsideGrid(cell) && IsDamageable(cell);
+            return IsPositionInsideGrid(cell) && IsDamageable(cell) && TryGetTreeEntity(cell, out _);
+        }
+
+        public bool IsBerryBush(int2 cell)
+        {
+            return IsPositionInsideGrid(cell) && IsDamageable(cell) && TryGetBerryBushEntity(cell, out _);
         }
 
         public bool IsBonfire(int2 cell)

@@ -18,6 +18,7 @@ namespace Statistics
 
         [SerializeField] private bool _showIsSeekingBed;
         [SerializeField] private bool _showIsSeekingTree;
+        [SerializeField] private bool _showIsSeekingBerryBush;
         [SerializeField] private bool _showIsSeekingRoomyStorage;
         [SerializeField] private bool _showIsSleeping;
         [SerializeField] private bool _showIsHarvesting;
@@ -57,6 +58,7 @@ namespace Statistics
 
         [SerializeField] private UnitStatsDisplay _isSeekingBed;
         [SerializeField] private UnitStatsDisplay _isSeekingTree;
+        [SerializeField] private UnitStatsDisplay _isSeekingBerryBush;
         [SerializeField] private UnitStatsDisplay _isSeekingRoomyStorage;
         [SerializeField] private UnitStatsDisplay _isSleeping;
         [SerializeField] private UnitStatsDisplay _isHarvesting;
@@ -103,6 +105,7 @@ namespace Statistics
 
             _isSeekingBed.gameObject.SetActive(_showIsSeekingBed);
             _isSeekingTree.gameObject.SetActive(_showIsSeekingTree);
+            _isSeekingBerryBush.gameObject.SetActive(_showIsSeekingBerryBush);
             _isSeekingRoomyStorage.gameObject.SetActive(_showIsSeekingRoomyStorage);
             _isSleeping.gameObject.SetActive(_showIsSleeping);
             _isHarvesting.gameObject.SetActive(_showIsHarvesting);
@@ -185,6 +188,11 @@ namespace Statistics
         public void SetNumberOfIsSeekingTree(int count)
         {
             _isSeekingTree.SetStatsValue(count);
+        }
+
+        public void SetNumberOfIsSeekingBerryBush(int count)
+        {
+            _isSeekingBerryBush.SetStatsValue(count);
         }
 
         public void SetNumberOfIsSeekingRoomyStorage(int count)

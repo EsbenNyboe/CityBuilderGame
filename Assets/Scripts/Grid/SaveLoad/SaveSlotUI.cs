@@ -66,6 +66,11 @@ namespace Grid.SaveLoad
                 _texture2D.SetPixel(stateObject.Trees[i].x, stateObject.Trees[i].y, Color.green);
             }
 
+            for (var i = 0; i < stateObject.BerryBushes.Length; i++)
+            {
+                _texture2D.SetPixel(stateObject.BerryBushes[i].x, stateObject.BerryBushes[i].y, Color.magenta);
+            }
+
             for (var i = 0; i < stateObject.Beds.Length; i++)
             {
                 _texture2D.SetPixel(stateObject.Beds[i].x, stateObject.Beds[i].y, Color.white);

@@ -1,4 +1,4 @@
-﻿using Debugging;
+using Debugging;
 using Grid;
 using SystemGroups;
 using UnitAgency.Data;
@@ -14,7 +14,7 @@ using Unity.Transforms;
 namespace UnitBehaviours.AutonomousHarvesting
 {
     [UpdateInGroup(typeof(UnitBehaviourSystemGroup))]
-    public partial struct IsSeekingTreeSystem : ISystem
+    public partial struct IsSeekingBerryBushSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -36,7 +36,7 @@ namespace UnitBehaviours.AutonomousHarvesting
 
             foreach (var (localTransform, pathFollow, moodInitiative, entity)
                      in SystemAPI.Query<RefRO<LocalTransform>, RefRO<PathFollow>, RefRW<MoodInitiative>>()
-                         .WithAll<IsSeekingTree>()
+                         .WithAll<IsSeekingBerryBush>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
@@ -50,12 +50,12 @@ namespace UnitBehaviours.AutonomousHarvesting
                     continue;
                 }
 
-                // Am I adjacent to a tree?
-                if (gridManager.TryGetNeighbouringTreeCell(currentCell, out _))
+                // Am I adjacent to a BerryBush?
+                if (gridManager.TryGetNeighbouringBerryBushCell(currentCell, out _))
                 {
-                    // I found my adjacent tree!
+                    // I found my adjacent BerryBush!
                     var ecb = GetEntityCommandBuffer(ref state);
-                    ecb.RemoveComponent<IsSeekingTree>(entity);
+                    ecb.RemoveComponent<IsSeekingBerryBush>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     continue;
                 }
@@ -67,8 +67,8 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 moodInitiative.ValueRW.UseInitiative();
 
-                // I'm not next to a tree... I should find the closest tree.
-                jobHandleList.Add(new SeekTreeJob
+                // I'm not next to a BerryBush... I should find the closest BerryBush.
+                jobHandleList.Add(new SeekBerryBushJob
                 {
                     CurrentCell = currentCell,
                     Entity = entity,
@@ -92,7 +92,7 @@ namespace UnitBehaviours.AutonomousHarvesting
     }
 
     [BurstCompile]
-    public struct SeekTreeJob : IJob
+    public struct SeekBerryBushJob : IJob
     {
         [ReadOnly] public int2 CurrentCell;
         [ReadOnly] public Entity Entity;
@@ -104,17 +104,17 @@ namespace UnitBehaviours.AutonomousHarvesting
 
         public void Execute()
         {
-            if (!GridManager.TryGetClosestTreeAdjacentCellSemiRandom(CurrentCell, Entity, out var choppingCell,
+            if (!GridManager.TryGetClosestBerryBushAdjacentCellSemiRandom(CurrentCell, Entity, out var berryBushAdjacentCell,
                     IsDebuggingSeek))
             {
-                // I can't see any nearby trees
-                Ecb.RemoveComponent<IsSeekingTree>(Entity);
+                // I can't see any nearby BerryBushes
+                Ecb.RemoveComponent<IsSeekingBerryBush>(Entity);
                 Ecb.AddComponent<IsDeciding>(Entity);
                 return;
             }
 
-            // I found a tree!! I will go there! 
-            PathHelpers.TrySetPath(Ecb, GridManager, Entity, CurrentCell, choppingCell, IsDebuggingPath);
+            // I found a BerryBush!! I will go there! 
+            PathHelpers.TrySetPath(Ecb, GridManager, Entity, CurrentCell, berryBushAdjacentCell, IsDebuggingPath);
         }
     }
 }

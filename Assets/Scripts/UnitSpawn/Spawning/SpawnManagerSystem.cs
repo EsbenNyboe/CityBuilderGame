@@ -139,6 +139,13 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
+                case SpawnItemType.BerryBush:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnBerryBush(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.BerryBushPrefab);
+                    }
+
+                    break;
                 case SpawnItemType.Bed:
                     foreach (var cell in cellList)
                     {
@@ -214,6 +221,13 @@ namespace UnitSpawn.Spawning
                     foreach (var cell in cellList)
                     {
                         TryDeleteTree(ecb, ref gridManager, cell);
+                    }
+
+                    break;
+                case SpawnItemType.BerryBush:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteBerryBush(ecb, ref gridManager, cell);
                     }
 
                     break;
@@ -347,9 +361,35 @@ namespace UnitSpawn.Spawning
             }
         }
 
+        private void TrySpawnBerryBush(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager,
+            int2 cell,
+            Entity prefab)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+                !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
+            {
+                gridManager.SetIsWalkable(cell, false);
+                gridManager.SetHealthToMax(cell);
+                SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.BerryBush,
+                    WorldSpriteSheetEntryType.HarvestableBerryBush);
+            }
+        }
+
         private void TryDeleteTree(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
         {
             if (gridManager.IsPositionInsideGrid(position) && gridManager.TryGetTreeEntity(position, out var entity))
+            {
+                gridManager.SetHealthToZero(position);
+
+                gridManager.SetIsWalkable(position, true);
+                gridManager.RemoveGridEntity(position);
+                ecb.DestroyEntity(entity);
+            }
+        }
+
+        private void TryDeleteBerryBush(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
+        {
+            if (gridManager.IsPositionInsideGrid(position) && gridManager.TryGetBerryBushEntity(position, out var entity))
             {
                 gridManager.SetHealthToZero(position);
 
@@ -459,7 +499,7 @@ namespace UnitSpawn.Spawning
             }
         }
 
-        private void TryDeleteBed( EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
+        private void TryDeleteBed(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
         {
             if (gridManager.IsPositionInsideGrid(cell) &&
                 gridManager.IsBed(cell) &&

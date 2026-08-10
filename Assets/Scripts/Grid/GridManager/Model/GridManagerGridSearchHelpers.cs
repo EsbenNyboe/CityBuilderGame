@@ -50,7 +50,8 @@ namespace Grid
                 var neighbourCell = GetNeighbourCell(currentIndex, center);
 
                 if (IsPositionInsideGrid(neighbourCell) &&
-                    IsDamageable(neighbourCell))
+                    IsDamageable(neighbourCell) &&
+                    TryGetGridEntityOfType(neighbourCell, GridEntityType.Tree, out _)) // TODO: Refactor
                 {
                     neighbouringTreeCell = neighbourCell;
                     return true;
@@ -58,6 +59,34 @@ namespace Grid
             }
 
             neighbouringTreeCell = -1;
+            return false;
+        }
+
+        public bool TryGetNeighbouringBerryBushCell(int2 center, out int2 neighbouringBerryBushCell)
+        {
+            var randomStartIndex = GetSemiRandomIndex(0, 8);
+            var currentIndex = randomStartIndex + 1;
+
+            while (currentIndex != randomStartIndex)
+            {
+                currentIndex++;
+                if (currentIndex >= 8)
+                {
+                    currentIndex = 0;
+                }
+
+                var neighbourCell = GetNeighbourCell(currentIndex, center);
+
+                if (IsPositionInsideGrid(neighbourCell) &&
+                    IsDamageable(neighbourCell) &&
+                    TryGetGridEntityOfType(neighbourCell, GridEntityType.BerryBush, out _)) // TODO: Refactor
+                {
+                    neighbouringBerryBushCell = neighbourCell;
+                    return true;
+                }
+            }
+
+            neighbouringBerryBushCell = -1;
             return false;
         }
 
@@ -169,7 +198,7 @@ namespace Grid
             return PositionList;
         }
 
-        public bool TryGetClosestChoppingCellSemiRandom(int2 selfCell, Entity selfEntity, out int2 availableChoppingCell,
+        public bool TryGetClosestTreeAdjacentCellSemiRandom(int2 selfCell, Entity selfEntity, out int2 availableTreeAdjacentCell,
             bool isDebugging)
         {
             for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
@@ -191,7 +220,7 @@ namespace Grid
                     if (IsTree(treeCell) &&
                         TryGetClosestValidNeighbourOfTarget(selfCell, selfEntity, treeCell, out var treeNeighbour))
                     {
-                        availableChoppingCell = treeNeighbour;
+                        availableTreeAdjacentCell = treeNeighbour;
                         return true;
                     }
                 }
@@ -202,7 +231,45 @@ namespace Grid
                 Debug.LogWarning("No available chopping cell was found within the search-range");
             }
 
-            availableChoppingCell = -1;
+            availableTreeAdjacentCell = -1;
+            return false;
+        }
+
+        // TODO: Refactor, combine with the above
+        public bool TryGetClosestBerryBushAdjacentCellSemiRandom(int2 selfCell, Entity selfEntity, out int2 availableBerryBushAdjacentCell,
+            bool isDebugging)
+        {
+            for (var ring = 1; ring < RelativePositionRingInfoList.Length; ring++)
+            {
+                var ringStart = RelativePositionRingInfoList[ring].x;
+                var ringEnd = RelativePositionRingInfoList[ring].y;
+                var randomStartIndex = GetSemiRandomIndex(ringStart, ringEnd);
+                var currentIndex = randomStartIndex + 1;
+
+                while (currentIndex != randomStartIndex)
+                {
+                    currentIndex++;
+                    if (currentIndex >= ringEnd)
+                    {
+                        currentIndex = ringStart;
+                    }
+
+                    var berryBushCell = selfCell + RelativePositionList[currentIndex];
+                    if (IsBerryBush(berryBushCell) &&
+                        TryGetClosestValidNeighbourOfTarget(selfCell, selfEntity, berryBushCell, out var berryBushNeighbour))
+                    {
+                        availableBerryBushAdjacentCell = berryBushNeighbour;
+                        return true;
+                    }
+                }
+            }
+
+            if (isDebugging)
+            {
+                Debug.LogWarning("No available berry bush adjacent cell was found within the search-range");
+            }
+
+            availableBerryBushAdjacentCell = -1;
             return false;
         }
 
