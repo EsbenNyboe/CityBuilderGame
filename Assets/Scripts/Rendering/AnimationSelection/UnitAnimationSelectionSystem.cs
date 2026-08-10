@@ -83,14 +83,22 @@ namespace UnitBehaviours.UnitConfigurators
                     : WorldSpriteSheetEntryType.VillagerCookMeatDone;
             }
 
-            foreach (var (unitAnimationSelection, isEmpty) in SystemAPI.Query<RefRW<UnitAnimationSelection>, RefRO<IsEating>>().WithNone<Baby>())
+            foreach (var (unitAnimationSelection, isEating, pathFollow) in SystemAPI
+                         .Query<RefRW<UnitAnimationSelection>, RefRO<IsEating>, RefRO<PathFollow>>().WithNone<Baby>())
             {
-                unitAnimationSelection.ValueRW.SelectedAnimation = WorldSpriteSheetEntryType.VillagerEat;
+                if (!pathFollow.ValueRO.IsMoving())
+                {
+                    unitAnimationSelection.ValueRW.SelectedAnimation = WorldSpriteSheetEntryType.VillagerEat;
+                }
             }
 
-            foreach (var (unitAnimationSelection, isEmpty) in SystemAPI.Query<RefRW<UnitAnimationSelection>, RefRO<IsEating>>().WithAll<Baby>())
+            foreach (var (unitAnimationSelection, isEating, pathFollow) in SystemAPI
+                         .Query<RefRW<UnitAnimationSelection>, RefRO<IsEating>, RefRO<PathFollow>>().WithAll<Baby>())
             {
-                unitAnimationSelection.ValueRW.SelectedAnimation = WorldSpriteSheetEntryType.BabyEat;
+                if (!pathFollow.ValueRO.IsMoving())
+                {
+                    unitAnimationSelection.ValueRW.SelectedAnimation = WorldSpriteSheetEntryType.BabyEat;
+                }
             }
 
             foreach (var unitAnimationSelection in SystemAPI.Query<RefRW<UnitAnimationSelection>>()
