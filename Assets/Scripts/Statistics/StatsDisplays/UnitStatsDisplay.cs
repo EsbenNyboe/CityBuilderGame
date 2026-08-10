@@ -11,8 +11,6 @@ namespace Statistics.StatsDisplays
 
         private void Update()
         {
-            OnUpdate();
-
             if (_currentValue != _previousValue)
             {
                 _previousValue = _currentValue;
@@ -25,8 +23,9 @@ namespace Statistics.StatsDisplays
         public void SetStatsValue(int rawValue)
         {
             _currentValue = GetTextValue(rawValue);
+            OnValueSet();
         }
 
-        protected abstract void OnUpdate() ;
+        protected abstract void OnValueSet();
     }
 }

@@ -48,6 +48,6 @@ MonoBehaviour:
   _startItem: 0
   _sleepiness: 0
   _restlessness: 1
-  _loneliness: 0
+  _loneliness: 0.387
   _initiative: 1
-  _hunger: 0
+  _hunger: 1

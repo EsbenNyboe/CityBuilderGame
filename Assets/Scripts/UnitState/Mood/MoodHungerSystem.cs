@@ -17,7 +17,8 @@ namespace UnitState.Mood
         public void OnUpdate(ref SystemState state)
         {
             var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
-            new UpdateHungerJob { DeltaTime = SystemAPI.Time.DeltaTime * timeScale }.ScheduleParallel();
+            const float regenerationFactor = 0.1f;
+            new UpdateHungerJob { DeltaTime = SystemAPI.Time.DeltaTime * timeScale * regenerationFactor }.ScheduleParallel();
         }
 
         [BurstCompile]

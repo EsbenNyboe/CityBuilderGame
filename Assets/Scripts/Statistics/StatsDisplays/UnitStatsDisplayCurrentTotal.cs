@@ -7,7 +7,7 @@ namespace Statistics.StatsDisplays
             return rawValue;
         }
 
-        protected override void OnUpdate()
+        protected override void OnValueSet()
         {
         }
     }

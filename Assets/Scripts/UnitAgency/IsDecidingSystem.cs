@@ -334,7 +334,7 @@ namespace UnitAgency.Logic
                     EcbParallelWriter.AddComponent(i, entity, new IsHarvesting(HarvestableType.Tree));
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
                 }
-                else if (!isBaby && hasAccessToStorageWithSpace && IsAdjacentToBerryBush(GridManager, cell, out var berryBush))
+                else if (!isBaby && (isHungry || hasAccessToStorageWithSpace) && IsAdjacentToBerryBush(GridManager, cell, out var berryBush))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsHarvesting(HarvestableType.BerryBush));
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(berryBush));
