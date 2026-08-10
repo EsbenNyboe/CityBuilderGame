@@ -70,6 +70,12 @@ namespace UnitBehaviours.AutonomousHarvesting
                     {
                         isSeekingDroppedItem.ValueRW.ItemType = InventoryItem.LogOfWood;
                     }
+                    else if (QuadrantSystem.TryFindClosestEntity(quadrantDataManager.DroppedBerryQuadrantMap, gridManager,
+                                 unitBehaviourManager.QuadrantSearchRange, position,
+                                 entity, out _, out _))
+                    {
+                        isSeekingDroppedItem.ValueRW.ItemType = InventoryItem.BunchOfBerries;
+                    }
                     else
                     {
                         // I can't see any dropped items nearby.
@@ -83,7 +89,8 @@ namespace UnitBehaviours.AutonomousHarvesting
                 {
                     InventoryItem.None => throw new ArgumentOutOfRangeException(),
                     InventoryItem.LogOfWood => quadrantDataManager.DroppedLogQuadrantMap,
-                    InventoryItem.RawMeat =>  quadrantDataManager.DroppedRawMeatQuadrantMap,
+                    InventoryItem.BunchOfBerries => quadrantDataManager.DroppedBerryQuadrantMap,
+                    InventoryItem.RawMeat => quadrantDataManager.DroppedRawMeatQuadrantMap,
                     InventoryItem.CookedMeat => quadrantDataManager.DroppedCookedMeatQuadrantMap,
                     _ => throw new ArgumentOutOfRangeException()
                 };

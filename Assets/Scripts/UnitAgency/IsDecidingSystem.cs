@@ -143,6 +143,8 @@ namespace UnitAgency.Logic
 
                 var hasAccessToStorageWithLogs = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
                     GridManager, itemQuadrantsToSearch, position, InventoryItem.LogOfWood);
+                var hasAccessToStorageWithBerries = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
+                    GridManager, itemQuadrantsToSearch, position, InventoryItem.BunchOfBerries);
                 var hasAccessToStorageWithRawMeat = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
                     GridManager, itemQuadrantsToSearch, position, InventoryItem.RawMeat);
                 var hasAccessToStorageWithCookedMeat = QuadrantSystem.TryFindNonEmptyStorageInSection(QuadrantDataManager.StorageQuadrantMap,
@@ -154,6 +156,8 @@ namespace UnitAgency.Logic
                 var hasAccessToBed = QuadrantSystem.TryFindClosestAvailableGridEntity(QuadrantDataManager.BedQuadrantMap, GridManager,
                     itemQuadrantsToSearch, position, entity, out _, out _);
                 var hasAccessToDroppedLog = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedLogQuadrantMap, GridManager,
+                    itemQuadrantsToSearch, position, entity, out _, out _);
+                var hasAccessToDroppedBerry = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedBerryQuadrantMap, GridManager,
                     itemQuadrantsToSearch, position, entity, out _, out _);
                 var hasAccessToDroppedRawMeat = QuadrantSystem.TryFindClosestEntity(QuadrantDataManager.DroppedRawMeatQuadrantMap, GridManager,
                     itemQuadrantsToSearch, position, entity, out _, out _);
@@ -222,25 +226,22 @@ namespace UnitAgency.Logic
                         EcbParallelWriter.AddComponent(i, entity, new IsIdle());
                     }
                 }
+                else if (HasBerry(inventory) && isHungry)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsEating());
+                    EcbParallelWriter.SetComponent(i, entity, new InventoryState(InventoryItem.BunchOfBerries, 1));
+                }
                 else if (HasCookedMeat(inventory) && isHungry)
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsEatingMeat());
-                    EcbParallelWriter.SetComponent(i, entity, new InventoryState
-                    {
-                        CurrentItem = InventoryItem.CookedMeat,
-                        CurrentDurability = 1
-                    });
+                    EcbParallelWriter.AddComponent(i, entity, new IsEating());
+                    EcbParallelWriter.SetComponent(i, entity, new InventoryState(InventoryItem.CookedMeat, 1));
                 }
                 else if (!isBaby && HasRawMeat(inventory) && isHungry && hasAccessToBonfire)
                 {
                     if (IsAdjacentToBonfire(GridManager, cell, out _))
                     {
                         EcbParallelWriter.AddComponent(i, entity, new IsCookingMeat());
-                        EcbParallelWriter.SetComponent(i, entity, new InventoryState
-                        {
-                            CurrentItem = InventoryItem.None,
-                            CurrentDurability = 0
-                        });
+                        EcbParallelWriter.SetComponent(i, entity, new InventoryState());
                     }
                     else
                     {
@@ -278,6 +279,13 @@ namespace UnitAgency.Logic
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem
                     {
                         ItemType = InventoryItem.RawMeat
+                    });
+                }
+                else if (hasAccessToDroppedBerry && (hasAccessToStorageWithSpace || isHungry))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingDroppedItem
+                    {
+                        ItemType = InventoryItem.BunchOfBerries
                     });
                 }
                 else if (isMoving)
@@ -323,13 +331,12 @@ namespace UnitAgency.Logic
                 }
                 else if (!isBaby && hasAccessToLogContainer && IsAdjacentToTree(GridManager, cell, out var tree))
                 {
-                    EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
+                    EcbParallelWriter.AddComponent(i, entity, new IsHarvesting(HarvestableType.Tree));
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(tree));
                 }
                 else if (!isBaby && hasAccessToStorageWithSpace && IsAdjacentToBerryBush(GridManager, cell, out var berryBush))
                 {
-                    // TODO: Revisit this logic here
-                    EcbParallelWriter.AddComponent(i, entity, new IsHarvesting());
+                    EcbParallelWriter.AddComponent(i, entity, new IsHarvesting(HarvestableType.BerryBush));
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(berryBush));
                 }
                 else if (!isBaby && hasAccessToStorageWithSpace && hasAccessToCorpse && QuadrantSystem.TryFindAdjacentEntity(
@@ -390,6 +397,18 @@ namespace UnitAgency.Logic
                         ItemType = InventoryItem.RawMeat
                     });
                 }
+                else if (isHungry && hasAccessToStorageWithBerries)
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage
+                    {
+                        ItemType = InventoryItem.BunchOfBerries
+                    });
+                }
+                else if (!isBaby && hasInitiative && ((hasAccessToStorageWithSpace && !hasAccessToStorageWithBerries) || isHungry) &&
+                         GridManager.TryGetClosestBerryBushAdjacentCellSemiRandom(cell, entity, out _, false))
+                {
+                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingBerryBush());
+                }
                 else if (!isBaby && hasAccessToConstructable && hasAccessToStorageWithLogs)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingFilledStorage
@@ -404,11 +423,6 @@ namespace UnitAgency.Logic
                 else if (!isBaby && hasAccessToLogContainer && hasInitiative)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSeekingTree());
-                }
-                else if (!isBaby && hasAccessToStorageWithSpace && hasInitiative)
-                {
-                    // TODO: Revisit this logic
-                    EcbParallelWriter.AddComponent(i, entity, new IsSeekingBerryBush());
                 }
                 else
                 {
@@ -467,6 +481,11 @@ namespace UnitAgency.Logic
         private static bool HasLogOfWood(InventoryState inventory)
         {
             return inventory.CurrentItem == InventoryItem.LogOfWood;
+        }
+
+        private static bool HasBerry(InventoryState inventory)
+        {
+            return inventory.CurrentItem == InventoryItem.BunchOfBerries;
         }
 
         private static bool HasRawMeat(InventoryState inventory)

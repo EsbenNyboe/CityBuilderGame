@@ -138,6 +138,7 @@ namespace UnitSpawn.Spawning
         DroppedLog,
         DroppedRawMeat,
         DroppedCookedMeat,
-        BerryBush
+        BerryBush,
+        DroppedBerry
     }
 }

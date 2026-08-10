@@ -181,6 +181,13 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
+                case SpawnItemType.DroppedBerry:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnDroppedItem(ecb, ref gridManager, cell, InventoryItem.BunchOfBerries);
+                    }
+
+                    break;
                 case SpawnItemType.DroppedRawMeat:
                     foreach (var cell in cellList)
                     {
@@ -260,6 +267,13 @@ namespace UnitSpawn.Spawning
 
                     break;
                 case SpawnItemType.DroppedLog:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteDroppedItem(ecb, ref gridManager, cell, brushSize);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedBerry:
                     foreach (var cell in cellList)
                     {
                         TryDeleteDroppedItem(ecb, ref gridManager, cell, brushSize);
@@ -409,6 +423,7 @@ namespace UnitSpawn.Spawning
                 gridManager.SetIsWalkable(cell, false);
                 gridManager.SetDefaultStorageCapacity(cell);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.LogOfWood);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.BunchOfBerries);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.RawMeat);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.CookedMeat);
 
@@ -427,6 +442,7 @@ namespace UnitSpawn.Spawning
                 gridManager.RemoveGridEntity(cell);
                 gridManager.SetStorageCapacity(cell, 0);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.LogOfWood);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.BunchOfBerries);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.RawMeat);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.CookedMeat);
 

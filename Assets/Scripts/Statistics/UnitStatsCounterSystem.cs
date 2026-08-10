@@ -70,7 +70,7 @@ namespace Statistics
             _isAttemptingMurderQuery = state.GetEntityQuery(typeof(IsAttemptingMurder));
             _isMurderingQuery = state.GetEntityQuery(typeof(IsMurdering));
             _isSeekingFilledStorageQuery = state.GetEntityQuery(typeof(IsSeekingFilledStorage));
-            _isEatingMeatQuery = state.GetEntityQuery(typeof(IsEatingMeat));
+            _isEatingMeatQuery = state.GetEntityQuery(typeof(IsEating));
             _isCookingMeatQuery = state.GetEntityQuery(typeof(IsCookingMeat));
             _isSeekingBonfireQuery = state.GetEntityQuery(typeof(IsSeekingBonfire));
             _isHoldingSpearQuery = state.GetEntityQuery(typeof(IsHoldingSpear));
@@ -120,6 +120,7 @@ namespace Statistics
             instance.SetNumberOfIsSeekingConstructable(_isSeekingConstructableQuery.CalculateEntityCount());
 
             var hasLog = 0;
+            var hasBerry = 0;
             var hasRawMeat = 0;
             var hasCookedMeat = 0;
             foreach (var inventoryState in SystemAPI.Query<RefRO<InventoryState>>())
@@ -130,6 +131,9 @@ namespace Statistics
                         break;
                     case InventoryItem.LogOfWood:
                         hasLog++;
+                        break;
+                    case InventoryItem.BunchOfBerries:
+                        hasBerry++;
                         break;
                     case InventoryItem.RawMeat:
                         hasRawMeat++;
@@ -143,11 +147,13 @@ namespace Statistics
             }
 
             instance.SetNumberOfHasLog(hasLog);
+            instance.SetNumberOfHasBerry(hasBerry);
             instance.SetNumberOfHasRawMeat(hasRawMeat);
             instance.SetNumberOfHasCookedMeat(hasCookedMeat);
 
             var storedNothing = 0;
             var storedLog = 0;
+            var storedBerry = 0;
             var storedRawMeat = 0;
             var storedCookedMeat = 0;
             foreach (var storage in SystemAPI.Query<DynamicBuffer<Storage>>())
@@ -161,6 +167,9 @@ namespace Statistics
                             break;
                         case InventoryItem.LogOfWood:
                             storedLog++;
+                            break;
+                        case InventoryItem.BunchOfBerries:
+                            storedBerry++;
                             break;
                         case InventoryItem.RawMeat:
                             storedRawMeat++;
@@ -176,6 +185,7 @@ namespace Statistics
 
             instance.SetNumberOfStoredNothing(storedNothing);
             instance.SetNumberOfStoredLog(storedLog);
+            instance.SetNumberOfStoredBerry(storedBerry);
             instance.SetNumberOfStoredRawMeat(storedRawMeat);
             instance.SetNumberOfStoredCookedMeat(storedCookedMeat);
         }

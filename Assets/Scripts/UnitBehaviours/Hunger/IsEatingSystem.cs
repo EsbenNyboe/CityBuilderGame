@@ -13,7 +13,7 @@ using Unity.Entities;
 namespace UnitBehaviours.Hunger
 {
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
-    public partial struct IsEatingMeatSystem : ISystem
+    public partial struct IsEatingSystem : ISystem
     {
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -37,17 +37,17 @@ namespace UnitBehaviours.Hunger
             var foodPerSecWhenEating = -0.2f * SystemAPI.Time.DeltaTime * timeScale;
             var gridManager = SystemAPI.GetSingleton<GridManager>();
 
-            foreach (var (isEatingMeat,
+            foreach (var (isEating,
                          inventory,
                          pathFollow,
                          moodHunger,
                          entity) in SystemAPI
-                         .Query<RefRW<IsEatingMeat>, RefRW<InventoryState>, RefRO<PathFollow>, RefRW<MoodHunger>>()
+                         .Query<RefRW<IsEating>, RefRW<InventoryState>, RefRO<PathFollow>, RefRW<MoodHunger>>()
                          .WithEntityAccess())
             {
                 if (pathFollow.ValueRO.IsMoving())
                 {
-                    ecb.RemoveComponent<IsEatingMeat>(entity);
+                    ecb.RemoveComponent<IsEating>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     continue;
                 }
@@ -59,7 +59,7 @@ namespace UnitBehaviours.Hunger
                 }
                 else
                 {
-                    ecb.RemoveComponent<IsEatingMeat>(entity);
+                    ecb.RemoveComponent<IsEating>(entity);
                     ecb.AddComponent<IsDeciding>(entity);
                     inventory.ValueRW.CurrentItem = InventoryItem.None;
                 }

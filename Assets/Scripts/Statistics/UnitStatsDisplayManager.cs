@@ -38,11 +38,13 @@ namespace Statistics
         [SerializeField] private bool _showIsSeekingDroppedItem;
         [SerializeField] private bool _showIsSeekingConstructable;
         [SerializeField] private bool _showHasLog;
+        [SerializeField] private bool _showHasBerry;
         [SerializeField] private bool _showHasRawMeat;
         [SerializeField] private bool _showHasCookedMeat;
 
         [SerializeField] private bool _showStoredNothing;
         [SerializeField] private bool _showStoredLog;
+        [SerializeField] private bool _showStoredBerry;
         [SerializeField] private bool _showStoredRawMeat;
         [SerializeField] private bool _showStoredCookedMeat;
 
@@ -78,11 +80,13 @@ namespace Statistics
         [SerializeField] private UnitStatsDisplay _isSeekingDroppedItem;
         [SerializeField] private UnitStatsDisplay _isSeekingConstructable;
         [SerializeField] private UnitStatsDisplay _hasLog;
+        [SerializeField] private UnitStatsDisplay _hasBerry;
         [SerializeField] private UnitStatsDisplay _hasRawMeat;
         [SerializeField] private UnitStatsDisplay _hasCookedMeat;
 
         [SerializeField] private UnitStatsDisplay _storedNothing;
         [SerializeField] private UnitStatsDisplay _storedLog;
+        [SerializeField] private UnitStatsDisplay _storedBerry;
         [SerializeField] private UnitStatsDisplay _storedRawMeat;
         [SerializeField] private UnitStatsDisplay _storedCookedMeat;
 
@@ -126,11 +130,13 @@ namespace Statistics
             _isSeekingConstructable.gameObject.SetActive(_showIsSeekingConstructable);
 
             _hasLog.gameObject.SetActive(_showHasLog);
+            _hasBerry.gameObject.SetActive(_showHasBerry);
             _hasRawMeat.gameObject.SetActive(_showHasRawMeat);
             _hasCookedMeat.gameObject.SetActive(_showHasCookedMeat);
 
             _storedNothing.gameObject.SetActive(_showStoredNothing);
             _storedLog.gameObject.SetActive(_showStoredLog);
+            _storedBerry.gameObject.SetActive(_showStoredBerry);
             _storedRawMeat.gameObject.SetActive(_showStoredRawMeat);
             _storedCookedMeat.gameObject.SetActive(_showStoredCookedMeat);
         }
@@ -285,6 +291,11 @@ namespace Statistics
             _hasLog.SetStatsValue(count);
         }
 
+        public void SetNumberOfHasBerry(int count)
+        {
+            _hasBerry.SetStatsValue(count);
+        }
+
         public void SetNumberOfHasRawMeat(int count)
         {
             _hasRawMeat.SetStatsValue(count);
@@ -303,6 +314,11 @@ namespace Statistics
         public void SetNumberOfStoredLog(int count)
         {
             _storedLog.SetStatsValue(count);
+        }
+
+        public void SetNumberOfStoredBerry(int count)
+        {
+            _storedBerry.SetStatsValue(count);
         }
 
         public void SetNumberOfStoredRawMeat(int count)

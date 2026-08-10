@@ -23,6 +23,7 @@ namespace StorageNS
                          .Query<DynamicBuffer<Storage>, RefRO<LocalTransform>>())
             {
                 var storageCountLog = 0;
+                var storageCountBerry = 0;
                 var storageCountRawMeat = 0;
                 var storageCountCookedMeat = 0;
                 for (var i = 0; i < storage.Length; i++)
@@ -36,6 +37,10 @@ namespace StorageNS
                     {
                         storageCountLog++;
                     }
+                    else if (storage[i].Item == InventoryItem.BunchOfBerries)
+                    {
+                        storageCountBerry++;
+                    }
                     else if (storage[i].Item == InventoryItem.RawMeat)
                     {
                         storageCountRawMeat++;
@@ -48,6 +53,7 @@ namespace StorageNS
 
                 var cell = GridHelpers.GetXY(localTransform.ValueRO.Position);
                 gridManager.SetStorageCount(cell, storageCountLog, InventoryItem.LogOfWood);
+                gridManager.SetStorageCount(cell, storageCountBerry, InventoryItem.BunchOfBerries);
                 gridManager.SetStorageCount(cell, storageCountRawMeat, InventoryItem.RawMeat);
                 gridManager.SetStorageCount(cell, storageCountCookedMeat, InventoryItem.CookedMeat);
             }
