@@ -380,7 +380,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2557acd3acd724a45b0e756824366918, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _chopSound:
+  _chopTreeSound:
     Clip: {fileID: 8300000, guid: 68ee48be4137e2148b90297b7658a8e1, type: 3}
     Volume: 0.85
     PitchCenter: 0.876
@@ -390,6 +390,16 @@ MonoBehaviour:
     Volume: 0.864
     PitchCenter: 0.862
     PitchVariance: 0.143
+  _chopBerryBushSound:
+    Clip: {fileID: 8300000, guid: 7f5bfb16efa9bbc43b9ab12d3d7d9675, type: 3}
+    Volume: 0.672
+    PitchCenter: 1
+    PitchVariance: 0.132
+  _destroyBerryBushSound:
+    Clip: {fileID: 8300000, guid: 2ba2a2bb9d128c24e9e13fd43928d272, type: 3}
+    Volume: 0.697
+    PitchCenter: 0.92
+    PitchVariance: 0.033
   _dieSound:
     Clip: {fileID: 8300000, guid: 558f9f56f603a954b8d45e17e89341d9, type: 3}
     Volume: 0.247
@@ -3563,7 +3573,8 @@ MonoBehaviour:
   DecompositionDuration: 5
   QuadrantSearchRange: 50
   ChildHoodDuration: 50
-  HungerPerSec: -2
+  HungerPerSecWhenIdle: 0.1
+  HungerPerSecWhenEating: -0.2
   DurabilityPerSec: -0.1
 --- !u!114 &2042965573
 MonoBehaviour:

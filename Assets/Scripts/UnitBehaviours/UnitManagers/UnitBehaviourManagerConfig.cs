@@ -14,7 +14,8 @@ namespace UnitBehaviours.UnitManagers
         public float DecompositionDuration = 5;
         public int QuadrantSearchRange = 50;
         public int ChildHoodDuration = 100;
-        public float HungerPerSec;
+        public float HungerPerSecWhenIdle;
+        public float HungerPerSecWhenEating;
         public float DurabilityPerSec;
 
         private void Awake()

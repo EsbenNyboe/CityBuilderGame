@@ -1,5 +1,6 @@
 using CustomTimeCore;
 using JetBrains.Annotations;
+using UnitBehaviours.UnitManagers;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -10,26 +11,28 @@ namespace UnitState.Mood
     {
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<UnitBehaviourManager>();
             state.RequireForUpdate<CustomTime>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var timeScale = SystemAPI.GetSingleton<CustomTime>().TimeScale;
-            const float regenerationFactor = 0.1f;
-            new UpdateHungerJob { DeltaTime = SystemAPI.Time.DeltaTime * timeScale * regenerationFactor }.ScheduleParallel();
+            var hungerPerFrame = unitBehaviourManager.HungerPerSecWhenIdle * SystemAPI.Time.DeltaTime * timeScale;
+            new UpdateHungerJob { HungerPerFrame = hungerPerFrame }.ScheduleParallel();
         }
 
         [BurstCompile]
         private partial struct UpdateHungerJob : IJobEntity
         {
-            [ReadOnly] public float DeltaTime;
+            [ReadOnly] public float HungerPerFrame;
 
             [UsedImplicitly]
             public void Execute(ref MoodHunger moodHunger)
             {
-                moodHunger.Hunger += DeltaTime;
+                moodHunger.Hunger += HungerPerFrame;
             }
         }
     }

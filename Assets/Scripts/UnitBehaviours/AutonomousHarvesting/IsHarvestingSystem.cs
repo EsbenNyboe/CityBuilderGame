@@ -100,10 +100,10 @@ namespace UnitBehaviours.AutonomousHarvesting
             switch (harvestableType)
             {
                 case HarvestableType.Tree:
-                    soundManager.ChopSoundRequests.Enqueue(soundPosition);
+                    soundManager.ChopTreeSoundRequests.Enqueue(soundPosition);
                     break;
                 case HarvestableType.BerryBush:
-
+                    soundManager.ChopBerryBushSoundRequests.Enqueue(soundPosition);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(harvestableType), harvestableType, null);
@@ -140,6 +140,7 @@ namespace UnitBehaviours.AutonomousHarvesting
                     soundManager.DestroyTreeSoundRequests.Enqueue(soundOrigin);
                     break;
                 case HarvestableType.BerryBush:
+                    soundManager.DestroyBerryBushSoundRequests.Enqueue(soundOrigin);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(harvestableType), harvestableType, null);

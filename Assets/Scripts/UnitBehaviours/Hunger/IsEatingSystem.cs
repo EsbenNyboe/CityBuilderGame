@@ -54,7 +54,7 @@ namespace UnitBehaviours.Hunger
 
                 if (inventory.ValueRO.CurrentDurability > 0)
                 {
-                    moodHunger.ValueRW.Hunger += unitBehaviourManager.HungerPerSec * SystemAPI.Time.DeltaTime * timeScale;
+                    moodHunger.ValueRW.Hunger += unitBehaviourManager.HungerPerSecWhenEating * SystemAPI.Time.DeltaTime * timeScale;
                     inventory.ValueRW.CurrentDurability += unitBehaviourManager.DurabilityPerSec * SystemAPI.Time.DeltaTime * timeScale;
                 }
                 else

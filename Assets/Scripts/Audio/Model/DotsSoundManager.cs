@@ -6,8 +6,9 @@ namespace Audio
 {
     public struct DotsSoundManager : IComponentData
     {
-        // TODO: Test what happens when enqueuing from multiple cores at the same time.
-        public NativeQueue<float3> ChopSoundRequests;
+        public NativeQueue<float3> ChopTreeSoundRequests;
         public NativeQueue<float3> DestroyTreeSoundRequests;
+        public NativeQueue<float3> ChopBerryBushSoundRequests;
+        public NativeQueue<float3> DestroyBerryBushSoundRequests;
     }
 }
