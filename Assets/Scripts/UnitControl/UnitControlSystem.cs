@@ -253,6 +253,7 @@ namespace UnitControl
 
                 ForceUnitToSelectPath(ecb, ref gridManager, entity, GridHelpers.GetXY(localTransform.ValueRO.Position),
                     endPosition);
+                // TODO: Consider updating this to include BerryBush
                 ecb.AddComponent<IsSeekingTree>(entity);
             }
         }
@@ -315,6 +316,7 @@ namespace UnitControl
             ecb.RemoveComponent<AttackAnimation>(entity);
             ecb.RemoveComponent<IsHarvesting>(entity);
             ecb.RemoveComponent<IsSeekingTree>(entity);
+            ecb.RemoveComponent<IsSeekingBerryBush>(entity);
             ecb.RemoveComponent<IsSeekingRoomyStorage>(entity);
 
             ecb.RemoveComponent<IsSleeping>(entity);

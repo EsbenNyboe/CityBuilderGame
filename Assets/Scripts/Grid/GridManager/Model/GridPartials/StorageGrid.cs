@@ -11,10 +11,11 @@ namespace Grid
         public int ItemCountLog;
         public int ItemCountRawMeat;
         public int ItemCountCookedMeat;
+        public int ItemCountBerry;
 
         public readonly int ItemCount()
         {
-            return ItemCountLog + ItemCountRawMeat + ItemCountCookedMeat;
+            return ItemCountLog + ItemCountRawMeat + ItemCountCookedMeat + ItemCountBerry;
         }
     }
 
@@ -30,6 +31,7 @@ namespace Grid
                 InventoryItem.LogOfWood => StorageGrid[i].ItemCountLog,
                 InventoryItem.RawMeat => StorageGrid[i].ItemCountRawMeat,
                 InventoryItem.CookedMeat => StorageGrid[i].ItemCountCookedMeat,
+                InventoryItem.BunchOfBerries => StorageGrid[i].ItemCountBerry,
                 _ => throw new ArgumentOutOfRangeException(nameof(item), item, null)
             };
         }
@@ -50,6 +52,9 @@ namespace Grid
                     break;
                 case InventoryItem.CookedMeat:
                     storageCell.ItemCountCookedMeat = itemCount;
+                    break;
+                case InventoryItem.BunchOfBerries:
+                    storageCell.ItemCountBerry = itemCount;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(item), item, null);

@@ -9,6 +9,7 @@ namespace Grid.SaveLoad
     {
         public int2 GridSize;
         public int2[] Trees = Array.Empty<int2>();
+        public int2[] BerryBushes = Array.Empty<int2>();
         public int2[] Beds = Array.Empty<int2>();
         public int2[] Storages = Array.Empty<int2>();
         public int2[] Bonfires = Array.Empty<int2>();

@@ -42,8 +42,7 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 13
-  m_BakeOnSceneLoad: 0
+  serializedVersion: 12
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -151,6 +150,7 @@ MonoBehaviour:
   _villagerPrefab: {fileID: 4976699055111691379, guid: 22224e3eda44f3946a44cb6d2958434d, type: 3}
   _boarPrefab: {fileID: 4976699055111691379, guid: 72cee0b8cc737864ebcb2d52e664506d, type: 3}
   _treePrefab: {fileID: 1066731238684271649, guid: 6fca584db7f958344848bc1832d12393, type: 3}
+  _berryBushPrefab: {fileID: 1066731238684271649, guid: adb16950412f4ef4e867bca51c37c9b9, type: 3}
   _bedPrefab: {fileID: 1066731238684271649, guid: 676e85865ccbc6046bbec0efbb6f7996, type: 3}
   _storagePrefab: {fileID: 1066731238684271649, guid: 3936afcf6c89b2742a0369cedf3301d7, type: 3}
   _housePrefab: {fileID: 1066731238684271649, guid: 2752522b7b0c99a41877c57e807ba50b, type: 3}

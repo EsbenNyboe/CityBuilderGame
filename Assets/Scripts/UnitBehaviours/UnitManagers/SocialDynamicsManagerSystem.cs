@@ -17,6 +17,7 @@ namespace UnitBehaviours.UnitManagers
             singleton.ThresholdForBecomingAnnoying = config.ThresholdForBecomingAnnoying;
             singleton.ImpactOnBedBeingOccupied = config.ImpactOnBedBeingOccupied;
             singleton.OnUnitAttackTree = config.OnUnitAttackTree;
+            singleton.OnUnitAttackBerryBush = config.OnUnitAttackBerryBush;
             singleton.OnUnitAttackUnit = config.OnUnitAttackUnit;
             SystemAPI.SetSingleton(singleton);
         }

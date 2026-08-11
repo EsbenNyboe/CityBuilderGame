@@ -8,6 +8,12 @@ namespace Inventory
         public InventoryItem CurrentItem;
         public float CurrentDurability;
 
+        public InventoryState(InventoryItem inventoryItem, float durability)
+        {
+            CurrentItem = inventoryItem;
+            CurrentDurability = durability;
+        }
+
         public void InsertItem(InventoryItem item)
         {
             CurrentItem = item;
@@ -26,6 +32,7 @@ namespace Inventory
         None,
         LogOfWood,
         RawMeat,
-        CookedMeat
+        CookedMeat,
+        BunchOfBerries
     }
 }

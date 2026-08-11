@@ -7,8 +7,10 @@ namespace Audio
 {
     public class SoundManager : MonoBehaviour
     {
-        [SerializeField] private SoundConfig _chopSound;
+        [SerializeField] private SoundConfig _chopTreeSound;
         [SerializeField] private SoundConfig _destroyTreeSound;
+        [SerializeField] private SoundConfig _chopBerryBushSound;
+        [SerializeField] private SoundConfig _destroyBerryBushSound;
         [SerializeField] private SoundConfig _dieSound;
         [SerializeField] private SoundConfig _babyDieSound;
         [SerializeField] private MultiSoundConfigObject _damageSound;
@@ -35,15 +37,26 @@ namespace Audio
             }
         }
 
-        public void PlayChopSound(Vector3 position)
+        public void PlayChopTreeSound(Vector3 position)
         {
-            PlayAtPosition(_chopSound, position);
+            PlayAtPosition(_chopTreeSound, position);
         }
 
         public void PlayDestroyTreeSound(Vector3 position)
         {
             PlayAtPosition(_destroyTreeSound, position);
         }
+
+        public void PlayChopBerryBushSound(float3 position)
+        {
+            PlayAtPosition(_chopBerryBushSound, position);
+        }
+
+        public void PlayDestroyBerryBushSound(float3 position)
+        {
+            PlayAtPosition(_destroyBerryBushSound, position);
+        }
+
 
         public void PlayDeathSound(Vector3 position)
         {

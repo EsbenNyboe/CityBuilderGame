@@ -9,6 +9,7 @@ namespace UnitBehaviours.UnitManagers
         public float ThresholdForBecomingAnnoying;
         public float ImpactOnBedBeingOccupied;
         public SocialEventConfig OnUnitAttackTree;
+        public SocialEventConfig OnUnitAttackBerryBush;
         public SocialEventConfig OnUnitAttackUnit;
     }
 

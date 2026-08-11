@@ -57,6 +57,7 @@ namespace Grid.SaveLoad
                 _saveSlots[i].Houses = GetCleanedUpDataList(_saveSlots[i].Houses);
                 _saveSlots[i].Beds = GetCleanedUpDataList(_saveSlots[i].Beds);
                 _saveSlots[i].Trees = GetCleanedUpDataList(_saveSlots[i].Trees);
+                _saveSlots[i].BerryBushes = GetCleanedUpDataList(_saveSlots[i].BerryBushes);
                 _saveSlots[i].Villagers = GetCleanedUpDataList(_saveSlots[i].Villagers);
                 _saveSlots[i].Boars = GetCleanedUpDataList(_saveSlots[i].Boars);
 #if UNITY_EDITOR
@@ -97,7 +98,8 @@ namespace Grid.SaveLoad
             return cleanedUpDataList.ToArray();
         }
 
-        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] beds, int2[] storages, int2[] bonfires, int2[] houses, float3[] villagers,
+        public void SaveDataToSaveSlot(int2 gridSize, int2[] trees, int2[] berryBushes, int2[] beds, int2[] storages, int2[] bonfires, int2[] houses,
+            float3[] villagers,
             float3[] boars)
         {
             Assert.IsTrue(SlotToSave > -1 && SlotToSave < _saveSlots.Length);
@@ -105,6 +107,7 @@ namespace Grid.SaveLoad
             var saveSlot = _saveSlots[SlotToSave];
             saveSlot.GridSize = gridSize;
             saveSlot.Trees = trees;
+            saveSlot.BerryBushes = berryBushes;
             saveSlot.Beds = beds;
             saveSlot.Storages = storages;
             saveSlot.Bonfires = bonfires;
@@ -124,6 +127,7 @@ namespace Grid.SaveLoad
             var saveSlot = _saveSlots[SlotToDelete];
             saveSlot.GridSize = 0;
             saveSlot.Trees = Array.Empty<int2>();
+            saveSlot.BerryBushes = Array.Empty<int2>();
             saveSlot.Beds = Array.Empty<int2>();
             saveSlot.Storages = Array.Empty<int2>();
             saveSlot.Bonfires = Array.Empty<int2>();
@@ -140,6 +144,12 @@ namespace Grid.SaveLoad
         {
             Assert.IsTrue(SlotToLoad > -1 && SlotToLoad < _saveSlots.Length);
             return _saveSlots[SlotToLoad].Trees;
+        }
+
+        public int2[] LoadSavedBerryBushes()
+        {
+            Assert.IsTrue(SlotToLoad > -1 && SlotToLoad < _saveSlots.Length);
+            return _saveSlots[SlotToLoad].BerryBushes;
         }
 
         public int2[] LoadSavedBeds()

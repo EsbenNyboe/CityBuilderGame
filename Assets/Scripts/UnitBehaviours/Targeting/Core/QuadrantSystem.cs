@@ -23,6 +23,7 @@ namespace UnitBehaviours.Targeting.Core
         public NativeParallelMultiHashMap<int, QuadrantData> VillagerQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> BoarQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> DroppedLogQuadrantMap;
+        public NativeParallelMultiHashMap<int, QuadrantData> DroppedBerryQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> DroppedRawMeatQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> DroppedCookedMeatQuadrantMap;
         public NativeParallelMultiHashMap<int, QuadrantData> StorageQuadrantMap;
@@ -98,6 +99,9 @@ namespace UnitBehaviours.Targeting.Core
                 DroppedLogQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _droppedItemQuery.CalculateEntityCount(),
                     Allocator.Persistent),
+                DroppedBerryQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
+                    _droppedItemQuery.CalculateEntityCount(),
+                    Allocator.Persistent),
                 DroppedRawMeatQuadrantMap = new NativeParallelMultiHashMap<int, QuadrantData>(
                     _droppedItemQuery.CalculateEntityCount(),
                     Allocator.Persistent),
@@ -129,6 +133,7 @@ namespace UnitBehaviours.Targeting.Core
             quadrantDataManager.VillagerQuadrantMap.Dispose();
             quadrantDataManager.BoarQuadrantMap.Dispose();
             quadrantDataManager.DroppedLogQuadrantMap.Dispose();
+            quadrantDataManager.DroppedBerryQuadrantMap.Dispose();
             quadrantDataManager.DroppedRawMeatQuadrantMap.Dispose();
             quadrantDataManager.DroppedCookedMeatQuadrantMap.Dispose();
             quadrantDataManager.StorageQuadrantMap.Dispose();
@@ -154,6 +159,8 @@ namespace UnitBehaviours.Targeting.Core
             BuildQuadrantMap(ref state, gridManager, _boarQuery, quadrantDataManager.BoarQuadrantMap);
             BuildQuadrantMapOfDroppedItem(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedLogQuadrantMap,
                 InventoryItem.LogOfWood);
+            BuildQuadrantMapOfDroppedItem(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedBerryQuadrantMap,
+                InventoryItem.BunchOfBerries);
             BuildQuadrantMapOfDroppedItem(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedRawMeatQuadrantMap,
                 InventoryItem.RawMeat);
             BuildQuadrantMapOfDroppedItem(ref state, gridManager, _droppedItemQuery, quadrantDataManager.DroppedCookedMeatQuadrantMap,

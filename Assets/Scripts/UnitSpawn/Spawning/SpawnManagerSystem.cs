@@ -139,6 +139,13 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
+                case SpawnItemType.BerryBush:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnBerryBush(ecb, ref gridManager, worldSpriteSheetManager, cell, spawnManager.BerryBushPrefab);
+                    }
+
+                    break;
                 case SpawnItemType.Bed:
                     foreach (var cell in cellList)
                     {
@@ -171,6 +178,13 @@ namespace UnitSpawn.Spawning
                     foreach (var cell in cellList)
                     {
                         TrySpawnDroppedItem(ecb, ref gridManager, cell, InventoryItem.LogOfWood);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedBerry:
+                    foreach (var cell in cellList)
+                    {
+                        TrySpawnDroppedItem(ecb, ref gridManager, cell, InventoryItem.BunchOfBerries);
                     }
 
                     break;
@@ -217,6 +231,13 @@ namespace UnitSpawn.Spawning
                     }
 
                     break;
+                case SpawnItemType.BerryBush:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteBerryBush(ecb, ref gridManager, cell);
+                    }
+
+                    break;
                 case SpawnItemType.Bed:
                     foreach (var cell in cellList)
                     {
@@ -246,6 +267,13 @@ namespace UnitSpawn.Spawning
 
                     break;
                 case SpawnItemType.DroppedLog:
+                    foreach (var cell in cellList)
+                    {
+                        TryDeleteDroppedItem(ecb, ref gridManager, cell, brushSize);
+                    }
+
+                    break;
+                case SpawnItemType.DroppedBerry:
                     foreach (var cell in cellList)
                     {
                         TryDeleteDroppedItem(ecb, ref gridManager, cell, brushSize);
@@ -347,9 +375,35 @@ namespace UnitSpawn.Spawning
             }
         }
 
+        private void TrySpawnBerryBush(EntityCommandBuffer ecb, ref GridManager gridManager, WorldSpriteSheetManager worldSpriteSheetManager,
+            int2 cell,
+            Entity prefab)
+        {
+            if (gridManager.IsPositionInsideGrid(cell) && gridManager.IsWalkable(cell) &&
+                !gridManager.IsBed(cell) && !gridManager.HasGridEntity(cell))
+            {
+                gridManager.SetIsWalkable(cell, false);
+                gridManager.SetHealthToMax(cell);
+                SpawnGridEntity(EntityManager, ecb, gridManager, worldSpriteSheetManager, cell, prefab, GridEntityType.BerryBush,
+                    WorldSpriteSheetEntryType.HarvestableBerryBush);
+            }
+        }
+
         private void TryDeleteTree(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
         {
             if (gridManager.IsPositionInsideGrid(position) && gridManager.TryGetTreeEntity(position, out var entity))
+            {
+                gridManager.SetHealthToZero(position);
+
+                gridManager.SetIsWalkable(position, true);
+                gridManager.RemoveGridEntity(position);
+                ecb.DestroyEntity(entity);
+            }
+        }
+
+        private void TryDeleteBerryBush(EntityCommandBuffer ecb, ref GridManager gridManager, int2 position)
+        {
+            if (gridManager.IsPositionInsideGrid(position) && gridManager.TryGetBerryBushEntity(position, out var entity))
             {
                 gridManager.SetHealthToZero(position);
 
@@ -369,6 +423,7 @@ namespace UnitSpawn.Spawning
                 gridManager.SetIsWalkable(cell, false);
                 gridManager.SetDefaultStorageCapacity(cell);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.LogOfWood);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.BunchOfBerries);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.RawMeat);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.CookedMeat);
 
@@ -387,6 +442,7 @@ namespace UnitSpawn.Spawning
                 gridManager.RemoveGridEntity(cell);
                 gridManager.SetStorageCapacity(cell, 0);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.LogOfWood);
+                gridManager.SetStorageCount(cell, 0, InventoryItem.BunchOfBerries);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.RawMeat);
                 gridManager.SetStorageCount(cell, 0, InventoryItem.CookedMeat);
 
@@ -459,7 +515,7 @@ namespace UnitSpawn.Spawning
             }
         }
 
-        private void TryDeleteBed( EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
+        private void TryDeleteBed(EntityCommandBuffer ecb, ref GridManager gridManager, int2 cell)
         {
             if (gridManager.IsPositionInsideGrid(cell) &&
                 gridManager.IsBed(cell) &&

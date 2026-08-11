@@ -12,19 +12,21 @@ namespace Audio
             EntityManager.AddComponent<DotsSoundManager>(SystemHandle);
             SystemAPI.SetComponent(SystemHandle, new DotsSoundManager
             {
-                ChopSoundRequests = new NativeQueue<float3>(Allocator.Persistent),
-                DestroyTreeSoundRequests = new NativeQueue<float3>(Allocator.Persistent)
+                ChopTreeSoundRequests = new NativeQueue<float3>(Allocator.Persistent),
+                DestroyTreeSoundRequests = new NativeQueue<float3>(Allocator.Persistent),
+                ChopBerryBushSoundRequests = new NativeQueue<float3>(Allocator.Persistent),
+                DestroyBerryBushSoundRequests = new NativeQueue<float3>(Allocator.Persistent)
             });
         }
 
         protected override void OnUpdate()
         {
             var dotsSoundManager = SystemAPI.GetComponent<DotsSoundManager>(SystemHandle);
-            var chopSoundRequests = dotsSoundManager.ChopSoundRequests;
-            while (chopSoundRequests.Count > 0)
+            var chopTreeSoundRequests = dotsSoundManager.ChopTreeSoundRequests;
+            while (chopTreeSoundRequests.Count > 0)
             {
-                var position = chopSoundRequests.Dequeue();
-                SoundManager.Instance.PlayChopSound(position);
+                var position = chopTreeSoundRequests.Dequeue();
+                SoundManager.Instance.PlayChopTreeSound(position);
             }
 
             var destroyTreeSoundRequests = dotsSoundManager.DestroyTreeSoundRequests;
@@ -32,13 +34,28 @@ namespace Audio
             {
                 SoundManager.Instance.PlayDestroyTreeSound(destroyTreeSoundRequests.Dequeue());
             }
+
+            var chopBerryBushSoundRequests = dotsSoundManager.ChopBerryBushSoundRequests;
+            while (chopBerryBushSoundRequests.Count > 0)
+            {
+                var position = chopBerryBushSoundRequests.Dequeue();
+                SoundManager.Instance.PlayChopBerryBushSound(position);
+            }
+
+            var destroyBerryBushSoundRequests = dotsSoundManager.DestroyBerryBushSoundRequests;
+            while (destroyBerryBushSoundRequests.Count > 0)
+            {
+                SoundManager.Instance.PlayDestroyBerryBushSound(destroyBerryBushSoundRequests.Dequeue());
+            }
         }
 
         protected override void OnDestroy()
         {
             var dotsSoundManager = SystemAPI.GetComponent<DotsSoundManager>(SystemHandle);
-            dotsSoundManager.ChopSoundRequests.Dispose();
+            dotsSoundManager.ChopTreeSoundRequests.Dispose();
             dotsSoundManager.DestroyTreeSoundRequests.Dispose();
+            dotsSoundManager.ChopBerryBushSoundRequests.Dispose();
+            dotsSoundManager.DestroyBerryBushSoundRequests.Dispose();
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Statistics.StatsDisplays
             return currentStatsValuePerSecond;
         }
 
-        protected override void OnUpdate()
+        protected override void OnValueSet()
         {
             _valuePerSecond *= 1 - Time.deltaTime;
         }

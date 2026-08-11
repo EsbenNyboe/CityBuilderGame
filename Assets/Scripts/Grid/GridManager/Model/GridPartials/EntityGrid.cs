@@ -12,7 +12,8 @@ namespace Grid
         Tree,
         House,
         Bed,
-        Bonfire
+        Bonfire,
+        BerryBush
     }
 
     public partial struct GridManager
@@ -207,6 +208,21 @@ namespace Grid
         public bool TryGetTreeEntity(int gridIndex, out Entity entity)
         {
             return TryGetGridEntityOfType(gridIndex, GridEntityType.Tree, out entity);
+        }
+
+        public bool TryGetBerryBushEntity(Vector3 position, out Entity entity)
+        {
+            return TryGetGridEntityOfType(position, GridEntityType.BerryBush, out entity);
+        }
+
+        public bool TryGetBerryBushEntity(int2 cell, out Entity entity)
+        {
+            return TryGetGridEntityOfType(cell, GridEntityType.BerryBush, out entity);
+        }
+
+        public bool TryGetBerryBushEntity(int gridIndex, out Entity entity)
+        {
+            return TryGetGridEntityOfType(gridIndex, GridEntityType.BerryBush, out entity);
         }
 
         private bool TryGetGridEntityOfType(Vector3 position, GridEntityType type, out Entity entity)

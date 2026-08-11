@@ -1,4 +1,5 @@
-﻿using Audio;
+﻿using System;
+using Audio;
 using Grid;
 using Inventory;
 using SpriteTransformNS;
@@ -14,6 +15,7 @@ using UnityEngine;
 
 namespace UnitBehaviours.AutonomousHarvesting
 {
+    // TODO: Need to create a system for harvesting berry bushes!
     [UpdateInGroup(typeof(UnitBehaviourGridWritingSystemGroup))]
     public partial struct IsHarvestingSystem : ISystem
     {
@@ -39,12 +41,13 @@ namespace UnitBehaviours.AutonomousHarvesting
             var unitBehaviourManager = SystemAPI.GetSingleton<UnitBehaviourManager>();
             var socialDynamicsManager = SystemAPI.GetSingleton<SocialDynamicsManager>();
 
-            foreach (var (attackAnimation, inventory, localTransform, entity)
+            foreach (var (isHarvesting, attackAnimation, inventory, localTransform, entity)
                      in SystemAPI
-                         .Query<RefRW<AttackAnimation>, RefRW<InventoryState>, RefRO<LocalTransform>>()
-                         .WithEntityAccess().WithAll<IsHarvesting>())
+                         .Query<RefRO<IsHarvesting>, RefRW<AttackAnimation>, RefRW<InventoryState>, RefRO<LocalTransform>>()
+                         .WithEntityAccess())
             {
-                if (!gridManager.IsDamageable((int2)attackAnimation.ValueRO.Target))
+                var target = (int2)attackAnimation.ValueRO.Target;
+                if (inventory.ValueRO.CurrentItem != InventoryItem.None || !gridManager.IsDamageable(target))
                 {
                     ecb.RemoveComponent<IsHarvesting>(entity);
                     attackAnimation.ValueRW.MarkedForDeletion = true;
@@ -54,20 +57,27 @@ namespace UnitBehaviours.AutonomousHarvesting
 
                 if (attackAnimation.ValueRO.TimeLeft <= 0)
                 {
+                    var socialEventConfig = isHarvesting.ValueRO.HarvestableType switch
+                    {
+                        HarvestableType.Tree => socialDynamicsManager.OnUnitAttackTree,
+                        HarvestableType.BerryBush => socialDynamicsManager.OnUnitAttackBerryBush,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
                     var socialEventEntity = ecb.CreateEntity();
                     ecb.AddComponent(socialEventEntity, new SocialEvent
                     {
                         Perpetrator = entity,
                         Position = localTransform.ValueRO.Position,
-                        InfluenceAmount = socialDynamicsManager.OnUnitAttackTree.InfluenceAmount,
-                        InfluenceRadius = socialDynamicsManager.OnUnitAttackTree.InfluenceRadius
+                        InfluenceAmount = socialEventConfig.InfluenceAmount,
+                        InfluenceRadius = socialEventConfig.InfluenceRadius
                     });
 
-                    ChopTree(ecb,
+                    Attack(ecb,
                         soundManager,
                         ref gridManager,
                         unitBehaviourManager,
-                        (int2)attackAnimation.ValueRO.Target,
+                        isHarvesting.ValueRO.HarvestableType,
+                        target,
                         inventory);
                     attackAnimation.ValueRW.TimeLeft = attackAnimationManager.AttackDuration;
                 }
@@ -76,45 +86,85 @@ namespace UnitBehaviours.AutonomousHarvesting
             SystemAPI.SetSingleton(gridManager);
         }
 
-        private void ChopTree(EntityCommandBuffer ecb,
+        private void Attack(EntityCommandBuffer ecb,
             DotsSoundManager soundManager,
             ref GridManager gridManager,
             UnitBehaviourManager unitBehaviourManager,
-            int2 treeCoords,
+            HarvestableType harvestableType,
+            int2 harvestableCoords,
             RefRW<InventoryState> inventory)
         {
-            var treeGridIndex = gridManager.GetIndex(treeCoords);
-            gridManager.AddDamage(treeGridIndex, unitBehaviourManager.DamagePerChop);
-            var soundPosition = GridHelpers.GetWorldPosition(treeCoords.x, treeCoords.y);
-            soundManager.ChopSoundRequests.Enqueue(soundPosition);
-
-            // If this damage I just did caused the tree's health to drop to zero...
-            if (!gridManager.IsDamageable(treeGridIndex))
+            var harvestableGridIndex = gridManager.GetIndex(harvestableCoords);
+            gridManager.AddDamage(harvestableGridIndex, unitBehaviourManager.DamagePerChop);
+            var soundPosition = GridHelpers.GetWorldPosition(harvestableCoords.x, harvestableCoords.y);
+            switch (harvestableType)
             {
-                // I am the one who gets to take the log and destroys the tree
-                inventory.ValueRW.CurrentItem = InventoryItem.LogOfWood;
-                DestroyTree(ecb, soundManager, ref gridManager, treeCoords);
+                case HarvestableType.Tree:
+                    soundManager.ChopTreeSoundRequests.Enqueue(soundPosition);
+                    break;
+                case HarvestableType.BerryBush:
+                    soundManager.ChopBerryBushSoundRequests.Enqueue(soundPosition);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(harvestableType), harvestableType, null);
+            }
+
+            // If this damage I just did caused the damageable's health to drop to zero...
+            if (!gridManager.IsDamageable(harvestableGridIndex))
+            {
+                // I am the one who gets to take the loot and destroy the entity
+                inventory.ValueRW.CurrentItem = harvestableType switch
+                {
+                    HarvestableType.Tree => InventoryItem.LogOfWood,
+                    HarvestableType.BerryBush => InventoryItem.BunchOfBerries,
+                    _ => throw new ArgumentOutOfRangeException(nameof(harvestableType), harvestableType, null)
+                };
+                DestroyHarvestable(ecb, soundManager, ref gridManager, harvestableCoords, harvestableType);
+            }
+            else if (gridManager.IsBerryBush(harvestableCoords))
+            {
+                // Everyone gets a berry, if they hit the berry bush!
+                inventory.ValueRW.CurrentItem = InventoryItem.BunchOfBerries;
             }
         }
 
-        private void DestroyTree(EntityCommandBuffer ecb,
+        private void DestroyHarvestable(EntityCommandBuffer ecb,
             DotsSoundManager soundManager,
             ref GridManager gridManager,
-            int2 treeCell
-        )
+            int2 harvestableCell, HarvestableType harvestableType)
         {
-            var soundOrigin = GridHelpers.GetWorldPosition(treeCell.x, treeCell.y);
-            soundManager.DestroyTreeSoundRequests.Enqueue(soundOrigin);
-            gridManager.SetIsWalkable(treeCell, true);
-            gridManager.SetHealth(treeCell, 0);
-            if (gridManager.TryGetTreeEntity(treeCell, out var treeEntity))
+            var soundOrigin = GridHelpers.GetWorldPosition(harvestableCell.x, harvestableCell.y);
+            switch (harvestableType)
             {
-                gridManager.RemoveGridEntity(treeCell);
-                ecb.DestroyEntity(treeEntity);
+                case HarvestableType.Tree:
+                    soundManager.DestroyTreeSoundRequests.Enqueue(soundOrigin);
+                    break;
+                case HarvestableType.BerryBush:
+                    soundManager.DestroyBerryBushSoundRequests.Enqueue(soundOrigin);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(harvestableType), harvestableType, null);
+            }
+
+            gridManager.SetIsWalkable(harvestableCell, true);
+            gridManager.SetHealth(harvestableCell, 0);
+
+            Entity harvestableEntity;
+            var foundGridEntity = harvestableType switch
+            {
+                HarvestableType.Tree => gridManager.TryGetTreeEntity(harvestableCell, out harvestableEntity),
+                HarvestableType.BerryBush => gridManager.TryGetBerryBushEntity(harvestableCell, out harvestableEntity),
+                _ => throw new ArgumentOutOfRangeException(nameof(harvestableType), harvestableType, null)
+            };
+
+            if (foundGridEntity)
+            {
+                gridManager.RemoveGridEntity(harvestableCell);
+                ecb.DestroyEntity(harvestableEntity);
             }
             else
             {
-                Debug.LogError("There is no tree!");
+                Debug.LogError("There is no harvetable!");
             }
         }
     }

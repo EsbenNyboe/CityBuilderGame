@@ -670,7 +670,7 @@ namespace Rendering
 
             [ReadOnly] public GridManager GridManager;
 
-            public NativeQueue<StorageRenderData> StorageRenderDataQueue { get ; set ; }
+            public NativeQueue<StorageRenderData> StorageRenderDataQueue { get; set; }
 
             public void Execute(in Entity entity, in WorldSpriteSheetState worldSpriteSheetState, in LocalTransform localTransform)
             {
@@ -709,7 +709,7 @@ namespace Rendering
                     StorageRenderDataQueue.Enqueue(new StorageRenderData
                     {
                         Entity = entity,
-                        Item = InventoryItem.LogOfWood,
+                        Item = InventoryItem.LogOfWood, // TODO: Is this even relevant?
                         Amount = storageCount
                     });
                 }
