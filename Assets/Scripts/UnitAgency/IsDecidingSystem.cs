@@ -346,7 +346,7 @@ namespace UnitAgency.Logic
                     EcbParallelWriter.AddComponent(i, entity, new IsHarvesting(HarvestableType.BerryBush));
                     EcbParallelWriter.AddComponent(i, entity, new AttackAnimation(berryBush));
                 }
-                else if (!isBaby && hasAccessToStorageWithSpace && hasAccessToCorpse && QuadrantSystem.TryFindAdjacentEntity(
+                else if (!isBaby && (isHungry || hasAccessToStorageWithSpace) && hasAccessToCorpse && QuadrantSystem.TryFindAdjacentEntity(
                              QuadrantDataManager.CorpseQuadrantMap, GridManager,
                              UnitBehaviourManager.QuadrantSearchRange,
                              localTransform.Position, entity, out var closestCorpse))

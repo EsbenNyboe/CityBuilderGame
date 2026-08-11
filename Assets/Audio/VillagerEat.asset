@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e86b5ebc29f42bd887f1fcb668bc4ce, type: 3}
   m_Name: VillagerEat
   m_EditorClassIdentifier: 
-  Volume: 0.371
-  PitchCenter: 1
+  Volume: 0.33
+  PitchCenter: 1.186
   PitchVariance: 0.134
   Clip: {fileID: 8300000, guid: 60110f8f4a1dbf547bb7bc88a31bb0a4, type: 3}
