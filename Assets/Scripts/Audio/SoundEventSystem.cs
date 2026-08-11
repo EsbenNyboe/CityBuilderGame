@@ -31,6 +31,15 @@ namespace Audio
                     case SoundEventType.BoarDeath:
                         SoundManager.Instance.PlayAtPosition(SoundManager.Instance._boarDeathSound, soundEvent.ValueRO.Position);
                         break;
+                    case SoundEventType.VillagerTalk:
+                        SoundManager.Instance.PlayAtPosition(SoundManager.Instance.VillagerTalkSound, soundEvent.ValueRO.Position);
+                        break;
+                    case SoundEventType.VillagerSleep:
+                        SoundManager.Instance.PlayAtPosition(SoundManager.Instance.VillagerSleepSound, soundEvent.ValueRO.Position);
+                        break;
+                    case SoundEventType.VillagerEat:
+                        SoundManager.Instance.PlayAtPosition(SoundManager.Instance.VillagerEatSound, soundEvent.ValueRO.Position);
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }

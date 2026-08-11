@@ -1,3 +1,4 @@
+using Audio;
 using CustomTimeCore;
 using Grid;
 using Inventory;
@@ -230,11 +231,15 @@ namespace UnitAgency.Logic
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsEating());
                     EcbParallelWriter.SetComponent(i, entity, new InventoryState(InventoryItem.BunchOfBerries, 1));
+                    EcbParallelWriter.AddComponent(i, EcbParallelWriter.CreateEntity(i),
+                        new SoundEvent(localTransform.Position, SoundEventType.VillagerEat));
                 }
                 else if (HasCookedMeat(inventory) && isHungry)
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsEating());
                     EcbParallelWriter.SetComponent(i, entity, new InventoryState(InventoryItem.CookedMeat, 1));
+                    EcbParallelWriter.AddComponent(i, EcbParallelWriter.CreateEntity(i),
+                        new SoundEvent(localTransform.Position, SoundEventType.VillagerEat));
                 }
                 else if (!isBaby && HasRawMeat(inventory) && isHungry && hasAccessToBonfire)
                 {
@@ -324,6 +329,8 @@ namespace UnitAgency.Logic
                 else if (isSleepy && GridManager.IsBedAvailableToUnit(position, entity))
                 {
                     EcbParallelWriter.AddComponent(i, entity, new IsSleeping());
+                    EcbParallelWriter.AddComponent(i, EcbParallelWriter.CreateEntity(i),
+                        new SoundEvent(localTransform.Position, SoundEventType.VillagerSleep));
                 }
                 else if (isSleepy && hasInitiative && hasAccessToBed)
                 {

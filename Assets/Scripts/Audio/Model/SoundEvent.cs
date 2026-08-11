@@ -7,6 +7,12 @@ namespace Audio
     {
         public float3 Position;
         public SoundEventType Type;
+
+        public SoundEvent(float3 position, SoundEventType type)
+        {
+            Position = position;
+            Type = type;
+        }
     }
 
     public enum SoundEventType
@@ -14,6 +20,9 @@ namespace Audio
         SpearThrow,
         SpearHit,
         BoarCharge,
-        BoarDeath
+        BoarDeath,
+        VillagerTalk,
+        VillagerSleep,
+        VillagerEat
     }
 }

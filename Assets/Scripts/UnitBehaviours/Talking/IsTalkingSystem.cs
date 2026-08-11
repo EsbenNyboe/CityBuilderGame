@@ -1,3 +1,4 @@
+using Audio;
 using CustomTimeCore;
 using Grid;
 using SpriteTransformNS;
@@ -37,13 +38,14 @@ namespace UnitBehaviours.Talking
             var isTalkingLookup = SystemAPI.GetComponentLookup<IsTalking>();
 
             // Initialization:
-            foreach (var (_, entity) in SystemAPI.Query<RefRO<SocialRelationships>>().WithDisabled<IsTalking>()
+            foreach (var (_, localTransform, entity) in SystemAPI.Query<RefRO<SocialRelationships>, RefRO<LocalTransform>>().WithDisabled<IsTalking>()
                          .WithEntityAccess())
             {
                 if (TryFindConversationToEngageIn(ref state, entity))
                 {
                     // I will start talking!
                     ecb.SetComponentEnabled<IsTalking>(entity, true);
+                    ecb.AddComponent(ecb.CreateEntity(), new SoundEvent(localTransform.ValueRO.Position, SoundEventType.VillagerTalk));
                 }
                 else
                 {

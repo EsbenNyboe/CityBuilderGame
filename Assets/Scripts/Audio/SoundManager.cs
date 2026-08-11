@@ -18,6 +18,9 @@ namespace Audio
         public MultiSoundConfigObject _spearThrowSound;
         public SingleSoundConfigObject _boarDeathSound;
         public SingleSoundConfigObject _boarChargeSound;
+        public SingleSoundConfigObject VillagerTalkSound;
+        public SingleSoundConfigObject VillagerSleepSound;
+        public SingleSoundConfigObject VillagerEatSound;
 
         [SerializeField] private SoundConfigObject _previewSound;
 

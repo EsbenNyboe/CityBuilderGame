@@ -64,11 +64,7 @@ namespace UnitBehaviours.Targeting
                                 Position = spearPosition,
                                 TargetType = UnitType.Boar
                             });
-                            ecb.AddComponent(ecb.CreateEntity(), new SoundEvent
-                            {
-                                Position = spearPosition,
-                                Type = SoundEventType.SpearHit
-                            });
+                            ecb.AddComponent(ecb.CreateEntity(), new SoundEvent(spearPosition, SoundEventType.SpearHit));
                         }
 
                         break;

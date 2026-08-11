@@ -112,8 +112,7 @@ namespace UnitBehaviours.Targeting
                     );
                     ecb.AddComponent(
                         ecb.CreateEntity(),
-                        new SoundEvent { Position = position, Type = SoundEventType.SpearThrow }
-                    );
+                        new SoundEvent(position, SoundEventType.SpearThrow));
                 }
             }
         }

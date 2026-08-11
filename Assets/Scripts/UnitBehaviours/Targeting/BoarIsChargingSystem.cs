@@ -58,11 +58,7 @@ namespace UnitBehaviours.Targeting
                     CurrentDistanceToTarget = closestTargetDistance,
                     DesiredRange = IsAttemptingMurderSystem.AttackRange
                 });
-                ecb.AddComponent(ecb.CreateEntity(), new SoundEvent
-                {
-                    Position = position,
-                    Type = SoundEventType.BoarCharge
-                });
+                ecb.AddComponent(ecb.CreateEntity(), new SoundEvent(position, SoundEventType.BoarCharge));
             }
         }
     }
